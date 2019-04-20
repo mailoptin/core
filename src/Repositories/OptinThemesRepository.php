@@ -230,8 +230,8 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/rescript-slidein.png'
             ],
             [
-                'name'        => 'Design 1',
-                'optin_class' => 'Design_1',
+                'name'        => 'Alyssum',
+                'optin_class' => 'Alyssum',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/Design_1/design_1.png'
