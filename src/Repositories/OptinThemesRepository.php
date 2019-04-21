@@ -234,7 +234,7 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Alyssum',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/Design_1/design_1.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/alyssum/alyssum-lightbox.png'
             ],
             [
                 'name'        => 'Design 2',
