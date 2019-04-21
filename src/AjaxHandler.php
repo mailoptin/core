@@ -630,10 +630,12 @@ class AjaxHandler
     {
         if ( ! isset($_REQUEST['optin_data'])) wp_send_json_error();
 
-        $builder                    = new ConversionDataBuilder();
-        $builder->payload           = $payload = apply_filters('mailoptin_optin_subscription_request_body', sanitize_data($_REQUEST['optin_data']));
-        $builder->optin_uuid        = $optin_uuid = $payload['optin_uuid'];
-        $builder->optin_campaign_id = absint(OptinCampaignsRepository::get_optin_campaign_id_by_uuid($optin_uuid));
+
+        $builder             = new ConversionDataBuilder();
+        $builder->payload    = $payload = apply_filters('mailoptin_optin_subscription_request_body', sanitize_data($_REQUEST['optin_data']));
+        $builder->optin_uuid = $optin_uuid = $payload['optin_uuid'];
+
+        $builder->optin_campaign_id = isset($payload['optin_campaign_id']) && ! empty($payload['optin_campaign_id']) ? absint($payload['optin_campaign_id']) : absint(OptinCampaignsRepository::get_optin_campaign_id_by_uuid($optin_uuid));
         $builder->email             = $payload['email'];
         $builder->name              = isset($payload['name']) ? $payload['name'] : '';
         $builder->user_agent        = $payload['user_agent'];

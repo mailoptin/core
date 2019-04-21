@@ -793,6 +793,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
 
                         optin_data = $.extend({}, all_form_fields_and_values, {
                             optin_uuid: $optin_uuid,
+                            optin_campaign_id: optin_js_config.optin_campaign_id,
                             email: $('input#' + $optin_css_id + '_email_field').val(),
                             name: $('input#' + $optin_css_id + '_name_field').val(),
                             _mo_timestamp: $('input#' + $optin_css_id + '_honeypot_timestamp').val(),
