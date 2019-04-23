@@ -237,11 +237,11 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/alyssum/alyssum-lightbox.png'
             ],
             [
-                'name'        => 'Design 2',
-                'optin_class' => 'Design_2',
+                'name'        => 'Scilla',
+                'optin_class' => 'Scilla',
                 'flag'        => 'premium',
-                'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/Design_2/design_2.png'
+                'optin_type'  => 'sidebar',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/scilla/scilla-sidebar.png'
             ],
             [
                 'name'        => 'Design 3',
