@@ -31,7 +31,7 @@ class Shortcodes
 
         $id    = esc_attr($atts['id']);
         $class = esc_attr($atts['class']);
-        if (!empty($class)) {
+        if ( ! empty($class)) {
             $class = " $class";
         }
 
@@ -85,6 +85,8 @@ class Shortcodes
      */
     public function get_optin($optin_campaign_id)
     {
+        if (\MailOptin\Core\is_mailoptin_customizer_preview()) return '';
+
         // $optin_campaign_id could be null if invalid uuid is supplied.
         if ( ! $optin_campaign_id) return __('Invalid optin campaign ID', 'mailoptin');
 

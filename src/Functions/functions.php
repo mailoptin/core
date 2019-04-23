@@ -233,3 +233,8 @@ function is_mailoptin_admin_page()
 
     return (isset($_GET['page']) && in_array($_GET['page'], $mo_admin_pages_slug));
 }
+
+function is_mailoptin_customizer_preview()
+{
+    return is_customize_preview() && (isset($_GET['mailoptin_optin_campaign_id']) || isset($_GET['mailoptin_email_campaign_id']));
+}
