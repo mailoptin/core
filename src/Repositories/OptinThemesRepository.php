@@ -153,6 +153,13 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/primrose-sidebar.png'
             ],
             [
+                'name'        => 'Liatris',
+                'optin_class' => 'Liatris',
+                'flag'        => 'premium',
+                'optin_type'  => 'lightbox',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-lightbox.png'
+            ],
+            [
                 'name'        => 'Gridgum',
                 'optin_class' => 'Gridgum',
                 'flag'        => 'premium',
@@ -257,13 +264,6 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_type'  => 'lightbox',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/Design_4/design_4.png'
             ],
-            [
-                'name'        => 'Liatris',
-                'optin_class' => 'Liatris',
-                'flag'        => 'premium',
-                'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-lightbox.png'
-            ]
         ];
     }
 
