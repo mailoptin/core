@@ -359,8 +359,11 @@ class CustomizerControls
             unset($campaign_settings_controls['email_digest_schedule']);
         }
 
-        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false)) {
+        if ( ! apply_filters('mailoptin_enable_email_automation_post_category_support', false)) {
             unset($campaign_settings_controls['post_categories']);
+        }
+
+        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false)) {
             unset($campaign_settings_controls['post_tags']);
             $content = sprintf(
                 __('Upgrade to %sMailOptin Pro%s to support custom post types and restrict by post categories, tags and custom taxonomies.', 'mailoptin'),

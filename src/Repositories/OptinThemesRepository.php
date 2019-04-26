@@ -258,11 +258,11 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/Design_4/design_4.png'
             ],
             [
-                'name'        => 'Design 5',
-                'optin_class' => 'Design_5',
+                'name'        => 'Liatris',
+                'optin_class' => 'Liatris',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/design_5/image.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-lightbox.png'
             ]
         ];
     }
