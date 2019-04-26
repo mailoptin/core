@@ -258,11 +258,11 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/design_3.png'
             ],
             [
-                'name'        => 'Design 4',
-                'optin_class' => 'Design_4',
+                'name'        => 'Quince',
+                'optin_class' => 'Quince',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/Design_4/design_4.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/quince/quince-lightbox.png'
             ],
         ];
     }
