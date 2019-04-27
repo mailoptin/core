@@ -149,10 +149,12 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                         <label for="<?php echo $color_setting; ?>" class="customize-control-title"><?php _e('Color', 'mailoptin'); ?></label>
                         <input id="<?php echo $color_setting; ?>" class="mo-color-picker-hex" type="text" maxlength="7" value="<?php echo $color_field_value; ?>" placeholder="<?php echo $color_field_value; ?>" data-default-color="<?php echo $color_default; ?>" data-customize-setting-link="<?php echo $color_setting; ?>">
                     </div>
-                    <div class="mo-fields-block">
-                        <label for="<?php echo $background_setting; ?>" class="customize-control-title"><?php _e('Background', 'mailoptin'); ?></label>
-                        <input id="<?php echo $background_setting; ?>" class="mo-color-picker-hex" type="text" maxlength="7" value="<?php echo $background_field_value; ?>" placeholder="<?php echo $background_field_value; ?>" data-default-color="<?php echo $background_default; ?>" data-customize-setting-link="<?php echo $background_setting; ?>">
-                    </div>
+                    <?php if ( ! apply_filters('mo_optin_hide_name_field_background_control', false)) : ?>
+                        <div class="mo-fields-block">
+                            <label for="<?php echo $background_setting; ?>" class="customize-control-title"><?php _e('Background', 'mailoptin'); ?></label>
+                            <input id="<?php echo $background_setting; ?>" class="mo-color-picker-hex" type="text" maxlength="7" value="<?php echo $background_field_value; ?>" placeholder="<?php echo $background_field_value; ?>" data-default-color="<?php echo $background_default; ?>" data-customize-setting-link="<?php echo $background_setting; ?>">
+                        </div>
+                    <?php endif; ?>
                     <div class="mo-fields-block">
                         <label for="<?php echo $font_setting; ?>" class="customize-control-title"><?php _e('Font', 'mailoptin'); ?></label>
                         <?php $this->font_select($font_setting, $font_field_value); ?>
@@ -208,10 +210,12 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                         <label for="<?php echo $color_setting; ?>" class="customize-control-title"><?php _e('Color', 'mailoptin'); ?></label>
                         <input id="<?php echo $color_setting; ?>" class="mo-color-picker-hex" type="text" maxlength="7" value="<?php echo $color_field_value; ?>" placeholder="<?php echo $color_field_value; ?>" data-default-color="<?php echo $color_default; ?>" data-customize-setting-link="<?php echo $color_setting; ?>">
                     </div>
-                    <div class="mo-fields-block">
-                        <label for="<?php echo $background_setting; ?>" class="customize-control-title"><?php _e('Background', 'mailoptin'); ?></label>
-                        <input id="<?php echo $background_setting; ?>" class="mo-color-picker-hex" type="text" maxlength="7" value="<?php echo $background_field_value; ?>" placeholder="<?php echo $background_field_value; ?>" data-default-color="<?php echo $background_default; ?>" data-customize-setting-link="<?php echo $background_setting; ?>">
-                    </div>
+                    <?php if ( ! apply_filters('mo_optin_hide_email_field_background_control', false)) : ?>
+                        <div class="mo-fields-block">
+                            <label for="<?php echo $background_setting; ?>" class="customize-control-title"><?php _e('Background', 'mailoptin'); ?></label>
+                            <input id="<?php echo $background_setting; ?>" class="mo-color-picker-hex" type="text" maxlength="7" value="<?php echo $background_field_value; ?>" placeholder="<?php echo $background_field_value; ?>" data-default-color="<?php echo $background_default; ?>" data-customize-setting-link="<?php echo $background_setting; ?>">
+                        </div>
+                    <?php endif; ?>
                     <div class="mo-fields-block">
                         <label for="<?php echo $font_setting; ?>" class="customize-control-title"><?php _e('Font', 'mailoptin'); ?></label>
                         <?php $this->font_select($font_setting, $font_field_value); ?>

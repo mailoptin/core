@@ -251,11 +251,11 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/scilla/scilla-sidebar.png'
             ],
             [
-                'name'        => 'Design 3',
-                'optin_class' => 'Design_3',
+                'name'        => 'Solidago',
+                'optin_class' => 'Solidago',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/design_3.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/solidago-lightbox.png'
             ],
             [
                 'name'        => 'Quince',
