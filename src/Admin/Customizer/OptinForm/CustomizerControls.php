@@ -649,7 +649,29 @@ class CustomizerControls
                             'priority'    => 110
                         )
                     )
+                ),
+                'display_custom_html' => new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[display_custom_html]',
+                    apply_filters('mo_optin_form_customizer_display_custom_html_args', array(
+                            'label'       => __('Display Custom HTML', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->fields_section_id,
+                            'settings'    => $this->option_prefix . '[display_custom_html]',
+                            'description' => __('Activate to hide opt-in form and display custom instead.', 'mailoptin'),
+                            'type'        => 'light',
+                            'priority'    => 8,
+                        )
+                    )
+                ),
+                'custom_html_content' => apply_filters('mo_optin_form_customizer_custom_html_content_args', array(
+                    'type'        => 'textarea',
+                    'label'       => __('Custom HTML', 'mailoptin'),
+                    'description' => __('Shortcodes are allowed', 'mailoptin'),
+                    'section'     => $this->customizerClassInstance->fields_section_id,
+                    'settings'    => $this->option_prefix . '[custom_html_content]',
+                    'priority'    => 9,
                 )
+            ),
             ),
             $this->wp_customize,
             $this->option_prefix,

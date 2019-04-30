@@ -73,6 +73,8 @@ class AbstractCustomizer
         $defaults['note_font_size_desktop']   = apply_filters('mo_optin_form_note_font_size_desktop_default', 16, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
 
         $defaults['display_only_button']      = apply_filters('mo_optin_form_display_only_button_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['display_custom_html']      = apply_filters('mo_optin_form_display_custom_html_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['custom_html_content']      = apply_filters('mo_optin_form_custom_html_content_default', __('Type or paste your HTML here. Shortcodes are allowed.', 'mailoptin'), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['hide_name_field']          = apply_filters('mo_optin_form_hide_name_field_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['name_field_placeholder']   = apply_filters('mo_optin_form_name_field_placeholder_default', __('Enter your name here...', 'mailoptin'), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['name_field_color']         = apply_filters('mo_optin_form_name_field_color_default', '', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);

@@ -29,11 +29,28 @@
             });
         }
 
+        var display_custom_html = false;
+        api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', function (setting) {
+            display_custom_html = !setting.get();
+        })
+
         api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_only_button]', function (setting) {
             var is_display_optin_fields, is_show_cta_fields, callToActionFieldsToggle, optinFieldsDisplayToggle;
 
-            is_display_optin_fields = function () {
-                return !setting.get();
+            is_display_optin_fields = function ( control ) {
+                var to_display = !setting.get();
+                if( 'function' == typeof control ) {
+                    if( 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]' == control.id ){
+                        return to_display && display_custom_html;
+                    }
+
+                    if( 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_only_button]' == control.id ){
+                        return to_display;
+                    }
+
+                    return to_display && !display_custom_html;
+                }
+                return to_display;
             };
 
             is_show_cta_fields = function () {
@@ -42,7 +59,7 @@
 
             optinFieldsDisplayToggle = function (control) {
                 var setActiveState = function () {
-                    control.active.set(is_display_optin_fields());
+                    control.active.set(is_display_optin_fields(control));
                 };
 
                 control.active.validate = is_display_optin_fields;
@@ -75,6 +92,8 @@
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][submit_button_color]', optinFieldsDisplayToggle);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][submit_button_background]', optinFieldsDisplayToggle);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][submit_button_font]', optinFieldsDisplayToggle);
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][custom_html_content]', optinFieldsDisplayToggle);
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', optinFieldsDisplayToggle);
 
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][cta_button_header]', callToActionFieldsToggle);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][cta_button_action]', callToActionFieldsToggle);

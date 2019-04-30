@@ -205,7 +205,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             "mailoptin-optin-form-customizer-{$optin_form_name}",
             MAILOPTIN_ASSETS_URL . 'js/admin/optin-customizer.js',
             array('customize-preview', 'jquery'),
-            false,
+            filemtime(MAILOPTIN_ASSETS_DIR . 'js/admin/optin-customizer.js'),
             true
         );
 

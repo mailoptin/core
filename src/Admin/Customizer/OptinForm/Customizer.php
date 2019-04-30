@@ -382,7 +382,7 @@ class Customizer
             'mailoptin-optin-form-contextual-customizer-controls',
             MAILOPTIN_ASSETS_URL . 'js/customizer-controls/contextual-customizer-controls.js',
             array('customize-controls'),
-            MAILOPTIN_VERSION_NUMBER
+            filemtime(MAILOPTIN_ASSETS_DIR . 'js/customizer-controls/contextual-customizer-controls.js')
         );
 
         wp_enqueue_script(

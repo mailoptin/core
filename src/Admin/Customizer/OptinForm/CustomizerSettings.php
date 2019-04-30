@@ -424,6 +424,18 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),
+
+                //Custom HTML
+                'display_custom_html'   => array(
+                    'default'   => $this->customizer_defaults['display_custom_html'],
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'custom_html_content'   => array(
+                    'default'   => $this->customizer_defaults['custom_html_content'],
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
             ),
             $this
         );

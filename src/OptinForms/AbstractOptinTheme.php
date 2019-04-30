@@ -502,6 +502,9 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         }
 
         $style .= esc_attr($atts['style']);
+        if( $this->get_customizer_value('display_custom_html') ){
+            $content = $this->get_customizer_value('custom_html_content');
+        }
 
         $html = "<$tag class=\"$class\" style=\"$style\">";
         $html .= do_shortcode($content);
