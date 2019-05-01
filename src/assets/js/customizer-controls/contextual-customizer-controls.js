@@ -29,28 +29,22 @@
             });
         }
 
-        var display_custom_html = false;
-        api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', function (setting) {
-            display_custom_html = !setting.get();
-        })
-
         api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_only_button]', function (setting) {
-            var is_display_optin_fields, is_show_cta_fields, callToActionFieldsToggle, optinFieldsDisplayToggle;
+            var is_display_optin_fields, is_show_cta_fields, callToActionFieldsToggle, optinFieldsDisplayToggle, controlId;
 
-            is_display_optin_fields = function ( control ) {
-                var to_display = !setting.get();
-                if( 'function' == typeof control ) {
-                    if( 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]' == control.id ){
-                        return to_display && display_custom_html;
-                    }
-
-                    if( 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_only_button]' == control.id ){
-                        return to_display;
-                    }
-
-                    return to_display && !display_custom_html;
+            var display_custom_html = false;
+            wp.customize( 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', function( setting ) {
+                display_custom_html = setting.get();
+            });
+        
+            is_display_optin_fields = function () {
+                if(controlId == 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][custom_html_content]'){
+                    return ( !setting.get() && display_custom_html )
                 }
-                return to_display;
+                if(controlId == 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]'){
+                    return !setting.get()
+                }
+                return ( !setting.get() &&  !display_custom_html );
             };
 
             is_show_cta_fields = function () {
@@ -58,8 +52,17 @@
             };
 
             optinFieldsDisplayToggle = function (control) {
+                controlId = control.id;        
+
+                api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', function (ctrl) {
+			        ctrl.setting.bind(function (value) {
+                        display_custom_html = value;
+                        setActiveState()
+			        });
+                });
+
                 var setActiveState = function () {
-                    control.active.set(is_display_optin_fields(control));
+                    control.active.set(is_display_optin_fields());
                 };
 
                 control.active.validate = is_display_optin_fields;
