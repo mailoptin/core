@@ -74,6 +74,9 @@ class Customizer
     /** @var string ID of "WordPress page filter display rule" customizer section. */
     public $page_filter_display_rule_section_id = 'mo_wp_page_filter_display_rule_section';
 
+    /** @var string ID of "WordPress query filter display rule" customizer section. */
+    public $query_filter_display_rule_section_id = 'mo_wp_query_filter_display_rule_section';
+
     /** @var string ID of "user targeting" customizer section. */
     public $user_targeting_display_rule_section_id = 'mo_wp_user_filter_display_rule_section';
 
@@ -503,6 +506,7 @@ class Customizer
                 $this->x_scroll_display_rule_section_id,
                 $this->x_page_views_display_rule_section_id,
                 $this->page_filter_display_rule_section_id,
+                $this->query_filter_display_rule_section_id,
                 $this->user_targeting_display_rule_section_id,
                 $this->schedule_display_rule_section_id,
                 $this->success_section_id
@@ -816,6 +820,12 @@ class Customizer
                 )
             );
 
+            $wp_customize->add_section($this->query_filter_display_rule_section_id, array(
+                    'title' => __('Query String Targeting', 'mailoptin'),
+                    'panel' => $this->display_rules_panel_id
+                )
+            );
+
             $wp_customize->add_section($this->user_targeting_display_rule_section_id, array(
                     'title' => __('User Targeting', 'mailoptin'),
                     'panel' => $this->display_rules_panel_id
@@ -875,6 +885,7 @@ class Customizer
         $instance->integration_controls();
         $instance->after_conversion_controls();
         $instance->page_filter_display_rule_controls();
+        $instance->query_filter_display_rule_controls();
         $instance->user_filter_display_rule_controls();
 
         do_action('mo_optin_after_customizer_controls', $instance, $wp_customize, $option_prefix, $this, $optin_class_instance);

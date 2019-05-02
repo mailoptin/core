@@ -1348,6 +1348,77 @@ class CustomizerControls
      * @param string $option_prefix
      * @param Customizer $customizerClassInstance
      */
+    public function query_filter_display_rule_controls()
+    {
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+
+            $query_filter_control_args = apply_filters(
+                "mo_optin_form_customizer_query_filter_controls",
+
+                array(
+
+                    'filter_query_action' => apply_filters('mo_optin_form_customizer_filter_query_action', array(
+                            'type'        => 'select',
+                            'label'       => __('Query String', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->query_filter_display_rule_section_id,
+                            'settings'    => $this->option_prefix . '[filter_query_action]',
+                            'priority'    => 10,
+                            'choices'     => [
+                                '0'         => __('Select Action', 'mailoptin'),
+                                'show'      => __('Only Show on matching pages', 'mailoptin'),
+                                'hide'      => __('Hide on matching pages', 'mailoptin'),
+                            ],
+                            'description' => __('Specify whether to display or hide the opt-in if the conditions below are met.', 'mailoptin')
+                        )
+                    ),
+
+                    'filter_query_string' => apply_filters('mo_optin_form_customizer_filter_query_string', array(
+                            'type'        => 'text',
+                            'label'       => __('Query String Name', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->query_filter_display_rule_section_id,
+                            'settings'    => $this->option_prefix . '[filter_query_string]',
+                            'priority'    => 20,
+                            'description' => __('Specify the query string where we should show/hide this opt-in.', 'mailoptin')
+                        )
+                    ),
+
+                    'filter_query_value' => apply_filters('mo_optin_form_customizer_filter_query_value', array(
+                            'type'        => 'text',
+                            'label'       => __('Query String Value', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->query_filter_display_rule_section_id,
+                            'settings'    => $this->option_prefix . '[filter_query_value]',
+                            'priority'    => 30,
+                            'description' => __('Leave blank if you want to match the query string irrespective of its value.', 'mailoptin')
+                        )
+                    )
+                ),
+                $this->wp_customize,
+                $this->option_prefix,
+                $this->customizerClassInstance
+            );
+
+            do_action('mailoptin_before_user_filter_controls_addition');
+
+            foreach ($query_filter_control_args as $id => $args) {
+                if (is_object($args)) {
+                    $this->wp_customize->add_control($args);
+                } else {
+                    $this->wp_customize->add_control($this->option_prefix . '[' . $id . ']', $args);
+                }
+            }
+
+            do_action('mailoptin_after_user_filter_controls_addition');
+
+        }
+    }
+
+    /**
+     * Page filter display rule.
+     *
+     * @param \WP_Customize_Manager $wp_customize
+     * @param string $option_prefix
+     * @param Customizer $customizerClassInstance
+     */
     public function user_filter_display_rule_controls()
     {
         $user_filter_control_args = apply_filters(

@@ -63,6 +63,10 @@ class SidebarWidgets extends \WP_Widget
                 return '';
             }
 
+            if ( ! $this->query_level_targeting_rule_checker($sidebar_optin_id)) {
+                return '';
+            }
+
             if ( ! $this->page_level_targeting_rule_checker($sidebar_optin_id)) return '';
         }
 
@@ -150,6 +154,36 @@ class SidebarWidgets extends \WP_Widget
     public static function widget_registration()
     {
         register_widget(__CLASS__);
+    }
+
+    /**
+     * Query level output checker
+     */
+    public function query_level_targeting_rule_checker( $id )
+    {
+        if (! defined('MAILOPTIN_DETACH_LIBSODIUM') ) {
+            return true;
+        }
+
+        $action = sanitize_text_field( Repository::get_customizer_value($id, 'filter_query_action') );
+        $query  = sanitize_text_field( Repository::get_customizer_value($id, 'filter_query_string') );
+        $value  = sanitize_text_field( Repository::get_customizer_value($id, 'filter_query_value') );
+        $match  = false;
+        
+        if( ! $action || $action == '0' ){
+            return true;
+        }
+
+        if( $action && $query && isset($_GET[$query]) && ( empty($value) || $_GET[$query] == $value )){
+            $match  = true;
+        }
+
+        if( 'hide' == $action ){
+            return !$match;
+        }
+
+        return $match;
+
     }
 
 }
