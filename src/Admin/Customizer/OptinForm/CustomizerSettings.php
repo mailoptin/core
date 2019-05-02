@@ -625,6 +625,21 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'filter_query_string'             => array(
+                    'default'   => '',
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                'filter_query_value'             => array(
+                    'default'   => '',
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                'filter_query_action'             => array(
+                    'default'   => '0',
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'who_see_optin'                   => array(
                     'default'   => apply_filters('mo_optin_form_who_see_optin', 'show_all'),
                     'type'      => 'option',
