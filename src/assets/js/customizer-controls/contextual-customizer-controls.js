@@ -30,21 +30,10 @@
         }
 
         api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_only_button]', function (setting) {
-            var is_display_optin_fields, is_show_cta_fields, callToActionFieldsToggle, optinFieldsDisplayToggle, controlId;
+            var is_display_optin_fields, is_show_cta_fields, callToActionFieldsToggle, optinFieldsDisplayToggle;
 
-            var display_custom_html = false;
-            wp.customize( 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', function( setting ) {
-                display_custom_html = setting.get();
-            });
-        
             is_display_optin_fields = function () {
-                if(controlId == 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][custom_html_content]'){
-                    return ( !setting.get() && display_custom_html )
-                }
-                if(controlId == 'mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]'){
-                    return !setting.get()
-                }
-                return ( !setting.get() &&  !display_custom_html );
+                return !setting.get();
             };
 
             is_show_cta_fields = function () {
@@ -52,15 +41,6 @@
             };
 
             optinFieldsDisplayToggle = function (control) {
-                controlId = control.id;        
-
-                api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', function (ctrl) {
-			        ctrl.setting.bind(function (value) {
-                        display_custom_html = value;
-                        setActiveState()
-			        });
-                });
-
                 var setActiveState = function () {
                     control.active.set(is_display_optin_fields());
                 };
@@ -95,8 +75,6 @@
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][submit_button_color]', optinFieldsDisplayToggle);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][submit_button_background]', optinFieldsDisplayToggle);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][submit_button_font]', optinFieldsDisplayToggle);
-            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][custom_html_content]', optinFieldsDisplayToggle);
-            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][display_custom_html]', optinFieldsDisplayToggle);
 
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][cta_button_header]', callToActionFieldsToggle);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][cta_button_action]', callToActionFieldsToggle);
@@ -336,6 +314,13 @@
 
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][note_acceptance_checkbox]', controlAcceptanceCheckbox);
         });
+
+        $('input[data-customize-setting-link*=use_custom_html]').change(function () {
+            $('li[id*=custom_html_content]').toggle(this.checked);
+            $('#sub-accordion-section-mo_fields_section li.customize-control')
+                .not('li[id*=use_custom_html], li[id*=custom_html_content]')
+                .toggle(!this.checked)
+        }).change();
 
         // handles click to select on input readonly fields
         $('.mo-click-select').click(function () {

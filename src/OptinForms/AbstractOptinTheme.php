@@ -446,7 +446,14 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
         $html = "<div id=\"$optin_css_id\" class=\"$class\" style=\"$style\">";
         $html .= apply_filters('mo_optin_form_before_form_tag', '', $this->optin_campaign_id, $this->optin_campaign_type, $optin_campaign_uuid, $optin_css_id);
-        $html .= "<form method=\"post\" class='mo-optin-form' id='{$optin_css_id}_form' style='margin:0;'>";
+
+        if ( ! $this->get_customizer_value('use_custom_html')) {
+            $html .= "<form method=\"post\" class='mo-optin-form' id='{$optin_css_id}_form' style='margin:0;'>";
+        } else {
+            // remove text alignment to center set in lightbox modal div container.
+            echo "<style type=\"text/css\">#{$optin_campaign_uuid}.moOptinForm.moModal{text-align:initial !important;}</style>";
+        }
+
         $html .= do_shortcode($content);
 
         // Don't change type from text to email to prevent "An invalid form control with name='text' is not focusable." error
@@ -454,7 +461,9 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $html .= '<input id="' . $this->optin_css_id . '_honeypot_website_field" type="text" name="website" value="" style="display:none" />';
 
         $html .= apply_filters('mo_optin_form_before_closing_form_tag', '', $this->optin_campaign_id, $this->optin_campaign_type, $optin_campaign_uuid, $optin_css_id);
-        $html .= '</form>';
+        if ( ! $this->get_customizer_value('use_custom_html')) {
+            $html .= '</form>';
+        }
         $html .= apply_filters('mo_optin_form_after_form_tag', '', $this->optin_campaign_id, $this->optin_campaign_type, $optin_campaign_uuid, $optin_css_id);
 
         $html .= $this->processing_success_structure();
@@ -482,6 +491,10 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
      */
     public function shortcode_optin_form_fields_wrapper($atts, $content)
     {
+        if ($this->get_customizer_value('use_custom_html')) {
+            return do_shortcode($this->get_customizer_value('custom_html_content'));
+        }
+
         $atts = shortcode_atts(
             array(
                 'tag'   => 'div',
@@ -502,9 +515,6 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         }
 
         $style .= esc_attr($atts['style']);
-        if( $this->get_customizer_value('display_custom_html') ){
-            $content = $this->get_customizer_value('custom_html_content');
-        }
 
         $html = "<$tag class=\"$class\" style=\"$style\">";
         $html .= do_shortcode($content);

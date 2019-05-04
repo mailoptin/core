@@ -73,8 +73,8 @@ class AbstractCustomizer
         $defaults['note_font_size_desktop']   = apply_filters('mo_optin_form_note_font_size_desktop_default', 16, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
 
         $defaults['display_only_button']      = apply_filters('mo_optin_form_display_only_button_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['display_custom_html']      = apply_filters('mo_optin_form_display_custom_html_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['custom_html_content']      = apply_filters('mo_optin_form_custom_html_content_default', __('Type or paste your HTML here. Shortcodes are allowed.', 'mailoptin'), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['use_custom_html']          = apply_filters('mo_optin_form_use_custom_html_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['custom_html_content']      = apply_filters('mo_optin_form_custom_html_content_default', __('', 'mailoptin'), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['hide_name_field']          = apply_filters('mo_optin_form_hide_name_field_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['name_field_placeholder']   = apply_filters('mo_optin_form_name_field_placeholder_default', __('Enter your name here...', 'mailoptin'), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['name_field_color']         = apply_filters('mo_optin_form_name_field_color_default', '', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
@@ -102,16 +102,16 @@ class AbstractCustomizer
         $defaults['campaign_title']  = apply_filters('mo_optin_form_campaign_title_default', OptinCampaignsRepository::get_optin_campaign_name($this->optin_campaign_id), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['split_test_note'] = apply_filters('mo_optin_form_split_test_note_default', '', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
 
-        $defaults['bar_position']      = apply_filters('mo_optin_form_bar_position_default', 'top', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['slidein_position']  = apply_filters('mo_optin_form_slidein_position_default', 'bottom_right', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['bar_sticky']        = apply_filters('mo_optin_form_hide_headline_default', true, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['hide_close_button'] = apply_filters('mo_optin_form_hide_close_button_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['bar_position']         = apply_filters('mo_optin_form_bar_position_default', 'top', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['slidein_position']     = apply_filters('mo_optin_form_slidein_position_default', 'bottom_right', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['bar_sticky']           = apply_filters('mo_optin_form_hide_headline_default', true, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['hide_close_button']    = apply_filters('mo_optin_form_hide_close_button_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['close_backdrop_click'] = apply_filters('mo_optin_form_close_backdrop_click_default', true, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['hide_headline']     = apply_filters('mo_optin_form_hide_headline_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['hide_description']  = apply_filters('mo_optin_form_hide_description_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['hide_note']         = apply_filters('mo_optin_form_hide_note_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['success_message']   = apply_filters('mo_optin_form_success_message_default', __('Thanks for subscribing! Please check your email for further instructions.', 'mailoptin'), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
-        $defaults['cookie']            = apply_filters('mo_optin_form_cookie_default', 30);
+        $defaults['hide_headline']        = apply_filters('mo_optin_form_hide_headline_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['hide_description']     = apply_filters('mo_optin_form_hide_description_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['hide_note']            = apply_filters('mo_optin_form_hide_note_default', false, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['success_message']      = apply_filters('mo_optin_form_success_message_default', __('Thanks for subscribing! Please check your email for further instructions.', 'mailoptin'), $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        $defaults['cookie']               = apply_filters('mo_optin_form_cookie_default', 30);
 
         $defaults['load_optin_globally'] = apply_filters('mo_optin_form_load_optin_globally_default', true, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
 

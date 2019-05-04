@@ -425,9 +425,8 @@ class CustomizerSettings extends AbstractCustomizer
                     'transport' => 'refresh',
                 ),
 
-                //Custom HTML
-                'display_custom_html'   => array(
-                    'default'   => $this->customizer_defaults['display_custom_html'],
+                'use_custom_html'   => array(
+                    'default'   => $this->customizer_defaults['use_custom_html'],
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),

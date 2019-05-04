@@ -3,6 +3,7 @@
 namespace MailOptin\Core\Admin\Customizer\OptinForm;
 
 use MailOptin\Core\Admin\Customizer\CustomControls\ControlsHelpers;
+use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Ace_Editor_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Content;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Fields_Repeater_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Font_Size_Control;
@@ -577,6 +578,34 @@ class CustomizerControls
         $field_controls_args = apply_filters(
             "mo_optin_form_customizer_fields_controls",
             array(
+                'use_custom_html'      => new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[use_custom_html]',
+                    apply_filters('mo_optin_form_customizer_use_custom_html_args', array(
+                            'label'       => __('Use Custom HTML', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->fields_section_id,
+                            'settings'    => $this->option_prefix . '[use_custom_html]',
+                            'description' => __('Activate to hide opt-in form and display custom content instead.', 'mailoptin'),
+                            'type'        => 'light',
+                            'priority'    => 2,
+                        )
+                    )
+                ),
+                'custom_html_content'      => new WP_Customize_Ace_Editor_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[custom_html_content]',
+                    apply_filters('mo_optin_form_customizer_custom_html_content_args', array(
+                            'editor_id' => 'custom-css',
+                            'language' => 'html',
+                            'type' => 'textarea',
+                            'label'       => __('Custom HTML', 'mailoptin'),
+                            'section' => $this->customizerClassInstance->fields_section_id,
+                            'settings' => $this->option_prefix . '[custom_html_content]',
+                            'description' => __('Type or paste your HTML here. Shortcodes are supported.', 'mailoptin'),
+                            'priority' => 3
+                        )
+                    )
+                ),
                 'fields'                   => new WP_Customize_Fields_Repeater_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[fields]',
@@ -650,28 +679,6 @@ class CustomizerControls
                         )
                     )
                 ),
-                'display_custom_html' => new WP_Customize_Toggle_Control(
-                    $this->wp_customize,
-                    $this->option_prefix . '[display_custom_html]',
-                    apply_filters('mo_optin_form_customizer_display_custom_html_args', array(
-                            'label'       => __('Display Custom HTML', 'mailoptin'),
-                            'section'     => $this->customizerClassInstance->fields_section_id,
-                            'settings'    => $this->option_prefix . '[display_custom_html]',
-                            'description' => __('Activate to hide opt-in form and display custom instead.', 'mailoptin'),
-                            'type'        => 'light',
-                            'priority'    => 8,
-                        )
-                    )
-                ),
-                'custom_html_content' => apply_filters('mo_optin_form_customizer_custom_html_content_args', array(
-                    'type'        => 'textarea',
-                    'label'       => __('Custom HTML', 'mailoptin'),
-                    'description' => __('Shortcodes are allowed', 'mailoptin'),
-                    'section'     => $this->customizerClassInstance->fields_section_id,
-                    'settings'    => $this->option_prefix . '[custom_html_content]',
-                    'priority'    => 9,
-                )
-            ),
             ),
             $this->wp_customize,
             $this->option_prefix,
@@ -872,7 +879,7 @@ class CustomizerControls
                         )
                     )
                 ),
-                'close_backdrop_click'          => new WP_Customize_Toggle_Control(
+                'close_backdrop_click'       => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[close_backdrop_click]',
                     apply_filters('mo_optin_form_customizer_close_backdrop_click_args', array(
@@ -935,7 +942,7 @@ class CustomizerControls
             unset($content_control_args['split_test_note']);
         }
 
-        if($this->customizerClassInstance->optin_campaign_type !== 'lightbox') {
+        if ($this->customizerClassInstance->optin_campaign_type !== 'lightbox') {
             unset($content_control_args['close_backdrop_click']);
         }
 
