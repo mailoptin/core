@@ -35,6 +35,8 @@ class SidebarWidgets extends \WP_Widget
         $sidebar_optin_id = isset($instance['sidebar_optin_id']) ? $instance['sidebar_optin_id'] : false;
         $title            = isset($instance['title']) ? apply_filters('widget_title', $instance['title']) : false;
 
+        if(isset($_GET['mohide']) && $_GET['mohide'] == 'true') return '';
+
         if ( ! OCR::is_activated($sidebar_optin_id)) return '';
 
         $sidebar_optin_id = OCR::choose_split_test_variant($sidebar_optin_id);

@@ -284,8 +284,6 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                 if (Cookies.get('mo_success_' + $optin_uuid)) return false;
                 // if exit cookie found for this optin, do not dispay it.
                 if (Cookies.get('mo_' + $optin_uuid)) return false;
-                // if global hide query string is active
-                if (window.location.href.search("[?&]mohide=true") != -1) return false;
 
                 return true;
             },

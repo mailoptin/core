@@ -21,6 +21,8 @@ class InPost
         // needed to prevent the optin from showing on post excerpt (on homepage / post listing)
         if (is_front_page() || ! is_singular()) return $content;
 
+        if(isset($_GET['mohide']) && $_GET['mohide'] == 'true') return $content;
+
         $optin_ids = get_transient('mo_get_optin_ids_inpost_display');
 
         if ($optin_ids === false) {

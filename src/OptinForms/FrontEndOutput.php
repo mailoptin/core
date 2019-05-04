@@ -19,6 +19,8 @@ class FrontEndOutput
     {
         if (is_customize_preview() || is_admin()) return;
 
+        if (isset($_GET['mohide']) && $_GET['mohide'] == 'true') return;
+
         if (apply_filters('mo_disable_frontend_optin_output', false)) return;
 
         $optin_ids = get_transient('mo_get_optin_ids_footer_display');
