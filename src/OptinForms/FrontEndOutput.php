@@ -8,7 +8,7 @@ use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 class FrontEndOutput
 {
-    use PageTargetingRuleTrait, UserTargetingRuleTrait;
+    use PageTargetingRuleTrait, UserTargetingRuleTrait, QueryStringTargetingRuleTrait;
 
     public function __construct()
     {
@@ -63,7 +63,7 @@ class FrontEndOutput
                 if ( ! $this->query_level_targeting_rule_checker($id)) {
                     continue;
                 }
-      
+
             }
 
             echo OptinFormFactory::build($id);
@@ -84,35 +84,5 @@ class FrontEndOutput
         }
 
         return $instance;
-    }
-
-    /**
-     * Query level output checker
-     */
-    public function query_level_targeting_rule_checker( $id )
-    {
-        if (! defined('MAILOPTIN_DETACH_LIBSODIUM') ) {
-            return true;
-        }
-
-        $action = sanitize_text_field( Repository::get_customizer_value($id, 'filter_query_action') );
-        $query  = sanitize_text_field( Repository::get_customizer_value($id, 'filter_query_string') );
-        $value  = sanitize_text_field( Repository::get_customizer_value($id, 'filter_query_value') );
-        $match  = false;
-        
-        if( ! $action || $action == '0' ){
-            return true;
-        }
-
-        if( $action && $query && isset($_GET[$query]) && ( empty($value) || $_GET[$query] == $value )){
-            $match  = true;
-        }
-
-        if( 'hide' == $action ){
-            return !$match;
-        }
-
-        return $match;
-
     }
 }

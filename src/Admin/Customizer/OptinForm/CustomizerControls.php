@@ -1365,7 +1365,7 @@ class CustomizerControls
                             'priority'    => 10,
                             'choices'     => [
                                 '0'         => __('Select Action', 'mailoptin'),
-                                'show'      => __('Only Show on matching pages', 'mailoptin'),
+                                'show'      => __('Only show on matching pages', 'mailoptin'),
                                 'hide'      => __('Hide on matching pages', 'mailoptin'),
                             ],
                             'description' => __('Specify whether to display or hide the opt-in if the conditions below are met.', 'mailoptin')
@@ -1378,7 +1378,7 @@ class CustomizerControls
                             'section'     => $this->customizerClassInstance->query_filter_display_rule_section_id,
                             'settings'    => $this->option_prefix . '[filter_query_string]',
                             'priority'    => 20,
-                            'description' => __('Specify the query string where we should show/hide this opt-in.', 'mailoptin')
+                            'description' => __('Specify the query string where this opt-in should show/hide.', 'mailoptin')
                         )
                     ),
 
