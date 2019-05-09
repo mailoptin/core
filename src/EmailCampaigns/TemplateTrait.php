@@ -132,6 +132,7 @@ trait TemplateTrait
         foreach ($replace as $key => $item) {
             if (empty($item)) {
                 unset($search[$key]);
+                unset($replace[$key]);
             }
         }
 
