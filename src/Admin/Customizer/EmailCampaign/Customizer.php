@@ -368,12 +368,18 @@ class Customizer
     public function add_sections($wp_customize)
     {
         if ( ! apply_filters('mo_email_customizer_disable_upsell_section', false)) {
+
+            $capability = 'manage_options';
+            if( current_user_can('manage_mailoptin')){
+                $capability = 'manage_mailoptin';
+            }
+
             $wp_customize->add_section(
                 new UpsellCustomizerSection($wp_customize, 'mailoptin_upsell_section',
                     array(
                         'pro_text'   => __('Check out MailOptin Premium!', 'mailoptin'),
                         'pro_url'    => 'https://mailoptin.io/pricing/?utm_source=optin_customizer&utm_medium=upgrade&utm_campaign=upsell_customizer_section',
-                        'capability' => 'manage_options',
+                        'capability' => $capability,
                         'priority'   => 0,
                         'type'       => 'mo-upsell-section'
                     )

@@ -19,7 +19,11 @@ class PreviewCampaignLog
      */
     public function preview_campaign($template)
     {
-        if (current_user_can('administrator')) {
+        $capability = 'administrator';
+        if( current_user_can('manage_mailoptin')){
+            $capability = 'manage_mailoptin';
+        }
+        if (current_user_can($capability)) {
             if (isset($_GET['mailoptin']) && isset($_GET['type']) && isset($_GET['id']) && 'preview-campaign' == $_GET['mailoptin']) {
                 $template = MAILOPTIN_SETTINGS_PAGE_FOLDER . 'include.preview-campaign-log.php';
             }

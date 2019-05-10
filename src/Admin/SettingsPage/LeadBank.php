@@ -13,11 +13,16 @@ class LeadBank extends AbstractSettingsPage
 
     public function register_settings_page()
     {
+        $capability = 'manage_options';
+        if( current_user_can('manage_mailoptin')){
+            $capability = 'manage_mailoptin';
+        }
+
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Lead Bank (Submissions) - MailOptin', 'mailoptin'),
             __('Lead Bank', 'mailoptin'),
-            'manage_options',
+            $capability,
             MAILOPTIN_LEAD_BANK_SETTINGS_SLUG,
             array($this, 'settings_admin_page')
         );

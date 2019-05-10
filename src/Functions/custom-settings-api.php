@@ -205,7 +205,7 @@ class Custom_Settings_Page_Api
     {
         add_action('admin_notices', array($this, 'do_settings_errors'));
 
-        if ( ! current_user_can('administrator')) {
+        if ( ! ( current_user_can('administrator') || current_user_can('manage_mailoptin') )) {
             return;
         }
 

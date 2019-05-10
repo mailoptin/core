@@ -738,7 +738,11 @@ class OptinCampaign_List extends \WP_List_Table
     public function process_actions()
     {
         // Bail if user is not an admin or without admin privileges.
-        if ( ! current_user_can('administrator')) {
+        $capability = 'administrator';
+        if( current_user_can('manage_mailoptin')){
+            $capability = 'manage_mailoptin';
+        }
+        if ( ! current_user_can($capability)) {
             return;
         }
 
