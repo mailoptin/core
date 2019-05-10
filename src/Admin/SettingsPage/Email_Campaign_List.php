@@ -426,7 +426,7 @@ class Email_Campaign_List extends \WP_List_Table
     public function process_actions()
     {
         // bail if user is not an admin or without admin privileges.
-        $capability = 'administrator';
+        $capability = 'manage_option';
         if( current_user_can('manage_mailoptin')){
             $capability = 'manage_mailoptin';
         }

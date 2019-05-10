@@ -19,7 +19,7 @@ class PreviewCampaignLog
      */
     public function preview_campaign($template)
     {
-        $capability = 'administrator';
+        $capability = 'manage_option';
         if( current_user_can('manage_mailoptin')){
             $capability = 'manage_mailoptin';
         }
