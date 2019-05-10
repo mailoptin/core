@@ -238,3 +238,13 @@ function is_mailoptin_customizer_preview()
 {
     return is_customize_preview() && (isset($_GET['mailoptin_optin_campaign_id']) || isset($_GET['mailoptin_email_campaign_id']));
 }
+
+function mailoptin_mohide_check()
+{
+    if(!empty($_GET['mohide']) && 'true' === $_GET['mohide']){
+        $global_success_cookie = Settings::instance()->global_success_cookie();
+        $global_success_cookie = ! empty($global_success_cookie) ? absint($global_success_cookie) : 0;
+        setcookie("mo_global_success_cookie", 'true', $global_success_cookie);
+    }
+}
+add_action('init', 'MailOptin\Core\mailoptin_mohide_check');
