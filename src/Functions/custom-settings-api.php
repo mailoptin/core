@@ -205,7 +205,7 @@ class Custom_Settings_Page_Api
     {
         add_action('admin_notices', array($this, 'do_settings_errors'));
 
-        if ( ! ( current_user_can('manage_options') || current_user_can('manage_mailoptin') )) {
+        if ( ! \MailOptin\Core\current_user_has_privilege()) {
             return;
         }
 

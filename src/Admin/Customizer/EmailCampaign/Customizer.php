@@ -374,7 +374,7 @@ class Customizer
                     array(
                         'pro_text'   => __('Check out MailOptin Premium!', 'mailoptin'),
                         'pro_url'    => 'https://mailoptin.io/pricing/?utm_source=optin_customizer&utm_medium=upgrade&utm_campaign=upsell_customizer_section',
-                        'capability' => \MailOptin\Core\mailoptin_get_capability(),
+                        'capability' => \MailOptin\Core\get_capability(),
                         'priority'   => 0,
                         'type'       => 'mo-upsell-section'
                     )

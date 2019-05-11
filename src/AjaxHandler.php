@@ -169,7 +169,7 @@ class AjaxHandler
 
         check_ajax_referer('mailoptin-send-test-email-nonce', 'security');
 
-        if ( !  mailoptin_current_user_has_privillege() ) {
+        if ( !  current_user_has_privilege() ) {
             return;
         }
 
@@ -240,7 +240,7 @@ class AjaxHandler
     public function optin_type_selection()
     {
         
-        if ( !  mailoptin_current_user_has_privillege()) {
+        if ( !  current_user_has_privilege()) {
             return;
         }
 
@@ -268,7 +268,7 @@ class AjaxHandler
     public function create_optin_split_test()
     {
        
-        if ( ! mailoptin_current_user_has_privillege()) {
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -301,7 +301,7 @@ class AjaxHandler
     public function pause_optin_split_test()
     {
 
-        if ( !  mailoptin_current_user_has_privillege()) {
+        if ( !  current_user_has_privilege()) {
             return;
         }
 
@@ -334,7 +334,7 @@ class AjaxHandler
     public function split_test_select_winner()
     {
 
-        if ( !  mailoptin_current_user_has_privillege()) {
+        if ( !  current_user_has_privilege()) {
             return;
         }
 
@@ -373,7 +373,7 @@ class AjaxHandler
     public function end_optin_split_modal()
     {
 
-        if ( !  mailoptin_current_user_has_privillege()) {
+        if ( !  current_user_has_privilege()) {
             return;
         }
 
@@ -442,7 +442,7 @@ class AjaxHandler
     public function create_optin_campaign()
     {
     
-        if ( ! mailoptin_current_user_has_privillege()) {
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -481,7 +481,7 @@ class AjaxHandler
     public function create_email_campaign()
     {
        
-        if ( ! mailoptin_current_user_has_privillege()) {
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -548,7 +548,7 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if ( ! mailoptin_current_user_has_privillege()) {
+        if ( ! current_user_has_privilege()) {
             exit;
         }
 
@@ -565,7 +565,7 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if ( ! mailoptin_current_user_has_privillege()) {
+        if ( ! current_user_has_privilege()) {
             exit;
         }
 
@@ -585,7 +585,7 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if ( !mailoptin_current_user_has_privillege()) {
+        if ( !current_user_has_privilege()) {
             exit;
         }
 
@@ -606,7 +606,7 @@ class AjaxHandler
      */
     public function toggle_optin_activated()
     {
-        if ( ! mailoptin_current_user_has_privillege()) {
+        if ( ! current_user_has_privilege()) {
             exit;
         }
 
@@ -624,7 +624,7 @@ class AjaxHandler
 
     public function toggle_automation_activated()
     {
-        if ( ! mailoptin_current_user_has_privillege()) {
+        if ( ! current_user_has_privilege()) {
             exit;
         }
 

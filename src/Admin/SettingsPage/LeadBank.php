@@ -18,7 +18,7 @@ class LeadBank extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Lead Bank (Submissions) - MailOptin', 'mailoptin'),
             __('Lead Bank', 'mailoptin'),
-            \MailOptin\Core\mailoptin_get_capability(),
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_LEAD_BANK_SETTINGS_SLUG,
             array($this, 'settings_admin_page')
         );

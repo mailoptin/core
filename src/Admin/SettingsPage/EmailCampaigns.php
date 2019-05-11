@@ -49,7 +49,7 @@ class EmailCampaigns extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Email Automations - MailOptin', 'mailoptin'),
             __('Email Automations', 'mailoptin'),
-            \MailOptin\Core\mailoptin_get_capability(),
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
         );

@@ -30,7 +30,7 @@ class OptinCampaigns extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Optin Campaigns - MailOptin', 'mailoptin'),
             __('Optin Campaigns', 'mailoptin'),
-            \MailOptin\Core\mailoptin_get_capability(),
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
         );

@@ -739,7 +739,7 @@ class OptinCampaign_List extends \WP_List_Table
     {
         // Bail if user is not an admin or without admin privileges.
 
-        if ( ! \MailOptin\Core\mailoptin_current_user_has_privillege()) {
+        if ( ! \MailOptin\Core\current_user_has_privilege()) {
             return;
         }
 

@@ -22,7 +22,7 @@ class AdvanceAnalytics extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Statistics - MailOptin', 'mailoptin'),
             __('Statistics', 'mailoptin'),
-            \MailOptin\Core\mailoptin_get_capability(),
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
         );

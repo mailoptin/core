@@ -242,18 +242,19 @@ function is_mailoptin_customizer_preview()
 /**
  * Returns the capability to check against
  */
-function mailoptin_get_capability()
+function get_capability()
 {
-    if( current_user_can('manage_mailoptin')){
+    if (current_user_can('manage_mailoptin')) {
         return 'manage_mailoptin';
     }
-    return'manage_options';
+
+    return 'manage_options';
 }
 
 /**
- * Checks whether the current user has permission to perform an admin task
+ * Checks whether the current user has permission to perform an admin task in MailOptin
  */
-function mailoptin_current_user_has_privillege()
+function current_user_has_privilege()
 {
     return (current_user_can('manage_options') || current_user_can('manage_mailoptin'));
 }

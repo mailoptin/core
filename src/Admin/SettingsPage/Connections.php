@@ -49,7 +49,7 @@ class Connections extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Integrations - MailOptin', 'mailoptin'),
             __('Integrations', 'mailoptin'),
-            \MailOptin\Core\mailoptin_get_capability(),
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_CONNECTIONS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
         );
