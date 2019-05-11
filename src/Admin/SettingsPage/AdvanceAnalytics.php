@@ -17,11 +17,12 @@ class AdvanceAnalytics extends AbstractSettingsPage
 
     public function register_settings_page()
     {
+
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Statistics - MailOptin', 'mailoptin'),
             __('Statistics', 'mailoptin'),
-            'manage_options',
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
         );

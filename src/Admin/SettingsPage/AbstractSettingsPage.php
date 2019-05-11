@@ -20,10 +20,11 @@ abstract class AbstractSettingsPage
 
     public function register_core_menu()
     {
+
         add_menu_page(
             __('MailOptin WordPress Plugin', 'mailoptin'),
             __('MailOptin', 'mailoptin'),
-            'manage_options',
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             '',
             MAILOPTIN_ASSETS_URL . 'images/admin-icon.svg'

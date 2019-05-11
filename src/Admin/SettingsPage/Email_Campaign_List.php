@@ -426,7 +426,7 @@ class Email_Campaign_List extends \WP_List_Table
     public function process_actions()
     {
         // bail if user is not an admin or without admin privileges.
-        if ( ! current_user_can('administrator')) {
+        if ( ! \MailOptin\Core\current_user_has_privilege()) {
             return;
         }
 

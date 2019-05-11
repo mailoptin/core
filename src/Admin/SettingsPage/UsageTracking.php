@@ -11,7 +11,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
  */
 
 // Exit if accessed directly
-if (!defined('ABSPATH')) exit;
+if ( ! defined('ABSPATH')) exit;
 
 
 /**
@@ -54,15 +54,16 @@ class UsageTracking
     {
         $schedules['moweekly'] = array(
             'interval' => 604800,
-            'display' => 'Weekly'
+            'display'  => 'Weekly'
         );
+
         return $schedules;
     }
 
     public function create_recurring_schedule()
     {
         //check if event scheduled before
-        if (!wp_next_scheduled('mo_recurring_cron_job'))
+        if ( ! wp_next_scheduled('mo_recurring_cron_job'))
             //schedule event to run after every day
             wp_schedule_event(time(), 'moweekly', 'mo_recurring_cron_job');
     }
@@ -90,26 +91,26 @@ class UsageTracking
 
         // Retrieve current theme info
         $theme_data = wp_get_theme();
-        $theme = $theme_data->Name . ' ' . $theme_data->Version;
+        $theme      = $theme_data->Name . ' ' . $theme_data->Version;
 
         $data['php_version'] = phpversion();
         $data['edd_version'] = MAILOPTIN_VERSION_NUMBER;
-        $data['wp_version'] = get_bloginfo('version');
-        $data['server'] = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '';
+        $data['wp_version']  = get_bloginfo('version');
+        $data['server']      = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '';
 
         $data['install_date'] = get_option('mo_install_date', 'not set');
 
         $data['multisite'] = is_multisite();
-        $data['url'] = home_url();
-        $data['theme'] = $theme;
-        $data['email'] = get_bloginfo('admin_email');
+        $data['url']       = home_url();
+        $data['theme']     = $theme;
+        $data['email']     = get_bloginfo('admin_email');
 
         // Retrieve current plugin information
-        if (!function_exists('get_plugins')) {
+        if ( ! function_exists('get_plugins')) {
             include ABSPATH . '/wp-admin/includes/plugin.php';
         }
 
-        $plugins = array_keys(get_plugins());
+        $plugins        = array_keys(get_plugins());
         $active_plugins = get_option('active_plugins', array());
 
         foreach ($plugins as $key => $plugin) {
@@ -119,9 +120,9 @@ class UsageTracking
             }
         }
 
-        $data['active_plugins'] = $active_plugins;
+        $data['active_plugins']   = $active_plugins;
         $data['inactive_plugins'] = $plugins;
-        $data['locale'] = ($data['wp_version'] >= 4.7) ? get_user_locale() : get_locale();
+        $data['locale']           = ($data['wp_version'] >= 4.7) ? get_user_locale() : get_locale();
 
         $this->data = $data;
     }
@@ -140,26 +141,26 @@ class UsageTracking
             return false;
         }
 
-        if (!$this->tracking_allowed() && !$override) {
+        if ( ! $this->tracking_allowed() && ! $override) {
             return false;
         }
 
         // Send a maximum of once per week
         $last_send = $this->get_last_send();
-        if (is_numeric($last_send) && $last_send > strtotime('-1 week') && !$ignore_last_checkin) {
+        if (is_numeric($last_send) && $last_send > strtotime('-1 week') && ! $ignore_last_checkin) {
             return false;
         }
 
         $this->setup_data();
 
         $request = wp_remote_post('https://my.mailoptin.io/?edd_action=checkin', array(
-            'method' => 'POST',
-            'timeout' => 20,
+            'method'      => 'POST',
+            'timeout'     => 20,
             'redirection' => 5,
             'httpversion' => '1.1',
-            'blocking' => true,
-            'body' => $this->data,
-            'user-agent' => 'EDD/' . MAILOPTIN_VERSION_NUMBER . '; ' . get_bloginfo('url')
+            'blocking'    => true,
+            'body'        => $this->data,
+            'user-agent'  => 'EDD/' . MAILOPTIN_VERSION_NUMBER . '; ' . get_bloginfo('url')
         ));
 
         if (is_wp_error($request)) {
@@ -272,7 +273,7 @@ class UsageTracking
             return;
         }
 
-        if (!current_user_can('manage_options')) {
+        if ( ! current_user_can('manage_options')) {
             return;
         }
 
@@ -284,10 +285,10 @@ class UsageTracking
         } else {
 
 
-            $optin_url = add_query_arg('edd_action', 'mo_opt_into_tracking');
+            $optin_url  = add_query_arg('edd_action', 'mo_opt_into_tracking');
             $optout_url = add_query_arg('edd_action', 'mo_opt_out_of_tracking');
 
-            $source = substr(md5(get_bloginfo('name')), 0, 10);
+            $source    = substr(md5(get_bloginfo('name')), 0, 10);
             $store_url = 'https://mailoptin.io/pricing/?utm_source=' . $source . '&utm_medium=admin&utm_term=notice&utm_campaign=MailOptinUsageTracking';
 
             echo '<div class="updated"><p>';

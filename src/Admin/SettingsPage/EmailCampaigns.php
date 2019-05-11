@@ -44,11 +44,12 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function register_settings_page()
     {
+
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Email Automations - MailOptin', 'mailoptin'),
             __('Email Automations', 'mailoptin'),
-            'manage_options',
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
         );

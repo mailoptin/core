@@ -26,7 +26,7 @@ class Settings extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Settings - MailOptin', 'mailoptin'),
             __('Settings', 'mailoptin'),
-            'manage_options',
+            \MailOptin\Core\get_capability(),
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
         );
