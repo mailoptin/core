@@ -352,12 +352,7 @@ class Campaign_Log_List extends \WP_List_Table
     public function process_bulk_action()
     {
         // bail if user is not an admin or without admin privileges.
-        $capability = 'manage_option';
-        if( current_user_can('manage_mailoptin')){
-            $capability = 'manage_mailoptin';
-        }
-
-        if ( ! current_user_can($capability)) {
+        if ( ! \MailOptin\Core\mailoptin_current_user_has_privillege()) {
             return;
         }
 

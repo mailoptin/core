@@ -238,3 +238,22 @@ function is_mailoptin_customizer_preview()
 {
     return is_customize_preview() && (isset($_GET['mailoptin_optin_campaign_id']) || isset($_GET['mailoptin_email_campaign_id']));
 }
+
+/**
+ * Returns the capability to check against
+ */
+function mailoptin_get_capability()
+{
+    if( current_user_can('manage_mailoptin')){
+        return 'manage_mailoptin';
+    }
+    return'manage_options';
+}
+
+/**
+ * Checks whether the current user has permission to perform an admin task
+ */
+function mailoptin_current_user_has_privillege()
+{
+    return (current_user_can('manage_options') || current_user_can('manage_mailoptin'));
+}

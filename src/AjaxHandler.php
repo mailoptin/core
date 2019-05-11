@@ -169,7 +169,7 @@ class AjaxHandler
 
         check_ajax_referer('mailoptin-send-test-email-nonce', 'security');
 
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( !  mailoptin_current_user_has_privillege() ) {
             return;
         }
 
@@ -240,7 +240,7 @@ class AjaxHandler
     public function optin_type_selection()
     {
         
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( !  mailoptin_current_user_has_privillege()) {
             return;
         }
 
@@ -268,7 +268,7 @@ class AjaxHandler
     public function create_optin_split_test()
     {
        
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( ! mailoptin_current_user_has_privillege()) {
             return;
         }
 
@@ -301,7 +301,7 @@ class AjaxHandler
     public function pause_optin_split_test()
     {
 
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( !  mailoptin_current_user_has_privillege()) {
             return;
         }
 
@@ -334,7 +334,7 @@ class AjaxHandler
     public function split_test_select_winner()
     {
 
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( !  mailoptin_current_user_has_privillege()) {
             return;
         }
 
@@ -373,7 +373,7 @@ class AjaxHandler
     public function end_optin_split_modal()
     {
 
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( !  mailoptin_current_user_has_privillege()) {
             return;
         }
 
@@ -442,7 +442,7 @@ class AjaxHandler
     public function create_optin_campaign()
     {
     
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( ! mailoptin_current_user_has_privillege()) {
             return;
         }
 
@@ -481,7 +481,7 @@ class AjaxHandler
     public function create_email_campaign()
     {
        
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( ! mailoptin_current_user_has_privillege()) {
             return;
         }
 
@@ -548,7 +548,7 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( ! mailoptin_current_user_has_privillege()) {
             exit;
         }
 
@@ -565,7 +565,7 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( ! mailoptin_current_user_has_privillege()) {
             exit;
         }
 
@@ -585,7 +585,7 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( !mailoptin_current_user_has_privillege()) {
             exit;
         }
 
@@ -606,7 +606,7 @@ class AjaxHandler
      */
     public function toggle_optin_activated()
     {
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( ! mailoptin_current_user_has_privillege()) {
             exit;
         }
 
@@ -624,7 +624,7 @@ class AjaxHandler
 
     public function toggle_automation_activated()
     {
-        if ( !  ( current_user_can('manage_option') || current_user_can('manage_mailoptin') )) {
+        if ( ! mailoptin_current_user_has_privillege()) {
             exit;
         }
 
