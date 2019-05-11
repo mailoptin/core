@@ -3,6 +3,7 @@
 namespace MailOptin\Core\OptinForms;
 
 use MailOptin\Core\Admin\Customizer\OptinForm\OptinFormFactory;
+use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\OptinCampaignsRepository as Repository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
@@ -13,6 +14,17 @@ class FrontEndOutput
     public function __construct()
     {
         add_action('wp_footer', array($this, 'load_optin'), 999999999);
+
+        /**
+         * set global cookie on mohide query.
+         */
+        add_action('init', function () {
+            if ( ! empty($_GET['mohide']) && 'true' == $_GET['mohide']) {
+                $global_success_cookie = Settings::instance()->global_success_cookie();
+                $global_success_cookie = $global_success_cookie != '' ? absint($global_success_cookie) : 0;
+                setcookie("mo_global_success_cookie", 'true', time() + (DAY_IN_SECONDS * $global_success_cookie), COOKIEPATH, COOKIE_DOMAIN, false);
+            }
+        });
     }
 
     public function load_optin()
