@@ -93,7 +93,35 @@ class Shortcodes
     {
         if (empty($this->posts)) return '';
         $output = '';
+        /** @var \WP_Post $post */
         foreach ($this->posts as $post) {
+
+            if ($post->post_type == 'post' && isset($atts['category'])) {
+                $post_categories = wp_get_post_categories($post->ID, ['fields' => 'id=>slug']);
+
+                $category_slugs = array_map(
+                    'sanitize_text_field',
+                    explode(',', sanitize_text_field($atts['category']))
+                );
+
+                $result = array_intersect($post_categories, $category_slugs);
+
+                if (empty($result)) continue;
+            }
+
+            if (isset($atts['tax'], $atts['values'])) {
+                $post_terms = wp_get_object_terms($post->ID, sanitize_text_field($atts['tax']), ['fields' => 'id=>slug']);
+
+                $term_slugs = array_map(
+                    'sanitize_text_field',
+                    explode(',', sanitize_text_field($atts['values']))
+                );
+
+                $result = array_intersect($post_terms, $term_slugs);
+
+                if (empty($result)) continue;
+            }
+
             $this->from($post);
             $this->define_post_shortcodes();
             $output .= do_shortcode(html_entity_decode($content));
