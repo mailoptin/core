@@ -271,15 +271,16 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
             /**
              * Determine if optin should display or not.
              *
-             * @param {string} $optin_uuid
+             * @param {object} optin_config
              *
              * @returns {boolean}
              */
-            is_optin_visible: function ($optin_uuid) {
+            is_optin_visible: function (optin_config) {
+                var $optin_uuid = optin_config.optin_uuid;
                 // if global success cookie found, do not display any optin.
-                if (Cookies.get('mo_global_success_cookie')) return false;
+                if (optin_config.global_success_cookie > 0 && Cookies.get('mo_global_success_cookie')) return false;
                 // if global interaction/exit cookie found, do not display any optin.
-                if (Cookies.get('mo_global_cookie')) return false;
+                if (optin_config.global_cookie > 0 && Cookies.get('mo_global_cookie')) return false;
                 // if success cookie found for this optin, do not display it.
                 if (Cookies.get('mo_success_' + $optin_uuid)) return false;
                 // if exit cookie found for this optin, do not dispay it.
@@ -332,7 +333,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                 // return if click launch status is activated for optin but the trigger isn't it.
                 if (optin_config.click_launch_status === true && skip_display_checks === false) return;
 
-                if (self.is_optin_visible(optin_config.optin_uuid) === false) return;
+                if (self.is_optin_visible(optin_config) === false) return;
 
                 if (self.is_after_x_page_views_active(optin_config)) {
                     var x_page_views_condition = optin_config.x_page_views_condition;
@@ -410,19 +411,19 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                 }
 
                 // device detection rule
-                if(typeof window.MobileDetect !== "undefined") {
+                if (typeof window.MobileDetect !== "undefined") {
                     var mdInstance = new MobileDetect(window.navigator.userAgent);
 
                     if (optin_config.device_targeting_hide_mobile === true) {
-                        if(mdInstance.phone()) return;
+                        if (mdInstance.phone()) return;
                     }
 
                     if (optin_config.device_targeting_hide_tablet === true) {
-                        if(mdInstance.tablet()) return;
+                        if (mdInstance.tablet()) return;
                     }
 
                     if (optin_config.device_targeting_hide_desktop === true) {
-                        if(!mdInstance.mobile()) return;
+                        if (!mdInstance.mobile()) return;
                     }
                 }
 
@@ -553,7 +554,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
 
                 // do cookie checking if we are not in customizer mode and not test mode is active.
                 if ($.MailOptin.is_customize_preview === false && optin_config.test_mode === false && skip_display_checks !== true) {
-                    if (self.is_optin_visible(optin_config.optin_uuid) === false) return;
+                    if (self.is_optin_visible(optin_config) === false) return;
                 }
 
                 if (optin_type !== undefined && optin_type === 'lightbox') {

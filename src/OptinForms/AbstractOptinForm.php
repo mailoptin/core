@@ -651,7 +651,6 @@ if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_imp
                 'right: 0',
                 'width: 100%',
                 'margin: 0',
-                'background: 0 0',
                 'z-index: 999999999'
             ];
 
@@ -669,7 +668,6 @@ if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_imp
                 'bottom: 10px',
                 'width: auto',
                 'margin: 0',
-                'background: 0 0',
                 'z-index: 999999999'
             ];
             $slideinWrapperStyle              = implode(';', $slidein_wrapper_style_properties);

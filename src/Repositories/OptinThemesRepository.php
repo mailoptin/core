@@ -258,6 +258,13 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/alyssum/alyssum-inpost-sidebar.png'
             ],
             [
+                'name'        => 'Alyssum',
+                'optin_class' => 'Alyssum',
+                'flag'        => 'premium',
+                'optin_type'  => 'slidein',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/alyssum/alyssum-slidein.png'
+            ],
+            [
                 'name'        => 'Scilla',
                 'optin_class' => 'Scilla',
                 'flag'        => 'premium',
