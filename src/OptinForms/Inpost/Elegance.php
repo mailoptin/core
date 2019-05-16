@@ -465,7 +465,6 @@ html div#$optin_uuid div#$optin_css_id.moEleganceModal .moEleganceModal_button {
   line-height: normal;
   border: 0 none;
   border-radius: 0;
-  outline: 1px solid #2785C8;
   width: 100%;
   -webkit-transition: all 0.5s ease-in-out;
   -moz-transition: all 0.5s ease-in-out;
