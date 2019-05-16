@@ -1434,8 +1434,22 @@ class CustomizerControls
                             'show_all'           => __('Show to all visitors and users', 'mailoptin'),
                             'show_logged_in'     => __('Show to only logged-in users', 'mailoptin'),
                             'show_non_logged_in' => __('Show to only users not logged-in', 'mailoptin'),
+                            'show_to_roles'      => __('Show to specific user roles', 'mailoptin'),
                         ],
                         'priority'    => 10,
+                    )
+                ),
+                'show_to_roles'             => new WP_Customize_Chosen_Select_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[show_to_roles]',
+                    apply_filters('mo_optin_form_customizer_show_to_roles_args', array(
+                            'label'         => __('Restrict to User Role'),
+                            'section'       => $this->customizerClassInstance->user_targeting_display_rule_section_id,
+                            'settings'      => $this->option_prefix . '[show_to_roles]',
+                            'description'   => __('The opt-in form will only be shown to users with any of the roles you select here.', 'mailoptin'),
+                            'choices'       => ControlsHelpers::get_roles(),
+                            'priority'      => 11
+                        )
                     )
                 )
             ),

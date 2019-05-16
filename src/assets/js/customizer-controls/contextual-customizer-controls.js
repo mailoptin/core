@@ -322,6 +322,10 @@
                 .toggle(!this.checked)
         }).change();
 
+        $('select[data-customize-setting-link*=who_see_optin]').change(function () {
+            $('li[id*=show_to_roles]').toggle($(this).val() == 'show_to_roles');
+        }).change();
+
         // handles click to select on input readonly fields
         $('.mo-click-select').click(function () {
             this.select();

@@ -656,6 +656,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'show_to_roles'                   => array(
+                    'default'   => apply_filters('mo_optin_form_show_to_roles', ''),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'after_conversion_notice'         => array(
                     'default'   => apply_filters('mo_optin_form_after_conversion_notice', false),
                     'type'      => 'option',
