@@ -477,6 +477,7 @@ class Gridgum extends AbstractOptinTheme
 
     public function customizer_preview_js()
     {
+        if(!\MailOptin\Core\is_mailoptin_customizer_preview()) return;
         ?>
         <script type="text/javascript">
             (function ($) {
