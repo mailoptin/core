@@ -397,7 +397,7 @@ class Custom_Settings_Page_Api
         $html = '';
 
         if ( ! empty($args['section_title'])) {
-            $html .= $this->_header($args['section_title']);
+            $html .= $this->_header($args['section_title'], $args);
         }
 
         $disable_submit_button = isset($args['disable_submit_button']) ? true : false;
@@ -869,7 +869,7 @@ class Custom_Settings_Page_Api
      *
      * @return string
      */
-public function _header($section_title)
+public function _header($section_title, $args = array())
 {
     ob_start();
     ?>
@@ -878,7 +878,7 @@ public function _header($section_title)
             <span class="screen-reader-text"><?php _e('Toggle panel'); ?>
                 : <?php echo $this->page_header; ?></span><span class="toggle-indicator" aria-hidden="true"></span>
         </button>
-        <h3 class="hndle ui-sortable-handle"><span><?php echo $section_title; ?></span></h3>
+        <h3 class="hndle ui-sortable-handle"><span><?php echo $section_title; ?></span><?php do_action('wp_cspa_settings_after_title', $this->option_name, $args); ?></h3>
         <div class="inside">
             <?php do_action('wp_cspa_header_before_box_content', $section_title, $this->option_name); ?>
             <table class="form-table">
