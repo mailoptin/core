@@ -160,6 +160,13 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-lightbox.png'
             ],
             [
+                'name'        => 'Liatris',
+                'optin_class' => 'Liatris',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-inpost.png'
+            ],
+            [
                 'name'        => 'Gridgum',
                 'optin_class' => 'Gridgum',
                 'flag'        => 'premium',
