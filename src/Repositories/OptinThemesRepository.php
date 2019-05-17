@@ -174,6 +174,13 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-sidebar.png'
             ],
             [
+                'name'        => 'Liatris',
+                'optin_class' => 'Liatris',
+                'flag'        => 'premium',
+                'optin_type'  => 'slidein',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-sidebar.png'
+            ],
+            [
                 'name'        => 'Gridgum',
                 'optin_class' => 'Gridgum',
                 'flag'        => 'premium',
