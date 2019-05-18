@@ -426,7 +426,7 @@ CSS;
                                             </tr>
                                             <tr>
                                                 <td align="center" valign="top">
-                                                    <a href="$mailoptin_url" style="color: #5d5d5d; text-decoration: none" target="_blank">
+                                                    <a rel="nofollow" href="$mailoptin_url" style="color: #5d5d5d; text-decoration: none" target="_blank">
                                                         <img alt="MailOptin - Best lead Generation, email list building & Newsletter WordPress Plugin." border="0" hspace="0" vspace="0" src="$mailoptin_logo_url" width="211">
                                                     </a>
                                                 </td>
