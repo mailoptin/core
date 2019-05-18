@@ -56,6 +56,7 @@ class AjaxHandler
             'dismiss_toastr_notifications'             => false,
             'customizer_email_automation_get_taxonomy' => false,
             'customizer_optin_map_custom_field'        => false,
+            'view_error_log'                           => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -859,6 +860,29 @@ class AjaxHandler
         (new OptinCampaignStat($optin_campaign_id))->save($stat_type);
 
         do_action('mailoptin_track_impressions', $payload, $optin_campaign_id, $optin_uuid);
+    }
+
+    /**
+     * Prints error log
+     */
+    public function view_error_log()
+    {
+        check_ajax_referer('mailoptin-log');
+
+        if(current_user_has_privilege()){
+            $file           = sanitize_text_field($_REQUEST['file']);
+            $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $file .'.log';
+        
+            // Return an empty string if the file does not exist
+            if ( ! file_exists($error_log_file)) {
+                exit;
+            }
+            
+            //Stream the log file
+            readfile($error_log_file);
+        }
+        
+        exit;
     }
 
     public function customizer_email_automation_get_taxonomy()
