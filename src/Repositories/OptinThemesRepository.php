@@ -290,14 +290,14 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Scilla',
                 'flag'        => 'premium',
                 'optin_type'  => 'sidebar',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/scilla/scilla-sidebar.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/scilla/scilla-sidebar-slidein.png'
             ],
             [
                 'name'        => 'Scilla',
                 'optin_class' => 'Scilla',
                 'flag'        => 'premium',
                 'optin_type'  => 'slidein',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/scilla/scilla-sidebar.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/scilla/scilla-sidebar-slidein.png'
             ],
             [
                 'name'        => 'Solidago',
