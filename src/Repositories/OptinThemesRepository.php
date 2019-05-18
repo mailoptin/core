@@ -178,7 +178,7 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Liatris',
                 'flag'        => 'premium',
                 'optin_type'  => 'slidein',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-sidebar.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/liatris/liatris-slidein.png'
             ],
             [
                 'name'        => 'Gridgum',
@@ -298,6 +298,27 @@ class OptinThemesRepository extends AbstractRepository
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/solidago-lightbox.png'
+            ],
+            [
+                'name'        => 'Solidago',
+                'optin_class' => 'Solidago',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/solidago-optin.png'
+            ],
+            [
+                'name'        => 'Solidago',
+                'optin_class' => 'Solidago',
+                'flag'        => 'premium',
+                'optin_type'  => 'sidebar',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/solidago-optin.png'
+            ],
+            [
+                'name'        => 'Solidago',
+                'optin_class' => 'Solidago',
+                'flag'        => 'premium',
+                'optin_type'  => 'slidein',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/solidago-optin.png'
             ],
             [
                 'name'        => 'Quince',
