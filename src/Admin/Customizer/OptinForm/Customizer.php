@@ -822,8 +822,9 @@ class Customizer
             );
 
             $wp_customize->add_section($this->query_filter_display_rule_section_id, array(
-                    'title' => __('Query String Targeting', 'mailoptin'),
-                    'panel' => $this->display_rules_panel_id
+                    'title'    => __('Query String Targeting', 'mailoptin'),
+                    'panel'    => $this->display_rules_panel_id,
+                    'priority' => 200
                 )
             );
 
