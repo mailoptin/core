@@ -56,6 +56,7 @@ class AjaxHandler
             'dismiss_toastr_notifications'             => false,
             'customizer_email_automation_get_taxonomy' => false,
             'customizer_optin_map_custom_field'        => false,
+            'view_error_log'                           => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -859,6 +860,42 @@ class AjaxHandler
         (new OptinCampaignStat($optin_campaign_id))->save($stat_type);
 
         do_action('mailoptin_track_impressions', $payload, $optin_campaign_id, $optin_uuid);
+    }
+
+    /**
+     * Prints error log
+     */
+    public function view_error_log()
+    {
+        check_ajax_referer('mailoptin-log');
+
+        if(current_user_has_privilege()){
+            $file           = sanitize_text_field($_REQUEST['file']);
+            $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $file .'.log';
+        
+            // Return an empty string if the file does not exist
+            if ( ! file_exists($error_log_file)) {
+                exit;
+            }
+
+            //Maybe delete log
+            if(! empty( $_GET['delete'] ) || '1' == $_GET['delete'] ){
+                unlink($error_log_file);
+                die( __( 'Error log successfully deleted', 'mailoptin') );
+            }
+            
+            //Stream the log file
+            $url     = esc_url( add_query_arg( 'delete', '1') );
+            $confirm = __( 'This will delete the error log forever. Press OK to confirm', 'mailoptin');
+            $message = __( 'Delete Error Log', 'mailoptin');
+
+            $onclick = "onclick=\"return confirm('$confirm')\"";
+            echo "<a href='$url' style='background: #cc0000;color: #fff;text-decoration: none;padding: 5px;font-size: 14px;' $onclick>$message</a><pre>";
+                readfile($error_log_file);
+            echo '</pre>';
+        }
+        
+        exit;
     }
 
     public function customizer_email_automation_get_taxonomy()

@@ -185,6 +185,70 @@ abstract class AbstractConnect
     }
 
     /**
+     * get email service/connect specific optin error log.
+     *
+     * @param string $filename log file name.
+     * @param int|null $optin_campaign_id
+     *
+     * @return string
+     */
+    public static function get_optin_error_log( $filename = 'error')
+    {
+        $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $filename .'.log';
+        
+        // Return an empty string if the file does not exist
+        if ( ! file_exists($error_log_file)) {
+            return '';
+        }
+
+        return file_get_contents($error_log_file);
+    }
+
+    /**
+     * return link to email service/connect specific optin error log.
+     *
+     * @param string $filename log file name.
+     *
+     * @return string
+     */
+    public static function get_optin_error_log_link( $filename = 'error')
+    {
+        if( ! self::has_optin_error_log($filename) ){
+            return;
+        }
+
+        $url =  esc_url( add_query_arg( 
+            '_wpnonce',
+            wp_create_nonce( 'mailoptin-log' ), 
+            admin_url('admin-ajax.php?action=mailoptin_view_error_log&file=' . $filename) ) );
+        
+        return sprintf(
+            __( '%sView Error Log%s' ),
+            "<a href='$url' style='color: #cc0000; font-weight: 500' target='_blank'>",
+            '</a>'
+        );
+    }
+
+    /**
+     * check if there is an email service/connect specific optin error log.
+     *
+     * @param string $filename log file name.
+     * @param int|null $optin_campaign_id
+     *
+     * @return bool
+     */
+    public static function has_optin_error_log( $filename = 'error')
+    {
+        $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $filename .'.log';
+
+        if (  file_exists($error_log_file)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Save email service/connect specific optin errors.
      *
      * @param string $message error message
