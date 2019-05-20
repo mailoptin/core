@@ -1443,7 +1443,7 @@ class CustomizerControls
                     $this->wp_customize,
                     $this->option_prefix . '[show_to_roles]',
                     apply_filters('mo_optin_form_customizer_show_to_roles_args', array(
-                            'label'         => __('Restrict to User Role'),
+                            'label'         => __('Restrict to User Role', 'mailoptin'),
                             'section'       => $this->customizerClassInstance->user_targeting_display_rule_section_id,
                             'settings'      => $this->option_prefix . '[show_to_roles]',
                             'description'   => __('The opt-in form will only be shown to users with any of the roles you select here.', 'mailoptin'),
