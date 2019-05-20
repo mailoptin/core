@@ -877,9 +877,16 @@ class AjaxHandler
             if ( ! file_exists($error_log_file)) {
                 exit;
             }
+
+            //Maybe delete log
+            if(! empty( $_GET['delete'] ) || '1' == $_GET['delete'] ){
+                unlink($error_log_file);
+                die( __( 'Error log successfully deleted', 'mailoptin') );
+            }
             
             //Stream the log file
-            echo '<pre style="align-items: center;justify-content: center; min-height: 100vh;">';
+            $url = esc_url( add_query_arg( 'delete', '1') );
+            echo "<a href='$url' style='color: #cc0000;text-decoration: none;'>Delete Error Log</a><pre>";
             readfile($error_log_file);
             echo '</pre>';
         }
