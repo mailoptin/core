@@ -890,7 +890,7 @@ class AjaxHandler
             $message = __( 'Delete Error Log', 'mailoptin');
 
             $onclick = "onclick=\"return confirm('$confirm')\"";
-            echo "<a href='$url' style='color: #cc0000;text-decoration: none;' $onclick>$message</a><pre>";
+            echo "<a href='$url' style='background: #cc0000;color: #fff;text-decoration: none;padding: 5px;font-size: 14px;' $onclick>$message</a><pre>";
                 readfile($error_log_file);
             echo '</pre>';
         }
