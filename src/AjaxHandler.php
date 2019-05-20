@@ -879,7 +879,7 @@ class AjaxHandler
             }
             
             //Stream the log file
-            echo '<pre style="display: flex;align-items: center;justify-content: center; min-height: 100vh;">';
+            echo '<pre style="align-items: center;justify-content: center; min-height: 100vh;">';
             readfile($error_log_file);
             echo '</pre>';
         }
