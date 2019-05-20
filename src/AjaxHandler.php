@@ -885,9 +885,13 @@ class AjaxHandler
             }
             
             //Stream the log file
-            $url = esc_url( add_query_arg( 'delete', '1') );
-            echo "<a href='$url' style='color: #cc0000;text-decoration: none;'>Delete Error Log</a><pre>";
-            readfile($error_log_file);
+            $url     = esc_url( add_query_arg( 'delete', '1') );
+            $confirm = __( 'This will delete the error log forever. Press OK to confirm', 'mailoptin');
+            $message = __( 'Delete Error Log', 'mailoptin');
+
+            $onclick = "onclick=\"return confirm('$confirm')\"";
+            echo "<a href='$url' style='color: #cc0000;text-decoration: none;' $onclick>$message</a><pre>";
+                readfile($error_log_file);
             echo '</pre>';
         }
         
