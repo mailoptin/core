@@ -360,7 +360,10 @@
             $('li[id*=custom_html_content]').toggle(this.checked);
             $('#sub-accordion-section-mo_fields_section li.customize-control')
                 .not('li[id*=use_custom_html], li[id*=custom_html_content]')
-                .toggle(!this.checked)
+                .toggle(!this.checked);
+
+            api.section('mo_success_section').active(!this.checked);
+
         }).change();
 
         $('select[data-customize-setting-link*=who_see_optin]').change(function () {
