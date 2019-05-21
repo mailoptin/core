@@ -119,18 +119,59 @@
                     control.active.set(is_displayed());
                     // hide all display rules sections save for click launch when click launch is activated.
                     api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][load_optin_globally]').active(!is_displayed());
-                    api.section('mo_wp_exit_intent_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_x_seconds_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_x_scroll_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_x_page_views_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_page_filter_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_shortcode_template_tag_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_adblock_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_newvsreturn_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_referrer_detection_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_schedule_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_device_targeting_display_rule_section').active(!is_displayed());
-                    api.section('mo_wp_user_filter_display_rule_section').active(!is_displayed());
+
+                    if (typeof api.section('mo_wp_exit_intent_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_exit_intent_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_x_seconds_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_x_seconds_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_x_scroll_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_x_scroll_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_x_page_views_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_x_page_views_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_page_filter_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_page_filter_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_shortcode_template_tag_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_shortcode_template_tag_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_adblock_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_adblock_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_newvsreturn_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_newvsreturn_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_referrer_detection_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_referrer_detection_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_schedule_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_schedule_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_device_targeting_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_device_targeting_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_user_filter_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_user_filter_display_rule_section').active(!is_displayed());
+                    }
+
+                    if (typeof api.section('mo_wp_query_filter_display_rule_section') !== 'undefined') {
+                        api.section('mo_wp_query_filter_display_rule_section').active(!is_displayed());
+                    }
+
                     if (typeof api.section('mo_wp_polylang_display_rule_section') !== 'undefined') {
                         api.section('mo_wp_polylang_display_rule_section').active(!is_displayed());
                     }

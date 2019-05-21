@@ -170,7 +170,7 @@ class AjaxHandler
 
         check_ajax_referer('mailoptin-send-test-email-nonce', 'security');
 
-        if ( !  current_user_has_privilege() ) {
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -240,8 +240,8 @@ class AjaxHandler
      */
     public function optin_type_selection()
     {
-        
-        if ( !  current_user_has_privilege()) {
+
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -268,7 +268,7 @@ class AjaxHandler
      */
     public function create_optin_split_test()
     {
-       
+
         if ( ! current_user_has_privilege()) {
             return;
         }
@@ -302,7 +302,7 @@ class AjaxHandler
     public function pause_optin_split_test()
     {
 
-        if ( !  current_user_has_privilege()) {
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -335,7 +335,7 @@ class AjaxHandler
     public function split_test_select_winner()
     {
 
-        if ( !  current_user_has_privilege()) {
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -374,7 +374,7 @@ class AjaxHandler
     public function end_optin_split_modal()
     {
 
-        if ( !  current_user_has_privilege()) {
+        if ( ! current_user_has_privilege()) {
             return;
         }
 
@@ -442,7 +442,7 @@ class AjaxHandler
      */
     public function create_optin_campaign()
     {
-    
+
         if ( ! current_user_has_privilege()) {
             return;
         }
@@ -481,7 +481,7 @@ class AjaxHandler
      */
     public function create_email_campaign()
     {
-       
+
         if ( ! current_user_has_privilege()) {
             return;
         }
@@ -586,7 +586,7 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if ( !current_user_has_privilege()) {
+        if ( ! current_user_has_privilege()) {
             exit;
         }
 
@@ -869,32 +869,32 @@ class AjaxHandler
     {
         check_ajax_referer('mailoptin-log');
 
-        if(current_user_has_privilege()){
+        if (current_user_has_privilege()) {
             $file           = sanitize_text_field($_REQUEST['file']);
-            $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $file .'.log';
-        
+            $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $file . '.log';
+
             // Return an empty string if the file does not exist
             if ( ! file_exists($error_log_file)) {
                 exit;
             }
 
             //Maybe delete log
-            if(! empty( $_GET['delete'] ) || '1' == $_GET['delete'] ){
+            if ( ! empty($_GET['delete']) || '1' == $_GET['delete']) {
                 unlink($error_log_file);
-                die( __( 'Error log successfully deleted', 'mailoptin') );
+                die(__('Error log successfully deleted', 'mailoptin'));
             }
-            
+
             //Stream the log file
-            $url     = esc_url( add_query_arg( 'delete', '1') );
-            $confirm = __( 'This will delete the error log forever. Press OK to confirm', 'mailoptin');
-            $message = __( 'Delete Error Log', 'mailoptin');
+            $url     = esc_url(add_query_arg('delete', '1'));
+            $confirm = __('This will delete the error log forever. Press OK to confirm', 'mailoptin');
+            $message = __('Delete Error Log', 'mailoptin');
 
             $onclick = "onclick=\"return confirm('$confirm')\"";
             echo "<a href='$url' style='background: #cc0000;color: #fff;text-decoration: none;padding: 5px;font-size: 14px;' $onclick>$message</a><pre>";
-                readfile($error_log_file);
+            readfile($error_log_file);
             echo '</pre>';
         }
-        
+
         exit;
     }
 
