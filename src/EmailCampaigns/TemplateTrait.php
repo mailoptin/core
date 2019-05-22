@@ -47,6 +47,13 @@ trait TemplateTrait
      */
     public function post_content($post)
     {
+        $is_remove_post_content = ER::get_merged_customizer_value(
+            $this->email_campaign_id,
+            'content_remove_post_body'
+        );
+
+        if ($is_remove_post_content) return '';
+
         if ( ! is_object($post) || ! ($post instanceof WP_Post)) {
             $post = get_post($post);
         }

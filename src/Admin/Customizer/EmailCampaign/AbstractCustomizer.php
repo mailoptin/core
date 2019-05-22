@@ -334,6 +334,7 @@ HTML;
         $defaults['content_before_main_content']              = apply_filters('mailoptin_content_before_main_content_default', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_after_main_content']               = apply_filters('mailoptin_content_after_main_content_default', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_remove_ellipsis_button']           = apply_filters('mailoptin_content_remove_ellipsis_button_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
+        $defaults['content_remove_post_body']                 = apply_filters('mailoptin_content_remove_post_body_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_remove_feature_image']             = apply_filters('mailoptin_content_remove_feature_image_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_background_color']                 = apply_filters('mailoptin_content_background_color_default', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_text_color']                       = apply_filters('mailoptin_content_text_color_default', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);

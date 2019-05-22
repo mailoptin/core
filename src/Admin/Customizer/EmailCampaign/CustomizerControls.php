@@ -1129,6 +1129,17 @@ HTML;
                         )
                     )
                 ),
+                'content_remove_post_body'             => new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[content_remove_post_body]',
+                    apply_filters('mailoptin_template_customizer_content_remove_post_body_args', array(
+                            'label'    => esc_html__('Remove Post Content', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->campaign_content_section_id,
+                            'settings' => $this->option_prefix . '[content_remove_post_body]',
+                            'priority' => 25
+                        )
+                    )
+                ),
                 'content_remove_feature_image'             => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[content_remove_feature_image]',
