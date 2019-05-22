@@ -174,7 +174,7 @@ class CustomizerControls
                         'label'       => __('Maximum Number of Posts', 'mailoptin'),
                         'input_attrs' => array(
                             'min'  => 1,
-                            'max'  => 50,
+                            'max'  => 1000,
                             'step' => 1
                         ),
                         'priority'    => 25
