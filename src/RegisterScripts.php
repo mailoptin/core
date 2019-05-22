@@ -15,7 +15,7 @@ class RegisterScripts
         add_action('admin_enqueue_scripts', [$this, 'fancybox_assets']);
         add_action('wp_enqueue_scripts', array($this, 'public_css'));
         add_action('wp_enqueue_scripts', array($this, 'public_js'));
-	add_action('init', [$this, 'gutenberg_js']);
+        add_action('init', [$this, 'gutenberg_js']);
     }
 
     public function fancybox_assets()
@@ -59,71 +59,71 @@ class RegisterScripts
         $this->global_js_variables('mailoptin-add-optin-campaign');
         do_action('mo_admin_js_enqueue');
     }
-	
+
     /**
      * Gutenberg JS
      */
     public function gutenberg_js()
     {
         // Skip block registration if Gutenberg is not enabled/merged.
-	    if (!function_exists('register_block_type')) {
-		    return;
+        if ( ! function_exists('register_block_type')) {
+            return;
         }
-        
-        $default  = 0;
+
+        $default   = 0;
         $templates = array(
-            '0' => array( 
-                    'template' => sprintf( 
-                        __( '%s You currently have no inpost or sidebar/widget optin created or activated. Please create one first. %s ', 'mailoptin'),
-                        '<div style="background-color: #fff8e1;border: 1px solid #FFE082;padding: 10px;">',
-                        '<div>') ,
-                    'value' => sprintf( 
-                        __( '%s You currently have no inpost or sidebar/widget optin created or activated. Please create one first. %s ', 'mailoptin'),
-                        '<div style="background-color: #fff8e1;border: 1px solid #FFE082;padding: 10px;">',
-                        '<div>') 
+            '0' => array(
+                'template' => sprintf(
+                    __('%s You currently have no inpost or sidebar/widget optin created or activated. Please create one first. %s ', 'mailoptin'),
+                    '<div style="background-color: #fff8e1;border: 1px solid #FFE082;padding: 10px;">',
+                    '<div>'),
+                'value'    => sprintf(
+                    __('%s You currently have no inpost or sidebar/widget optin created or activated. Please create one first. %s ', 'mailoptin'),
+                    '<div style="background-color: #fff8e1;border: 1px solid #FFE082;padding: 10px;">',
+                    '<div>')
             )
         );
-        $modified = array();
+        $modified  = array();
         $campaigns = OptinCampaignsRepository::get_optin_campaigns();
-        if(!is_array($campaigns)){
+        if ( ! is_array($campaigns)) {
             $campaigns = array();
         }
 
-        foreach($campaigns as $campaign){
-            if($campaign['optin_type'] != 'sidebar' && $campaign['optin_type'] != 'inpost'){
+        foreach ($campaigns as $campaign) {
+            if ($campaign['optin_type'] != 'sidebar' && $campaign['optin_type'] != 'inpost') {
                 continue;
             }
 
             $id = $campaign['id'];
 
-            if(OptinCampaignsRepository::is_activated($id)){
+            if (OptinCampaignsRepository::is_activated($id)) {
                 $modified[] = array(
                     'label' => $campaign['name'],
                     'value' => $id,
                 );
 
-                $templates[$campaign['id']] = array( 
+                $templates[$campaign['id']] = array(
                     'template' => do_shortcode("[mo-optin-form id=$id]"),
-                    'value' => "[mo-optin-form id=$id]"
+                    'value'    => "[mo-optin-form id=$id]"
                 );
-                
+
             }
         }
 
-        if(!empty($modified)){
+        if ( ! empty($modified)) {
             $default = $modified[0]['value'];
         }
 
 
-	    wp_register_script(
-		    'mailoptin-gutenberg',
+        wp_register_script(
+            'mailoptin-gutenberg',
             MAILOPTIN_ASSETS_URL . 'js/admin/optin-block.js',
-		    array(
-			    'wp-blocks',
-			    'wp-i18n',
-			    'wp-element',
-			    'wp-components'
-		    ),
+            array(
+                'wp-blocks',
+                'wp-i18n',
+                'wp-element',
+                'wp-components'
+            ),
             MAILOPTIN_VERSION_NUMBER,
             true
         );
@@ -133,15 +133,15 @@ class RegisterScripts
             array(
                 'defaultForm' => $default,
                 'formOptions' => $modified,
-                'icon' => 'email',
-                'templates' => $templates
+                'icon'        => 'email',
+                'templates'   => $templates
             )
         );
 
         register_block_type('mailoptin/email-optin', array(
-            'editor_script'     => 'mailoptin-gutenberg',
+            'editor_script' => 'mailoptin-gutenberg',
         ));
-    
+
     }
 
     /**
@@ -223,6 +223,8 @@ class RegisterScripts
             'is_customize_preview'        => is_customize_preview() ? 'true' : 'false',
             // for some weird reason, boolean false is converted to empty and true to "1" hence the use of 'false' in string form.
             'disable_impression_tracking' => $disable_impression_status === true ? 'true' : 'false',
+            'split_test_start_label'      => __('Start Test', 'mailoptin'),
+            'split_test_pause_label'      => __('Pause Test', 'mailoptin'),
             'chosen_search_placeholder'   => __('Type to search', 'mailoptin'),
             'js_confirm_text'             => __('Are you sure you want to do this?', 'mailoptin'),
             'js_clear_stat_text'          => __('Are you sure you want to do this? Clicking OK will delete all your optin analytics records.', 'mailoptin'),
@@ -236,6 +238,8 @@ class RegisterScripts
             unset($localize_strings['js_confirm_text']);
             unset($localize_strings['js_clear_stat_text']);
             unset($localize_strings['custom_field_label']);
+            unset($localize_strings['split_test_start_label']);
+            unset($localize_strings['split_test_pause_label']);
         }
 
         wp_localize_script(

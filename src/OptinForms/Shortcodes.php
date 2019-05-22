@@ -87,10 +87,12 @@ class Shortcodes
     {
         if (\MailOptin\Core\is_mailoptin_customizer_preview()) return '';
 
-        if(isset($_GET['mohide']) && $_GET['mohide'] == 'true') return '';
+        if (isset($_GET['mohide']) && $_GET['mohide'] == 'true') return '';
 
         // $optin_campaign_id could be null if invalid uuid is supplied.
         if ( ! $optin_campaign_id) return __('Invalid optin campaign ID', 'mailoptin');
+
+        $optin_campaign_id = OCR::choose_split_test_variant($optin_campaign_id);
 
         $optin_type = OCR::get_optin_campaign_type($optin_campaign_id);
 
