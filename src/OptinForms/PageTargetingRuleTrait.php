@@ -105,7 +105,11 @@ trait PageTargetingRuleTrait
 
             // if current post category contain a category that optin should load for, return true.
             // array_intersect() return array element that exist in both comparison arrays.
+            // i came across an odd case where a page had a post category and thus was showing the optin.
+            // mind you, pages doesn't have categories.
             if ( ! empty($post_categories_load)) {
+                if ( ! is_singular('post')) return false;
+
                 $intersect = array_intersect($post_categories, $post_categories_load);
                 if (empty($intersect)) {
                     return false;
