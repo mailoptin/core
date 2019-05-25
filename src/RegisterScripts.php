@@ -199,6 +199,28 @@ class RegisterScripts
             }
         }
 
+        if (class_exists('\Ninja_Forms') && class_exists('\NF_Display_Render')) {
+            $flag      = false;
+            $optin_ids = OptinCampaignsRepository::get_optin_campaign_ids();
+            foreach ($optin_ids as $optin_id) {
+                if ( ! OptinCampaignsRepository::is_activated($optin_id)) continue;
+                
+                if (is_ninja_form_shortcode($optin_id)) {
+                    $flag = true;
+                    break;
+                }
+            }
+
+            if ($flag) {
+                ob_start();
+                \NF_Display_Render::localize(0);
+
+                ob_clean();
+
+                wp_add_inline_script('nf-front-end', 'var nfForms = nfForms || [];');
+            }
+        }
+
         $this->global_js_variables('mailoptin');
     }
 

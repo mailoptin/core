@@ -46,6 +46,16 @@ trait CustomizerTrait
         do_action('mo_customizer_register_control_type', $wp_customize);
     }
 
+    public function is_ninja_form_shortcode()
+    {
+        if (class_exists('\Ninja_Forms') && class_exists('\NF_Display_Render') && isset($_GET['mailoptin_optin_campaign_id'])) {
+            $optin_campaign_id = absint($_GET['mailoptin_optin_campaign_id']);
+            return \MailOptin\Core\is_ninja_form_shortcode($optin_campaign_id);
+        }
+
+        return false;
+    }
+
     public function clean_up_customizer()
     {
         // this should never change from init to say admin_init in future because it will
@@ -80,7 +90,7 @@ trait CustomizerTrait
 
             $is_switch_loader_method = Settings::instance()->switch_customizer_loader();
 
-            if ($is_switch_loader_method != 'true') {
+            if ($is_switch_loader_method == 'false' && ! $this->is_ninja_form_shortcode()) {
 
                 $wp_get_theme = wp_get_theme();
 

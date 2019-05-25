@@ -7,6 +7,7 @@ use MailOptin\Core\Logging\CampaignLogPersistence;
 use MailOptin\Core\Logging\CampaignLogRepository;
 use MailOptin\Core\PluginSettings\Settings;
 use W3Guy\Custom_Settings_Page_Api;
+use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
 
 function campaign_repository()
 {
@@ -257,4 +258,16 @@ function get_capability()
 function current_user_has_privilege()
 {
     return (current_user_can('manage_options') || current_user_can('manage_mailoptin'));
+}
+
+function is_ninja_form_shortcode($optin_campaign_id)
+{
+    if (OCR::get_merged_customizer_value($optin_campaign_id, 'use_custom_html')) {
+        $content = OCR::get_customizer_value($optin_campaign_id, 'custom_html_content');
+        if ( ! empty($content) && strpos($content, '[ninja_form') !== false) {
+            return true;
+        }
+    }
+
+    return false;
 }
