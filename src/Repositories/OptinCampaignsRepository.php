@@ -281,6 +281,29 @@ class OptinCampaignsRepository extends AbstractRepository
     }
 
     /**
+     * Changes the optin campaign class
+     *
+     * @param int $optin_campaign_id
+     *
+     * @return string
+     */
+    public static function set_optin_campaign_class( $optin_campaign_id, $class )
+    {
+        //Burst cache
+        self::burst_cache( $optin_campaign_id );
+
+        return parent::wpdb()->update(
+            parent::campaigns_table(),
+            array(
+                'optin_class' => $class
+            ),
+            array( 'id' => $optin_campaign_id ),
+            '%s',
+            '%d'
+        );
+    }
+
+    /**
      * The optin campaign ID from class name.
      *
      * @param string $optin_campaign_class_name

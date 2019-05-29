@@ -616,3 +616,52 @@ li[id*="code_your_own"] + .customize-control {
     padding: 5px;
     margin-top: 10px;
 }
+
+.mo-change-theme-button {
+    position: absolute;
+    right: 6px;
+    top: 40px;
+}
+
+.mo-change-theme-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 990000;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    overflow: auto;
+}
+
+.mo-change-theme-popup.mo-change-theme-popup-show {
+    display: flex;
+}
+
+.mo-change-theme-popup.mo-change-theme-display-block {
+    display: block;
+}
+
+.mo-change-theme-popup .mailoptin-optin-themes {
+    width: 100%;
+    max-width: 1120px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 40px;
+}
+
+.mo-change-theme-popup h3.mailoptin-optin-theme-name {
+    height: 38px;
+}
+
+.mailoptin-optin-themes-ajax-error {
+    color: #b71c1c;
+    padding: 8px;
+}
+
+.mailoptin-optin-themes-ajax-error .close-button-div{
+    margin-top: 10px;
+}
