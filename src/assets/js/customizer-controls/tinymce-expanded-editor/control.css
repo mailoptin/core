@@ -3,22 +3,6 @@
     margin-right: 5px;
 }
 
-#wpum-display-tags-btn {
-    width: 100%;
-    text-align: center;
-    height: 32px;
-    line-height: 30px;
-}
-
-.wpum-email-tags-list {
-    display: none;
-    margin-top: 15px;
-}
-
-.wpum-email-tags-list hr {
-    margin-top: 15px;
-}
-
 .mo-tinymce-expanded-control-wrapper {
     padding: 0 36px;
 }

@@ -132,7 +132,11 @@
         var cpt_settings_contextual_display = function (e, flag, val) {
             e = e || false;
             flag = flag || false;
-            val = val || this.value;
+            if (typeof val === 'undefined' && typeof this !== 'undefined') {
+                val = this.value;
+            }
+
+            if (typeof val === 'undefined') return;
 
             if (val === 'post') {
                 $('li[id*="custom_post_type_settings"]').hide();

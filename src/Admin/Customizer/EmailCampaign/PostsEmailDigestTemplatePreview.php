@@ -31,6 +31,8 @@ class PostsEmailDigestTemplatePreview extends Templatify
             $parameters['post_type'] = $custom_post_type;
         }
 
+        $parameters = apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id, 'customizer');
+
         $response = get_posts($parameters);
 
         if (empty($response)) {

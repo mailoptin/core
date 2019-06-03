@@ -5,6 +5,7 @@ namespace MailOptin\Core;
 use MailOptin\Core\Admin\Customizer\CustomControls\ControlsHelpers;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_EA_CPT_Control_Trait;
 use MailOptin\Core\Admin\Customizer\EmailCampaign\NewPublishPostTemplatePreview;
+use MailOptin\Core\Admin\Customizer\EmailCampaign\NewsletterTemplatePreview;
 use MailOptin\Core\Admin\Customizer\EmailCampaign\PostsEmailDigestTemplatePreview;
 use MailOptin\Core\Admin\Customizer\EmailCampaign\SolitaryDummyContent;
 use MailOptin\Core\Admin\SettingsPage\Email_Campaign_List;
@@ -231,6 +232,22 @@ class AjaxHandler
     {
         return [
             (new PostsEmailDigestTemplatePreview($email_campaign_id))->forge(),
+            $email_campaign_subject
+        ];
+    }
+
+    /**
+     * Handles generating preview of newsletter email campaign for test email sending
+     *
+     * @param int $email_campaign_id
+     * @param string $email_campaign_subject
+     *
+     * @return array index0 is content_html index1 is email campaign subject.
+     */
+    public function newsletter_preview($email_campaign_id, $email_campaign_subject)
+    {
+        return [
+            (new NewsletterTemplatePreview($email_campaign_id))->forge(),
             $email_campaign_subject
         ];
     }

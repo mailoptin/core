@@ -67,6 +67,7 @@ class CustomizerControls
 
                     'content_before_main_content',
                     'content_after_main_content',
+                    'content_remove_post_body',
                     'content_remove_feature_image',
                     'default_image_url',
                     'content_remove_ellipsis_button',
@@ -406,6 +407,38 @@ class CustomizerControls
                         'settings' => $this->option_prefix . '[email_campaign_settings_notice2]',
                         'priority' => 64,
                     )
+                )
+            );
+        }
+
+        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+            unset($campaign_settings_controls['email_campaign_subject']);
+            unset($campaign_settings_controls['post_content_length']);
+            unset($campaign_settings_controls['custom_post_type']);
+            unset($campaign_settings_controls['custom_post_type_settings']);
+            unset($campaign_settings_controls['post_categories']);
+            unset($campaign_settings_controls['post_tags']);
+            unset($campaign_settings_controls['schedule_header']);
+            $campaign_settings_controls['email_campaign_title']['label'] = __('Email Subject', 'mailoptin');
+
+            $newsletter_editor_content_btn = '
+                <a id="newsletter_editor_content_btn" href="#" class="button button-hero mo-tinymce-expanded-editor-btn" style="padding:0;width:100% ;">
+                    <div class="mo-tinymce-expanded-control-wrapper">
+                        <span class="dashicons dashicons-edit"></span>
+                        <span>' . __('Open content editor', 'mailoptin') . '</span>
+                    </div>
+                </a>';
+
+            $campaign_settings_controls['newsletter_editor_content'] = new WP_Customize_Custom_Content(
+                $this->wp_customize,
+                $this->option_prefix . '[newsletter_editor_content]',
+                array(
+                    'label'          => __('Email Content', 'mailoptin'),
+                    'content'        => $newsletter_editor_content_btn,
+                    'section'        => $this->customizerClassInstance->campaign_settings_section_id,
+                    'no_wrapper_div' => true,
+                    'settings'       => $this->option_prefix . '[newsletter_editor_content]',
+                    'priority'       => 15,
                 )
             );
         }
@@ -812,6 +845,27 @@ HTML;
             unset($control_args['email_digest_tag_help']);
         }
 
+        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id) &&
+            ER::is_code_your_own_template($this->customizerClassInstance->email_campaign_id)) {
+            foreach ($control_args as $id => $args) {
+                if ( ! in_array($id,
+                    [
+                        'company_country_shortcode',
+                        'company_zip_shortcode',
+                        'company_state_shortcode',
+                        'company_city_shortcode',
+                        'company_address_2_shortcode',
+                        'company_address_shortcode',
+                        'company_name_shortcode',
+                        'web_version_shortcode',
+                        'unsubscribe_shortcode',
+                        'campaign_tags_header'
+                    ])) {
+                    unset($control_args[$id]);
+                }
+            }
+        }
+
         foreach ($control_args as $id => $args) {
             if (is_object($args)) {
                 $this->wp_customize->add_control($args);
@@ -910,6 +964,32 @@ HTML;
                         'section'  => $this->customizerClassInstance->campaign_page_section_id,
                         'settings' => $this->option_prefix . '[custom_css_upgrade_notice]',
                         'priority' => 20,
+                    )
+                )
+            );
+        }
+
+        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+            $page_control_args['content_background_color'] = new \WP_Customize_Color_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[content_background_color]',
+                apply_filters('mailoptin_template_customizer_content_background_color_args', array(
+                        'label'    => __('Content Background Color', 'mailoptin'),
+                        'section'  => $this->customizerClassInstance->campaign_page_section_id,
+                        'settings' => $this->option_prefix . '[content_background_color]',
+                        'priority' => 15
+                    )
+                )
+            );
+
+            $page_control_args['content_text_color'] = new \WP_Customize_Color_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[content_text_color]',
+                apply_filters('mailoptin_template_customizer_content_text_color_args', array(
+                        'label'    => __('Content Text Color', 'mailoptin'),
+                        'section'  => $this->customizerClassInstance->campaign_page_section_id,
+                        'settings' => $this->option_prefix . '[content_text_color]',
+                        'priority' => 18
                     )
                 )
             );
@@ -1129,7 +1209,7 @@ HTML;
                         )
                     )
                 ),
-                'content_remove_post_body'             => new WP_Customize_Toggle_Control(
+                'content_remove_post_body'                 => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[content_remove_post_body]',
                     apply_filters('mailoptin_template_customizer_content_remove_post_body_args', array(
@@ -1263,6 +1343,11 @@ HTML;
             $this->option_prefix,
             $this->customizerClassInstance
         );
+
+        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+            unset($content_control_args['content_background_color']);
+            unset($content_control_args['content_text_color']);
+        }
 
         do_action('mailoptin_before_content_controls_addition',
             $content_control_args,

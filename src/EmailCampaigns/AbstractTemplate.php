@@ -51,7 +51,7 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
 
         $this->template_shortcodes();
 
-        if (!empty($_REQUEST['mailoptin_email_campaign_id'])) {
+        if ( ! empty($_REQUEST['mailoptin_email_campaign_id'])) {
             add_filter('mailoptin_email_campaign_customizer_page_settings', array($this, 'customizer_page_settings'));
             add_filter('mailoptin_email_campaign_customizer_header_settings', array($this, 'customizer_header_settings'));
             add_filter('mailoptin_email_campaign_customizer_content_settings', array($this, 'customizer_content_settings'));
@@ -101,7 +101,7 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
      */
     public function __call($name, $arguments)
     {
-        if (!method_exists($this, $name)) {
+        if ( ! method_exists($this, $name)) {
             return $this::get_customizer_value($name);
         }
     }
@@ -231,25 +231,25 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
     {
         $page_background_color = $this->page_background_color();
 
-        $header_text_color = $this->header_text_color();
-        $header_background_color = $this->header_background_color();
+        $header_text_color             = $this->header_text_color();
+        $header_background_color       = $this->header_background_color();
         $header_web_version_link_color = $this->header_web_version_link_color();
 
-        $content_background_color = $this->content_background_color();
-        $content_alignment = $this->content_alignment();
-        $content_title_font_size = absint($this->content_title_font_size());
-        $content_ellipsis_button_alignment = $this->content_ellipsis_button_alignment();
+        $content_background_color                 = $this->content_background_color();
+        $content_alignment                        = $this->content_alignment();
+        $content_title_font_size                  = absint($this->content_title_font_size());
+        $content_ellipsis_button_alignment        = $this->content_ellipsis_button_alignment();
         $content_ellipsis_button_background_color = $this->content_ellipsis_button_background_color();
-        $content_ellipsis_button_text_color = $this->content_ellipsis_button_text_color();
-        $content_body_font_size = absint($this->content_body_font_size());
-        $content_text_color = $this->content_text_color();
+        $content_ellipsis_button_text_color       = $this->content_ellipsis_button_text_color();
+        $content_body_font_size                   = absint($this->content_body_font_size());
+        $content_text_color                       = $this->content_text_color();
 
-        $footer_removal = ($this->footer_removal() === true) ? 'display:none' : '';
-        $header_removal = ($this->header_removal() === true) ? 'display:none' : '';
-        $ellipsis_button_removal = ($this->content_remove_ellipsis_button() === true) ? 'display:none' : '';
-        $footer_background_color = absint($this->footer_background_color());
-        $footer_font_size = absint($this->footer_font_size());
-        $footer_text_color = $this->footer_text_color();
+        $footer_removal                = ($this->footer_removal() === true) ? 'display:none' : '';
+        $header_removal                = ($this->header_removal() === true) ? 'display:none' : '';
+        $ellipsis_button_removal       = ($this->content_remove_ellipsis_button() === true) ? 'display:none' : '';
+        $footer_background_color       = absint($this->footer_background_color());
+        $footer_font_size              = absint($this->footer_font_size());
+        $footer_text_color             = $this->footer_text_color();
         $footer_unsubscribe_link_color = $this->footer_unsubscribe_link_color();
 
 
@@ -277,6 +277,7 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
     .mo-footer-font-size {font-size: {$footer_font_size}px;}
     .mo-footer-unsubscribe-link-color {color: $footer_unsubscribe_link_color;}
 CSS;
+
         return apply_filters('mailoptin_email_template_core_style', $css, $this->email_campaign_id, $this);
     }
 
@@ -294,6 +295,14 @@ CSS;
             "mailoptin-email-template-customizer-{$template_name}",
             MAILOPTIN_ASSETS_URL . 'js/admin/email-template-customizer.js',
             array('customize-preview', 'jquery'),
+            false,
+            true
+        );
+
+        wp_enqueue_script(
+            "mailoptin-newsletter-tinymce-editor",
+            MAILOPTIN_ASSETS_URL . 'js/customizer-controls/newsletter-tinymce-editor.js',
+            array('jquery'),
             false,
             true
         );
@@ -358,7 +367,7 @@ CSS;
         );
         $logo_url = $this->get_template_logo();
 
-        return !$logo_url ? $this->header_text() : "<img src=\"$logo_url\" alt='$logo_alt'>";
+        return ! $logo_url ? $this->header_text() : "<img src=\"$logo_url\" alt='$logo_alt'>";
     }
 
     protected function customizer_custom_css()
@@ -399,8 +408,8 @@ CSS;
     {
         if ($this->get_customizer_value('remove_branding') === true) return;
         $remove_branding_text = __('Newsletter Powered by', 'mailoptin');
-        $mailoptin_logo_url = MAILOPTIN_ASSETS_URL . 'images/mailoptin-blue.png';
-        $mailoptin_url = 'https://mailoptin.io/?ref=email-branding';
+        $mailoptin_logo_url   = MAILOPTIN_ASSETS_URL . 'images/mailoptin-blue.png';
+        $mailoptin_url        = 'https://mailoptin.io/?ref=email-branding';
 
         return <<<HTML
 <table class="mo-powered-by-attribute" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; margin-left: auto; margin-right: auto; table-layout: auto !important" bgcolor="#ffffff">

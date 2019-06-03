@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Submit_Button_Control;
 use MailOptin\Core\Admin\Customizer\CustomizerTrait;
 use MailOptin\Core\Admin\Customizer\UpsellCustomizerSection;
+use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class Customizer
@@ -59,6 +60,7 @@ class Customizer
             add_action('customize_controls_enqueue_scripts', array($this, 'customizer_css'));
             add_action('customize_controls_enqueue_scripts', array($this, 'customizer_js'));
 
+            add_action('customize_controls_print_footer_scripts', [$this, 'add_send_newsletter_button']);
             add_action('customize_controls_print_footer_scripts', [$this, 'add_activate_switch']);
 
             $this->email_campaign_id = absint($_REQUEST['mailoptin_email_campaign_id']);
@@ -68,22 +70,26 @@ class Customizer
             );
 
             add_action('customize_controls_print_scripts', function () {
-                $is_code_your_own = ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $email_campaign_is_code_your_own = ! ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $newsletter_is_code_your_own = ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $is_email_newsletter             = ER::is_newsletter($this->email_campaign_id) ? 'true' : 'false';
 
                 echo '<script type="text/javascript">';
                 echo "var mailoptin_email_campaign_option_prefix = '{$this->campaign_settings}';";
                 echo "var mailoptin_email_campaign_id = $this->email_campaign_id;";
-                echo "var mailoptin_email_campaign_is_code_your_own = $is_code_your_own;";
+                echo "var mailoptin_email_campaign_is_code_your_own = $email_campaign_is_code_your_own;";
+                echo "var mailoptin_is_email_newsletter = $is_email_newsletter;";
+                echo "var mailoptin_newsletter_is_code_your_own = $newsletter_is_code_your_own;";
+                if ($is_email_newsletter == 'true') {
+                    echo "var mailoptin_is_email_newsletter = $is_email_newsletter;";
+                    printf("var moCustomizePreviewUrl = '%s';", $this->preview_url());
+                    printf("var moContentPreviewUrl = '%s';", add_query_arg('newsletterContent', 'true', $this->preview_url()));
+                }
                 echo '</script>';
             });
 
             add_action('customize_controls_enqueue_scripts', function () {
                 wp_enqueue_script('mailoptin-send-test-email', MAILOPTIN_ASSETS_URL . 'js/admin/send-test-email.js');
-            });
-
-            add_action('template_redirect', function () {
-                echo 'am here';
-                exit;
             });
 
             // do not use template_include because it doesnt work in some instances eg when membermouse plugin is installed.
@@ -106,19 +112,66 @@ class Customizer
         }
     }
 
+    public function preview_url()
+    {
+        return add_query_arg(
+            '_wpnonce',
+            wp_create_nonce('mailoptin-preview-email-campaign'),
+            sprintf(home_url('/?mailoptin_email_campaign_id=%d'), $this->email_campaign_id)
+        );
+    }
+
     public function set_customizer_urls()
     {
         global $wp_customize;
 
-        $wp_customize->set_preview_url(
+        $preview_url = $this->preview_url();
+        $return_url  = MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
+
+        if (ER::is_newsletter($this->email_campaign_id)) {
+            $preview_url = add_query_arg('newsletterContent', 'true', $this->preview_url());
+            $return_url  = MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE;
+        }
+
+        $wp_customize->set_preview_url($preview_url);
+
+        $wp_customize->set_return_url($return_url);
+    }
+
+    public function add_send_newsletter_button()
+    {
+        if ( ! ER::is_newsletter($this->email_campaign_id)) return;
+
+        $date_sent = EmailCampaignMeta::get_meta_data($this->email_campaign_id, 'newsletter_date_sent', true);
+
+        if ( ! empty($date_sent) && ! in_array($date_sent, [ER::NEWSLETTER_STATUS_FAILED, ER::NEWSLETTER_STATUS_DRAFT])) {
+            echo '<style type="text/css">#customize-save-button-wrapper {display:none!important;}</style>';
+
+            return;
+        };
+
+        $url = esc_url(
             add_query_arg(
                 '_wpnonce',
-                wp_create_nonce('mailoptin-preview-email-campaign'),
-                sprintf(home_url('/?mailoptin_email_campaign_id=%d'), absint($_GET['mailoptin_email_campaign_id']))
+                wp_create_nonce('mailoptin-send-newsletter'),
+                admin_url('?action=mailoptin_send_newsletter&id=' . $this->email_campaign_id)
             )
         );
 
-        $wp_customize->set_return_url(MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
+        $btn = sprintf(
+            '<a onclick="return confirm(%s\'%s\')" href="%s" id="mo-send-newsletter-btn" class="button">%s</a>',
+            '\\',
+            __('Are you sure you want to send this newsletter now?', 'mailoptin') . '\\',
+            $url,
+            __('Send Newsletter', 'mailoptin')
+        );
+        ?>
+        <script type="text/javascript">
+            jQuery(function () {
+                jQuery('#customize-header-actions').prepend(jQuery('<?php echo $btn; ?>'));
+            });
+        </script>
+        <?php
     }
 
     /**
@@ -126,6 +179,8 @@ class Customizer
      */
     public function add_activate_switch()
     {
+        if (ER::is_newsletter($this->email_campaign_id)) return;
+
         $input_value = ER::is_campaign_active($this->email_campaign_id) ? 'yes' : 'no';
         $checked     = ($input_value == 'yes') ? 'checked="checked"' : null;
         $tooltip     = __('Toggle to activate and deactivate email automation.', 'mailoptin');
@@ -184,7 +239,7 @@ class Customizer
             MAILOPTIN_VERSION_NUMBER
         );
 
-        if (ER::is_code_your_own_template($this->email_campaign_id)) {
+        if ( ! ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id)) {
 
             wp_enqueue_script(
                 'mailoptin-ace-js',
@@ -206,6 +261,33 @@ class Customizer
                 'previewBtn'    => __('Preview', 'mailoptin'),
                 'codeEditorBtn' => __('Code Editor', 'mailoptin')
             ));
+        }
+
+        if (ER::is_newsletter($this->email_campaign_id)) {
+
+            wp_enqueue_script(
+                'mailoptin-email-newsletter-editor',
+                MAILOPTIN_ASSETS_URL . 'js/customizer-controls/newsletter-code-editor.js',
+                array('customize-controls'),
+                MAILOPTIN_VERSION_NUMBER
+            );
+
+            wp_localize_script('mailoptin-email-newsletter-editor', 'moEmailNewsletterEditor_strings', array(
+                'viewTags'      => __('View available tags', 'mailoptin'),
+                'previewBtn' => __('Preview', 'mailoptin'),
+                'contentBtn' => __('Newsletter Content', 'mailoptin')
+            ));
+
+            // needed because we are using the styling for button to open newsletter content.
+            wp_enqueue_style('mo-customizer-tinymce-expanded-editor', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/tinymce-expanded-editor/control.css', array(), MAILOPTIN_VERSION_NUMBER);
+
+            wp_enqueue_script(
+                'mailoptin-ace-js',
+                MAILOPTIN_ASSETS_URL . 'js/customizer-controls/ace-editor/ace.js',
+                array('jquery'),
+                false,
+                true
+            );
         }
 
         do_action('mailoptin_email_campaign_enqueue_customizer_js');
@@ -348,7 +430,7 @@ class Customizer
      */
     public function save_email_campaign_title($wp_customize_manager)
     {
-        $email_campaign_id = absint($_POST['mailoptin_email_campaign_id']);
+        $email_campaign_id = $this->email_campaign_id;
         $option_name       = "mo_email_campaigns[$email_campaign_id][email_campaign_title]";
         $posted_values     = $wp_customize_manager->unsanitized_post_values();
 
@@ -388,7 +470,7 @@ class Customizer
             )
         );
 
-        if (ER::is_code_your_own_template($this->email_campaign_id)) {
+        if ( ER::is_code_your_own_template($this->email_campaign_id)) {
 
             $wp_customize->add_section($this->campaign_view_tags_section_id, array(
                     'title'    => __('View Available Tags', 'mailoptin'),
@@ -408,11 +490,13 @@ class Customizer
                 )
             );
 
-            $wp_customize->add_section($this->campaign_content_section_id, array(
-                    'title'    => __('Content', 'mailoptin'),
-                    'priority' => 40,
-                )
-            );
+            if ( ! ER::is_newsletter($this->email_campaign_id)) {
+                $wp_customize->add_section($this->campaign_content_section_id, array(
+                        'title'    => __('Content', 'mailoptin'),
+                        'priority' => 40,
+                    )
+                );
+            }
 
             $wp_customize->add_section($this->campaign_footer_section_id, array(
                     'title'    => __('Footer', 'mailoptin'),

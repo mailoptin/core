@@ -2,7 +2,7 @@
 
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
-use MailOptin\Core\Repositories\EmailCampaignRepository;
+use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class CustomizerSettings extends AbstractCustomizer
 {
@@ -68,11 +68,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'post_categories_shortcode'          => array(
+                'post_categories_shortcode'        => array(
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'post_terms_shortcode'          => array(
+                'post_terms_shortcode'             => array(
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
@@ -302,7 +302,7 @@ class CustomizerSettings extends AbstractCustomizer
             )
         );
 
-        if ($this->email_campaign_type == EmailCampaignRepository::POSTS_EMAIL_DIGEST) {
+        if ($this->email_campaign_type == ER::POSTS_EMAIL_DIGEST) {
             $email_campaign_settings_args['custom_post_type']['transport'] = 'refresh';
         }
 
@@ -436,7 +436,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'content_remove_post_body'             => array(
+                'content_remove_post_body'                 => array(
                     'default'   => $this->customizer_defaults['content_remove_post_body'],
                     'type'      => 'option',
                     'transport' => 'refresh',
@@ -480,6 +480,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'default'   => $this->customizer_defaults['content_ellipsis_button_label'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
+                ),
+                'newsletter_editor_content'                => array(
+                    'default'   => '',
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
                 )
             )
         );
@@ -488,7 +493,6 @@ class CustomizerSettings extends AbstractCustomizer
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
     }
-
 
     /**
      * Customize setting for all template footer controls.

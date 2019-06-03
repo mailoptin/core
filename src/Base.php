@@ -12,6 +12,7 @@ use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
 use MailOptin\Core\Admin\SettingsPage\UsageTracking;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
+use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
 use MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest;
 use MailOptin\Core\OptinForms\FrontEndOutput;
 use MailOptin\Core\OptinForms\InPost;
@@ -53,8 +54,9 @@ define('MAILOPTIN_OPTIN_ERROR_LOG', WP_CONTENT_DIR . "/uploads/mailoptin-optin-l
 
 define('MAILOPTIN_SETTINGS_SETTINGS_SLUG', 'mailoptin-settings');
 define('MAILOPTIN_CONNECTIONS_SETTINGS_SLUG', 'mailoptin-integrations');
-define('MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG', 'mailoptin-email-automations');
+define('MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG', 'mailoptin-emails');
 define('MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG', 'campaign-log');
+define('MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_SLUG', 'newsletters');
 define('MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG', 'mailoptin-optin-campaigns');
 define('MAILOPTIN_LEAD_BANK_SETTINGS_SLUG', 'mailoptin-lead-bank');
 define('MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG', 'mailoptin-statistics');
@@ -63,6 +65,7 @@ define('MAILOPTIN_SETTINGS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPT
 define('MAILOPTIN_CONNECTIONS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_CONNECTIONS_SETTINGS_SLUG));
 define('MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG));
 define('MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE', add_query_arg('view', MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE));
+define('MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE', add_query_arg('view', MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_SLUG, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE));
 define('MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG));
 define('MAILOPTIN_LEAD_BANK_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_LEAD_BANK_SETTINGS_SLUG));
 define('MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG));
@@ -87,6 +90,7 @@ class Base
 
         NewPublishPost::get_instance();
         PostsEmailDigest::get_instance();
+        Newsletter::get_instance();
 
         FrontEndOutput::get_instance();
         InPost::get_instance();
@@ -120,6 +124,7 @@ class Base
         Admin\SettingsPage\Settings::get_instance();
         Admin\SettingsPage\Connections::get_instance();
         Admin\SettingsPage\EmailCampaigns::get_instance();
+        Admin\SettingsPage\Newsletter::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
         Admin\SettingsPage\OptinCampaigns::get_instance();
         Admin\SettingsPage\LeadBank::get_instance();

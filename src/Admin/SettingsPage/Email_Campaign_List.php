@@ -48,6 +48,11 @@ class Email_Campaign_List extends \WP_List_Table
         if ( ! empty($campaign_type)) {
             $campaign_type = esc_sql($campaign_type);
             $sql           .= "  WHERE campaign_type = '$campaign_type'";
+        } else {
+            $sql .= sprintf("  WHERE campaign_type IN ('%s', '%s')",
+                ER::NEW_PUBLISH_POST,
+                ER::POSTS_EMAIL_DIGEST
+            );
         }
 
         $sql .= "  ORDER BY id DESC";
@@ -152,48 +157,6 @@ class Email_Campaign_List extends \WP_List_Table
                 )
             ),
             admin_url('customize.php')
-        );
-    }
-
-    /**
-     * Generate URL to deactivate email campaign.
-     *
-     * @param int $item_id
-     *
-     * @return string
-     */
-    public function _email_campaign_deactivate_url($item_id)
-    {
-        $deactivate_nonce = wp_create_nonce('mailoptin_deactivate_email_campaign');
-
-        return add_query_arg(
-            [
-                'action'            => 'deactivate',
-                'email-campaign-id' => absint($item_id),
-                '_wpnonce'          => $deactivate_nonce
-            ],
-            MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE
-        );
-    }
-
-    /**
-     * Generate URL to activate email campaign.
-     *
-     * @param int $item_id
-     *
-     * @return string
-     */
-    public function _email_campaign_activate_url($item_id)
-    {
-        $activate_nonce = wp_create_nonce('mailoptin_activate_email_campaign');
-
-        return add_query_arg(
-            [
-                'action'            => 'deactivate',
-                'email-campaign-id' => absint($item_id),
-                '_wpnonce'          => $activate_nonce
-            ],
-            MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE
         );
     }
 
@@ -389,7 +352,7 @@ class Email_Campaign_List extends \WP_List_Table
         $this->_column_headers = $this->get_column_info();
         $per_page              = defined('MAILOPTIN_DETACH_LIBSODIUM') ? $this->get_items_per_page('email_campaign_per_page', 15) : 1;
         $current_page          = $this->get_pagenum();
-        $total_items           = defined('MAILOPTIN_DETACH_LIBSODIUM') ? self::record_count($campaign_type) : 1;
+        $total_items           = defined('MAILOPTIN_DETACH_LIBSODIUM') ? $this->record_count($campaign_type) : 1;
         $this->set_pagination_args(array(
                 'total_items' => $total_items, //WE have to calculate the total number of items
                 'per_page'    => $per_page //WE have to determine how many items to show on a page
@@ -402,6 +365,7 @@ class Email_Campaign_List extends \WP_List_Table
     public function extra_tablenav($which)
     {
         if ($which != 'top') return;
+        $selected_option = isset($_POST['mo_email_automations_filter']) ? sanitize_text_field($_POST['mo_email_automations_filter']) : '';
         ?>
         <div class="alignleft actions bulkactions" style="line-height: 2em;font-size: 15px">
             <strong style="font-weight:500;"><?php _e('Filter By:', 'mailoptin'); ?></strong>
@@ -411,10 +375,13 @@ class Email_Campaign_List extends \WP_List_Table
                 <?php _e('Filter email automations by', 'mailoptin'); ?>
             </label>
             <select name="mo_email_automations_filter" id="mo-listing-filter">
-                <option value="<?= ER::NEW_PUBLISH_POST; ?>">
+                <option value="">
+                    <?php _e('Select...', 'mailoptin'); ?>
+                </option>
+                <option value="<?= ER::NEW_PUBLISH_POST; ?>" <?php selected(ER::NEW_PUBLISH_POST, $selected_option); ?>>
                     <?= ER::get_type_name(ER::NEW_PUBLISH_POST) ?>
                 </option>
-                <option value="<?= ER::POSTS_EMAIL_DIGEST; ?>">
+                <option value="<?= ER::POSTS_EMAIL_DIGEST; ?>" <?php selected(ER::POSTS_EMAIL_DIGEST, $selected_option); ?>>
                     <?= ER::get_type_name(ER::POSTS_EMAIL_DIGEST) ?>
                 </option>
             </select>
@@ -430,7 +397,14 @@ class Email_Campaign_List extends \WP_List_Table
             return;
         }
 
+        $redirect_url = MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
+
         $email_campaign_id = @absint($_GET['email-campaign-id']);
+        $email_campaign_type = ER::get_email_campaign_type($email_campaign_id);
+
+        if($email_campaign_type == ER::NEWSLETTER) {
+            $redirect_url = add_query_arg('view', MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_SLUG, $redirect_url);
+        }
 
         // Detect when a bulk action is being triggered...
         if ('delete' === $this->current_action()) {
@@ -442,7 +416,7 @@ class Email_Campaign_List extends \WP_List_Table
                 self::delete_email_campaign($email_campaign_id);
                 // esc_url_raw() is used to prevent converting ampersand in url to "#038;"
                 // add_query_arg() return the current url
-                wp_redirect(esc_url_raw(MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE));
+                wp_redirect(esc_url_raw($redirect_url));
                 exit;
             }
         }
@@ -460,37 +434,10 @@ class Email_Campaign_List extends \WP_List_Table
                 wp_nonce_ays('mailoptin_clone_email_campaign');
             } else {
                 (new CloneEmailCampaign($email_campaign_id))->forge();
-                wp_redirect(esc_url_raw(MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE));
+                wp_redirect(esc_url_raw($redirect_url));
                 exit;
             }
         }
-
-        // Activate email campaign.
-        if ('activate' === $this->current_action()) {
-            // In our file that handles the request, verify the nonce.
-            $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
-            if ( ! wp_verify_nonce($nonce, 'mailoptin_activate_email_campaign')) {
-                wp_nonce_ays('mailoptin_activate_email_campaign');
-            } else {
-                ER::activate_email_campaign($email_campaign_id);
-                wp_redirect(esc_url_raw(MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
-            }
-        }
-
-        // Deactivate email campaign.
-        if ('deactivate' === $this->current_action()) {
-            // In our file that handles the request, verify the nonce.
-            $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
-            if ( ! wp_verify_nonce($nonce, 'mailoptin_deactivate_email_campaign')) {
-                wp_nonce_ays('mailoptin_deactivate_email_campaign');
-            } else {
-                ER::deactivate_email_campaign($email_campaign_id);
-                wp_redirect(esc_url_raw(MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
-            }
-        }
-
 
         // If the delete bulk action is triggered
         if ('bulk-delete' === $this->current_action()) {

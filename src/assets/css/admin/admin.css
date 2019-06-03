@@ -1,5 +1,6 @@
 @import url(https://fonts.googleapis.com/css?family=Josefin+Slab:100,300,400,600,700);
 @import url(https://fonts.googleapis.com/css?family=Rye);
+@import url('https://fonts.googleapis.com/css?family=Open+Sans|Rye|Work+Sans');
 
 #mailoptin_affiliate_url_row:target {
     background-color: #e5eecc;
@@ -15,7 +16,8 @@
     display: inline-block;
 }
 
-.mailoptin-data-listing .add-new-h2 {
+.mailoptin-data-listing .add-new-h2,
+.mailoptin-log-listing .add-new-h2 {
     background: #0085ba;
     border-color: #0073aa #006799 #006799;
     box-shadow: 0 1px 0 #006799;
@@ -696,7 +698,7 @@ form.mo-inline {
     display: flex;
 }
 
-.mailoptin-settings-wrap .metabox-holder h3.hndle span:first-child{
+.mailoptin-settings-wrap .metabox-holder h3.hndle span:first-child {
     flex: 1 0 0;
 }
 
@@ -1040,17 +1042,108 @@ form.mo-inline {
 }
 
 #adminmenu .wp-submenu a[href$="page=mailoptin-integrations"],
-#adminmenu .wp-submenu a[href$="page=mailoptin-statistics"] {
+#adminmenu .wp-submenu a[href$="page=mailoptin-emails"] {
     position: relative;
     margin-bottom: 10px
 }
 
 #adminmenu .wp-submenu a[href$="page=mailoptin-integrations"]:after,
-#adminmenu .wp-submenu a[href$="page=mailoptin-statistics"]:after {
+#adminmenu .wp-submenu a[href$="page=mailoptin-emails"]:after {
     position: absolute;
     content: "";
     display: block;
     width: 30px;
     height: 1px;
     bottom: -5px;
+}
+
+
+/* add new email */
+.mo-design-gateway {
+    width: 100%;
+    max-width: 700px;
+}
+
+.mo-half-meta-inner .mo-half-meta h2 {
+    font-size: 24px !important;
+}
+
+.drag-and-drop-btn {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.responsive-image img {
+    width: 100%;
+    height: auto;
+}
+
+.mo-hald-first {
+    float: left;
+    width: 50%;
+    text-align: center;
+    padding: 20px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    text-decoration: none;
+    color: #555;
+}
+
+.mo-hald-first a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.mo-hald-first a:focus {
+    box-shadow:none;
+}
+
+.mo-builder-select-active {
+    border: 2px solid #098fe2;
+}
+
+.drag-and-drop-btn {
+    position: absolute;
+    right: 0;
+}
+
+.mo-half-meta-inner {
+    background: #fff;
+    padding: 30px 20px;
+    position: relative;
+    cursor: pointer;
+}
+
+.mo-half-first-thumb.responsive-image img {
+    width: 70px;
+    height: 70px;
+    padding: 20px;
+}
+
+.mo-half-first-thumb.responsive-image {
+    text-align: center;
+}
+
+.mo-builder-create-btn {
+    background: #098fe2;
+    padding: 20px;
+    width: 100%;
+    border: 0;
+    font-weight: 400;
+    text-transform: uppercase;
+    color: #fff;
+    font-family: 'Work Sans', sans-serif;;
+    font-size: 20px;
+    border-bottom: 3px solid #2980b9;
+    cursor: pointer;
+}
+
+.mo-half-meta p {
+    font-size: 17px;
+    line-height: 1.5;
+    margin-top: 20px;
+}
+
+.mo-builder-create-btn:focus {
+    border-bottom: 2px solid #2980b9;
 }

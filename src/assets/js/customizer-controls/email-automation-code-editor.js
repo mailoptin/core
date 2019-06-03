@@ -64,6 +64,12 @@
         ].join('');
     };
 
+    var update_email_title = function () {
+        $('input[id*="email_campaign_title"]').on('change keyup', function () {
+            $('.mo-automation-code-title').text(this.value);
+        });
+    };
+
     var switch_view = function () {
         $(document).on('click', '.mo-automation-code-toolbar-btn', function (e) {
             e.preventDefault();
@@ -87,7 +93,6 @@
     };
 
     $(document).on('ready', function () {
-        // hide on load
         var css = '<style id="customize-preview-iframe-hide" type="text/css">#customize-preview iframe {display:none;}</style>';
         $(document.head).append(css);
     });
@@ -97,5 +102,6 @@
         add_toolbar();
         add_ace_editor();
         switch_view();
+        update_email_title();
     });
 })(jQuery);

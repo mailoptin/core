@@ -12,16 +12,22 @@ class EmailTemplatesRepository extends AbstractRepository
         if (is_null(self::$email_templates)) {
             self::$email_templates = apply_filters('mailoptin_registered_email_templates', array(
                 array(
-                    'name' => 'Lucid',
+                    'name'           => 'Lucid',
                     'template_class' => 'Lucid',
-                    'campaign_type' => EmailCampaignRepository::NEW_PUBLISH_POST,
-                    'screenshot' => MAILOPTIN_ASSETS_URL . 'images/email-templates/lucid.png'
+                    'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/lucid.png'
                 ),
                 array(
-                    'name' => 'Lucid',
+                    'name'           => 'Lucid',
                     'template_class' => 'Lucid',
-                    'campaign_type' => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
-                    'screenshot' => MAILOPTIN_ASSETS_URL . 'images/email-templates/lucid.png'
+                    'campaign_type'  => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/lucid.png'
+                ),
+                array(
+                    'name'           => 'Lucid',
+                    'template_class' => 'Lucid',
+                    'campaign_type'  => EmailCampaignRepository::NEWSLETTER,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/lucid.png'
                 )
             ));
         }
@@ -35,6 +41,7 @@ class EmailTemplatesRepository extends AbstractRepository
     public static function get_all()
     {
         self::defaultTemplate();
+
         return self::$email_templates;
     }
 

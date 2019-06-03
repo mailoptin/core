@@ -66,6 +66,8 @@ class Shortcodes
         add_shortcode('company-country', [$this, 'company_country']);
 
         do_action('mo_define_email_automation_general_shortcodes', $this->wp_post_obj);
+
+        return $this;
     }
 
     public function define_post_shortcodes()

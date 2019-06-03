@@ -278,6 +278,126 @@ HTML;
 
         }
 
+        if ($this->email_campaign_type == EmailCampaignRepository::NEWSLETTER) {
+            $output = <<<HTML
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Posts Roundup</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+    body {
+        background-color: #fff;
+    }
+  .message-content {
+    max-width: 600px;
+    margin: 30px auto;
+    font-family: Georgia, Times, serif;
+  }
+  .message-content div { padding-bottom: 10px; }
+  .message-content img { max-width: 100%; height: auto; }
+
+  * { font-family: Georgia, Times, serif; }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #333;
+  }
+  h1 { font-size: 32px; }
+  h2 { font-size: 24px; }
+  h3 { font-size: 18px; }
+
+  p, p *, li, li * {
+    font-size: 18px;
+    line-height: 1.5em;
+  }
+
+  p, ul {
+    margin-bottom: 1em;
+    color: #333333;
+    font-family: Georgia, Times, serif;
+  }
+
+  blockquote {
+    border-left: solid 5px #aaa;
+    margin: 20px 0px;
+    padding: 15px 30px;
+    font-size: 20px;
+    line-height: 1.5em;
+    font-style: italic;
+    color: #444;
+    font-family: Georgia, Times, serif;
+  }
+
+  a {
+    text-decoration: none;
+    border-bottom: 1px dotted #0875c1;
+    color: #0875c1;
+  }
+
+  a:hover {
+    color: #1b8ede;
+    border-bottom-color: #1b8ede;
+  }
+
+  .button {
+    border: none;
+    background: #777;
+    color: #fff;
+    padding: 10px;
+    display: inline-block;
+    margin: 10px 0px;
+    font-family: Helvetica, Arial, sans-serif;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+  }
+
+  .button:hover {
+    color: #fff;
+    background: #666;
+  }
+
+  .footer {
+    border-top: 1px dotted #888;
+    padding: 20px 0px;
+    font-family: Helvetica, Arial, sans-serif;
+    color: #aaa;
+    font-size: 12px;
+  }
+</style>
+</head>
+
+<body>
+<!--[if mso]>
+<center>
+    <table><tr><td width="580">
+<![endif]-->
+<div class='message-content'>
+    
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas iaculis condimentum ipsum non placerat. Pellentesque mattis faucibus arcu, ac dapibus augue sodales ac. In libero mauris, cursus a nisl nec, euismod facilisis nunc. Ut sed magna eget lorem lobortis tempus. Pellentesque sagittis convallis sagittis. Maecenas sagittis odio tortor, ut placerat tellus consectetur vitae. Vivamus a dapibus nulla. Curabitur non diam vitae lectus facilisis commodo a vel leo. Vestibulum sollicitudin, nulla ac placerat malesuada, tellus eros ullamcorper risus, in porttitor nulla justo nec diam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris iaculis dolor in tortor congue commodo. Sed sed faucibus eros, non tincidunt elit. Vestibulum et pretium orci, eu mollis velit. Duis iaculis placerat ornare. Suspendisse tempus ultricies lectus eget tempus. Quisque facilisis egestas erat, ac sollicitudin sem.</p>
+
+    <p>Vestibulum sodales elit justo, sed pharetra magna congue eu. Cras ullamcorper sem quis lorem laoreet finibus. Fusce feugiat purus mollis, placerat nulla vitae, finibus enim. Nullam venenatis justo urna, ut aliquet justo tincidunt eu. Suspendisse a risus semper urna aliquet mattis. Nam mollis, dolor vel tempus pulvinar, massa turpis laoreet leo, quis ultricies arcu dolor hendrerit ante. Sed pulvinar viverra enim nec laoreet. Nulla quis turpis non leo ultricies efficitur. Cras a nibh sit amet est euismod semper. Nunc quis ex nibh.</p>
+
+    <p>In ut nunc quis tellus suscipit porttitor. Morbi porta eros ut sem vestibulum molestie. Fusce maximus tincidunt est vel imperdiet. Quisque nec luctus metus. Sed sed erat quis augue viverra aliquet. Aliquam rutrum ut ipsum ut vestibulum. Curabitur porta est vel massa auctor sodales. Duis congue eget ex in varius. Aliquam id placerat erat. Aenean tincidunt porta tempus. Aenean molestie tincidunt nunc, quis scelerisque arcu laoreet quis. Curabitur nec erat interdum, vehicula turpis et, commodo purus. Proin nec quam enim. Nunc vitae suscipit ante. Proin ullamcorper ante at tortor suscipit, id euismod lectus semper.</p>
+
+    <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Cras felis nibh, bibendum sit amet enim ac, semper dapibus erat. Fusce ornare faucibus gravida. Sed ut sem purus. In et massa egestas, malesuada quam ac, tristique erat. Aliquam malesuada turpis et eros elementum commodo sed eget justo. Vestibulum mattis ex et convallis pharetra. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean eget dictum metus. Sed ut enim quis est elementum finibus. Mauris mattis rutrum varius. Phasellus vitae augue felis. Etiam est mi, dapibus eu lectus vel, gravida faucibus eros. Etiam libero augue, rhoncus non velit et, aliquam eleifend neque. Praesent vitae ex nulla. Quisque in pretium lorem.</p>
+
+    <div class="footer">
+        <a href="[unsubscribe]">Unsubscribe</a>
+    </div>
+</div>
+<!--[if mso]>
+</td></tr></table>
+</center>
+<![endif]-->
+
+</body>
+
+</html>
+HTML;
+
+        }
+
         return $output;
 
     }

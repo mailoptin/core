@@ -192,10 +192,10 @@ abstract class AbstractConnect
      *
      * @return string
      */
-    public static function get_optin_error_log( $filename = 'error')
+    public static function get_optin_error_log($filename = 'error')
     {
-        $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $filename .'.log';
-        
+        $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $filename . '.log';
+
         // Return an empty string if the file does not exist
         if ( ! file_exists($error_log_file)) {
             return '';
@@ -211,19 +211,22 @@ abstract class AbstractConnect
      *
      * @return string
      */
-    public static function get_optin_error_log_link( $filename = 'error')
+    public static function get_optin_error_log_link($filename = 'error')
     {
-        if( ! self::has_optin_error_log($filename) ){
+        if ( ! self::has_optin_error_log($filename)) {
             return;
         }
 
-        $url =  esc_url( add_query_arg( 
-            '_wpnonce',
-            wp_create_nonce( 'mailoptin-log' ), 
-            admin_url('admin-ajax.php?action=mailoptin_view_error_log&file=' . $filename) ) );
-        
+        $url = esc_url(
+            add_query_arg(
+                '_wpnonce',
+                wp_create_nonce('mailoptin-log'),
+                admin_url('admin-ajax.php?action=mailoptin_view_error_log&file=' . $filename)
+            )
+        );
+
         return sprintf(
-            __( '%sView Error Log%s' ),
+            __('%sView Error Log%s'),
             "<a href='$url' style='color: #cc0000; font-weight: 500' target='_blank'>",
             '</a>'
         );
@@ -237,11 +240,11 @@ abstract class AbstractConnect
      *
      * @return bool
      */
-    public static function has_optin_error_log( $filename = 'error')
+    public static function has_optin_error_log($filename = 'error')
     {
-        $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $filename .'.log';
+        $error_log_file = MAILOPTIN_OPTIN_ERROR_LOG . $filename . '.log';
 
-        if (  file_exists($error_log_file)) {
+        if (file_exists($error_log_file)) {
             return true;
         }
 

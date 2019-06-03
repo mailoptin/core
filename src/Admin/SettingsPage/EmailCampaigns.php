@@ -19,9 +19,7 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function __construct()
     {
-        add_action('plugins_loaded', function () {
-            add_action('admin_menu', array($this, 'register_settings_page'));
-        }, 99);
+        add_action('admin_menu', array($this, 'register_settings_page'));
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
 
@@ -47,8 +45,8 @@ class EmailCampaigns extends AbstractSettingsPage
 
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            __('Email Automations - MailOptin', 'mailoptin'),
-            __('Email Automations', 'mailoptin'),
+            __('Emails - MailOptin', 'mailoptin'),
+            __('Emails', 'mailoptin'),
             \MailOptin\Core\get_capability(),
             MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG,
             array($this, 'settings_admin_page_callback')
@@ -79,7 +77,7 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function screen_option()
     {
-        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! isset($_GET['view'])) {
+        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && !isset($_GET['view'])) {
 
             $option = 'per_page';
             $args   = array(
@@ -97,29 +95,45 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
-        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new-email-automation') {
-            AddEmailCampaign::get_instance()->settings_admin_page();
-        } elseif ( ! empty($_GET['view']) && $_GET['view'] == MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG) {
-            CampaignLog::get_instance()->settings_admin_page();
-        } else {
+        add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
 
-            // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
-            add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
-            add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
-
-            $instance = Custom_Settings_Page_Api::instance();
-            $instance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
-            $instance->page_header(__('Email Automations', 'mailoptin'));
-            $this->register_core_settings($instance);
-            echo '<div class="mailoptin-data-listing">';
-            $instance->build(true);
-            echo '</div>';
+        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new') {
+            return AddNewEmail::get_instance()->settings_admin_page();
         }
+
+        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new-email-automation') {
+            return AddEmailCampaign::get_instance()->settings_admin_page();
+        }
+
+        if ( ! empty($_GET['view']) && $_GET['view'] == 'create-newsletter') {
+            return AddNewsletter::get_instance()->settings_admin_page();
+        }
+
+        if ( ! empty($_GET['view']) && $_GET['view'] == MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG) {
+            return CampaignLog::get_instance()->settings_admin_page();
+        }
+
+        if ( ! empty($_GET['view']) && $_GET['view'] == MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_SLUG) {
+            return Newsletter::get_instance()->settings_admin_page();
+        }
+
+        // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
+        add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
+
+        $instance = Custom_Settings_Page_Api::instance();
+        $instance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
+        $instance->page_header(__('Emails', 'mailoptin') . '&nbsp;&nbsp;');
+        $this->register_core_settings($instance);
+        echo '<div class="mailoptin-data-listing">';
+        $instance->build(true);
+        echo '</div>';
     }
 
     public function add_new_email_campaign()
     {
-        $url = add_query_arg('view', 'add-new-email-automation', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
+        if (isset($_GET['view']) && in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-newsletter'])) return;
+
+        $url = add_query_arg('view', 'add-new', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
         echo "<a class=\"add-new-h2\" href=\"$url\">" . __('Add New', 'mailoptin') . '</a>';
     }
 

@@ -8,8 +8,12 @@ class EmailCampaignRepository extends AbstractRepository
 {
     const NEW_PUBLISH_POST = 'new_publish_post';
     const POSTS_EMAIL_DIGEST = 'posts_email_digest';
+    const NEWSLETTER = 'newsletter';
 
     const CODE_YOUR_OWN_TEMPLATE = 'HTML';
+
+    const NEWSLETTER_STATUS_DRAFT = 'draft';
+    const NEWSLETTER_STATUS_FAILED = 'failed';
 
     /**
      * Return a human readable name for campaign identifier/key/type.
@@ -27,8 +31,11 @@ class EmailCampaignRepository extends AbstractRepository
             case self::POSTS_EMAIL_DIGEST:
                 $value = __('Posts Email Digest', 'mailoptin');
                 break;
+            case self::NEWSLETTER:
+                $value = __('Newsletter', 'mailoptin');
+                break;
             default:
-                $value = '';
+                $value = ucwords($type);
         }
 
         return apply_filters('mailoptin_campaign_type_name', $value, $type);
@@ -269,6 +276,18 @@ class EmailCampaignRepository extends AbstractRepository
         $settings = self::get_settings();
 
         return isset($settings[$email_campaign_id]) ? $settings[$email_campaign_id] : '';
+    }
+
+    /**
+     * Check if email campaign is newsletter.
+     *
+     * @param $email_campaign_id
+     *
+     * @return bool
+     */
+    public static function is_newsletter($email_campaign_id)
+    {
+        return self::get_email_campaign_type($email_campaign_id) == self::NEWSLETTER;
     }
 
     /**

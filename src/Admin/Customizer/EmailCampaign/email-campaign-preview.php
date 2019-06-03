@@ -21,6 +21,23 @@ switch ($email_campaign_type) {
         /** @var PostsEmailDigestTemplatePreview $template_preview_instance */
         $template_preview_instance = new $template_preview_class($email_campaign_id);
         break;
+    case EmailCampaignRepository::NEWSLETTER:
+        /** @var NewsletterTemplatePreview $template_preview_instance */
+        $template_preview_instance = new $template_preview_class($email_campaign_id);
+        break;
+}
+
+if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
+    ?>
+    <style type="text/css">
+        div#wp-mo_newsletter_editor-wrap {
+            height: 100%;
+            margin: 10px;
+        }
+    </style>
+    <!--    hack to make add media view styled correctly -->
+    <link rel="stylesheet" href="<?= wp_styles()->base_url; ?>/wp-admin/load-styles.php?c=1&dir=ltr&load%5B%5D=dashicons,buttons,common,forms" type="text/css" media="all">
+    <?php
 }
 
 echo $template_preview_instance->forge();

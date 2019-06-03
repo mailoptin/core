@@ -55,6 +55,10 @@ class CloneEmailCampaign
 
         EmailCampaignRepository::deactivate_email_campaign($new_email_campaign_id);
 
+        if(EmailCampaignRepository::is_newsletter($new_email_campaign_id)) {
+            $all_templates_settings[$new_email_campaign_id]['email_campaign_title'] = $new_email_campaign_name;
+        }
+
         // save to DB
         return EmailCampaignRepository::updateSettings($all_templates_settings);
 
