@@ -364,7 +364,7 @@ class CustomizerControls
             unset($campaign_settings_controls['post_categories']);
         }
 
-        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false)) {
+        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false) && !ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
             unset($campaign_settings_controls['post_tags']);
             $content = sprintf(
                 __('Upgrade to %sMailOptin Pro%s to support custom post types and restrict by post categories, tags and custom taxonomies.', 'mailoptin'),
@@ -388,7 +388,7 @@ class CustomizerControls
             );
         }
 
-        if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false)) {
+        if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false) && !ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
 
             $content2 = sprintf(
                 __('%sUpgrade your MailOptin plan%s to send email campaigns directly to your list in MailChimp, Campaign Monitor, Aweber, Constant Contact, Drip, MailerLite, ConvertKit etc.', 'mailoptin'),
@@ -946,7 +946,7 @@ HTML;
         );
 
 
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
             $content = sprintf(
                 __('Upgrade to %sMailOptin Premium%s to access the Custom CSS feature that will allow you customize this template to your heart content.', 'mailoptin'),
                 '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=email_automation_custom_css_upgrade">',
