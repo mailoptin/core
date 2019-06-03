@@ -595,10 +595,6 @@ label.mo-single-toggle-tab {
     display: none;
 }
 
-#customize-preview > iframe {
-    top: 75px;
-}
-
 .mo-automation-code-view-tags {
     margin: 0 0 0 20px;
     font-size: 14px;

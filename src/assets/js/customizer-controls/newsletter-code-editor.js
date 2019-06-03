@@ -179,9 +179,10 @@
     };
 
     $(document).on('ready', function () {
-        if (mailoptin_newsletter_is_code_your_own === false) return;
-        // hide view available tag here if this is newsletter but not code your own
-        var css = '<style id="customize-preview-iframe-hide" type="text/css">#customize-preview iframe {display:none;}</style>';
+        var css = '<style type="text/css">#customize-preview > iframe {top: 75px;}</style>';
+        if (mailoptin_newsletter_is_code_your_own === true) {
+            css += '<style id="customize-preview-iframe-hide" type="text/css">#customize-preview iframe {display:none;}</style>';
+        }
         $(document.head).append(css);
     });
 
