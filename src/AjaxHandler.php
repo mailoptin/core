@@ -498,7 +498,6 @@ class AjaxHandler
      */
     public function create_email_campaign()
     {
-
         if ( ! current_user_has_privilege()) {
             return;
         }
@@ -513,7 +512,7 @@ class AjaxHandler
         $template = sanitize_text_field($_REQUEST['template']);
         $type     = sanitize_text_field($_REQUEST['type']);
 
-        if (apply_filters('mailoptin_add_new_email_campaign_limit', true) && EmailCampaignRepository::campaign_count() >= 1) {
+        if (apply_filters('mailoptin_add_new_email_campaign_limit', true) && $_POST['type'] != EmailCampaignRepository::NEWSLETTER && EmailCampaignRepository::campaign_count() >= 1) {
             $upgrade_url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=add_email_campaign_limit';
             wp_send_json_error(
                 sprintf(__('Upgrade to %s to create multiple email campaigns', 'mailoptin'),

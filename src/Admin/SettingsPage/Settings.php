@@ -140,8 +140,8 @@ class Settings extends AbstractSettingsPage
                 ]
             ),
             'email_campaign_settings' => apply_filters('mailoptin_settings_email_campaign_settings_page', [
-                    'tab_title'         => __('Email Automation', 'mailoptin'),
-                    'section_title'     => __('Email Automation Settings', 'mailoptin'),
+                    'tab_title'         => __('Email Campaign', 'mailoptin'),
+                    'section_title'     => __('Email Campaign Settings', 'mailoptin'),
                     'from_name'         => [
                         'type'        => 'text',
                         'label'       => __('From Name', 'mailoptin'),
