@@ -95,8 +95,6 @@ class AddNewsletter extends AbstractSettingsPage
 
     public function code_your_own_box($campaign_type)
     {
-        if ( ! apply_filters('mailoptin_enable_post_email_digest', false)) return;
-
         $label = __('Code Your Own', 'mailoptin');
         ?>
         <div id="mailoptin-email-template-list"
