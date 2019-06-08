@@ -388,6 +388,17 @@ class Customizer
             filemtime(MAILOPTIN_ASSETS_DIR . 'js/customizer-controls/contextual-customizer-controls.js')
         );
 
+        wp_localize_script(
+            'mailoptin-optin-form-contextual-customizer-controls',
+            'moContextualControlsLabels',
+            [
+                'changeTheme' => __("Change Theme", 'mailoptin'),
+                'close'       => __("Close", 'mailoptin'),
+                'themeNonce'  => wp_create_nonce('mailoptin-themes'),
+                'ajaxError'   => __("There was an error processing your request.", 'mailoptin'),
+            ]
+        );
+
         wp_enqueue_script(
             'mailoptin-customizer-toast-notifications',
             MAILOPTIN_ASSETS_URL . 'js/customizer-controls/customizer-toast-notifications.js',
@@ -412,7 +423,12 @@ class Customizer
             ]
         );
 
-        wp_enqueue_style('mailoptin-customizer', MAILOPTIN_ASSETS_URL . 'css/admin/customizer-stylesheet.css');
+        wp_enqueue_style(
+            'mailoptin-customizer', 
+            MAILOPTIN_ASSETS_URL . 'css/admin/customizer-stylesheet.css',
+            array(),
+            filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/customizer-stylesheet.css')    
+        );
 
         do_action('mo_optin_customizer_css_js_enqueue', $this);
     }

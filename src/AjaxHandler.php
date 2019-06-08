@@ -58,6 +58,8 @@ class AjaxHandler
             'customizer_email_automation_get_taxonomy' => false,
             'customizer_optin_map_custom_field'        => false,
             'view_error_log'                           => false,
+            'customizer_get_templates'                 => false,
+            'customizer_set_template'                  => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -909,6 +911,52 @@ class AjaxHandler
             echo "<a href='$url' style='background: #cc0000;color: #fff;text-decoration: none;padding: 5px;font-size: 14px;' $onclick>$message</a><pre>";
             readfile($error_log_file);
             echo '</pre>';
+        }
+
+        exit;
+    }
+
+    /**
+     * Let's the user switch themes in the campaign customizer
+     */
+    public function customizer_get_templates()
+    {
+        check_ajax_referer('mailoptin-themes');
+
+        if (current_user_has_privilege() && !empty($_REQUEST['id'])) {
+
+            //Fetch the campaign type
+            $type  = OptinCampaignsRepository::get_optin_campaign_type($_REQUEST['id']);
+
+            //And output themes belonging to this type to the user
+            echo '<div class="mailoptin-optin-themes mailoptin-optin-clear">';
+                OptinThemesRepository::listing_display_template($type);
+            echo '</div>';
+
+        } else {
+            wp_die( -1, 403 );
+        }
+
+        exit;
+    }
+
+    /**
+     * Set the template of an optin
+     */
+    public function customizer_set_template()
+    {
+        check_ajax_referer('mailoptin-themes');
+
+        if (current_user_has_privilege() && !empty($_REQUEST['id']) && !empty($_REQUEST['theme'])) {
+
+            $id    = $_REQUEST['id'];
+            $theme = $_REQUEST['theme'];
+            if( false === OptinCampaignsRepository::set_optin_campaign_class( $id, $theme) ) {
+                wp_die( -1, 403 );
+            }
+
+        } else {
+            wp_die( -1, 403 );
         }
 
         exit;
