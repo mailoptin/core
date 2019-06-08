@@ -653,6 +653,12 @@ li[id*="code_your_own"] + .customize-control {
     padding: 40px;
 }
 
+.mo-change-theme-popup .mo-popup-close {
+    position: fixed;
+    top: 10px;
+    right: 60px;
+}
+
 .mo-change-theme-popup h3.mailoptin-optin-theme-name {
     height: 38px;
 }

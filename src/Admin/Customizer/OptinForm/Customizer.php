@@ -393,6 +393,7 @@ class Customizer
             'moContextualControlsLabels',
             [
                 'changeTheme' => __("Change Theme", 'mailoptin'),
+                'close'       => __("Close", 'mailoptin'),
                 'themeNonce'  => wp_create_nonce('mailoptin-themes'),
                 'ajaxError'   => __("There was an error processing your request.", 'mailoptin'),
             ]

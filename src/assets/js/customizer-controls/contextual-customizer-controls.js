@@ -391,10 +391,24 @@
         // --------------------- Switch themes ----------------------------- //
 
         //Close button div html
-        var switchThemesClose = '<div class="close-button-div"><button class="button button-secondary">Close</button></div>'
+        var switchThemesClose = '<div class="close-button-div"><button class="button button-secondary">' + moContextualControlsLabels.close + '</button></div>'
 
         //Loader
         var loader = '<i class="fa fa-spinner fa-pulse fa-spin fa-3x"></i>';
+
+        //Helper function to attach a close button to a popup
+        var appendPopupClose = function() {
+            $( switchThemesPopup )
+                .append( '<span class="mo-popup-close"><i class="fa fa-close fa-2x"></i></span>' )
+                .find( '.mo-popup-close' )
+                .attr( 'title', moContextualControlsLabels.close )
+                .on( 'click', function(){
+                    $( switchThemesPopup )
+                    .removeClass( 'mo-change-theme-popup-show mo-change-theme-display-block' )
+                    .html( loader )
+                } )
+                
+        }
 
         //Create the main popup and add a loading spinner to it
         var switchThemesPopup  = 
@@ -403,6 +417,8 @@
                 .find('.mo-change-theme-popup')
                 .append( loader )
         
+        appendPopupClose();
+
         //Create the switch themes button...
         var switchThemesButton = 
             $('#customize-info .customize-help-toggle')
@@ -451,6 +467,8 @@
                                 .html( loader )
                                 .removeClass( 'mo-change-theme-display-block' )
 
+                            appendPopupClose();
+
                             var theme = $( this ).parents('.mailoptin-optin-theme').data( 'optin-theme' )
                             var data = {
                                 action: 'mailoptin_customizer_set_template',
@@ -480,6 +498,8 @@
                             })
                             
                         })
+
+                    appendPopupClose();
                 })
             
             //If not, show an error message
