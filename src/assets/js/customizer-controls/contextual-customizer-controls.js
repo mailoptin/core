@@ -302,6 +302,7 @@
 
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][exclusive_post_types_posts_load]', linkSettingValueToControlActiveState);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][post_categories_load]', linkSettingValueToControlActiveState);
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][post_categories_hide]', linkSettingValueToControlActiveState);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][post_tags_load]', linkSettingValueToControlActiveState);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][exclusive_post_types_load]', linkSettingValueToControlActiveState);
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][posts_never_load]', linkSettingValueToControlActiveState);

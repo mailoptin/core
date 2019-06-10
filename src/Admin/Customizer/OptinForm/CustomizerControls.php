@@ -1223,6 +1223,19 @@ class CustomizerControls
                     )
                 )
             );
+            $page_filter_control_args['post_categories_hide']      = new WP_Customize_Chosen_Select_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[post_categories_hide]',
+                apply_filters('mo_optin_form_customizer_post_categories_hide_args', array(
+                        'label'       => __('Never load on these post categories:'),
+                        'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
+                        'settings'    => $this->option_prefix . '[post_categories_hide]',
+                        'description' => __('Hide the optin on posts that are in any of the selected categories.', 'mailoptin'),
+                        'choices'     => ControlsHelpers::get_categories(),
+                        'priority'    => 41
+                    )
+                )
+            );
             $page_filter_control_args['post_tags_load']            = new WP_Customize_Chosen_Select_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[post_tags_load]',

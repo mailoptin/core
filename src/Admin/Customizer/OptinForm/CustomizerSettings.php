@@ -736,6 +736,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'post_categories_hide'            => array(
+                    'default'   => apply_filters('mo_optin_form_post_categories_hide', ''),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'post_tags_load'                  => array(
                     'default'   => apply_filters('mo_optin_form_post_tags_load', ''),
                     'type'      => 'option',
