@@ -70,7 +70,7 @@ class AddNewEmail extends AbstractSettingsPage
                                         <p><?php _e('Setup automated emails to your subscribers such as email notification after you published a new post, email digest etc.', 'mailoptin'); ?></p>
                                     </div>
                                 </div>
-                                <button class="mo-builder-create-btn"><?php _e('Setup Now', 'mailoptin'); ?></button>
+                                <div class="mo-builder-create-btn"><?php _e('Setup Now', 'mailoptin'); ?></div>
                             </a>
                         </div>
 
@@ -87,7 +87,7 @@ class AddNewEmail extends AbstractSettingsPage
                                         <p><?php _e('Create and send emails to your subscribers informing them of the latest news or updates about your product or company.', 'mailoptin'); ?></p>
                                     </div>
                                 </div>
-                                <button class="mo-builder-create-btn"><?php _e('Create Now', 'mailoptin'); ?></button>
+                                <div class="mo-builder-create-btn"><?php _e('Create Now', 'mailoptin'); ?></div>
                             </a>
                         </div>
                     </div>

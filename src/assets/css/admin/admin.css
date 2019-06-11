@@ -1136,6 +1136,9 @@ form.mo-inline {
     font-size: 20px;
     border-bottom: 3px solid #2980b9;
     cursor: pointer;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .mo-half-meta p {
