@@ -392,128 +392,129 @@
         // --------------------- Switch themes ----------------------------- //
 
         //Close button div html
-        var switchThemesClose = '<div class="close-button-div"><button class="button button-secondary">' + moContextualControlsLabels.close + '</button></div>'
+        var switchThemesClose = '<div class="close-button-div"><button class="button button-secondary">' + moContextualControlsLabels.close + '</button></div>';
 
         //Loader
         var loader = '<i class="fa fa-spinner fa-pulse fa-spin fa-3x"></i>';
 
         //Helper function to attach a close button to a popup
-        var appendPopupClose = function() {
-            $( switchThemesPopup )
-                .append( '<span class="mo-popup-close"><i class="fa fa-close fa-2x"></i></span>' )
-                .find( '.mo-popup-close' )
-                .attr( 'title', moContextualControlsLabels.close )
-                .on( 'click', function(){
-                    $( switchThemesPopup )
-                    .removeClass( 'mo-change-theme-popup-show mo-change-theme-display-block' )
-                    .html( loader )
-                } )
-                
-        }
+        var appendPopupClose = function () {
+            $(switchThemesPopup)
+                .append('<span class="mo-popup-close"><i class="fa fa-close fa-2x"></i></span>')
+                .find('.mo-popup-close')
+                .attr('title', moContextualControlsLabels.close)
+                .on('click', function () {
+                    $(switchThemesPopup)
+                        .removeClass('mo-change-theme-popup-show mo-change-theme-display-block')
+                        .html(loader)
+                });
+        };
 
         //Create the main popup and add a loading spinner to it
-        var switchThemesPopup  = 
+        var switchThemesPopup =
             $('body')
                 .append('<div class="mo-change-theme-popup"></div>')
                 .find('.mo-change-theme-popup')
-                .append( loader )
-        
+                .append(loader);
+
         appendPopupClose();
 
         //Create the switch themes button...
-        var switchThemesButton = 
+        var switchThemesButton =
             $('#customize-info .customize-help-toggle')
                 .after('<button></button>')
                 .next()
-                .text( moContextualControlsLabels.changeTheme )
+                .text(moContextualControlsLabels.changeTheme)
                 .attr('aria-label', moContextualControlsLabels.changeTheme)
                 .attr('type', 'button')
-                .addClass('button change-theme mo-change-theme-button')
+                .addClass('button change-theme mo-change-theme-button');
 
         //... which when clicked loads optin themes
-        $(switchThemesButton).on( 'click', function( e ){
+        $(switchThemesButton).on('click', function (e) {
             e.preventDefault();
 
             //Display the lightbox
-            $(switchThemesPopup).addClass( 'mo-change-theme-popup-show' )
+            $(switchThemesPopup).addClass('mo-change-theme-popup-show')
 
             //Prepare our ajax request data
             var data = {
-                    action: 'mailoptin_customizer_get_templates',
-                    id: mailoptin_optin_campaign_id,
-                    _ajax_nonce:  moContextualControlsLabels.themeNonce 
-                }
-            
+                action: 'mailoptin_customizer_get_templates',
+                id: mailoptin_optin_campaign_id,
+                _ajax_nonce: moContextualControlsLabels.themeNonce
+            };
+
             //Then try loading themes
             $.post(ajaxurl, data)
 
             //If we succeeded, display them
-            .done( function( data ){
-                    
+                .done(function (data) {
+
                     //Replace the loader with our themes
                     $(switchThemesPopup)
-                        .html( data )
-                        .addClass( 'mo-change-theme-display-block' )
+                        .html(data)
+                        .addClass('mo-change-theme-display-block')
 
                         //When a theme is selected, set it as the theme then reloaded
-                        .find( '.mailoptin-optin-theme a' )
-                        .on( 'click', function( e ){
+                        .find('.mailoptin-optin-theme a')
+                        .on('click', function (e) {
+                            if ($(this).attr('href') !== '#') return;
+
                             e.preventDefault();
 
                             //Save changes
-                            $( '#save' ).click()
+                            $('#save').click();
 
                             //Display the loader
                             $(switchThemesPopup)
-                                .html( loader )
-                                .removeClass( 'mo-change-theme-display-block' )
+                                .html(loader)
+                                .removeClass('mo-change-theme-display-block')
 
                             appendPopupClose();
 
-                            var theme = $( this ).parents('.mailoptin-optin-theme').data( 'optin-theme' )
+                            var theme = $(this).parents('.mailoptin-optin-theme').data('optin-theme');
                             var data = {
                                 action: 'mailoptin_customizer_set_template',
                                 id: mailoptin_optin_campaign_id,
                                 theme: theme,
-                                _ajax_nonce:  moContextualControlsLabels.themeNonce 
-                            }
+                                _ajax_nonce: moContextualControlsLabels.themeNonce
+                            };
 
                             //Save the data
                             $.post(ajaxurl, data)
 
                             //Reload the page if we succeeded
-                            .done( function( ) {
-                                location.reload( true );
-                            })
+                                .done(function () {
+                                    location.reload(true);
+                                })
 
-                            //If not, show an error message
-                            .fail( function(){
-                                $(switchThemesPopup)
-                                    .html( '<div class="mailoptin-optin-themes-ajax-error">' + moContextualControlsLabels.ajaxError + switchThemesClose + '</div>')
-                                    .find( 'button' )
-                                    .on( 'click', function(){
-                                        $( switchThemesPopup )
-                                            .removeClass( 'mo-change-theme-popup-show mo-change-theme-display-block' )
-                                            .html( loader )
-                                    })
-                            })
-                            
+                                //If not, show an error message
+                                .fail(function () {
+                                    $(switchThemesPopup)
+                                        .html('<div class="mailoptin-optin-themes-ajax-error">' + moContextualControlsLabels.ajaxError + switchThemesClose + '</div>')
+                                        .find('button')
+                                        .on('click', function () {
+                                            $(switchThemesPopup)
+                                                .removeClass('mo-change-theme-popup-show mo-change-theme-display-block')
+                                                .html(loader)
+                                        })
+                                })
+
                         })
 
                     appendPopupClose();
                 })
-            
-            //If not, show an error message
-            .fail( function(){
-                $(switchThemesPopup)
-                    .html( '<div class="mailoptin-optin-themes-ajax-error">' + moContextualControlsLabels.ajaxError + switchThemesClose + '</div>')
-                    .find( 'button' )
-                    .on( 'click', function(){
-                        $( switchThemesPopup )
-                            .removeClass( 'mo-change-theme-popup-show mo-change-theme-display-block' )
-                            .html(  loader )
-                    })
-            })
+
+                //If not, show an error message
+                .fail(function () {
+                    $(switchThemesPopup)
+                        .html('<div class="mailoptin-optin-themes-ajax-error">' + moContextualControlsLabels.ajaxError + switchThemesClose + '</div>')
+                        .find('button')
+                        .on('click', function () {
+                            $(switchThemesPopup)
+                                .removeClass('mo-change-theme-popup-show mo-change-theme-display-block')
+                                .html(loader)
+                        })
+                })
 
         })
     });
