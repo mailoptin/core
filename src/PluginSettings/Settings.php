@@ -27,7 +27,7 @@ class Settings
 
     public function from_name()
     {
-        return $this->settings_data['from_name'];
+        return str_replace('&#039;', "'", $this->settings_data['from_name']);
     }
 
     public function from_email()
@@ -37,7 +37,7 @@ class Settings
 
     public function reply_to()
     {
-        if (!empty($this->settings_data['reply_to'])) {
+        if ( ! empty($this->settings_data['reply_to'])) {
             return $reply_to = $this->settings_data['reply_to'];
         } else {
             return $reply_to = $this->settings_data['from_email'];
@@ -55,6 +55,7 @@ class Settings
     public function __call($name, $arguments)
     {
         $default = isset($arguments[0]) ? $arguments[0] : '';
+
         return isset($this->settings_data[$name]) ? $this->settings_data[$name] : $default;
     }
 
@@ -66,7 +67,7 @@ class Settings
      */
     public function update($key, $value)
     {
-        $data = $this->settings_data;
+        $data       = $this->settings_data;
         $data[$key] = $value;
 
         update_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, $data);

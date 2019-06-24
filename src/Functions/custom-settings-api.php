@@ -189,7 +189,7 @@ class Custom_Settings_Page_Api
             if (is_array($data[$key])) {
                 $sanitized_data[$key] = self::sanitize_data($data[$key]);
             } else {
-                $sanitized_data[$key] = esc_html($data[$key]);
+                $sanitized_data[$key] = esc_html(stripslashes($data[$key]));
             }
         }
 
