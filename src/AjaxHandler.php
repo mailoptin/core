@@ -683,6 +683,15 @@ class AjaxHandler
         wp_send_json($response);
     }
 
+    public static function no_email_provider_or_list_error()
+    {
+        return sprintf(
+            __('No email provider or list has been set for this optin. %sSee fix here%s', 'mailoptin'),
+            '<a target="_blank" href="https://mailoptin.io/article/fix-error-no-email-provider-or-list-set-for-this-optin/">',
+            '</a>'
+        );
+    }
+
     /**
      * Accept wide range of optin conversion data and save the lead.
      *
@@ -693,6 +702,8 @@ class AjaxHandler
     public static function do_optin_conversion(ConversionDataBuilder $conversion_data)
     {
         $optin_campaign_id = $conversion_data->optin_campaign_id;
+
+        $no_email_provider_or_list_error = self::no_email_provider_or_list_error();
 
         if ( ! is_email($conversion_data->email)) {
             return AbstractConnect::ajax_failure(
@@ -784,9 +795,10 @@ class AjaxHandler
         );
 
         if ( ! $integrations) {
-            AbstractConnect::send_optin_error_email($optin_campaign_id, 'No email provider or list has been set for this optin.');
 
-            return AbstractConnect::ajax_failure(__('No email provider or list has been set for this optin. Please try again', 'mailoptin'));
+            AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error);
+
+            return AbstractConnect::ajax_failure($no_email_provider_or_list_error);
         }
 
         $responses = [];
@@ -839,15 +851,17 @@ class AjaxHandler
     {
         $optin_campaign_id = $conversion_data->optin_campaign_id;
 
+        $no_email_provider_or_list_error = self::no_email_provider_or_list_error();
+
         $connection_fqn_class = ConnectionFactory::get_fqn_class($connection_service);
 
         if (empty($connection_service) ||
             // useful for service such as convertfox and in future customer.io that doesnt require an email list to be specified.
             ( ! in_array(AbstractConnect::NON_EMAIL_LIST_SUPPORT, $connection_fqn_class::features_support($connection_service)) && empty($connection_email_list))
         ) {
-            AbstractConnect::send_optin_error_email($optin_campaign_id, 'No email provider or list has been set for this optin.');
+            AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error);
 
-            return AbstractConnect::ajax_failure(__('No email provider or list has been set for this optin. Please try again', 'mailoptin'));
+            return AbstractConnect::ajax_failure($no_email_provider_or_list_error);
         }
 
         $extras                          = $conversion_data->payload;
@@ -923,18 +937,18 @@ class AjaxHandler
     {
         check_ajax_referer('mailoptin-themes');
 
-        if (current_user_has_privilege() && !empty($_REQUEST['id'])) {
+        if (current_user_has_privilege() && ! empty($_REQUEST['id'])) {
 
             //Fetch the campaign type
-            $type  = OptinCampaignsRepository::get_optin_campaign_type($_REQUEST['id']);
+            $type = OptinCampaignsRepository::get_optin_campaign_type($_REQUEST['id']);
 
             //And output themes belonging to this type to the user
             echo '<div class="mailoptin-optin-themes mailoptin-optin-clear">';
-                OptinThemesRepository::listing_display_template($type);
+            OptinThemesRepository::listing_display_template($type);
             echo '</div>';
 
         } else {
-            wp_die( -1, 403 );
+            wp_die(-1, 403);
         }
 
         exit;
@@ -947,16 +961,16 @@ class AjaxHandler
     {
         check_ajax_referer('mailoptin-themes');
 
-        if (current_user_has_privilege() && !empty($_REQUEST['id']) && !empty($_REQUEST['theme'])) {
+        if (current_user_has_privilege() && ! empty($_REQUEST['id']) && ! empty($_REQUEST['theme'])) {
 
             $id    = $_REQUEST['id'];
             $theme = $_REQUEST['theme'];
-            if( false === OptinCampaignsRepository::set_optin_campaign_class( $id, $theme) ) {
-                wp_die( -1, 403 );
+            if (false === OptinCampaignsRepository::set_optin_campaign_class($id, $theme)) {
+                wp_die(-1, 403);
             }
 
         } else {
-            wp_die( -1, 403 );
+            wp_die(-1, 403);
         }
 
         exit;

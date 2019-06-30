@@ -843,9 +843,8 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
             /**
              * overlay over optin lighbox/modal that shows spinner and success message.
              *
-             * @param {object} success_message
              */
-            displaySuccessContent: function (success_message) {
+            displaySuccessContent: function () {
                 // display the success container div.
                 this.find('.mo-optin-success-msg').show();
             },
@@ -864,7 +863,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
              * @param {string} error_message
              */
             displayErrorMessage: function (error_message) {
-                this.find('.mo-optin-error').text(error_message).show();
+                this.find('.mo-optin-error').html(error_message).show();
             },
 
             /**
@@ -925,9 +924,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                                     self.addSuccessCloseIcon.call(optin_container);
                                 }
 
-                                if (self.is_defined_not_empty(optin_js_config.success_message)) {
-                                    self.displaySuccessContent.call(optin_container, optin_js_config.success_message);
-                                }
+                                self.displaySuccessContent.call(optin_container);
 
                                 self.removeSpinner.call(optin_container);
                             }
