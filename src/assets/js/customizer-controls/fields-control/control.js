@@ -12,6 +12,26 @@
                 $('.mo-fields-widget.mo-custom-field').each(function (index) {
                     // re-order index
                     $(this).attr('data-field-index', index);
+                    
+                    //Remove any previous click event handlers on the field type select field and reattach
+                    var field = this
+                    var maybeHideOptionsField = function(){
+                        var field_type = $( field ).find('.mo-optin-fields-field').val()
+                        var with_options = ["checkbox", "select", "radio"]
+                        if( with_options.indexOf(field_type) == -1 ) {
+                            $(field).find(".field_options.mo-fields-block").hide()
+                        } else {
+                            $(field).find(".field_options.mo-fields-block").show()
+                        }
+                    }
+
+                    maybeHideOptionsField()
+                    $(this)
+                        .find('.mo-optin-fields-field')
+                        .off('change.mo_field')
+                        .on('change.mo_field', function( e ){
+                            maybeHideOptionsField()
+                        })
 
                     var widget_title_obj = $(this).find('.mo-fields-widget-title h3');
                     // only modify the widget headline if it has #ID

@@ -269,49 +269,6 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
         echo '</div>';
     }
 
-    public function repeater_options_field($index, $name, $class = '', $label = '', $description = '')
-    {
-
-        $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
-        $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
-
-        $field_type = isset($this->saved_values[$index]['field_type'] ) ? $this->saved_values[$index]['field_type'] : 'text';
-        $style = 'display: none;';
-        if( $field_type == 'radio' || $field_type == 'select' ) {
-            $style = '';
-        }
-
-        $random_id = wp_generate_password(5, false) . '_' . $index;
-
-        if ( ! empty($class)) {
-            $class = " $class";
-        }
-
-        echo "<div style='$style' class=\"$name mo-fields-block{$class}\" id=\"$random_id\">";
-        if ( ! empty($label)) : ?>
-            <div class="customize-control-title"><?php echo esc_html($label); ?></div>
-        <?php endif; ?>
-        <script>
-            jQuery('<?php echo ".$name#$random_id"; ?>')
-                .siblings('.field_type')
-                .find('select')
-                .on('change', function(e){
-                    var field_type = jQuery( this ).val()
-                    if( field_type == 'radio' || field_type == 'select' ) {
-                        jQuery('<?php echo ".$name#$random_id"; ?>').show()
-                    } else {
-                        jQuery('<?php echo ".$name#$random_id"; ?>').hide()
-                    }
-                })
-        </script>
-        <input type="text" >
-
-        <?php if ( ! empty($description)) : ?>
-        <span class="description customize-control-description"><?php echo $description; ?></span>
-    <?php endif;
-        echo '</div>';
-    }
-
     public function repeater_select_field($index, $name, $choices, $class = '', $label = '', $description = '')
     {
         if ( ! isset($index) || ! array_key_exists($index, $this->saved_values)) {
@@ -580,7 +537,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
         $field_types = [
             'text'          => __('Text', 'mailoptin'),
             'textarea'      => __('Textarea', 'mailoptin'),
-            'checkbox '     => __('Checkbox ', 'mailoptin'),
+            'checkbox'     => __('Checkbox ', 'mailoptin'),
             'select'        => __('Select', 'mailoptin'),
             'radio'         => __('Radio ', 'mailoptin'),
         ];
@@ -608,7 +565,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_before', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                     <?php $this->repeater_text_field($index, 'placeholder', '', __('Title', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
-                    <?php $this->repeater_options_field($index, 'options', '', __('Options', 'mailoptin')); ?>
+                    <?php $this->repeater_text_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'color', '', __('Color', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'background', '', __('Background', 'mailoptin')); ?>
                     <?php $this->repeater_font_field($index, 'font', '', __('Font', 'mailoptin')); ?>
