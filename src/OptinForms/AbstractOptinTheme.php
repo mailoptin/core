@@ -986,6 +986,11 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                     $id = "{$optin_css_id}_{$field_type}_{$field_id}";
 
+                    $options = [];
+                    if( !empty( $field['options'] ) && is_array( $field['options'] ) ) {
+                        $options = $field['options'];
+                    }
+
                     $class = ' ' . esc_attr($atts['class']);
                     $class = "mo-optin-field mo-optin-form-custom-field {$field_type}-field field-{$field_id}{$class}";
 
@@ -1001,6 +1006,31 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html .= $atts['tag_start'];
                             $html .= "<textarea $data_attr id=\"$id\" class=\"$class\" style=\"$style\" placeholder=\"$placeholder\" name=\"$field_id\"></textarea>";
                             $html .= $atts['tag_end'];
+                            break;
+                        case 'checkbox':
+                            $html .= $atts['tag_start'];
+                            $html .= "<label style=\"display: block;text-align: left; $style\" id=\"$id\" class=\"$class\" $data_attr><input style=\"width: auto; display: inline-block;\" type=\"checkbox\" name=\"$field_id\"><span>$placeholder</span></label>";
+                            $html .= $atts['tag_end'];
+                            break;
+                        case 'radio':
+                            $html .= $atts['tag_start'];
+                            $html .= "<div class=\"$class\" id=\"$id\" style=\"$style\"><div>$placeholder</div>";
+                            
+                            //Display options
+                            foreach( $options as $option ) {
+                                $html .= "<input $data_attr type=\"radio\" value=\"$option\" name=\"$field_id\"><span>$option</span>";
+                            }
+                            $html .= "</div>" . $atts['tag_end'];
+                            break;
+                        case 'select':
+                            $html .= $atts['tag_start'];
+                            $html .= "<div>$placeholder</div><select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                            
+                            //Display options
+                            foreach( $options as $option ) {
+                                $html .= "<option value=\"$option\" >$option</option>";
+                            }
+                            $html .= "</select>" . $atts['tag_end'];
                             break;
                     }
                 }
