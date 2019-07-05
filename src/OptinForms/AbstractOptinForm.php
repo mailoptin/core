@@ -517,6 +517,15 @@ if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_imp
         #$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-success-msg a {
                 color: #0000EE;
                 text-decoration: underline;
+        }
+        
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .checkbox-field {
+            text-align: left;
+        }
+        
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .checkbox-field label{
+            display: block;
+            text-align: left;
         }";
 
         $global_css .= $this->font_size_css();

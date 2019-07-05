@@ -1015,7 +1015,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             break;
                         case 'checkbox':
                             $html .= $atts['tag_start'];
-                            $html .= "<div $data_attr class=\"$class\" style=\"text-align: left; $style\" id=\"$id\">";
+                            $html .= "<div $data_attr class=\"$class\" style=\"$style\" id=\"$id\">";
                             if (count($options) < 2) {
                                 $value = empty($options) ? '1' : esc_attr(trim($options[0]));
                                 $html  .= "<label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}[]\"><span>$placeholder</span></label>";
