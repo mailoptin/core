@@ -987,12 +987,12 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                     $id = "{$optin_css_id}_{$field_type}_{$field_id}";
 
                     $options = [];
-                    if( !empty( $field['field_options'] ) ) {
-                        $options = explode( ',', $field['field_options'] );
+                    if ( ! empty($field['field_options'])) {
+                        $options = array_map('trim', explode(',', $field['field_options']));
                     }
 
-                    foreach( $options as $key => $value ) {
-                        if(empty( trim($value) )){
+                    foreach ($options as $key => $value) {
+                        if (empty($value)) {
                             unset($options[$key]);
                         }
                     }
@@ -1016,14 +1016,14 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                         case 'checkbox':
                             $html .= $atts['tag_start'];
                             $html .= "<div $data_attr class=\"$class\" style=\"text-align: left; $style\" id=\"$id\">";
-                            if( count( $options ) < 2 ) {
-                                $value = empty( $options ) ? '1' : esc_attr( trim( $options[0] ) );
-                                $html .= "<label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}[]\"><span>$placeholder</span></label>";
+                            if (count($options) < 2) {
+                                $value = empty($options) ? '1' : esc_attr(trim($options[0]));
+                                $html  .= "<label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}[]\"><span>$placeholder</span></label>";
                             } else {
-                                $html .= "<div>$placeholder</div>";
-                                foreach( $options as $option ) {
-                                    $option = esc_attr( trim( $option ) );
-                                    $html .= "<label><input type=\"checkbox\" value=\"$option\" name=\"{$field_id}[]\"><span>$option</span></label>";
+                                $html .= "<div class='mo-checkbox-title'>$placeholder</div>";
+                                foreach ($options as $option) {
+                                    $option = esc_attr(trim($option));
+                                    $html   .= "<label><input type=\"checkbox\" value=\"$option\" name=\"{$field_id}[]\"><span>$option</span></label>";
                                 }
                             }
                             $html .= '</div>';
@@ -1031,12 +1031,12 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             break;
                         case 'radio':
                             $html .= $atts['tag_start'];
-                            $html .= "<div $data_attr class=\"$class\" id=\"$id\" style=\"$style\"><div>$placeholder</div>";
-                            
+                            $html .= "<div $data_attr class=\"$class\" id=\"$id\" style=\"$style\"><div class='mo-radio-title'>$placeholder</div>";
+
                             //Display options
-                            foreach( $options as $option ) {
-                                $option = esc_attr( trim( $option ) );
-                                if( empty ( $option ) )  {
+                            foreach ($options as $option) {
+                                $option = esc_attr(trim($option));
+                                if (empty ($option)) {
                                     continue;
                                 }
                                 $html .= "<input type=\"radio\" value=\"$option\" name=\"$field_id\"><span>$option</span>";
@@ -1045,12 +1045,12 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             break;
                         case 'select':
                             $html .= $atts['tag_start'];
-                            $html .= "<div>$placeholder</div><select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
-                            
+                            $html .= "<div class='mo-select-title'>$placeholder</div><select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+
                             //Display options
-                            foreach( $options as $option ) {
-                                $option = esc_attr( trim( $option ) );
-                                if( empty ( $option ) )  {
+                            foreach ($options as $option) {
+                                $option = esc_attr(trim($option));
+                                if (empty ($option)) {
                                     continue;
                                 }
                                 $html .= "<option value=\"$option\" >$option</option>";
