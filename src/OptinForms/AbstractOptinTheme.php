@@ -1039,7 +1039,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 if (empty ($option)) {
                                     continue;
                                 }
-                                $html .= "<input type=\"radio\" value=\"$option\" name=\"$field_id\"><span>$option</span>";
+                                $html .= "<label><input type=\"radio\" value=\"$option\" name=\"$field_id\"><span>$option</span></label>";
                             }
                             $html .= "</div>" . $atts['tag_end'];
                             break;
