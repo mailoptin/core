@@ -448,7 +448,7 @@ html div#$optin_uuid div#$optin_css_id.mo-baremetal-container textarea.mo-optin-
 html div#$optin_uuid div#$optin_css_id.mo-baremetal-container #{$optin_css_id}_name_field,
 html div#$optin_uuid div#$optin_css_id.mo-baremetal-container #{$optin_css_id}_email_field,
 html div#$optin_uuid div#$optin_css_id.mo-baremetal-container input.mo-optin-form-custom-field.text-field,
-html div#$optin_uuid div#$optin_css_id.mo-baremetal-container .mo-optin-form-custom-field.select-field select,
+html div#$optin_uuid div#$optin_css_id.mo-baremetal-container select.mo-optin-form-custom-field,
 html div#$optin_uuid div#$optin_css_id.mo-baremetal-container textarea.mo-optin-form-custom-field.textarea-field {
 -webkit-border-radius: 0;
 border-radius: 0;
