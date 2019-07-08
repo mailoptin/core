@@ -1045,7 +1045,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             break;
                         case 'select':
                             $html .= $atts['tag_start'];
-                            $html .= "<div class='mo-select-title'>$placeholder</div><select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                            $html .= "<div $data_attr class=\"$class\" id=\"$id\" style=\"$style\"><div class='mo-select-title'>$placeholder</div><select name=\"$field_id\">";
 
                             //Display options
                             foreach ($options as $option) {
@@ -1055,7 +1055,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 }
                                 $html .= "<option value=\"$option\" >$option</option>";
                             }
-                            $html .= "</select>" . $atts['tag_end'];
+                            $html .= "</select></div>" . $atts['tag_end'];
                             break;
                     }
                 }
