@@ -612,6 +612,7 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-inner .gr
 
 html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-form input.gridgum_input_field, 
 html div#$optin_uuid div#$optin_css_id.gridgum_container input.mo-optin-form-custom-field.text-field,
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-form-custom-field.select-field,
 html div#$optin_uuid div#$optin_css_id.gridgum_container textarea.mo-optin-form-custom-field.textarea-field {
          width: 100%;
          max-width: 100%;
@@ -625,7 +626,23 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container textarea.mo-optin-form-
          font-size: 15px;
          background-color: #ffffff;
      }
-     
+
+
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-form-custom-field.checkbox-field,
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-form-custom-field.radio-field {
+    padding: 10px;
+} 
+
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-form-custom-field.checkbox-field label,
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-form-custom-field.radio-field label{
+    margin-top: 6px;
+}
+
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-form-custom-field.checkbox-field label input,
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-form-custom-field.radio-field label input{
+    margin-right: 6px;
+}
+
 html div#$optin_uuid div#$optin_css_id.gridgum_container textarea.mo-optin-form-custom-field.textarea-field {
     min-height: 80px;
 }
