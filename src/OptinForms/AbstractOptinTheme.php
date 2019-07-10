@@ -986,6 +986,17 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                     $id = "{$optin_css_id}_{$field_type}_{$field_id}";
 
+                    $options = [];
+                    if ( ! empty($field['field_options'])) {
+                        $options = array_map('trim', explode(',', $field['field_options']));
+                    }
+
+                    foreach ($options as $key => $value) {
+                        if (empty($value)) {
+                            unset($options[$key]);
+                        }
+                    }
+
                     $class = ' ' . esc_attr($atts['class']);
                     $class = "mo-optin-field mo-optin-form-custom-field {$field_type}-field field-{$field_id}{$class}";
 
@@ -1001,6 +1012,50 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html .= $atts['tag_start'];
                             $html .= "<textarea $data_attr id=\"$id\" class=\"$class\" style=\"$style\" placeholder=\"$placeholder\" name=\"$field_id\"></textarea>";
                             $html .= $atts['tag_end'];
+                            break;
+                        case 'checkbox':
+                            $html .= $atts['tag_start'];
+                            $html .= "<div $data_attr class=\"$class\" style=\"$style\" id=\"$id\">";
+                            if (count($options) < 2) {
+                                $value = empty($options) ? '1' : esc_attr(trim($options[0]));
+                                $html  .= "<label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}[]\"><span>$placeholder</span></label>";
+                            } else {
+                                $html .= "<div class='mo-checkbox-title'>$placeholder</div>";
+                                foreach ($options as $option) {
+                                    $option = esc_attr(trim($option));
+                                    $html   .= "<label><input type=\"checkbox\" value=\"$option\" name=\"{$field_id}[]\"><span>$option</span></label>";
+                                }
+                            }
+                            $html .= '</div>';
+                            $html .= $atts['tag_end'];
+                            break;
+                        case 'radio':
+                            $html .= $atts['tag_start'];
+                            $html .= "<div $data_attr class=\"$class\" id=\"$id\" style=\"$style\"><div class='mo-radio-title'>$placeholder</div>";
+
+                            //Display options
+                            foreach ($options as $option) {
+                                $option = esc_attr(trim($option));
+                                if (empty ($option)) {
+                                    continue;
+                                }
+                                $html .= "<label><input type=\"radio\" value=\"$option\" name=\"$field_id\"><span>$option</span></label>";
+                            }
+                            $html .= "</div>" . $atts['tag_end'];
+                            break;
+                        case 'select':
+                            $html .= $atts['tag_start'];
+                            $html .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                            $html .= "<option value='' selected='selected'>$placeholder</option>";
+                            //Display options
+                            foreach ($options as $option) {
+                                $option = esc_attr(trim($option));
+                                if (empty ($option)) {
+                                    continue;
+                                }
+                                $html .= "<option value=\"$option\" >$option</option>";
+                            }
+                            $html .= "</select>" . $atts['tag_end'];
                             break;
                     }
                 }

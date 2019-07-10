@@ -627,6 +627,7 @@ html div#$optin_uuid div#$optin_css_id.columbine-container div.columbine-two-col
 
 html div#$optin_uuid div#$optin_css_id.columbine-container input.columbine-input,
 html div#$optin_uuid div#$optin_css_id.columbine-container input.mo-optin-form-custom-field.text-field,
+html div#$optin_uuid div#$optin_css_id.columbine-container .mo-optin-form-custom-field.select-field,
 html div#$optin_uuid div#$optin_css_id.columbine-container textarea.mo-optin-form-custom-field.textarea-field {
          background-color: #ffffff;
          width: 100%;
@@ -634,7 +635,6 @@ html div#$optin_uuid div#$optin_css_id.columbine-container textarea.mo-optin-for
          -webkit-box-sizing: border-box;
          -moz-box-sizing: border-box;
          box-sizing: border-box;
-         -webkit-appearance: none;
          -webkit-border-radius: 0;
          -moz-border-radius: 0;
          border-radius: 0;
@@ -648,6 +648,11 @@ html div#$optin_uuid div#$optin_css_id.columbine-container textarea.mo-optin-for
          margin: 0;
      }
 
+     html div#$optin_uuid div#$optin_css_id.columbine-container input.columbine-input,
+html div#$optin_uuid div#$optin_css_id.columbine-container input.mo-optin-form-custom-field.text-field,
+html div#$optin_uuid div#$optin_css_id.columbine-container textarea.mo-optin-form-custom-field.textarea-field {
+        -webkit-appearance: none;
+     }
 html div#$optin_uuid div#$optin_css_id.columbine-container input.columbine-submit,
 html div#$optin_uuid div#$optin_css_id.columbine-container input[type="submit"].mo-optin-form-cta-button {
          display: block;

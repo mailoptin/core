@@ -517,7 +517,33 @@ if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_imp
         #$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-success-msg a {
                 color: #0000EE;
                 text-decoration: underline;
-        }";
+        }
+        
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .checkbox-field,
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .radio-field,
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .select-field {
+            text-align: left;
+            margin-top: 6px;
+            padding: 6px;
+        }
+        
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .checkbox-field label,
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .radio-field label {
+            display: block;
+            text-align: left;
+            margin-top: 6px;
+        }
+        
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .checkbox-field label input,
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .radio-field label input {
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .select-field select{
+            width: 100%;
+        }
+        ";
 
         $global_css .= $this->font_size_css();
 
