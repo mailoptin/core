@@ -34,6 +34,10 @@ if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
             height: 100%;
             margin: 10px;
         }
+
+        .media-modal .media-modal-content {
+            height: calc(100% - 75px);
+        }
     </style>
     <!--    hack to make add media view styled correctly -->
     <link rel="stylesheet" href="<?= wp_styles()->base_url; ?>/wp-admin/load-styles.php?c=1&dir=ltr&load%5B%5D=dashicons,buttons,common,forms" type="text/css" media="all">
