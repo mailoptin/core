@@ -13,6 +13,7 @@ use MailOptin\Core\Admin\SettingsPage\OptinCampaign_List;
 use MailOptin\Core\Admin\SettingsPage\SplitTestOptinCampaign;
 use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionFactory;
+use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
 use MailOptin\Core\OptinForms\ConversionDataBuilder;
 use MailOptin\Core\PluginSettings\Settings;
@@ -179,8 +180,13 @@ class AjaxHandler
 
         $admin_email       = get_option('admin_email');
         $email_campaign_id = absint($_REQUEST['email_campaign_id']);
-        $campaign_subject  = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject');
-        $campaign_type     = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
+        $campaign_subject  = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
+
+        if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
+            $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_title'));
+        }
+
+        $campaign_type = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
 
         $plugin_settings = new Settings();
         $from_name       = $plugin_settings->from_name();

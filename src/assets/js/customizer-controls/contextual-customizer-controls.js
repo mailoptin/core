@@ -467,7 +467,7 @@
                             //Display the loader
                             $(switchThemesPopup)
                                 .html(loader)
-                                .removeClass('mo-change-theme-display-block')
+                                .removeClass('mo-change-theme-display-block');
 
                             appendPopupClose();
 

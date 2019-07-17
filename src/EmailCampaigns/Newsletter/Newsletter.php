@@ -4,6 +4,7 @@ namespace MailOptin\Core\EmailCampaigns\Newsletter;
 
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
+use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
@@ -26,7 +27,7 @@ class Newsletter extends AbstractTriggers
 
         $email_campaign_id = absint($_GET['id']);
 
-        $email_subject = ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_title');
+        $email_subject = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_title'));
 
         $content_html = (new Templatify($email_campaign_id))->forge();
 

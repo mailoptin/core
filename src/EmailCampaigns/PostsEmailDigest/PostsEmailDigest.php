@@ -5,12 +5,14 @@ namespace MailOptin\Core\EmailCampaigns\PostsEmailDigest;
 use Carbon\Carbon;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
+use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class PostsEmailDigest extends AbstractTriggers
 {
+
     public function __construct()
     {
         parent::__construct();
@@ -213,7 +215,8 @@ class PostsEmailDigest extends AbstractTriggers
      */
     public function create_campaign($email_campaign_id)
     {
-        $email_subject   = ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_subject');
+        $email_subject   = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_subject'));
+
         $post_collection = $this->post_collection($email_campaign_id);
 
         if (empty($post_collection)) return false;

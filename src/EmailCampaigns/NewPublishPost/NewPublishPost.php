@@ -4,6 +4,7 @@ namespace MailOptin\Core\EmailCampaigns\NewPublishPost;
 
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
+use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use WP_Post;
 
@@ -123,7 +124,7 @@ class NewPublishPost extends AbstractTriggers
                 }
 
                 $send_immediately_active = $this->send_immediately($email_campaign_id);
-                $email_subject           = ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_subject');
+                $email_subject           = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_subject'));
 
                 $content_html = (new Templatify($email_campaign_id, $post))->forge();
 

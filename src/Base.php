@@ -11,6 +11,7 @@ use MailOptin\Core\Admin\SettingsPage\ConversionExport;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
 use MailOptin\Core\Admin\SettingsPage\UsageTracking;
+use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
 use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
 use MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest;
@@ -132,6 +133,8 @@ class Base
         AdminNotices::get_instance();
         ConversionExport::get_instance();
         ProUpgrade::get_instance();
+
+        Misc::get_instance();
 
         do_action('mailoptin_admin_hooks');
     }
