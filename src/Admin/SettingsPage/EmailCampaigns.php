@@ -38,7 +38,6 @@ class EmailCampaigns extends AbstractSettingsPage
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
         add_action('save_post', [$this, 'save_new_publish_post_exclude']);
-        add_action('init', [$this, 'register_post_meta']);
     }
 
     public function register_settings_page()
@@ -229,18 +228,6 @@ class EmailCampaigns extends AbstractSettingsPage
         update_post_meta($post_id, '_mo_disable_npp', $val);
     }
 
-    public function register_post_meta()
-    {
-        
-        if( function_exists('register_post_meta') ) {
-            register_post_meta( '', '_mo_disable_npp', array(
-                'show_in_rest'  => true,
-                'single'        => true,
-                'type'          => 'string',
-            ) );
-        }
-        
-    }
 
     /**
      * @return EmailCampaigns

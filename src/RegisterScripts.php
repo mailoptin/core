@@ -128,7 +128,7 @@ class RegisterScripts
                 'wp-data',
                 'wp-compose'
             ),
-            '12344dde',
+            MAILOPTIN_VERSION_NUMBER,
             true
         );
 
