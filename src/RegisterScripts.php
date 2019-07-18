@@ -128,7 +128,7 @@ class RegisterScripts
                 'wp-data',
                 'wp-compose'
             ),
-            '12344de',
+            '12344dde',
             true
         );
 
@@ -277,7 +277,7 @@ class RegisterScripts
 
             //Ensure this is a post edit screen to save resources
             if( $screen->is_block_editor && post_can_new_post_notification( $post ) ) {
-                $localize_strings['sidebar']                    = true;
+                $localize_strings['sidebar']                    = 1;
                 $localize_strings['disable_notifications']      = get_post_meta($post->ID, '_mo_disable_npp', true);
                 $localize_strings['disable_notifications_txt']  = __('Disable MailOptin new post notification for this post.', 'mailoptin');
             }

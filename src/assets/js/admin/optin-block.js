@@ -3,6 +3,9 @@
     var InspectorControls = editor.InspectorControls;
     var SelectControl = components.SelectControl;
     var Toggle = components.ToggleControl;
+    var Panel = components.Panel;
+    var PanelBody = components.PanelBody;
+    var PanelRow = components.PanelRow;
     var withSelect = wp.data.withSelect;
     var withDispatch = wp.data.withDispatch;
     var compose = wp.compose.compose;
@@ -54,38 +57,51 @@
     });
 
     $(function () {
+
+        //Maybe abort early
+        if( mailoptin_globals.sidebar == 0 ){
+            return;
+        }
+
         var registerPlugin = wp.plugins.registerPlugin;
         var PluginSidebar  = wp.editPost.PluginSidebar;
         var el             = wp.element.createElement;
 
-        var disableNotifications = compose(
+        var disableNotificationsEl = compose(
+
+             //saves a given meta field for the post
             withDispatch( function( dispatch ) {
                 return {
-                    setMetaFieldValue: function( value ) {
-                        console.log(value)
-                        dispatch( 'core/editor' ).editPost(
-                            { meta: { _mo_disable_npp: value  ? 'yes' : 'no'} }
-                        );
+                    setMetaFieldValue: function( field, value ) {
+                        var toEdit = { meta: {} }
+                        toEdit.meta[field] = value
+                        dispatch( 'core/editor' ).editPost( toEdit );
                     }
                 }
             } ),
+
+            //retrieves a given meta field for the post
             withSelect( function( select ) {
                 return {
-                    metaFieldValue: select( 'core/editor' )
+                    disableNotifications: select( 'core/editor' )
                         .getEditedPostAttribute( 'meta' )
                         [ '_mo_disable_npp' ]
                 }
             } )
         )( function( props ) {
+
+            //Toggle disable notifications
             return el( Toggle, {
                 label: mailoptin_globals.disable_notifications_txt,
-                checked: 'yes' == props.metaFieldValue ? true : false,
+                checked: 'yes' == props.disableNotifications ? true : false,
                 onChange: function( content ) {
-                    props.setMetaFieldValue( content );
+                    var val = content ? 'yes' : 'no'
+                    props.setMetaFieldValue( '_mo_disable_npp', val );
                 },
-        } );
+            } );
         } );
 
+        //Register the new sidebar
         registerPlugin( 'mailoptin-sidebar', {
             render: function() {
                 return el( PluginSidebar,
@@ -94,10 +110,16 @@
                         icon: 'email',
                         title: 'MailOptin',
                     },
-                    el( 'div',
-                        { className: 'mailoptin-disable-notifications' },
-                        el( disableNotifications )
-                )
+                    el( Panel, {},
+                        el( PanelBody, 
+                            {
+                                title: 'MailOptin',
+                                initialOpen: true,
+                            },
+                            el( PanelRow, {}, el( disableNotificationsEl ) )
+                        )
+                        
+                    )
                 );
             },
         } );

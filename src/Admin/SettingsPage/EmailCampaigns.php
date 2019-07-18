@@ -37,7 +37,7 @@ class EmailCampaigns extends AbstractSettingsPage
         }, 10, 3);
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
-
+        add_action('save_post', [$this, 'save_new_publish_post_exclude']);
         add_action('init', [$this, 'register_post_meta']);
     }
 
