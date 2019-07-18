@@ -78,7 +78,7 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function screen_option()
     {
-        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && !isset($_GET['view'])) {
+        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! isset($_GET['view'])) {
 
             $option = 'per_page';
             $args   = array(
@@ -165,7 +165,7 @@ class EmailCampaigns extends AbstractSettingsPage
     public function new_publish_post_exclude_metabox($post)
     {
         //Maybe abort early
-        if ( !post_can_new_post_notification( $post ) ) return;
+        if ( ! Core\post_can_new_post_notification($post)) return;
 
         ?>
         <div style="text-align: left;margin: 10px;">
@@ -234,16 +234,15 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function register_post_meta()
     {
-        
-        if( function_exists('register_post_meta') ) {
-            register_post_meta( '', '_mo_disable_npp', array(
+        if (function_exists('register_post_meta')) {
+            register_post_meta('', '_mo_disable_npp', array(
                 'show_in_rest'  => true,
                 'single'        => true,
                 'type'          => 'string',
-                'auth_callback' => array( $this, 'can_edit_meta' )
-            ) );
+                'auth_callback' => array($this, 'can_edit_meta')
+            ));
         }
-        
+
     }
 
     /**
@@ -251,9 +250,7 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function can_edit_meta()
     {
-        
-        return current_user_can( 'edit_posts' );
-        
+        return current_user_can('edit_posts');
     }
 
 
