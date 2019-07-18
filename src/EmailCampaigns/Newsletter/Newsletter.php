@@ -14,7 +14,7 @@ class Newsletter extends AbstractTriggers
         parent::__construct();
 
         add_action('admin_init', [$this, 'newsletter_sending_handler']);
-        add_action('init', [$this, 'register_post_meta']);
+
     }
 
     public function newsletter_sending_handler()
@@ -75,33 +75,6 @@ class Newsletter extends AbstractTriggers
 
         wp_redirect(MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE);
         exit;
-    }
-
-    /**
-     * Registers our custom post meta so that it is available during REST calls
-     */
-    public function register_post_meta()
-    {
-        
-        if( function_exists('register_post_meta') ) {
-            register_post_meta( '', '_mo_disable_npp', array(
-                'show_in_rest'  => true,
-                'single'        => true,
-                'type'          => 'string',
-                'auth_callback' => array( $this, 'can_edit_meta' )
-            ) );
-        }
-        
-    }
-
-    /**
-     * Checks whether the current user can edit meta fields
-     */
-    public function can_edit_meta()
-    {
-        
-        return current_user_can( 'edit_posts' );
-        
     }
 
     /**

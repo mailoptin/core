@@ -83,6 +83,7 @@ class Base
         Cron::get_instance();
 
         $this->admin_hooks();
+        Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\Customizer\EmailCampaign\Customizer::instance();
         Admin\Customizer\OptinForm\Customizer::instance();
         PreviewCampaignLog::get_instance();
@@ -123,7 +124,6 @@ class Base
 
         Admin\SettingsPage\Settings::get_instance();
         Admin\SettingsPage\Connections::get_instance();
-        Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
         Admin\SettingsPage\OptinCampaigns::get_instance();
