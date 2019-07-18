@@ -122,21 +122,25 @@ class RegisterScripts
                 'wp-blocks',
                 'wp-i18n',
                 'wp-element',
-                'wp-components'
+                'wp-components',
+                'wp-plugins', 
+                'wp-edit-post',
+                'wp-data',
+                'wp-compose'
             ),
             MAILOPTIN_VERSION_NUMBER,
             true
         );
 
-        wp_localize_script(
-            'mailoptin-gutenberg', 'MailOptinBlocks',
-            array(
-                'defaultForm' => $default,
-                'formOptions' => $modified,
-                'icon'        => 'email',
-                'templates'   => $templates
-            )
+        //Localize gutenberg
+        $localizations = array(
+            'defaultForm' => $default,
+            'formOptions' => $modified,
+            'icon'        => 'email',
+            'templates'   => $templates,
         );
+
+        wp_localize_script( 'mailoptin-gutenberg', 'MailOptinBlocks', $localizations );
 
         register_block_type('mailoptin/email-optin', array(
             'editor_script' => 'mailoptin-gutenberg',
@@ -231,6 +235,8 @@ class RegisterScripts
      */
     public function global_js_variables($handle)
     {
+        global $post;
+
         $disable_impression_status = false;
         $disable_impression        = apply_filters('mo_disable_impression_tracking', Settings::instance()->disable_impression_tracking());
         if ( ! empty($disable_impression) && ($disable_impression == 'true' || $disable_impression === true)) {
@@ -250,7 +256,8 @@ class RegisterScripts
             'chosen_search_placeholder'   => __('Type to search', 'mailoptin'),
             'js_confirm_text'             => __('Are you sure you want to do this?', 'mailoptin'),
             'js_clear_stat_text'          => __('Are you sure you want to do this? Clicking OK will delete all your optin analytics records.', 'mailoptin'),
-            'custom_field_label'          => sprintf(__('Field %s', 'mailoptin'), '#{ID}')
+            'custom_field_label'          => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
+            'sidebar'                     => 0,
         );
 
         if ( ! is_admin()) {
@@ -262,6 +269,18 @@ class RegisterScripts
             unset($localize_strings['custom_field_label']);
             unset($localize_strings['split_test_start_label']);
             unset($localize_strings['split_test_pause_label']);
+        }
+
+        //Localize this here instead of gutenberg function since 'get_current_screen()' won't be declared by then
+        if( is_admin() && function_exists( 'get_current_screen' ) ) {
+            $screen = get_current_screen();
+
+            //Ensure this is a post edit screen to save resources
+            if( $screen->is_block_editor && post_can_new_post_notification( $post ) ) {
+                $localize_strings['sidebar']                    = 1;
+                $localize_strings['disable_notifications']      = get_post_meta($post->ID, '_mo_disable_npp', true);
+                $localize_strings['disable_notifications_txt']  = __('Disable MailOptin new post notification for this post.', 'mailoptin');
+            }
         }
 
         wp_localize_script(

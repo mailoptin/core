@@ -15,6 +15,7 @@ class Newsletter extends AbstractTriggers
         parent::__construct();
 
         add_action('admin_init', [$this, 'newsletter_sending_handler']);
+
     }
 
     public function newsletter_sending_handler()

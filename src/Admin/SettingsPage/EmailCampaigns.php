@@ -9,6 +9,7 @@ if ( ! defined('ABSPATH')) {
 
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use W3Guy\Custom_Settings_Page_Api;
+use MailOptin\Core;
 
 class EmailCampaigns extends AbstractSettingsPage
 {
@@ -36,8 +37,8 @@ class EmailCampaigns extends AbstractSettingsPage
         }, 10, 3);
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
-
         add_action('save_post', [$this, 'save_new_publish_post_exclude']);
+        add_action('init', [$this, 'register_post_meta']);
     }
 
     public function register_settings_page()
@@ -77,7 +78,7 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function screen_option()
     {
-        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && !isset($_GET['view'])) {
+        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! isset($_GET['view'])) {
 
             $option = 'per_page';
             $args   = array(
@@ -163,28 +164,8 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function new_publish_post_exclude_metabox($post)
     {
-        $npps = EmailCampaignRepository::get_by_email_campaign_type(
-            EmailCampaignRepository::NEW_PUBLISH_POST
-        );
-
-        if (empty($npps)) return;
-
-        $is_any_npp_active = false;
-        $npp_supported_cpt = [];
-
-        foreach ($npps as $npp) {
-            $email_campaign_id = absint($npp['id']);
-            if (EmailCampaignRepository::is_campaign_active(absint($npp['id']))) {
-                $is_any_npp_active = true;
-
-                $npp_cpt             = EmailCampaignRepository::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
-                $npp_supported_cpt[] = $npp_cpt;
-            }
-        }
-
-        if ( ! in_array(get_post_type($post), $npp_supported_cpt)) return;
-
-        if ( ! $is_any_npp_active) return;
+        //Maybe abort early
+        if ( ! Core\post_can_new_post_notification($post)) return;
 
         ?>
         <div style="text-align: left;margin: 10px;">
@@ -247,6 +228,31 @@ class EmailCampaigns extends AbstractSettingsPage
         // Update the meta field in the database.
         update_post_meta($post_id, '_mo_disable_npp', $val);
     }
+
+    /**
+     * Registers our custom post meta so that it is available during REST calls
+     */
+    public function register_post_meta()
+    {
+        if (function_exists('register_post_meta')) {
+            register_post_meta('', '_mo_disable_npp', array(
+                'show_in_rest'  => true,
+                'single'        => true,
+                'type'          => 'string',
+                'auth_callback' => array($this, 'can_edit_meta')
+            ));
+        }
+
+    }
+
+    /**
+     * Checks whether the current user can edit meta fields
+     */
+    public function can_edit_meta()
+    {
+        return current_user_can('edit_posts');
+    }
+
 
     /**
      * @return EmailCampaigns
