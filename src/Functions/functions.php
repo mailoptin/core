@@ -8,6 +8,7 @@ use MailOptin\Core\Logging\CampaignLogRepository;
 use MailOptin\Core\PluginSettings\Settings;
 use W3Guy\Custom_Settings_Page_Api;
 use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
+use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 function campaign_repository()
 {
@@ -267,6 +268,39 @@ function is_ninja_form_shortcode($optin_campaign_id)
         if ( ! empty($content) && strpos($content, '[ninja_form') !== false) {
             return true;
         }
+    }
+
+    return false;
+}
+
+/**
+ * Checks whether to show the "disable new post notifications" metabox
+ */
+function post_can_new_post_notification( $post )
+{
+    //Get all new post automations
+    $npps = EmailCampaignRepository::get_by_email_campaign_type(
+        EmailCampaignRepository::NEW_PUBLISH_POST
+    );
+    
+    //Abort early if there are no new post automations
+    if (empty($npps)) return false;
+
+    $post_type         = get_post_type($post);
+
+    foreach ($npps as $npp) {
+        $email_campaign_id = absint($npp['id']);
+
+        //Ensure the automation is active
+        if (! EmailCampaignRepository::is_campaign_active( $email_campaign_id ) ) {
+            continue;
+        }
+
+        //And supports this post type
+        if ( $post_type == EmailCampaignRepository::get_merged_customizer_value( $email_campaign_id, 'custom_post_type' ) ) {
+            return true;
+        }
+
     }
 
     return false;
