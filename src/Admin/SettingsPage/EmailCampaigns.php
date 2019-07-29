@@ -7,7 +7,6 @@ if ( ! defined('ABSPATH')) {
     exit;
 }
 
-use MailOptin\Core\Repositories\EmailCampaignRepository;
 use W3Guy\Custom_Settings_Page_Api;
 use MailOptin\Core;
 

@@ -767,9 +767,7 @@ class AjaxHandler
         // kick-in if only lead bank should be used
         if ($lead_bank_only === true) {
             // record optin campaign conversion.
-            (new OptinCampaignStat($optin_campaign_id))->save('conversion');
-
-            do_action('mailoptin_track_conversions', $lead_data, $optin_campaign_id);
+            self::track_conversion($optin_campaign_id, $lead_data);
 
             return AbstractConnect::ajax_success();
         }
