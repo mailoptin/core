@@ -388,6 +388,10 @@ class Campaign_Log_List extends \WP_List_Table
                 exit;
             }
         }
+
+        /** @todo verify nonce here for security reasons
+         * @see WP_List_Table::display_tablenav()
+         */
         // If the delete bulk action is triggered
         if ('bulk-delete' === $this->current_action()) {
             $delete_ids = array_map('absint', $_POST['bulk-delete']);

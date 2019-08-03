@@ -3,7 +3,9 @@
 namespace MailOptin\Core\Connections;
 
 use MailOptin\Core\Admin\Customizer\OptinForm\AbstractCustomizer;
+use MailOptin\Core\Core;
 use MailOptin\Core\EmailCampaigns\TemplateTrait;
+use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
@@ -349,5 +351,44 @@ abstract class AbstractConnect
     public function get_email_campaign_campaign_title($email_campaign_id)
     {
         return EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
+    }
+
+    /**
+     * Convert campaign log ID to UUID.
+     *
+     * @param int $id
+     * @param string $meta_key
+     *
+     * @return string
+     */
+    public function campaignlog_id_to_uuid($id, $meta_key)
+    {
+        $uuid = wp_generate_password(12, false);
+
+        AbstractCampaignLogMeta::add_campaignlog_meta($id, $meta_key, $uuid);
+
+        return $uuid;
+    }
+
+    /**
+     * Convert UUID back to campaign log ID.
+     *
+     * @param string $uuid
+     * @param string $meta_key
+     *
+     * @return null|string
+     */
+    public function uuid_to_campaignlog_id($uuid, $meta_key)
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . Core::campaign_log_meta_table_name;
+
+        return $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT campaign_log_id from $table WHERE meta_key = '%s' AND meta_value = %s",
+                $meta_key,
+                $uuid
+            )
+        );
     }
 }
