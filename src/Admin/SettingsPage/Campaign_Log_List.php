@@ -4,7 +4,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 use MailOptin\Core\Core;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
-use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
+use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter as NL;
 use MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
@@ -76,7 +76,7 @@ class Campaign_Log_List extends \WP_List_Table
         }
 
         if ($campaign_type == ER::NEWSLETTER) {
-            Newsletter::get_instance()->send_campaign($email_campaign_id, $campaign_log_id);
+            NL::get_instance()->send_campaign($email_campaign_id, $campaign_log_id);
         }
 
         wp_redirect(add_query_arg('failed-campaign', 'retried', MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
