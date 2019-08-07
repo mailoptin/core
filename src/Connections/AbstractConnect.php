@@ -52,6 +52,10 @@ abstract class AbstractConnect
 
     public function form_custom_field_mappings()
     {
+        if (isset($this->extras['form_custom_field_mappings'])) {
+            return $this->extras['form_custom_field_mappings'];
+        }
+
         $custom_field_mappings = OptinCampaignsRepository::get_merged_customizer_value($this->extras['optin_campaign_id'], 'custom_field_mappings');
 
         if ( ! empty($custom_field_mappings)) {

@@ -16,4 +16,5 @@ class ConversionDataBuilder
     public $connection_service;
     public $connection_email_list;
     public $is_timestamp_check_active = true;
+    public $form_custom_field_mappings = [];
 }
