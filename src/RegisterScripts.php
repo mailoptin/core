@@ -3,6 +3,7 @@
 namespace MailOptin\Core;
 
 
+use MailOptin\Core\OptinForms\Recaptcha;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
@@ -224,6 +225,8 @@ class RegisterScripts
                 wp_add_inline_script('nf-front-end', 'var nfForms = nfForms || [];');
             }
         }
+
+        Recaptcha::get_instance()->enqueue_script();
 
         $this->global_js_variables('mailoptin');
     }

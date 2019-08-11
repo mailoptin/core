@@ -571,8 +571,8 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_color_field($index, 'background', '', __('Background', 'mailoptin')); ?>
                     <?php $this->repeater_font_field($index, 'font', '', __('Font', 'mailoptin')); ?>
                     <?php $this->repeater_toggle_field($index, 'field_required', '', __('Make Field Required', 'mailoptin')); ?>
-                    <?php $this->repeater_select_field($index, 'recaptcha_v2_size', ['normal' => __('Normal', 'mailoptin'), 'compact' => __('Compact', 'mailoptin')], __('Size', 'mailoptin')); ?>
-                    <?php $this->repeater_select_field($index, 'recaptcha_v2_style', ['light' => __('Light', 'mailoptin'), 'dark' => __('Dark', 'mailoptin')], __('Style', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'recaptcha_v2_size', ['normal' => __('Normal', 'mailoptin'), 'compact' => __('Compact', 'mailoptin')], '', __('Size', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'recaptcha_v2_style', ['light' => __('Light', 'mailoptin'), 'dark' => __('Dark', 'mailoptin')], '', __('Style', 'mailoptin')); ?>
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_after', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                 </div>
                 <div class="mo-fields-widget-actions">

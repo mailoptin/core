@@ -1,7 +1,7 @@
 /**
  * @var {object} mailoptin_globals
  */
-define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', 'moScrollTrigger', 'mc-groups-validation'],
+define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', 'moScrollTrigger', 'mc-groups-validation', 'recaptcha'],
     function ($, Cookies, mailoptin_globals) {
         "use strict";
 
@@ -961,7 +961,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                 var self = this;
                 var name_field = $('#' + $optin_css_id + '_name_field:visible');
                 var email_field = $('#' + $optin_css_id + '_email_field:visible');
-                var acceptance_checkbox = $('#' + $optin_css_id + ' #mo-acceptance-checkbox');
+                var acceptance_checkbox = $('#' + $optin_css_id + ' .mo-acceptance-checkbox');
 
                 var honeypot_email_field = $('#' + $optin_css_id + '_honeypot_email_field').val();
                 var honeypot_website_field = $('#' + $optin_css_id + '_honeypot_website_field').val();

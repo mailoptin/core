@@ -9,14 +9,12 @@ class Recaptcha
     public function __construct()
     {
         add_filter('mailoptin_settings_page', [$this, 'settings_page'], 2222);
-
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_script']);
     }
 
     public function enqueue_script()
     {
-        $src = 'https://www.google.com/recaptcha/api.js?render=explicit';
-        wp_register_script( $script_name, $src, [], ELEMENTOR_PRO_VERSION, true );
+        $src = 'https://www.google.com/recaptcha/api.js?onload=moFormRecaptchaLoadCallback&render=explicit';
+        wp_enqueue_script( 'mo-recaptcha-script', $src, ['mailoptin'], MAILOPTIN_VERSION_NUMBER, true );
     }
 
     public function settings_page($settings)

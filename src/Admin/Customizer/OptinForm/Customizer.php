@@ -207,7 +207,7 @@ class Customizer
                 'value'    => $this->note_section_id
             ],
             [
-                'selector' => '#mo-acceptance-checkbox',
+                'selector' => '.mo-acceptance-checkbox',
                 'type'     => 'control',
                 'value'    => 'note_acceptance_checkbox'
             ],
