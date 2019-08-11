@@ -1057,6 +1057,12 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             }
                             $html .= "</select>" . $atts['tag_end'];
                             break;
+                        case 'recaptcha_v2':
+                            $site_key = Settings::instance()->recaptcha_site_key();
+                            $html     .= $atts['tag_start'];
+                            $html     .= "<div class=\"mo-g-recaptcha\" data-sitekey=\"$site_key\"></div>";
+                            $html     .= $atts['tag_end'];
+                            break;
                     }
                 }
             }

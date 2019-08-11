@@ -17,6 +17,7 @@ use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
 use MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest;
 use MailOptin\Core\OptinForms\FrontEndOutput;
 use MailOptin\Core\OptinForms\InPost;
+use MailOptin\Core\OptinForms\Recaptcha;
 use MailOptin\Core\OptinForms\Shortcodes;
 
 define('MAILOPTIN_OAUTH_URL', 'https://auth.mailoptin.io');
@@ -99,6 +100,7 @@ class Base
         FrontEndOutput::get_instance();
         InPost::get_instance();
         Shortcodes::get_instance();
+        Recaptcha::get_instance();
 
         add_action('widgets_init', ['MailOptin\Core\OptinForms\SidebarWidgets', 'widget_registration']);
 
