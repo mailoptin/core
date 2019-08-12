@@ -73,15 +73,20 @@ class Recaptcha
 
     public function render_field($output, $field_type, $field, $atts)
     {
-        if ($field_type != 'recaptcha_v2') return $output;
+        if ( ! in_array($field_type, ['recaptcha_v2', 'recaptcha_v3'])) return $output;
 
         $recaptcha_style = ! empty($field['recaptcha_v2_style']) ? $field['recaptcha_v2_style'] : 'light';
         $recaptcha_size  = ! empty($field['recaptcha_v2_size']) ? $field['recaptcha_v2_size'] : 'normal';
 
         $site_key = Settings::instance()->recaptcha_site_key();
         $output   .= $atts['tag_start'];
-        $output   .= "<div style='margin: 5px 0' class=\"mo-g-recaptcha mo-optin-form-custom-field\" data-sitekey=\"$site_key\" data-theme='$recaptcha_style' data-size='$recaptcha_size'></div>";
-        $output   .= $atts['tag_end'];
+        if ($field_type == 'recaptcha_v2') {
+            $output .= "<div style='margin: 5px 0' class=\"mo-g-recaptcha mo-optin-form-custom-field\" data-type=\"v2\" data-sitekey=\"$site_key\" data-theme='$recaptcha_style' data-size='$recaptcha_size'></div>";
+        } else {
+            $output .= "<div style='margin: 5px 0' class=\"mo-g-recaptcha mo-optin-form-custom-field\" data-type=\"v3\" data-sitekey=\"$site_key\"></div>";
+        }
+
+        $output .= $atts['tag_end'];
 
         return $output;
     }
