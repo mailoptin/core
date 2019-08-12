@@ -859,7 +859,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
         if ($is_acceptance_checkbox_active) {
             $html .= '<label class="mo-acceptance-label">';
-            $html .= '<input name="mo-acceptance mo-acceptance-checkbox" type="checkbox" value="yes">';
+            $html .= '<input name="mo-acceptance" class="mo-acceptance-checkbox" type="checkbox" value="yes">';
         }
 
         $html .= str_replace(
@@ -994,13 +994,13 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                         });
                     }
 
-                    $recaptcha_style = ! empty($field['recaptcha_v2_style']) ? $field['recaptcha_v2_style'] : 'light';
-                    $recaptcha_size  = ! empty($field['recaptcha_v2_size']) ? $field['recaptcha_v2_size'] : 'normal';
-
                     $class = ' ' . esc_attr($atts['class']);
                     $class = "mo-optin-field mo-optin-form-custom-field {$field_type}-field field-{$field_id}{$class}";
 
                     $data_attr = sprintf('data-field-id="%s"', $field_id);
+
+
+                    $html .= apply_filters('mo_optin_form_custom_field_output', '', $field_type, $field, $atts);
 
                     switch ($field_type) {
                         case 'text':
@@ -1056,12 +1056,6 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 $html .= "<option value=\"$option\" >$option</option>";
                             }
                             $html .= "</select>" . $atts['tag_end'];
-                            break;
-                        case 'recaptcha_v2':
-                            $site_key = Settings::instance()->recaptcha_site_key();
-                            $html     .= $atts['tag_start'];
-                            $html     .= "<div style='margin: 5px 0' class=\"mo-g-recaptcha\" data-sitekey=\"$site_key\" data-theme='$recaptcha_style' data-size='$recaptcha_size'></div>";
-                            $html     .= $atts['tag_end'];
                             break;
                     }
                 }

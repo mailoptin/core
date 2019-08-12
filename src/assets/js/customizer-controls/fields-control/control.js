@@ -12,26 +12,52 @@
                 $('.mo-fields-widget.mo-custom-field').each(function (index) {
                     // re-order index
                     $(this).attr('data-field-index', index);
-                    
-                    //Remove any previous click event handlers on the field type select field and reattach
-                    var field = this
-                    var maybeHideOptionsField = function(){
-                        var field_type = $( field ).find('.mo-optin-fields-field').val()
-                        var with_options = ["checkbox", "select", "radio"]
-                        if( with_options.indexOf(field_type) == -1 ) {
-                            $(field).find(".field_options.mo-fields-block").hide()
-                        } else {
-                            $(field).find(".field_options.mo-fields-block").show()
-                        }
-                    }
 
-                    maybeHideOptionsField()
+                    //Remove any previous click event handlers on the field type select field and reattach
+                    var field = this;
+                    var maybeHideOptionsField = function () {
+                        var field_type = $(field).find('.mo-optin-fields-field').val();
+                        var with_options = ["checkbox", "select", "radio"];
+                        if (with_options.indexOf(field_type) === -1) {
+                            $(field).find(".field_options.mo-fields-block").hide();
+                        } else {
+                            $(field).find(".field_options.mo-fields-block").show();
+                        }
+                    };
+
+                    var maybeHideRecaptchaV2Field = function () {
+                        var field_type = $(field).find('.mo-optin-fields-field').val();
+                        if (field_type !== 'recaptcha_v2') {
+                            $(field).find(".recaptcha_v2_size.mo-fields-block").hide();
+                            $(field).find(".recaptcha_v2_style.mo-fields-block").hide();
+
+                            $(field).find(".placeholder.mo-fields-block").show();
+                            $(field).find(".color.mo-fields-block").show();
+                            $(field).find(".background.mo-fields-block").show();
+                            $(field).find(".font.mo-fields-block").show();
+                            $(field).find(".field_required.mo-fields-block").show();
+                        } else {
+                            $(field).find(".recaptcha_v2_size.mo-fields-block").show();
+                            $(field).find(".recaptcha_v2_style.mo-fields-block").show();
+
+                            $(field).find(".placeholder.mo-fields-block").hide();
+                            $(field).find(".color.mo-fields-block").hide();
+                            $(field).find(".background.mo-fields-block").hide();
+                            $(field).find(".font.mo-fields-block").hide();
+                            $(field).find(".field_required.mo-fields-block").hide();
+                        }
+                    };
+
+                    maybeHideOptionsField();
+                    maybeHideRecaptchaV2Field();
+
                     $(this)
                         .find('.mo-optin-fields-field')
                         .off('change.mo_field')
-                        .on('change.mo_field', function( e ){
-                            maybeHideOptionsField()
-                        })
+                        .on('change.mo_field', function () {
+                            maybeHideOptionsField();
+                            maybeHideRecaptchaV2Field();
+                        });
 
                     var widget_title_obj = $(this).find('.mo-fields-widget-title h3');
                     // only modify the widget headline if it has #ID
@@ -69,8 +95,7 @@
                 var old_data = data_store.val();
                 if (old_data === '' || typeof old_data === 'undefined') {
                     old_data = [];
-                }
-                else {
+                } else {
                     old_data = JSON.parse(old_data);
                 }
 
@@ -119,8 +144,7 @@
 
                 if (old_data === '' || typeof old_data === 'undefined') {
                     old_data = [];
-                }
-                else {
+                } else {
                     old_data = JSON.parse(old_data);
                 }
 
@@ -141,13 +165,11 @@
                 // shim for single checkbox
                 if ($(_this).attr('type') === 'checkbox' && field_name.indexOf('[]') === -1) {
                     old_data[index][field_name] = _this.checked;
-                }
-                else if ($(_this).attr('type') === 'checkbox' && field_name.indexOf('[]') !== -1) {
+                } else if ($(_this).attr('type') === 'checkbox' && field_name.indexOf('[]') !== -1) {
                     var item_name = field_name.replace('[]', '');
                     if (_this.checked === true) {
                         old_data = _.without(old_data[index][item_name], field_value);
-                    }
-                    else {
+                    } else {
 
                         if (typeof old_data[index][item_name] === 'undefined') {
                             old_data[index][item_name] = [];
@@ -158,11 +180,9 @@
 
                         old_data[index][item_name] = _.uniq(old_data[index][item_name]);
                     }
-                }
-                else if (_this.tagName === 'SELECT' && $(_this).hasClass('mailoptin-field-chosen')) {
+                } else if (_this.tagName === 'SELECT' && $(_this).hasClass('mailoptin-field-chosen')) {
                     old_data[index][field_name] = $(_this).val();
-                }
-                else {
+                } else {
                     old_data[index][field_name] = field_value;
                 }
 

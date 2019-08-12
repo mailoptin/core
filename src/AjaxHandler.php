@@ -97,7 +97,7 @@ class AjaxHandler
     /**
      * Get MailOptin Ajax Endpoint.
      *
-     * @param  string $request Optional
+     * @param string $request Optional
      *
      * @return string
      */
@@ -672,7 +672,6 @@ class AjaxHandler
     {
         if ( ! isset($_REQUEST['optin_data'])) wp_send_json_error();
 
-
         $builder             = new ConversionDataBuilder();
         $builder->payload    = $payload = apply_filters('mailoptin_optin_subscription_request_body', sanitize_data($_REQUEST['optin_data']));
         $builder->optin_uuid = $optin_uuid = $payload['optin_uuid'];
@@ -707,6 +706,13 @@ class AjaxHandler
      */
     public static function do_optin_conversion(ConversionDataBuilder $conversion_data)
     {
+        /** @var \WP_Error $error */
+        $error = apply_filters('mo_subscription_form_error', '', $conversion_data);
+
+        if (is_wp_error($error)) {
+            return AbstractConnect::ajax_failure($error->get_error_message());
+        }
+
         $optin_campaign_id = $conversion_data->optin_campaign_id;
 
         $no_email_provider_or_list_error = self::no_email_provider_or_list_error();

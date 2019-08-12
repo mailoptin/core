@@ -640,7 +640,7 @@ if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_imp
         $has_custom_field_flag = false;
         $custom_field_data     = $this->get_customizer_value('fields');
         if ( ! empty($custom_field_data)) {
-            $custom_field_data = json_decode($custom_field_data);
+            $custom_field_data = json_decode($custom_field_data, true);
             if ( ! empty($custom_field_data)) {
                 $has_custom_field_flag = true;
             }
