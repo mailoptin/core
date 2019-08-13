@@ -15,6 +15,7 @@ namespace MailOptin\Core\PluginSettings;
  * @method string company_zip()
  * @method string company_country()
  * @method string disable_impression_tracking()
+ * @method string recaptcha_type()
  * @method string recaptcha_site_key()
  * @method string recaptcha_site_secret()
  */

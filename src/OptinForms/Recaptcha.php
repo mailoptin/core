@@ -19,7 +19,13 @@ class Recaptcha
 
     public function enqueue_script()
     {
-        $src = 'https://www.google.com/recaptcha/api.js?onload=moFormRecaptchaLoadCallback&render=explicit';
+        $type = Settings::instance()->recaptcha_type();
+        $src  = 'https://www.google.com/recaptcha/api.js?onload=moFormRecaptchaLoadCallback&render=explicit';
+        if ($type === 'v3') {
+            $site_key = Settings::instance()->recaptcha_site_key();
+            $src      = 'https://www.google.com/recaptcha/api.js?onload=moFormRecaptchaLoadCallback&render=' . $site_key;
+        }
+
         wp_enqueue_script('mo-recaptcha-script', $src, ['mailoptin'], MAILOPTIN_VERSION_NUMBER, true);
     }
 
@@ -34,7 +40,7 @@ class Recaptcha
         $fields            = OptinCampaignsRepository::form_custom_fields($optin_campaign_id);
         $has_recaptcha     = false;
         foreach ($fields as $field) {
-            if ($field['field_type'] == 'recaptcha_v2') {
+            if (in_array($field['field_type'], ['recaptcha_v2', 'recaptcha_v3'])) {
                 $has_recaptcha = true;
                 break;
             }
