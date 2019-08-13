@@ -7,7 +7,6 @@ define(["jquery"], function ($) {
 
                 $form.find('input.mo-optin-form-submit-button').on('click', function (e) {
                     e.preventDefault();
-                    console.log('sumitted')
                     grecaptcha.ready(function () {
                         grecaptcha.execute($site_key, {action: 'form'}).then(function (token) {
                             $form.find('[name="g-recaptcha-response"]').remove();

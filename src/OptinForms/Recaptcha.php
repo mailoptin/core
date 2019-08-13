@@ -31,8 +31,9 @@ class Recaptcha
 
     public function validate_submission($response, ConversionDataBuilder $conversion_data)
     {
-        $site_key    = Settings::instance()->recaptcha_site_key();
-        $site_secret = Settings::instance()->recaptcha_site_secret();
+        $site_key       = Settings::instance()->recaptcha_site_key();
+        $site_secret    = Settings::instance()->recaptcha_site_secret();
+        $recaptcha_type = Settings::instance()->recaptcha_type();
 
         if (empty($site_key) || empty($site_secret)) return $response;
 
@@ -65,13 +66,24 @@ class Recaptcha
 
         if (200 !== (int)$response_code) {
             /* translators: %d: Response code. */
-            return new WP_Error('mo-captcha-cant-connect', sprintf(__('Can not connect to the reCAPTCHA server (%d).', 'mailoptin'), $response_code));
+            return new WP_Error('mo-captcha-cant-connect', sprintf(esc_html__('Can not connect to the reCAPTCHA server (%d).', 'mailoptin'), $response_code));
         }
 
         $body = json_decode(wp_remote_retrieve_body($result), true);
 
         if ( ! isset($body['success']) || ! $body['success']) {
-            return new WP_Error('mo-empty-captcha', __('Incorrect reCAPTCHA, please try again.', 'mailoptin'));
+            return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
+        }
+
+        if ($recaptcha_type == 'v3') {
+            $score           = $body['score'];
+            $threshold_score = Settings::instance()->recaptcha_score();
+            if (empty($threshold_score)) {
+                $threshold_score = '0.5';
+            }
+            if ($score < $threshold_score) {
+                return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
+            }
         }
 
         return $response;
@@ -102,16 +114,30 @@ class Recaptcha
         $value = Settings::instance()->recaptcha_type();
 
         $html = sprintf(
-            '<label><input type="radio" name="mailoptin_settings[recaptcha_type]" value="v2" %s>%s</label>&nbsp;&nbsp;',
+            '<label><input class="mo-recaptcha-type" type="radio" name="mailoptin_settings[recaptcha_type]" value="v2" %s>%s</label>&nbsp;&nbsp;',
             checked($value, 'v2', false),
             __('reCAPTCHA v2', 'mailoptin')
         );
 
         $html .= sprintf(
-            '<label><input type="radio" name="mailoptin_settings[recaptcha_type]" value="v3" %s>%s</label>',
+            '<label><input class="mo-recaptcha-type" type="radio" name="mailoptin_settings[recaptcha_type]" value="v3" %s>%s</label>',
             checked($value, 'v3', false),
             __('reCAPTCHA v3', 'mailoptin')
         );
+
+        $html .= '<script type="text/javascript">
+jQuery(function($) {
+$("input.mo-recaptcha-type").on("change", function() {
+   var type = $("input[name=\'mailoptin_settings[recaptcha_type]\']:checked").val();
+   if(type === "v3") {
+       $("#recaptcha_score_row").show();
+}
+   else {
+       $("#recaptcha_score_row").hide();
+   }
+}).change();
+});
+</script>';
 
         $settings['recaptcha_settings'] = [
             'tab_title' => __('reCAPTCHA', 'mailoptin'),
@@ -129,6 +155,12 @@ class Recaptcha
                 'recaptcha_site_secret' => [
                     'type'  => 'text',
                     'label' => __('Site Secret', 'mailoptin')
+                ],
+                'recaptcha_score'       => [
+                    'type'        => 'text',
+                    'label'       => __('Score Threshold', 'mailoptin'),
+                    'value'       => '0.5',
+                    'description' => __('The score at which users will fail reCAPTCHA v3 verification. Scores can range from from 0.0 (very likely a bot) to 1.0 (very likely a human). Default is 0.5', 'mailoptin')
                 ]
             ]
         ];

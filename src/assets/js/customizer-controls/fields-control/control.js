@@ -25,20 +25,36 @@
                         }
                     };
 
-                    var maybeHideRecaptchaV2Field = function () {
+                    var maybeHideRecaptchaField = function () {
+
                         var field_type = $(field).find('.mo-optin-fields-field').val();
+
+                        $(field).find(".recaptcha_v2_size.mo-fields-block").show();
+                        $(field).find(".recaptcha_v2_style.mo-fields-block").show();
+
+                        $(field).find(".placeholder.mo-fields-block").show();
+                        $(field).find(".color.mo-fields-block").show();
+                        $(field).find(".background.mo-fields-block").show();
+                        $(field).find(".font.mo-fields-block").show();
+                        $(field).find(".field_required.mo-fields-block").show();
+
                         if (field_type !== 'recaptcha_v2') {
                             $(field).find(".recaptcha_v2_size.mo-fields-block").hide();
                             $(field).find(".recaptcha_v2_style.mo-fields-block").hide();
+                        }
 
-                            $(field).find(".placeholder.mo-fields-block").show();
-                            $(field).find(".color.mo-fields-block").show();
-                            $(field).find(".background.mo-fields-block").show();
-                            $(field).find(".font.mo-fields-block").show();
-                            $(field).find(".field_required.mo-fields-block").show();
-                        } else {
-                            $(field).find(".recaptcha_v2_size.mo-fields-block").show();
-                            $(field).find(".recaptcha_v2_style.mo-fields-block").show();
+                        if (field_type === 'recaptcha_v2') {
+                            $(field).find(".placeholder.mo-fields-block").hide();
+                            $(field).find(".color.mo-fields-block").hide();
+                            $(field).find(".background.mo-fields-block").hide();
+                            $(field).find(".font.mo-fields-block").hide();
+                            $(field).find(".field_required.mo-fields-block").hide();
+                        }
+
+                        if (field_type === 'recaptcha_v3') {
+
+                            $(field).find(".recaptcha_v2_size.mo-fields-block").hide();
+                            $(field).find(".recaptcha_v2_style.mo-fields-block").hide();
 
                             $(field).find(".placeholder.mo-fields-block").hide();
                             $(field).find(".color.mo-fields-block").hide();
@@ -49,14 +65,14 @@
                     };
 
                     maybeHideOptionsField();
-                    maybeHideRecaptchaV2Field();
+                    maybeHideRecaptchaField();
 
                     $(this)
                         .find('.mo-optin-fields-field')
                         .off('change.mo_field')
                         .on('change.mo_field', function () {
                             maybeHideOptionsField();
-                            maybeHideRecaptchaV2Field();
+                            maybeHideRecaptchaField();
                         });
 
                     var widget_title_obj = $(this).find('.mo-fields-widget-title h3');
