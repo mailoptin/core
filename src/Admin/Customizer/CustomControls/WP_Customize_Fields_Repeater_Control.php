@@ -602,7 +602,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             );
 
             $content .= sprintf(
-                __('Upgrade to %sMailOptin Premium%s to add custom fields to capture additional information from subscribers.', 'mailoptin'),
+                __('Upgrade to %sMailOptin Premium%s to add reCAPTCHA to prevent spam bots and custom fields to capture additional information.', 'mailoptin'),
                 '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=optin_custom_fields2">',
                 '</a>'
             );
