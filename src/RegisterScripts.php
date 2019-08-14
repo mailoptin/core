@@ -124,7 +124,7 @@ class RegisterScripts
                 'wp-i18n',
                 'wp-element',
                 'wp-components',
-                'wp-plugins', 
+                'wp-plugins',
                 'wp-edit-post',
                 'wp-data',
                 'wp-compose'
@@ -141,7 +141,7 @@ class RegisterScripts
             'templates'   => $templates,
         );
 
-        wp_localize_script( 'mailoptin-gutenberg', 'MailOptinBlocks', $localizations );
+        wp_localize_script('mailoptin-gutenberg', 'MailOptinBlocks', $localizations);
 
         register_block_type('mailoptin/email-optin', array(
             'editor_script' => 'mailoptin-gutenberg',
@@ -209,7 +209,7 @@ class RegisterScripts
             $optin_ids = OptinCampaignsRepository::get_optin_campaign_ids();
             foreach ($optin_ids as $optin_id) {
                 if ( ! OptinCampaignsRepository::is_activated($optin_id)) continue;
-                
+
                 if (is_ninja_form_shortcode($optin_id)) {
                     $flag = true;
                     break;
@@ -275,14 +275,14 @@ class RegisterScripts
         }
 
         //Localize this here instead of gutenberg function since 'get_current_screen()' won't be declared by then
-        if( is_admin() && function_exists( 'get_current_screen' ) ) {
+        if (is_admin() && function_exists('get_current_screen')) {
             $screen = get_current_screen();
 
             //Ensure this is a post edit screen to save resources
-            if( $screen->is_block_editor && post_can_new_post_notification( $post ) ) {
-                $localize_strings['sidebar']                    = 1;
-                $localize_strings['disable_notifications']      = get_post_meta($post->ID, '_mo_disable_npp', true);
-                $localize_strings['disable_notifications_txt']  = __('Disable MailOptin new post notification for this post.', 'mailoptin');
+            if ($screen->is_block_editor && post_can_new_post_notification($post)) {
+                $localize_strings['sidebar']                   = 1;
+                $localize_strings['disable_notifications']     = get_post_meta($post->ID, '_mo_disable_npp', true);
+                $localize_strings['disable_notifications_txt'] = __('Disable MailOptin new post notification for this post.', 'mailoptin');
             }
         }
 

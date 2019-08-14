@@ -457,8 +457,8 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $html .= do_shortcode($content);
 
         // Don't change type from text to email to prevent "An invalid form control with name='text' is not focusable." error
-        $html .= "<input id='{$this->optin_css_id}_honeypot_email_field' type='text' name='email' value='' style='display:none'/>";
-        $html .= '<input id="' . $this->optin_css_id . '_honeypot_website_field" type="text" name="website" value="" style="display:none" />';
+        $html .= "<input id='{$this->optin_css_id}_honeypot_email_field' type='text' name='mo-hp-email' value='' style='display:none'/>";
+        $html .= '<input id="' . $this->optin_css_id . '_honeypot_website_field" type="text" name="mo-hp-website" value="" style="display:none" />';
 
         $html .= apply_filters('mo_optin_form_before_closing_form_tag', '', $this->optin_campaign_id, $this->optin_campaign_type, $optin_campaign_uuid, $optin_css_id);
         if ( ! $this->get_customizer_value('use_custom_html')) {

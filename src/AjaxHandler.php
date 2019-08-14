@@ -713,6 +713,13 @@ class AjaxHandler
             return AbstractConnect::ajax_failure($error->get_error_message());
         }
 
+        // honeypot check
+        if ( ! empty($conversion_data->payload['mo-hp-email']) || ! empty($conversion_data->payload['mo-hp-website'])) {
+            return AbstractConnect::ajax_failure(
+                apply_filters('mo_optin_campaign_honeypot_error', __('Your submission has been flagged as potential spam.', 'mailoptin'))
+            );
+        }
+
         $optin_campaign_id = $conversion_data->optin_campaign_id;
 
         $no_email_provider_or_list_error = self::no_email_provider_or_list_error();
