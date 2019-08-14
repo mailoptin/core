@@ -141,24 +141,20 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                                 // set cookie for this option conversion when button is clicked.
                                 self.set_cookie('success', $optin_uuid, optin_js_config);
                                 window.location.assign(optin_js_config.cta_navigate_url);
-                            }
-                            else if (optin_js_config.cta_action === 'reveal_optin_form') {
+                            } else if (optin_js_config.cta_action === 'reveal_optin_form') {
                                 var cache = $('#' + $optin_css_id);
                                 cache.find('.mo-optin-form-cta-button, .mo-optin-form-cta-wrapper').hide();
                                 cache.find('.mo-optin-fields-wrapper').show();
                                 cache.find('.mo-optin-form-submit-button').show();
                                 $('#' + $optin_uuid).removeClass('mo-cta-button-flag');
-                            }
-
-                            else if ($.inArray(optin_js_config.cta_action, ['close_optin', 'close_optin_reload_page']) !== -1) {
+                            } else if ($.inArray(optin_js_config.cta_action, ['close_optin', 'close_optin_reload_page']) !== -1) {
                                 $.MoModalBox.close();
                                 mailoptin_optin._close_optin(optin_container);
 
                                 if (optin_js_config.cta_action === 'close_optin_reload_page') {
                                     window.location.reload();
                                 }
-                            }
-                            else {
+                            } else {
                                 console.warn('something went wrong.');
                             }
                             return false;
@@ -306,8 +302,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                     $(window).on('load', function () {
                         self.rule_base_show_optin_form.call(_this, optin_js_config, optin_type, skip_display_checks);
                     });
-                }
-                else {
+                } else {
                     self.rule_base_show_optin_form.call(_this, optin_js_config, optin_type, skip_display_checks);
                 }
             },
@@ -927,14 +922,12 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                                 self.displaySuccessContent.call(optin_container);
 
                                 self.removeSpinner.call(optin_container);
-                            }
-                            else {
+                            } else {
                                 self.removeProcessingOverlay.call(optin_container);
                                 self.removeSuccessCloseIcon.call(optin_container);
                                 self.displayErrorMessage.call(optin_container, response.message);
                             }
-                        }
-                        else {
+                        } else {
                             self.displayErrorMessage.call(optin_container, optin_js_config.unexpected_error);
                             self.removeProcessingOverlay.call(optin_container);
                             self.removeSuccessCloseIcon.call(optin_container);
@@ -993,8 +986,17 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                     var cache = $(this);
                     var field_id = $(this).data('field-id');
                     var required_field_bucket = optin_js_config.required_custom_fields;
+                    var cache_value = cache.val();
 
-                    if ($.inArray(field_id, required_field_bucket) !== -1 && cache.val() === "") {
+                    if (cache.find('input[type=radio]').length > 0) {
+                        cache_value = cache.find('input[type=radio]:checked').length === 0 ? '' : cache.find('input[type=radio]:checked').val();
+                    }
+
+                    if (cache.find('input[type=checkbox]').length > 0) {
+                        cache_value = cache.find('input[type=checkbox]:checked').length === 0 ? '' : cache.find('input[type=checkbox]:checked').val();
+                    }
+
+                    if ($.inArray(field_id, required_field_bucket) !== -1 && cache_value === "") {
                         self.display_optin_error.call(cache, $optin_css_id);
                         response = false;
                     }
@@ -1125,8 +1127,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
 
                         if (success_action === 'close_optin_reload_page') {
                             return window.location.reload();
-                        }
-                        else {
+                        } else {
                             window.location.reload();
                         }
 
@@ -1222,8 +1223,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                         if (schedule_timezone === 'visitors_local_time') {
                             // d.getTimezoneOffset is in minutes. so 60 * 1000 converts it to milliseconds
                             timezone_offset = d.getTimezoneOffset() * 60 * 1000;
-                        }
-                        else {
+                        } else {
                             // convert timezone offset in seconds to milliseconds
                             timezone_offset = schedule_timezone * 1000;
                         }
@@ -1237,8 +1237,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
 
                         if (result === false) {
                             $(this).remove();
-                        }
-                        else {
+                        } else {
                             $(this).show();
                         }
                     }
