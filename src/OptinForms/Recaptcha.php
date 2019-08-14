@@ -96,9 +96,13 @@ class Recaptcha
         $recaptcha_style = ! empty($field['recaptcha_v2_style']) ? $field['recaptcha_v2_style'] : 'light';
         $recaptcha_size  = ! empty($field['recaptcha_v2_size']) ? $field['recaptcha_v2_size'] : 'normal';
 
-        $site_key = Settings::instance()->recaptcha_site_key();
-        $output   .= $atts['tag_start'];
-        if ($field_type == 'recaptcha_v2') {
+        $site_key    = Settings::instance()->recaptcha_site_key();
+        $site_secret = Settings::instance()->recaptcha_site_secret();
+
+        $output .= $atts['tag_start'];
+        if (\MailOptin\Core\current_user_has_privilege() && (empty($site_key) || empty($site_secret))) {
+            $output .= '<div style="margin:5px 0;color:#31708f;background-color: #d9edf7;border-color: #bcdff1;">' . esc_html__('To use reCAPTCHA, you need to add the API Key and complete the setup process in Dashboard > MailOptin > Settings > reCAPTCHA.', 'mailoptin') . '</div>';
+        } elseif ($field_type == 'recaptcha_v2') {
             $output .= "<div style='margin: 5px 0' class=\"mo-g-recaptcha mo-optin-form-custom-field\" data-type=\"v2\" data-sitekey=\"$site_key\" data-theme='$recaptcha_style' data-size='$recaptcha_size'></div>";
         } else {
             $output .= "<div style='margin: 5px 0' class=\"mo-g-recaptcha mo-optin-form-custom-field\" data-type=\"v3\" data-sitekey=\"$site_key\"></div>";
