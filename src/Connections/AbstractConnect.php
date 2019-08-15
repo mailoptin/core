@@ -284,34 +284,83 @@ abstract class AbstractConnect
         return $response;
     }
 
+    public static function error_message_html_template($main_content, $footer_content, $url)
+    {
+        ob_start();
+        require dirname(__FILE__) . '/error-html-tmpl.php';
+
+        return ob_get_clean();
+    }
+
+    public static function error_message_plain_text($main_content, $footer_content, $url)
+    {
+        return "$main_content
+
+        Use the coupon MOSAVE20 on checkout to save 20% off MailOptin premium ($url) .
+
+        Get 20% Discount Now ($url)
+
+        $footer_content";
+    }
+
     public static function send_optin_error_email($optin_campaign_id, $error_message)
     {
         if ( ! isset($optin_campaign_id, $error_message)) return;
 
         $email = get_option('admin_email');
 
-        sprintf(
-            __("%s\n\n -- \n\nThis e-mail was sent by %s plugin on %s (%s)", 'mailoptin'), '[LEAD_DATA]', 'MailOptin', get_bloginfo('name'), site_url()
-        );
-
         $optin_campaign_name = OptinCampaignsRepository::get_optin_campaign_name($optin_campaign_id);
 
         $subject = apply_filters('mo_optin_form_email_error_email_subject', sprintf(__('Warning! "%s" Optin Campaign Is Not Working', 'mailoptin'), $optin_campaign_name), $optin_campaign_id, $error_message);
 
-        $message = apply_filters(
-            'mo_optin_form_email_error_email_message',
-            sprintf(
-                __('The optin campaign "%s" is failing to convert leads due to the following error "%s". %6$s -- %6$sThis e-mail was sent by %s plugin on %s (%s)', 'mailoptin'),
-                $optin_campaign_name,
-                $error_message,
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+
+            $main_message = apply_filters(
+                'mo_optin_form_email_error_email_message',
+                sprintf(
+                    __('The optin campaign "%s" is failing to convert leads due to the following error "%s".', 'mailoptin'),
+                    $optin_campaign_name,
+                    $error_message
+                )
+            );
+
+            $footer_message = sprintf(
+                __('This e-mail was sent by %s plugin on %s (%s)', 'mailoptin'),
                 'MailOptin',
                 get_bloginfo('name'),
-                site_url(),
-                "\r\n\n"
-            )
-        );
+                site_url()
+            );
 
-        @wp_mail($email, $subject, $message);
+            $url = 'https://bit.ly/2KyV3Ng';
+
+            $plain_text_message = self::error_message_plain_text($main_message, $footer_message, $url);
+            $html_message       = self::error_message_html_template($main_message, $footer_message, $url);
+
+            add_action('phpmailer_init', function ($phpmailer) use ($plain_text_message) {
+                $phpmailer->AltBody = $plain_text_message;
+            });
+
+            $response = wp_mail($email, $subject, $html_message, ['Content-Type' => 'text/html']);
+
+            if ( ! $response) @wp_mail($email, $subject, $plain_text_message);
+
+        } else {
+
+            $message = apply_filters(
+                'mo_optin_form_email_error_email_message',
+                sprintf(
+                    __('The optin campaign "%s" is failing to convert leads due to the following error "%s". %6$s -- %6$sThis e-mail was sent by %s plugin on %s (%s)', 'mailoptin'),
+                    $optin_campaign_name,
+                    $error_message,
+                    'MailOptin',
+                    get_bloginfo('name'),
+                    site_url(),
+                    "\r\n\n"
+                )
+            );
+
+            @wp_mail($email, $subject, $message);
+        }
     }
 
     /**
