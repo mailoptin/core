@@ -115,6 +115,8 @@ class Recaptcha
 
     public function settings_page($settings)
     {
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return $settings;
+
         $value = Settings::instance()->recaptcha_type();
 
         $html = sprintf(
