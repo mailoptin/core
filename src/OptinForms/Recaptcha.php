@@ -115,7 +115,27 @@ class Recaptcha
 
     public function settings_page($settings)
     {
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return $settings;
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+
+            $settings['recaptcha_settings'] = [
+                'tab_title' => __('reCAPTCHA', 'mailoptin'),
+                [
+                    'section_title'         => __('reCAPTCHA Settings', 'mailoptin'),
+                    'recaptcha_type'        => [
+                        'label' => __('Type', 'mailoptin'),
+                        'type'  => 'arbitrary',
+                        'data'  => sprintf('<p style="text-align: center">%s</p><div class="moBtncontainer mobtnUpgrade"><a target="_blank" href="%s" class="mobutton mobtnPush mobtnGreen">%s</a></div>',
+                            esc_html__('Do you want to stop spam bots from filling out your form? You can add reCAPTCHA to your WordPress forms to protects against spam and other types of automated abuse.', 'mailoptin'),
+                            'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=recaptcha_unlock',
+                            esc_html__('Upgrade to Unlock', 'mailoptin')
+                        )
+                    ],
+                    'disable_submit_button' => true,
+                ]
+            ];
+
+            return $settings;
+        }
 
         $value = Settings::instance()->recaptcha_type();
 
