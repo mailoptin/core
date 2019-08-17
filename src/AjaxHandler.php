@@ -845,7 +845,7 @@ class AjaxHandler
             return AbstractConnect::ajax_success();
         }
 
-        // if we get here, it means all integration responses failed. so return the first errpr message
+        // if we get here, it means all integration responses failed. so return the first error message
         // which is a generic "There was an error saving your contact. Please try again." error.
         return $responses[0];
     }
