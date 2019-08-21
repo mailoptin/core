@@ -306,6 +306,7 @@ HTML;
 
     .email-body img {
       max-width:500px;
+      height: auto;
       padding-bottom: 10px;
     }
 
