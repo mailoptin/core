@@ -276,32 +276,46 @@ function is_ninja_form_shortcode($optin_campaign_id)
 /**
  * Checks whether to show the "disable new post notifications" metabox
  */
-function post_can_new_post_notification( $post )
+function post_can_new_post_notification($post)
 {
     //Get all new post automations
     $npps = EmailCampaignRepository::get_by_email_campaign_type(
         EmailCampaignRepository::NEW_PUBLISH_POST
     );
-    
+
     //Abort early if there are no new post automations
     if (empty($npps)) return false;
 
-    $post_type         = get_post_type($post);
+    $post_type = get_post_type($post);
 
     foreach ($npps as $npp) {
         $email_campaign_id = absint($npp['id']);
 
         //Ensure the automation is active
-        if (! EmailCampaignRepository::is_campaign_active( $email_campaign_id ) ) {
+        if ( ! EmailCampaignRepository::is_campaign_active($email_campaign_id)) {
             continue;
         }
 
         //And supports this post type
-        if ( $post_type == EmailCampaignRepository::get_merged_customizer_value( $email_campaign_id, 'custom_post_type' ) ) {
+        if ($post_type == EmailCampaignRepository::get_merged_customizer_value($email_campaign_id, 'custom_post_type')) {
             return true;
         }
 
     }
 
     return false;
+}
+
+function emogrify($content, $shouldKeepInvisibleNodes = false)
+{
+    if (apply_filters('mo_disable_email_emogrify')) return $content;
+
+    $emogrifier = new \Pelago\Emogrifier();
+    $emogrifier->setHtml($content);
+
+    if ($shouldKeepInvisibleNodes) {
+        $emogrifier->disableInvisibleNodeRemoval();
+    }
+
+    return $emogrifier->emogrify();
 }

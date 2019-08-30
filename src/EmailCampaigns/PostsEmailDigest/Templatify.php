@@ -41,10 +41,7 @@ class Templatify implements TemplatifyInterface
         $content = (new VideoToImageLink($templatified_content))->forge();
 
         if ( ! is_customize_preview()) {
-            $emogrifier = new \Pelago\Emogrifier();
-            $emogrifier->setHtml($content);
-
-            $content = $emogrifier->emogrify();
+            $content = \MailOptin\Core\emogrify($content);
         }
 
         return $this->replace_footer_placeholder_tags(
