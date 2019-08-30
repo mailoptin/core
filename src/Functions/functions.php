@@ -308,7 +308,7 @@ function post_can_new_post_notification($post)
 
 function emogrify($content, $shouldKeepInvisibleNodes = false)
 {
-    if (apply_filters('mo_disable_email_emogrify')) return $content;
+    if (apply_filters('mo_disable_email_emogrify', false)) return $content;
 
     $emogrifier = new \Pelago\Emogrifier();
     $emogrifier->setHtml($content);
