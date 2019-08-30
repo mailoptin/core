@@ -19,6 +19,12 @@ class Recaptcha
 
     public function enqueue_script()
     {
+
+        $site_key    = Settings::instance()->recaptcha_site_key();
+        $site_secret = Settings::instance()->recaptcha_site_secret();
+
+        if (empty($site_key) || empty($site_secret)) return;
+
         $type = Settings::instance()->recaptcha_type();
         $src  = 'https://www.google.com/recaptcha/api.js?onload=moFormRecaptchaLoadCallback&render=explicit';
         if ($type === 'v3') {
