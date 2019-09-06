@@ -10,7 +10,6 @@ use MailOptin\Core\Admin\AdminNotices;
 use MailOptin\Core\Admin\SettingsPage\ConversionExport;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
-use MailOptin\Core\Admin\SettingsPage\UsageTracking;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
 use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
@@ -91,7 +90,6 @@ class Base
         Admin\Customizer\EmailCampaign\Customizer::instance();
         Admin\Customizer\OptinForm\Customizer::instance();
         PreviewCampaignLog::get_instance();
-        UsageTracking::get_instance();
 
         NewPublishPost::get_instance();
         PostsEmailDigest::get_instance();
