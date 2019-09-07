@@ -51,10 +51,13 @@ class Templatify implements TemplatifyInterface
         foreach ($post_meta as $meta) {
             switch ($meta) {
                 case 'author':
-                    $bucket[] = sprintf('<span>%s</span>', get_the_author_meta('display_name', $post->post_author));
+                    $bucket[] = sprintf('<span>%s</span>', strip_tags(get_the_author_meta('display_name', $post->post_author)));
                     break;
                 case 'date':
                     $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option( 'date_format' ), $post));
+                    break;
+                case 'category':
+                    $bucket[] = sprintf('<span>%s</span>', strip_tags(get_the_term_list($post, 'category', '', ', ')));
                     break;
             }
         }
