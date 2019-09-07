@@ -252,7 +252,6 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
         $footer_text_color             = $this->footer_text_color();
         $footer_unsubscribe_link_color = $this->footer_unsubscribe_link_color();
 
-
         $css = <<<CSS
     .mo-page-bg-color {background-color: $page_background_color;}
     .mo-header-bg-color {background-color: $header_background_color;}

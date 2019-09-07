@@ -9,6 +9,7 @@ use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Content;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Input_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_EA_CPT_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Email_Schedule_Time_Fields_Control;
+use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Multiple_Checkbox;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Range_Value_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Tinymce_Expanded_Editor;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Toggle_Control;
@@ -67,6 +68,7 @@ class CustomizerControls
 
                     'content_before_main_content',
                     'content_after_main_content',
+                    'content_post_meta',
                     'content_remove_post_body',
                     'content_remove_feature_image',
                     'default_image_url',
@@ -366,7 +368,7 @@ class CustomizerControls
             unset($campaign_settings_controls['post_categories']);
         }
 
-        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false) && !ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false) && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
             unset($campaign_settings_controls['post_tags']);
             $content = sprintf(
                 __('Upgrade to %sMailOptin Pro%s to support custom post types and restrict by post categories, tags and custom taxonomies.', 'mailoptin'),
@@ -390,10 +392,10 @@ class CustomizerControls
             );
         }
 
-        if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false) && !ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false) && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
 
             $content2 = sprintf(
-                __('%sUpgrade your MailOptin plan%s to send email campaigns directly to your list in MailChimp, Campaign Monitor, Aweber, Constant Contact, Drip, MailerLite, ConvertKit etc.', 'mailoptin'),
+                __('%sUpgrade your MailOptin plan%s to send email campaigns directly to your list in Mailchimp, Campaign Monitor, AWeber, Constant Contact, Drip, MailerLite, ConvertKit etc.', 'mailoptin'),
                 '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=new_post_campaign_settings2">',
                 '</a>',
                 '<strong>',
@@ -1208,6 +1210,22 @@ HTML;
                             'section'  => $this->customizerClassInstance->campaign_content_section_id,
                             'settings' => $this->option_prefix . '[content_text_color]',
                             'priority' => 20
+                        )
+                    )
+                ),
+                'content_post_meta'                        => new WP_Customize_Multiple_Checkbox(
+                    $this->wp_customize,
+                    $this->option_prefix . '[content_post_meta]',
+                    apply_filters('mailoptin_template_customizer_content_post_meta_args', array(
+                            'label'    => esc_html__('Post Meta Data', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->campaign_content_section_id,
+                            'settings' => $this->option_prefix . '[content_post_meta]',
+                            'choices'  => array(
+                                'author'   => __('Author', 'mailoptin'),
+                                'category' => __('Category', 'mailoptin'),
+                                'date'     => __('Date', 'mailoptin'),
+                            ),
+                            'priority' => 23
                         )
                     )
                 ),

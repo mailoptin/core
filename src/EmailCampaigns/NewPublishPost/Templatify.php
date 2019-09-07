@@ -38,6 +38,34 @@ class Templatify implements TemplatifyInterface
         $this->post_content_length = absint(ER::get_customizer_value($email_campaign_id, 'post_content_length'));
     }
 
+    public function post_meta(WP_Post $post)
+    {
+        $post_meta = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
+
+        if (empty($post_meta)) return '';
+
+        $post_meta = array_map('sanitize_text_field', explode(',', $post_meta));
+
+        $bucket = [];
+
+        foreach ($post_meta as $meta) {
+            switch ($meta) {
+                case 'author':
+                    $bucket[] = sprintf('<span>%s</span>', get_the_author_meta('display_name', $post->post_author));
+                    break;
+                case 'date':
+                    $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option( 'date_format' ), $post));
+                    break;
+            }
+        }
+
+        $html = '<div class="mo-post-meta">';
+        $html .= implode('<span>&nbsp;•&nbsp;</span>', $bucket);
+        $html .= '</div>';
+
+        return $html;
+    }
+
     public function post_content_forge()
     {
         $preview_structure = EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure();
@@ -47,13 +75,15 @@ class Templatify implements TemplatifyInterface
         $search = array(
             '{{post.title}}',
             '{{post.content}}',
-            '{{post.url}}'
+            '{{post.url}}',
+            '{{post.meta}}'
         );
 
         $replace = [
             $this->post->post_title,
             wpautop($this->post_content($this->post)),
-            $this->post_url($this->post)
+            $this->post_url($this->post),
+            $this->post_meta($this->post)
         ];
 
         return str_replace($search, $replace, $preview_structure);

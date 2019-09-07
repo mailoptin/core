@@ -436,6 +436,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'content_post_meta'                 => array(
+                    'default'   => $this->customizer_defaults['content_post_meta'],
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
                 'content_remove_post_body'                 => array(
                     'default'   => $this->customizer_defaults['content_remove_post_body'],
                     'type'      => 'option',
