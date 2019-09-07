@@ -105,9 +105,11 @@ class CustomizerControls
             function ($description, $campaign_type) {
                 if (ER::NEW_PUBLISH_POST == $campaign_type) {
                     $description = sprintf(
-                        __('Available placeholders for use in subject line:%s %s', 'mailoptin'),
-                        '<br><strong>{{title}}</strong>:',
-                        __(' title of new published post.', 'mailoptin')
+                        __('Available placeholders for use in subject line:%s %s %s %s', 'mailoptin'),
+                        '<br><strong>{{title}}</strong>: ',
+                        __('title of new published post.', 'mailoptin'),
+                        '<br><strong>{{date}}</strong>: ',
+                        __('date post was published. Accept PHP date format like so {{date format="l jS"}}', 'mailoptin')
                     );
                 }
 

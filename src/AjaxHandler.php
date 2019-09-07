@@ -219,12 +219,18 @@ class AjaxHandler
      */
     public function new_publish_post_preview($email_campaign_id, $email_campaign_subject)
     {
-        $mock_post             = new \stdClass();
-        $mock_post->post_title = SolitaryDummyContent::title();
+        $post             = new \stdClass();
+        $post->post_title = SolitaryDummyContent::title();
+
+        $preview_post_id = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'post_as_preview');
+
+        if ( ! empty($preview_post_id)) {
+            $post = get_post($preview_post_id);
+        }
 
         return [
             (new NewPublishPostTemplatePreview($email_campaign_id))->forge(),
-            NewPublishPost::format_campaign_subject($email_campaign_subject, $mock_post)
+            NewPublishPost::format_campaign_subject($email_campaign_subject, $post)
         ];
     }
 

@@ -10,7 +10,7 @@
                     email_campaign_id: mailoptin_email_campaign_id,
                     security: $('#mailoptin-send-test-email-nonce').val()
                 },
-                function (data) {
+                function () {
                     $('#mailoptin-spinner').fadeOut();
                     $('#mailoptin-success').fadeIn().delay(3000).fadeOut();
                 }, "json");

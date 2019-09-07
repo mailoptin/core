@@ -109,7 +109,6 @@ class Base
         add_filter('wpmu_drop_tables', array($this, 'wpmu_drop_tables'));
     }
 
-
     public function db_updates()
     {
         if ( ! is_admin()) {
