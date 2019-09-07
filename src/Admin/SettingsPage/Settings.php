@@ -74,11 +74,6 @@ class Settings extends AbstractSettingsPage
                         'label'       => __('Remove Data on Uninstall?', 'mailoptin'),
                         'description' => __('Check this box if you would like MailOptin to completely remove all of its data when uninstalled.', 'mailoptin'),
                     ],
-                    'allow_tracking'           => [
-                        'type'        => 'checkbox',
-                        'label'       => __('Allow Usage Tracking?', 'mailoptin'),
-                        'description' => __('Allow MailOptin to anonymously track how this plugin is used and help us make the plugin better. Opt-in to tracking and our newsletter. No sensitive data is tracked.', 'mailoptin'),
-                    ],
                     'mailoptin_affiliate_url'  => [
                         'type'        => 'text',
                         'label'       => __('MailOptin Affiliate Link', 'mailoptin'),
