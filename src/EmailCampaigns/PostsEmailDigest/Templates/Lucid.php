@@ -170,6 +170,7 @@ class Lucid extends AbstractTemplate
         ?>
         <a href="{{post.url}}">
             <h1 class="mo-content-title-font-size">{{post.title}}</h1>
+            {{post.meta}}
             <img class"mo-imgix" src="{{post.feature.image}}">
         </a>
         {{post.content}}
@@ -359,6 +360,14 @@ HTML;
       width: 100%;
       margin: 30px auto 50px;
       padding: 0;
+    }
+    
+    .mo-post-meta {
+      color: #6f6f6f;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 22px;
+      padding: 0 0 5px 0;
     }
 
     .body-sub {

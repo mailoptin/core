@@ -56,6 +56,7 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
                 '{{post.content}}',
                 '{{post.feature.image}}',
                 '{{post.url}}',
+                '{{post.meta}}'
             ]);
 
             $replace = apply_filters('mo_email_campaign_ped_replace_args', [
@@ -63,6 +64,7 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
                 $this->post_content($post),
                 $this->feature_image($post),
                 $this->post_url($post),
+                $this->post_meta($post),
             ]);
 
             echo apply_filters(
