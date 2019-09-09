@@ -31,7 +31,7 @@ class NewPublishPostTemplatePreview extends Templatify
         $mock_post->post_url          = '#';
         $mock_post->post_date         = '2018-08-01 15:19:16';
         $mock_post->post_date_gmt     = '2018-08-01 14:19:16';
-        $mock_post->post_author       = 'John Doe';
+        $mock_post->post_author       = get_current_user_id();
         $mock_post->post_type         = 'post';
         $mock_post->post_status       = 'publish';
         $mock_post->post_modified     = '2018-08-01 15:19:16';

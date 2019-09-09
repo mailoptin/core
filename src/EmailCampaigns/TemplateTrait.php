@@ -40,7 +40,12 @@ trait TemplateTrait
         return get_permalink($post);
     }
 
-    public function post_meta(WP_Post $post)
+    /**
+     * @param WP_Post $post
+     *
+     * @return string
+     */
+    public function post_meta($post)
     {
         $post_meta = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
 
