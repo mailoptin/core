@@ -1017,8 +1017,8 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html .= $atts['tag_start'];
                             $html .= "<div $data_attr class=\"$class\" style=\"$style\" id=\"$id\">";
                             if (count($options) < 2) {
-                                $value = empty($options) ? '1' : esc_attr(trim($options[0]));
-                                $html  .= "<label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}[]\"><span>$placeholder</span></label>";
+                                $value = empty($options) ? 'true' : esc_attr(trim($options[0]));
+                                $html  .= "<input type=\"hidden\" value=\"false\" name=\"{$field_id}\"><label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}\"><span>$placeholder</span></label>";
                             } else {
                                 $html .= "<div class='mo-checkbox-title'>$placeholder</div>";
                                 foreach ($options as $option) {

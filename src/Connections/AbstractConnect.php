@@ -296,11 +296,11 @@ abstract class AbstractConnect
     {
         return "$main_content
 
-        Use the coupon MOSAVE20 on checkout to save 20% off MailOptin premium ($url) .
+" . sprintf(esc_html__("Use the coupon %s on checkout to save 20%% off MailOptin premium (%s)", 'mailoptin'), 'MOSAVE20', $url) . "
 
-        Get 20% Discount Now ($url)
+" . sprintf(esc_html__('Get 20%% Discount Now (%s)', 'mailoptin'), $url) . "
 
-        $footer_content";
+$footer_content";
     }
 
     public static function send_optin_error_email($optin_campaign_id, $error_message)
