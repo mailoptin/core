@@ -117,6 +117,7 @@ class Connections extends AbstractSettingsPage
         usort($connection_args, function ($a, $b) {
             return strcmp($a["section_title"], $b["section_title"]);
         });
+
         $nav_tabs         = '';
         $tab_content_area = '';
         if ( ! empty($connection_args)) {
@@ -132,8 +133,9 @@ class Connections extends AbstractSettingsPage
 
                 $section_title = $connection_arg['section_title'];
                 // remove "Connection" + connected status from section title
-                $section_title_without_status = preg_replace('/[\s]?Connection.+<\/span>/', '', $connection_arg['section_title']);
+                $section_title_without_status = isset($connection_arg['section_title_without_status']) ? $connection_arg['section_title_without_status'] : preg_replace('/[\s]?Connection.+<\/span>/', '', $connection_arg['section_title']);
                 unset($connection_arg['section_title']);
+                unset($connection_arg['section_title_without_status']);
                 $key = key($connection_arg);
                 // re-add section title after we've gotten key.
                 $connection_arg['section_title'] = $section_title;
