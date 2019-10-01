@@ -878,7 +878,9 @@ public function _header($section_title, $args = array())
             <span class="screen-reader-text"><?php _e('Toggle panel'); ?>
                 : <?php echo $this->page_header; ?></span><span class="toggle-indicator" aria-hidden="true"></span>
         </button>
-        <h3 class="hndle ui-sortable-handle"><span><?php echo $section_title; ?></span><?php do_action('wp_cspa_settings_after_title', $this->option_name, $args); ?></h3>
+        <h3 class="hndle ui-sortable-handle">
+            <span><?php echo $section_title; ?></span><?php do_action('wp_cspa_settings_after_title', $this->option_name, $args); ?>
+        </h3>
         <div class="inside">
             <?php do_action('wp_cspa_header_before_box_content', $section_title, $this->option_name); ?>
             <table class="form-table">
@@ -911,7 +913,7 @@ public function _header($section_title, $args = array())
     public function _footer()
     {
         return '</table>
-		<p><input class="button-primary" type="submit" name="save_' . $this->option_name . '" value="Save Changes"></p>
+		<p><input class="button-primary" type="submit" name="save_' . $this->option_name . '" value="' . __('Save Changes', 'mailoptin') . '"></p>
 	</div>
 </div>';
     }
