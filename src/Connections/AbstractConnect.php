@@ -30,6 +30,16 @@ abstract class AbstractConnect
     {
     }
 
+    public function get_oauth_url($slug)
+    {
+        return add_query_arg([
+            'redirect_url' => MAILOPTIN_CONNECTIONS_SETTINGS_PAGE,
+            'nonce'        => wp_create_nonce('mo_save_oauth_credentials')
+        ],
+            MAILOPTIN_OAUTH_URL . "/$slug/"
+        );
+    }
+
     public function get_integration_data($data_key, $integration_data = [], $default = '')
     {
         $optin_campaign_id = isset($this->extras['optin_campaign_id']) ? absint($this->extras['optin_campaign_id']) : '';
