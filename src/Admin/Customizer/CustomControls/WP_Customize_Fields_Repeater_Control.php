@@ -539,6 +539,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'checkbox'     => __('Checkbox', 'mailoptin'),
             'select'       => __('Select', 'mailoptin'),
             'radio'        => __('Radio', 'mailoptin'),
+            'date'         => __('Date', 'mailoptin'),
             'recaptcha_v2' => __('reCAPTCHA v2', 'mailoptin'),
             'recaptcha_v3' => __('reCAPTCHA v3', 'mailoptin'),
         ];

@@ -395,6 +395,8 @@ if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_imp
             $global_css .= file_get_contents(MAILOPTIN_ASSETS_DIR . 'css/animate.min.css');
         }
 
+        $global_css .= file_get_contents(MAILOPTIN_ASSETS_DIR . 'css/pikaday.min.css');
+
         if ($this->optin_campaign_type == 'bar') {
             $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-top {top: 0;position: absolute;}";
             $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-bottom {bottom: 0;position: fixed;}";

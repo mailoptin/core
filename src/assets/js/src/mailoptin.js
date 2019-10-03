@@ -1,8 +1,8 @@
 /**
  * @var {object} mailoptin_globals
  */
-define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', 'moScrollTrigger', 'mc-groups-validation', 'recaptcha'],
-    function ($, Cookies, mailoptin_globals) {
+define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExitIntent', 'moScrollTrigger', 'mc-groups-validation', 'recaptcha'],
+    function ($, Cookies, mailoptin_globals, Pikaday) {
         "use strict";
 
         $.MailOptin = {
@@ -1255,6 +1255,21 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                 return (typeof val !== 'undefined' && val !== '');
             },
 
+            init_date_picker: function () {
+                $('.mo-optin-form-custom-field.date-field').each(function () {
+                    console.log(Pikaday, this, $(this)[0]);
+                    new Pikaday({
+                        field: $(this)[0],
+                        toString: function (date, format) {
+                            const day = date.getDate();
+                            const month = date.getMonth() + 1;
+                            const year = date.getFullYear();
+                            return year + '/' + month + '/' + day;
+                        }
+                    });
+                });
+            },
+
             /**
              * Initialize class
              */
@@ -1269,6 +1284,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'moModal', 'moExitIntent', '
                     _this.is_scheduled_for_display();
                     _this.initOptinForms();
                     _this.optin_conversion();
+                    _this.init_date_picker();
 
                     $(document.body).trigger('mo-mailoptinjs-loaded')
                 });
