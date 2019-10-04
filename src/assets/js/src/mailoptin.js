@@ -1257,9 +1257,14 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
             init_date_picker: function () {
                 $('.mo-optin-form-custom-field.date-field').each(function () {
-                    console.log(Pikaday, this, $(this)[0]);
+                    var currentYr = (new Date()).getFullYear();
+                    var range = 150;
+                    var minYear = currentYr - range;
                     new Pikaday({
-                        field: $(this)[0],
+                        field: this,
+                        minDate: new Date(minYear, 0),
+                        maxDate: new Date(currentYr + range, 0),
+                        yearRange: range + range,
                         toString: function (date, format) {
                             const day = date.getDate();
                             const month = date.getMonth() + 1;
