@@ -235,20 +235,6 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
     }
 
     /**
-     * Track optin impression.
-     *
-     * @return string
-     */
-    public function impression_tracker_js_script()
-    {
-        return "<script type='text/javascript'>jQuery(document.body).on('mo-mailoptinjs-loaded', function(){
-if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_impression !== 'undefined') {
-    jQuery.MailOptin.track_impression('{$this->optin_campaign_uuid}');
-  }
-});</script>";
-    }
-
-    /**
      * Load Google fonts.
      *
      * @return string
@@ -393,6 +379,10 @@ if (typeof jQuery.MailOptin !== 'undefined' && typeof jQuery.MailOptin.track_imp
 
         if ( ! empty($optin_effect) || is_customize_preview()) {
             $global_css .= file_get_contents(MAILOPTIN_ASSETS_DIR . 'css/animate.min.css');
+        }
+
+        if (OptinCampaignsRepository::has_custom_field_type($this->optin_campaign_id, 'date')) {
+            $global_css .= file_get_contents(MAILOPTIN_ASSETS_DIR . 'css/pikaday.min.css');
         }
 
         if ($this->optin_campaign_type == 'bar') {

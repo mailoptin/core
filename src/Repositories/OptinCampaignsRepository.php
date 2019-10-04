@@ -287,17 +287,17 @@ class OptinCampaignsRepository extends AbstractRepository
      *
      * @return string
      */
-    public static function set_optin_campaign_class( $optin_campaign_id, $class )
+    public static function set_optin_campaign_class($optin_campaign_id, $class)
     {
         //Burst cache
-        self::burst_cache( $optin_campaign_id );
+        self::burst_cache($optin_campaign_id);
 
         return parent::wpdb()->update(
             parent::campaigns_table(),
             array(
                 'optin_class' => $class
             ),
-            array( 'id' => $optin_campaign_id ),
+            array('id' => $optin_campaign_id),
             '%s',
             '%d'
         );
@@ -515,16 +515,40 @@ class OptinCampaignsRepository extends AbstractRepository
      *
      * @param int $optin_campaign_id
      *
-     * @return array|mixed|object|string
+     * @return array
      */
     public static function form_custom_fields($optin_campaign_id)
     {
         $custom_fields = self::get_merged_customizer_value($optin_campaign_id, 'fields');
-        if ( ! empty($custom_fields)) {
-            $custom_fields = json_decode($custom_fields, true);
-        }
+
+        if (empty($custom_fields)) return [];
+
+        $custom_fields = json_decode($custom_fields, true);
 
         return $custom_fields;
+    }
+
+    /**
+     * Check if an optin has a specific custom field type.
+     *
+     * @param int $optin_campaign_id
+     * @param string $field_type
+     *
+     * @return bool
+     */
+    public static function has_custom_field_type($optin_campaign_id, $field_type)
+    {
+        $fields = self::form_custom_fields($optin_campaign_id);
+
+        $has_field = false;
+        foreach ($fields as $field) {
+            if (in_array($field['field_type'], [$field_type])) {
+                $has_field = true;
+                break;
+            }
+        }
+
+        return $has_field;
     }
 
     /**
