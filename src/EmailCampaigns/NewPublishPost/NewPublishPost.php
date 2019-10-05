@@ -54,8 +54,6 @@ class NewPublishPost extends AbstractTriggers
      */
     public function new_publish_post($new_status, $old_status, $post)
     {
-        if (defined('DOING_AJAX')) return;
-
         if ($new_status == 'publish' && $old_status != 'publish') {
 
             // hopefully this will cause all custom field to be updated before new post is triggered.
