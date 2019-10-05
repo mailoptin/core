@@ -382,9 +382,9 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
         echo '</div>';
     }
 
-    public function repeater_font_field($index, $name, $class = '', $label = '', $description = '', $count = 200)
+    public function repeater_font_field($index, $name, $class = '', $label = '', $description = '', $count = 300)
     {
-        $count = empty($count) ? 200 : $count;
+        $count = empty($count) ? 300 : $count;
 
         $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
         $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
@@ -393,7 +393,11 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             $class = " $class";
         }
 
-        $fonts = WP_Customize_Google_Font_Control::get_fonts($count);
+        $system_font_optgroup_label = __('System Fonts', 'mailoptin');
+        $google_font_optgroup_label = __('Google Fonts', 'mailoptin');
+
+        $fonts = [$system_font_optgroup_label => ControlsHelpers::get_system_font_stack()] + [$google_font_optgroup_label => WP_Customize_Google_Font_Control::get_fonts($count)];
+
         echo "<div class=\"$name mo-fields-block{$class}\">";
         if ( ! empty($fonts)) {
             ?>
@@ -402,9 +406,21 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                 <select name="<?= $name; ?>">
                     <?php
                     printf('<option value="inherit" %s>%s</option>', selected($this->value(), 'inherit', false), __('Inherit from Theme', 'mailoptin'));
-                    foreach ($fonts as $v) {
-                        $option_value = str_replace(' ', '+', $v);
-                        printf('<option value="%s" %s>%s</option>', $option_value, selected($saved_value, $option_value, false), $v);
+
+                    foreach ($fonts as $key => $font) {
+                        if (is_array($font)) {
+                            printf('<optgroup label="%s">', $key);
+                            foreach ($font as $font2) {
+                                $option_value = $font2;
+                                if ($key == $google_font_optgroup_label) {
+                                    $option_value = str_replace(' ', '+', $font2);
+                                }
+                                printf('<option value="%s" %s>%s</option>', $option_value, selected($saved_value, $option_value, false), $font2);
+                            }
+
+                            echo '</optgroup>';
+
+                        }
                     }
                     ?>
                 </select>
