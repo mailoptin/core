@@ -225,7 +225,7 @@ class CustomizerControls
                 $this->option_prefix . '[post_categories]',
                 apply_filters('mo_optin_form_customizer_post_categories_args', array(
                         'label'       => __('Restrict to Post Categories', 'mailoptin'),
-                        'description' => __('Only include post that has either of the selected categories.', 'mailoptin'),
+                        'description' => __('Only include posts that has either of the selected categories.', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[post_categories]',
                         'choices'     => ControlsHelpers::get_categories(),
@@ -238,11 +238,24 @@ class CustomizerControls
                 $this->option_prefix . '[post_tags]',
                 apply_filters('mo_optin_form_customizer_post_tags_args', array(
                         'label'       => __('Restrict to Post Tags', 'mailoptin'),
-                        'description' => __('Only include post that has either of the selected tags.', 'mailoptin'),
+                        'description' => __('Only include posts that has either of the selected tags.', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[post_tags]',
                         'choices'     => ControlsHelpers::get_tags(),
-                        'priority'    => 48
+                        'priority'    => 46
+                    )
+                )
+            ),
+            'post_authors'                 => new WP_Customize_Chosen_Select_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[post_authors]',
+                apply_filters('mo_optin_form_customizer_post_tags_args', array(
+                        'label'       => __('Restrict to Post Authors', 'mailoptin'),
+                        'description' => __('Only include posts that are published by selected authors.', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->campaign_settings_section_id,
+                        'settings'    => $this->option_prefix . '[post_authors]',
+                        'choices'     => ControlsHelpers::get_authors(),
+                        'priority'    => 47
                     )
                 )
             ),

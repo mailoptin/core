@@ -216,6 +216,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage'
                 ),
+                'post_authors'                       => array(
+                    'default'   => $this->customizer_defaults['post_authors'],
+                    'type'      => 'option',
+                    'transport' => 'postMessage'
+                ),
                 'recipient_header'                => array(
                     'type'      => 'option',
                     'transport' => 'postMessage',

@@ -157,7 +157,6 @@ class ControlsHelpers
         return $result;
     }
 
-
     /**
      * Array of post tags.
      *
@@ -177,6 +176,32 @@ class ControlsHelpers
             ]);
 
             set_transient('mo_get_tags', $data, apply_filters('mo_get_tags_cache_expiration', MINUTE_IN_SECONDS));
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * Array of authors.
+     *
+     * @return mixed
+     */
+    public static function get_authors()
+    {
+        $data = get_transient('mo_get_authors');
+
+        if (empty($data) || false === $data) {
+
+            $data = get_users(['who' => 'authors', 'fields' => ['ID', 'display_name']]);
+
+            $data = array_reduce($data, function ($carry, $item) {
+                $carry[$item->ID] = $item->display_name;
+
+                return $carry;
+            }, []);
+
+            set_transient('mo_get_authors', $data, apply_filters('mo_get_authors_cache_expiration', MINUTE_IN_SECONDS));
         }
 
         return $data;

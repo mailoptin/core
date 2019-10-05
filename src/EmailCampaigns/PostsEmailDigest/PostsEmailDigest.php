@@ -62,6 +62,12 @@ class PostsEmailDigest extends AbstractTriggers
             ]
         ];
 
+        $post_authors = ER::get_merged_customizer_value($email_campaign_id, 'post_authors');
+
+        if ( ! empty($post_authors)) {
+            $parameters['author'] = implode(',', $post_authors);
+        }
+
         $custom_post_type = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
 
         if ($custom_post_type != 'post') {
@@ -215,7 +221,7 @@ class PostsEmailDigest extends AbstractTriggers
      */
     public function create_campaign($email_campaign_id)
     {
-        $email_subject   = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_subject'));
+        $email_subject = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_subject'));
 
         $post_collection = $this->post_collection($email_campaign_id);
 

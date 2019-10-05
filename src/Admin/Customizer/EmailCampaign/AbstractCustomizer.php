@@ -428,6 +428,7 @@ HTML;
         $defaults['item_number']               = apply_filters('mailoptin_customizer_email_campaign_item_number', 5, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['post_categories']           = apply_filters('mailoptin_customizer_email_campaign_post_categories', [], $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['post_tags']                 = apply_filters('mailoptin_customizer_email_campaign_post_tags', [], $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
+        $defaults['post_authors']              = apply_filters('mailoptin_customizer_email_campaign_post_authors', [], $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['connection_service']        = apply_filters('mailoptin_customizer_email_campaign_connection_service', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['connection_email_list']     = apply_filters('mailoptin_customizer_email_campaign_connection_email_list', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['send_immediately']          = apply_filters('mailoptin_customizer_email_campaign_send_immediately', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);

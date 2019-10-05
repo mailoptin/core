@@ -82,6 +82,12 @@ class NewPublishPost extends AbstractTriggers
 
                 if ( ! in_array($post->post_type, $post_type_support)) continue;
 
+                $npp_post_authors = ER::get_merged_customizer_value($email_campaign_id, 'post_authors');
+
+                if ( ! empty($npp_post_authors)) {
+                    if ( ! in_array($post->post_author, $npp_post_authors)) continue;
+                }
+
                 $custom_post_type_settings = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type_settings');
 
                 if ($custom_post_type != 'post' && ! empty($custom_post_type_settings)) {
