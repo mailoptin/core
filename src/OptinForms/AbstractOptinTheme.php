@@ -1003,6 +1003,12 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                     $html .= apply_filters('mo_optin_form_custom_field_output', '', $field_type, $field, $atts);
 
                     switch ($field_type) {
+                        case 'text':
+                        case 'date':
+                            $html .= $atts['tag_start'];
+                            $html .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"$style\" type=\"text\" placeholder=\"$placeholder\" name=\"$field_id\">";
+                            $html .= $atts['tag_end'];
+                            break;
                         case 'textarea':
                             $html .= $atts['tag_start'];
                             $html .= "<textarea $data_attr id=\"$id\" class=\"$class\" style=\"$style\" placeholder=\"$placeholder\" name=\"$field_id\"></textarea>";
@@ -1051,11 +1057,6 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 $html .= "<option value=\"$option\" >$option</option>";
                             }
                             $html .= "</select>" . $atts['tag_end'];
-                            break;
-                        default:
-                            $html .= $atts['tag_start'];
-                            $html .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"$style\" type=\"text\" placeholder=\"$placeholder\" name=\"$field_id\">";
-                            $html .= $atts['tag_end'];
                             break;
                     }
                 }

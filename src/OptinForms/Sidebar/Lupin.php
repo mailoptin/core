@@ -484,6 +484,7 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .lupinSidebar-form
 
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.lupinSidebar-input,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.mo-optin-form-custom-field.text-field,
+html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.mo-optin-form-custom-field.date-field,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .mo-optin-form-custom-field.select-field,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container textarea.mo-optin-form-custom-field.textarea-field {
          display: block;
@@ -506,6 +507,7 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container textarea.mo-optin-
 
    html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.lupinSidebar-input,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.mo-optin-form-custom-field.text-field,
+html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.mo-optin-form-custom-field.date-field,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container textarea.mo-optin-form-custom-field.textarea-field {
          -webkit-appearance: none;
      }

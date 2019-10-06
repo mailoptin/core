@@ -435,6 +435,7 @@ class CustomizerControls
             unset($campaign_settings_controls['custom_post_type_settings']);
             unset($campaign_settings_controls['post_categories']);
             unset($campaign_settings_controls['post_tags']);
+            unset($campaign_settings_controls['post_authors']);
             unset($campaign_settings_controls['schedule_header']);
             $campaign_settings_controls['email_campaign_title']['label'] = __('Email Subject', 'mailoptin');
 

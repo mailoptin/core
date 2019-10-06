@@ -626,6 +626,7 @@ html div#$optin_uuid div#$optin_css_id.columbine-container div.columbine-two-col
      }
 
 html div#$optin_uuid div#$optin_css_id.columbine-container input.columbine-input,
+html div#$optin_uuid div#$optin_css_id.columbine-container input.mo-optin-form-custom-field.date-field,
 html div#$optin_uuid div#$optin_css_id.columbine-container input.mo-optin-form-custom-field.text-field,
 html div#$optin_uuid div#$optin_css_id.columbine-container .mo-optin-form-custom-field.select-field,
 html div#$optin_uuid div#$optin_css_id.columbine-container textarea.mo-optin-form-custom-field.textarea-field {
@@ -649,6 +650,7 @@ html div#$optin_uuid div#$optin_css_id.columbine-container textarea.mo-optin-for
      }
 
      html div#$optin_uuid div#$optin_css_id.columbine-container input.columbine-input,
+html div#$optin_uuid div#$optin_css_id.columbine-container input.mo-optin-form-custom-field.date-field,
 html div#$optin_uuid div#$optin_css_id.columbine-container input.mo-optin-form-custom-field.text-field,
 html div#$optin_uuid div#$optin_css_id.columbine-container textarea.mo-optin-form-custom-field.textarea-field {
         -webkit-appearance: none;
