@@ -385,7 +385,7 @@ class CustomizerControls
             unset($campaign_settings_controls['post_tags']);
             unset($campaign_settings_controls['post_authors']);
             $content = sprintf(
-                __('Upgrade to %sMailOptin Pro%s to support custom post types and restrict by post categories, tags and custom taxonomies.', 'mailoptin'),
+                __('Upgrade to %sMailOptin Pro%s to support custom post types and restrict by post categories, tags, authors and custom taxonomies.', 'mailoptin'),
                 '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=new_post_campaign_settings">',
                 '</a>',
                 '<strong>',
