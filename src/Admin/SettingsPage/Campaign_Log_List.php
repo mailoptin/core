@@ -355,11 +355,8 @@ class Campaign_Log_List extends \WP_List_Table
     public function process_bulk_action()
     {
         // bail if user is not an admin or without admin privileges.
-        if ( ! \MailOptin\Core\current_user_has_privilege()) {
-            return;
-        }
+        if ( ! \MailOptin\Core\current_user_has_privilege()) return;
 
-        //Detect when a bulk action is being triggered...
         if ('delete' === $this->current_action()) {
             // In our file that handles the request, verify the nonce.
             $nonce = esc_attr($_REQUEST['_wpnonce']);
@@ -374,7 +371,6 @@ class Campaign_Log_List extends \WP_List_Table
             }
         }
 
-        //Detect when a bulk action is being triggered...
         if ('resend' === $this->current_action()) {
             // In our file that handles the request, verify the nonce.
             $nonce = esc_attr($_REQUEST['_wpnonce']);
@@ -389,11 +385,11 @@ class Campaign_Log_List extends \WP_List_Table
             }
         }
 
-        /** @todo verify nonce here for security reasons
+        /**
          * @see WP_List_Table::display_tablenav()
          */
-        // If the delete bulk action is triggered
         if ('bulk-delete' === $this->current_action()) {
+            check_admin_referer('bulk-campaign_logs');
             $delete_ids = array_map('absint', $_POST['bulk-delete']);
             // loop over the array of record IDs and delete them
             foreach ($delete_ids as $id) {
@@ -403,7 +399,6 @@ class Campaign_Log_List extends \WP_List_Table
             exit;
         }
     }
-
 
     /**
      * @return Campaign_Log_List

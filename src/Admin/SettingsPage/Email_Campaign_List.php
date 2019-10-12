@@ -95,6 +95,12 @@ class Email_Campaign_List extends \WP_List_Table
         if ( ! empty($campaign_type)) {
             $campaign_type = esc_sql($campaign_type);
             $sql           .= "  WHERE campaign_type = '$campaign_type'";
+        } else {
+            $campaign_type = esc_sql($campaign_type);
+            $sql           .= sprintf("  WHERE campaign_type IN ('%s', '%s')",
+                ER::NEW_PUBLISH_POST,
+                ER::POSTS_EMAIL_DIGEST
+            );
         }
 
         return $wpdb->get_var($sql);
@@ -390,7 +396,7 @@ class Email_Campaign_List extends \WP_List_Table
         <?php
     }
 
-    public function process_actions()
+    public function process_actions($email_type = '')
     {
         // bail if user is not an admin or without admin privileges.
         if ( ! \MailOptin\Core\current_user_has_privilege()) {
@@ -399,14 +405,13 @@ class Email_Campaign_List extends \WP_List_Table
 
         $redirect_url = MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
 
-        $email_campaign_id = @absint($_GET['email-campaign-id']);
+        $email_campaign_id   = @absint($_GET['email-campaign-id']);
         $email_campaign_type = ER::get_email_campaign_type($email_campaign_id);
 
-        if($email_campaign_type == ER::NEWSLETTER) {
+        if ($email_campaign_type == ER::NEWSLETTER) {
             $redirect_url = add_query_arg('view', MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_SLUG, $redirect_url);
         }
 
-        // Detect when a bulk action is being triggered...
         if ('delete' === $this->current_action()) {
             // In our file that handles the request, verify the nonce.
             $nonce = esc_attr($_REQUEST['_wpnonce']);
@@ -421,12 +426,8 @@ class Email_Campaign_List extends \WP_List_Table
             }
         }
 
-        // clone when the current action is clone.
         if ('clone' === $this->current_action()) {
-
-            if (apply_filters('mailoptin_add_new_email_campaign_limit', true) && ER::campaign_count() >= 1) {
-                return;
-            }
+            if (apply_filters('mailoptin_add_new_email_campaign_limit', true) && ER::campaign_count() >= 1) return;
 
             // In our file that handles the request, verify the nonce.
             $nonce = esc_attr($_REQUEST['_wpnonce']);
@@ -439,8 +440,12 @@ class Email_Campaign_List extends \WP_List_Table
             }
         }
 
-        // If the delete bulk action is triggered
         if ('bulk-delete' === $this->current_action()) {
+            $action = 'email_campaigns';
+            if ($email_type == ER::NEWSLETTER) {
+                $action = 'newsletters';
+            }
+            check_admin_referer('bulk-' . $action);
             $delete_ids = array_map('absint', $_POST['email_campaign_ids']);
             // loop over the array of record IDs and delete them
             foreach ($delete_ids as $id) {

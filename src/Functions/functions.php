@@ -278,12 +278,10 @@ function is_ninja_form_shortcode($optin_campaign_id)
  */
 function post_can_new_post_notification($post)
 {
-    //Get all new post automations
     $npps = EmailCampaignRepository::get_by_email_campaign_type(
         EmailCampaignRepository::NEW_PUBLISH_POST
     );
 
-    //Abort early if there are no new post automations
     if (empty($npps)) return false;
 
     $post_type = get_post_type($post);

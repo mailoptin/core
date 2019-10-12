@@ -17,9 +17,6 @@ class Newsletter_List extends \WP_List_Table
     /** @var \wpdb */
     private $wpdb;
 
-    /**
-     * Class constructor
-     */
     public function __construct($wpdb)
     {
         $this->wpdb  = $wpdb;
@@ -31,12 +28,10 @@ class Newsletter_List extends \WP_List_Table
         ));
     }
 
-    /** Text displayed when no campaign log is available */
     public function no_items()
     {
         _e('No newsletter has been sent yet.', 'mailoptin');
     }
-
 
     /**
      *  Associative array of columns
@@ -73,9 +68,7 @@ class Newsletter_List extends \WP_List_Table
      */
     function column_cb($item)
     {
-        return sprintf(
-            '<input type="checkbox" name="bulk-delete[]" value="%s" />', $item['id']
-        );
+        return Email_Campaign_List::get_instance()->column_cb($item);
     }
 
     function column_name($item)
@@ -167,8 +160,7 @@ class Newsletter_List extends \WP_List_Table
      */
     public function prepare_items()
     {
-        /** Process bulk action */
-        Email_Campaign_List::get_instance()->process_actions();
+        Email_Campaign_List::get_instance()->process_actions(ER::NEWSLETTER);
 
         $this->_column_headers = $this->get_column_info();
         $per_page              = $this->get_items_per_page('newsletters_per_page', 15);

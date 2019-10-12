@@ -81,7 +81,7 @@ class EmailCampaigns extends AbstractSettingsPage
 
             $option = 'per_page';
             $args   = array(
-                'label'   => __('Email Automations', 'mailoptin'),
+                'label'   => __('Email Automation', 'mailoptin'),
                 'default' => 8,
                 'option'  => 'email_campaign_per_page',
             );

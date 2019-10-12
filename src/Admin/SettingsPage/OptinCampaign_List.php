@@ -853,8 +853,8 @@ class OptinCampaign_List extends \WP_List_Table
             }
         }
 
-        // If the delete bulk action is triggered
         if ('bulk-delete' === $this->current_action()) {
+            check_admin_referer('bulk-optin_forms');
             $delete_ids = array_map('absint', $_POST['optin_campaign_id']);
             // loop over the array of record IDs and delete them
             foreach ($delete_ids as $id) {
@@ -867,30 +867,8 @@ class OptinCampaign_List extends \WP_List_Table
             exit;
         }
 
-        // If the activate bulk action is triggered
-        if ('bulk-activate' === $this->current_action()) {
-            $ids = array_map('absint', $_POST['optin_campaign_id']);
-            // loop over the array of campaign IDs and actvate them
-            foreach ($ids as $id) {
-                OptinCampaignsRepository::activate_campaign($id);
-            }
-            wp_redirect(esc_url_raw(add_query_arg()));
-            exit;
-        }
-
-        // If the deactivate bulk action is triggered
-        if ('bulk-deactivate' === $this->current_action()) {
-            $ids = array_map('absint', $_POST['optin_campaign_id']);
-            // loop over the array of campaign IDs and deactivate them
-            foreach ($ids as $id) {
-                OptinCampaignsRepository::deactivate_campaign($id);
-            }
-            wp_redirect(esc_url_raw(add_query_arg()));
-            exit;
-        }
-
-        // If the deactivate bulk action is triggered
         if ('bulk-clear-cookies' === $this->current_action()) {
+            check_admin_referer('bulk-optin_forms');
             $ids = array_map('absint', $_POST['optin_campaign_id']);
             // loop over the array of campaign IDs and deactivate them
             foreach ($ids as $id) {
