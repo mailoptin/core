@@ -32,15 +32,15 @@ class OptinConversionsRepository extends AbstractRepository
         $response = parent::wpdb()->insert(
             parent::conversions_table(),
             array(
-                'optin_id' => $data['optin_campaign_id'],
-                'optin_type' => $data['optin_campaign_type'],
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'custom_fields' => $data['custom_fields'],
-                'user_agent' => $data['user_agent'],
+                'optin_id'        => $data['optin_campaign_id'],
+                'optin_type'      => $data['optin_campaign_type'],
+                'name'            => $data['name'],
+                'email'           => $data['email'],
+                'custom_fields'   => $data['custom_fields'],
+                'user_agent'      => $data['user_agent'],
                 'conversion_page' => $data['conversion_page'],
-                'referrer' => $data['referrer'],
-                'date_added' => current_time('mysql')
+                'referrer'        => $data['referrer'],
+                'date_added'      => current_time('mysql')
             ),
             array(
                 '%d',
@@ -55,7 +55,7 @@ class OptinConversionsRepository extends AbstractRepository
             )
         );
 
-        return !$response ? $response : self::wpdb()->insert_id;
+        return ! $response ? $response : self::wpdb()->insert_id;
     }
 
     /**
@@ -79,18 +79,18 @@ class OptinConversionsRepository extends AbstractRepository
     public static function update($id, $data)
     {
         $update_data = array(
-            'optin_id' => $data['optin_campaign_id'],
-            'optin_type' => $data['optin_campaign_type'],
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'user_agent' => $data['user_agent'],
+            'optin_id'        => $data['optin_campaign_id'],
+            'optin_type'      => $data['optin_campaign_type'],
+            'name'            => $data['name'],
+            'email'           => $data['email'],
+            'user_agent'      => $data['user_agent'],
             'conversion_page' => $data['conversion_page'],
-            'referrer' => $data['referrer'],
-            'date_added' => current_time('mysql')
+            'referrer'        => $data['referrer'],
+            'date_added'      => current_time('mysql')
         );
 
         $update_data = array_filter($update_data, function ($value) {
-            return !empty($value);
+            return ! empty($value);
         });
 
         return parent::wpdb()->update(
@@ -124,7 +124,7 @@ class OptinConversionsRepository extends AbstractRepository
      */
     public static function get_conversions_by_ids($conversion_ids)
     {
-        $table = parent::conversions_table();
+        $table          = parent::conversions_table();
         $conversion_ids = implode(',', $conversion_ids);
 
         return self::wpdb()->get_results("SELECT * FROM $table WHERE id IN ($conversion_ids)", 'ARRAY_A');
@@ -140,26 +140,28 @@ class OptinConversionsRepository extends AbstractRepository
      */
     public static function get_conversions($limit = null, $offset = 1, $search = null)
     {
-        if (is_null($search) && !empty($_POST['s'])) {
+        if (is_null($search) && ! empty($_POST['s'])) {
             $search = $_POST['s'];
         }
 
         $table = parent::conversions_table();
-        $offset = ($offset - 1) * $limit;
-        $sql = "SELECT * FROM {$table}";
+        $sql   = "SELECT * FROM {$table}";
 
-        if (!empty($search)) {
+        if ( ! empty($search)) {
             $search = esc_sql(sanitize_text_field($search));
-            $sql .= " WHERE name LIKE '%$search%'";
-            $sql .= " OR email LIKE '%$search%'";
+            $sql    .= " WHERE name LIKE '%$search%'";
+            $sql    .= " OR email LIKE '%$search%'";
         }
 
         $sql .= " ORDER BY id DESC";
-        if (!is_null($limit)) {
+        if ( ! is_null($limit)) {
             $sql .= " LIMIT $limit";
         }
-        if ($offset > 1) {
-            $sql .= "  OFFSET $offset";
+        if ( ! is_null($limit)) {
+            $offset = ($offset - 1) * $limit;
+            if ($offset > 1) {
+                $sql .= "  OFFSET $offset";
+            }
         }
 
         $result = parent::wpdb()->get_results($sql, 'ARRAY_A');
