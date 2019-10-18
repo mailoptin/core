@@ -1050,7 +1050,7 @@ class AjaxHandler
             $response .= '<div class="mo-integration-block">';
             $response .= "<label for='' class='customize-control-title'>$label</label>";
             $response .= "<select id=\"$key\" class=\"mo-optin-custom-field-select\" name=\"$key\">";
-            $response .= '<option value="">' . __('Select', 'mailoptin') . '</option>';
+            $response .= '<option value="">' . __('Select...', 'mailoptin') . '</option>';
             foreach ($custom_fields as $custom_field) {
                 $response .= sprintf(
                     '<option value="%s" %s>%s</option>',
