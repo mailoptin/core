@@ -432,7 +432,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             }";
 
             $global_css .= "
-            #$optin_campaign_uuid .mailoptin-powered-by {
+            #$optin_campaign_uuid div#{$optin_css_id}_container div.mailoptin-powered-by {
                 bottom: -28px;
                 box-sizing: border-box;
                 color: #fff;
@@ -447,13 +447,13 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 font-family: helvetica,arial,sans-serif;
             }
 
-            #$optin_campaign_uuid .mailoptin-powered-by a {
+            #$optin_campaign_uuid div#{$optin_css_id}_container div.mailoptin-powered-by a {
                  background-color: transparent;
                  box-sizing: border-box;
                  color: #fff;
                  font-weight: 700;
                  outline: 0;
-                 text-decoration: underline;
+                 text-decoration: underline !important;
             }";
         }
 
