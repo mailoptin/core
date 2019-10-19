@@ -430,6 +430,31 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                     margin: 0 15px !important;
                 }
             }";
+
+            $global_css .= "
+            #$optin_campaign_uuid .mailoptin-powered-by {
+                bottom: -28px;
+                box-sizing: border-box;
+                color: #fff;
+                font-size: 15px;
+                font-weight: 700;
+                letter-spacing: 0;
+                line-height: 15px;
+                margin: 0;
+                position: absolute;
+                text-align: center;
+                width: 100%;
+                font-family: helvetica,arial,sans-serif;
+            }
+
+            #$optin_campaign_uuid .mailoptin-powered-by a {
+                 background-color: transparent;
+                 box-sizing: border-box;
+                 color: #fff;
+                 font-weight: 700;
+                 outline: 0;
+                 text-decoration: underline;
+            }";
         }
 
         if ($this->optin_campaign_type == 'slidein') {
