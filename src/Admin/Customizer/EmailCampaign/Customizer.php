@@ -36,6 +36,8 @@ class Customizer
     /** @var string ID of template content customizer section. */
     public $campaign_content_section_id = 'mailoptin_campaign_content';
 
+    public $newsletter_content_section_id = 'mailoptin_newsletter_content';
+
     /** @var string ID of template footer customizer section. */
     public $campaign_footer_section_id = 'mailoptin_campaign_footer';
 
@@ -71,7 +73,7 @@ class Customizer
 
             add_action('customize_controls_print_scripts', function () {
                 $email_campaign_is_code_your_own = ! ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
-                $newsletter_is_code_your_own = ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $newsletter_is_code_your_own     = ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
                 $is_email_newsletter             = ER::is_newsletter($this->email_campaign_id) ? 'true' : 'false';
 
                 echo '<script type="text/javascript">';
@@ -82,8 +84,6 @@ class Customizer
                 echo "var mailoptin_newsletter_is_code_your_own = $newsletter_is_code_your_own;";
                 if ($is_email_newsletter == 'true') {
                     echo "var mailoptin_is_email_newsletter = $is_email_newsletter;";
-                    printf("var moCustomizePreviewUrl = '%s';", $this->preview_url());
-                    printf("var moContentPreviewUrl = '%s';", add_query_arg('newsletterContent', 'true', $this->preview_url()));
                 }
                 echo '</script>';
             });
@@ -129,8 +129,7 @@ class Customizer
         $return_url  = MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
 
         if (ER::is_newsletter($this->email_campaign_id)) {
-            $preview_url = add_query_arg('newsletterContent', 'true', $this->preview_url());
-            $return_url  = MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE;
+            $return_url = MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE;
         }
 
         $wp_customize->set_preview_url($preview_url);
@@ -273,13 +272,10 @@ class Customizer
             );
 
             wp_localize_script('mailoptin-email-newsletter-editor', 'moEmailNewsletterEditor_strings', array(
-                'viewTags'      => __('View available tags', 'mailoptin'),
+                'viewTags'   => __('View available tags', 'mailoptin'),
                 'previewBtn' => __('Preview', 'mailoptin'),
                 'contentBtn' => __('Newsletter Content', 'mailoptin')
             ));
-
-            // needed because we are using the styling for button to open newsletter content.
-            wp_enqueue_style('mo-customizer-tinymce-expanded-editor', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/tinymce-expanded-editor/control.css', array(), MAILOPTIN_VERSION_NUMBER);
 
             wp_enqueue_script(
                 'mailoptin-ace-js',
@@ -361,6 +357,7 @@ class Customizer
                 $this->campaign_page_section_id,
                 $this->campaign_header_section_id,
                 $this->campaign_content_section_id,
+                $this->newsletter_content_section_id,
                 $this->campaign_footer_section_id,
                 $this->campaign_send_email_section_id,
                 $this->campaign_view_tags_section_id,
@@ -470,7 +467,7 @@ class Customizer
             )
         );
 
-        if ( ER::is_code_your_own_template($this->email_campaign_id)) {
+        if (ER::is_code_your_own_template($this->email_campaign_id)) {
 
             $wp_customize->add_section($this->campaign_view_tags_section_id, array(
                     'title'    => __('View Available Tags', 'mailoptin'),
@@ -492,6 +489,12 @@ class Customizer
 
             if ( ! ER::is_newsletter($this->email_campaign_id)) {
                 $wp_customize->add_section($this->campaign_content_section_id, array(
+                        'title'    => __('Content', 'mailoptin'),
+                        'priority' => 40,
+                    )
+                );
+            } else {
+                $wp_customize->add_section($this->newsletter_content_section_id, array(
                         'title'    => __('Content', 'mailoptin'),
                         'priority' => 40,
                     )
@@ -557,6 +560,7 @@ class Customizer
         $instance->page_controls();
         $instance->header_controls();
         $instance->content_controls();
+        $instance->newsletter_content_control();
         $instance->footer_controls();
 
         $admin_email = get_option('admin_email');

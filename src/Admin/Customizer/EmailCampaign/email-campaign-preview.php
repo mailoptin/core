@@ -27,23 +27,6 @@ switch ($email_campaign_type) {
         break;
 }
 
-if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
-    ?>
-    <style type="text/css">
-        div#wp-mo_newsletter_editor-wrap {
-            height: 100%;
-            margin: 10px;
-        }
-
-        .media-modal .media-modal-content {
-            height: calc(100% - 75px);
-        }
-    </style>
-    <!--    hack to make add media view styled correctly -->
-    <link rel="stylesheet" href="<?= wp_styles()->base_url; ?>/wp-admin/load-styles.php?c=1&dir=ltr&load%5B%5D=dashicons,buttons,common,forms" type="text/css" media="all">
-    <?php
-}
-
 echo $template_preview_instance->forge();
 
 // this is not in AbstractTemplate as in AbstractOptinForm so it doesn't get templatified/emogrified along with the email template

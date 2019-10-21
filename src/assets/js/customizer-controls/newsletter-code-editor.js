@@ -1,48 +1,11 @@
 (function ($) {
-
-    var contextual_preview_loading = function () {
-
-        wp.customize.section('mailoptin_campaign_settings_section_id', function (section) {
-            section.expanded.bind(function (isExpanding) {
-                if (isExpanding) {
-                    return wp.customize.previewer.previewUrl.set(window.moContentPreviewUrl);
-                }
-            });
-
-        });
-
-        wp.customize.section('mailoptin_campaign_page', function (section) {
-            section.expanded.bind(function (isExpanding) {
-                if (isExpanding) {
-                    wp.customize.previewer.previewUrl.set(window.moCustomizePreviewUrl);
-                }
-            });
-
-        });
-
-        wp.customize.section('mailoptin_campaign_header', function (section) {
-            section.expanded.bind(function (isExpanding) {
-                if (isExpanding) {
-                    return wp.customize.previewer.previewUrl.set(window.moCustomizePreviewUrl);
-                }
-            });
-
-        });
-
-        wp.customize.section('mailoptin_campaign_footer', function (section) {
-            section.expanded.bind(function (isExpanding) {
-                if (isExpanding) {
-                    return wp.customize.previewer.previewUrl.set(window.moCustomizePreviewUrl);
-                }
-            });
-
-        });
-    };
-
     /**
      * @var {object} moEmailNewsletterEditor_strings
      */
     var add_toolbar = function () {
+
+        if (mailoptin_newsletter_is_code_your_own === false) return;
+
         var title = $('.panel-title.site-title').text();
         var markup = [
             '<div class="mo-automation-code-toolbar">',
@@ -64,10 +27,6 @@
         ].join('');
 
         $('#customize-preview').append(markup);
-
-        if (mailoptin_newsletter_is_code_your_own === false) {
-            $('.mo-automation-code-toolbar-left').hide();
-        }
     };
 
     var update_email_title = function () {
@@ -129,43 +88,22 @@
             $('.mo-automation-code-toolbar-btn.mo-newsletter-editor').click();
         });
 
-        if (mailoptin_newsletter_is_code_your_own === false) {
-
-            $(document).on('click', '.mo-automation-code-toolbar-btn', function (e) {
-                e.preventDefault();
-
-                insert_iframe_preloader($('#customize-preview iframe')[0]);
-                $('.mo-automation-code-toolbar-btn').removeClass('btn-active');
-                $(this).addClass('btn-active');
-                if ($(this).hasClass('mo-preview')) {
-                    wp.customize.previewer.previewUrl.set(window.moCustomizePreviewUrl);
-                }
-                else {
-                    wp.customize.previewer.previewUrl.set(window.moContentPreviewUrl);
-                }
-            });
-
-            wp.customize.previewer.previewUrl.set(window.moContentPreviewUrl);
-        }
-        else {
-            $(document).on('click', '.mo-automation-code-toolbar-btn', function (e) {
-                e.preventDefault();
-                $('.mo-automation-code-toolbar-btn').removeClass('btn-active');
-                $(this).addClass('btn-active');
-                var cache = $('#customize-preview iframe');
-                if ($(this).hasClass('mo-preview')) {
-                    wp.customize.previewer.refresh();
-                    var iframe = cache[0];
-                    insert_iframe_preloader(iframe);
-                    $('.mo-email-automation-editor-wrap').hide();
-                    cache.show();
-                }
-                else {
-                    cache.hide();
-                    $('.mo-email-automation-editor-wrap').show();
-                }
-            });
-        }
+        $(document).on('click', '.mo-automation-code-toolbar-btn', function (e) {
+            e.preventDefault();
+            $('.mo-automation-code-toolbar-btn').removeClass('btn-active');
+            $(this).addClass('btn-active');
+            var cache = $('#customize-preview iframe');
+            if ($(this).hasClass('mo-preview')) {
+                wp.customize.previewer.refresh();
+                var iframe = cache[0];
+                insert_iframe_preloader(iframe);
+                $('.mo-email-automation-editor-wrap').hide();
+                cache.show();
+            } else {
+                cache.hide();
+                $('.mo-email-automation-editor-wrap').show();
+            }
+        });
     };
 
     var make_send_newsletter_btn_active = function () {
@@ -179,11 +117,11 @@
     };
 
     $(document).on('ready', function () {
-        var css = '<style type="text/css">#customize-preview > iframe {top: 75px; height: calc(100% - 75px);}</style>';
         if (mailoptin_newsletter_is_code_your_own === true) {
+            var css = '<style type="text/css">#customize-preview > iframe {top: 75px; height: calc(100% - 75px);}</style>';
             css += '<style id="customize-preview-iframe-hide" type="text/css">#customize-preview iframe {display:none;}</style>';
+            $(document.head).append(css);
         }
-        $(document.head).append(css);
     });
 
     $(window).on('load', function () {
@@ -193,8 +131,6 @@
         switch_view();
         update_email_title();
         make_send_newsletter_btn_active();
-        contextual_preview_loading();
     });
-
 
 })(jQuery);

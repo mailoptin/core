@@ -246,7 +246,7 @@ class CustomizerControls
                     )
                 )
             ),
-            'post_authors'                 => new WP_Customize_Chosen_Select_Control(
+            'post_authors'              => new WP_Customize_Chosen_Select_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[post_authors]',
                 apply_filters('mo_optin_form_customizer_post_tags_args', array(
@@ -439,27 +439,6 @@ class CustomizerControls
             unset($campaign_settings_controls['post_authors']);
             unset($campaign_settings_controls['schedule_header']);
             $campaign_settings_controls['email_campaign_title']['label'] = __('Email Subject', 'mailoptin');
-
-            $newsletter_editor_content_btn = '
-                <a id="newsletter_editor_content_btn" href="#" class="button button-hero mo-tinymce-expanded-editor-btn" style="padding:0;width:100% ;">
-                    <div class="mo-tinymce-expanded-control-wrapper">
-                        <span class="dashicons dashicons-edit"></span>
-                        <span>' . __('Open content editor', 'mailoptin') . '</span>
-                    </div>
-                </a>';
-
-            $campaign_settings_controls['newsletter_editor_content'] = new WP_Customize_Custom_Content(
-                $this->wp_customize,
-                $this->option_prefix . '[newsletter_editor_content]',
-                array(
-                    'label'          => __('Email Content', 'mailoptin'),
-                    'content'        => $newsletter_editor_content_btn,
-                    'section'        => $this->customizerClassInstance->campaign_settings_section_id,
-                    'no_wrapper_div' => true,
-                    'settings'       => $this->option_prefix . '[newsletter_editor_content]',
-                    'priority'       => 15,
-                )
-            );
         }
 
         $email_campaign_settings_control_args = apply_filters(
@@ -1406,6 +1385,37 @@ HTML;
             $this->customizerClassInstance
         );
 
+    }
+
+    public function newsletter_content_control()
+    {
+        $controls = apply_filters(
+            "mailoptin_template_newsletter_content_controls",
+            array(
+                'content_background_color' => new \WP_Customize_Color_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[content_background_color]',
+                    apply_filters('mailoptin_template_customizer_content_background_color_args', array(
+                            'label'    => __('Background Color', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->newsletter_content_section_id,
+                            'settings' => $this->option_prefix . '[content_background_color]',
+                            'priority' => 10
+                        )
+                    )
+                ),
+            ),
+            $this->wp_customize,
+            $this->option_prefix,
+            $this->customizerClassInstance
+        );
+
+        foreach ($controls as $id => $args) {
+            if (is_object($args)) {
+                $this->wp_customize->add_control($args);
+            } else {
+                $this->wp_customize->add_control($this->option_prefix . '[' . $id . ']', $args);
+            }
+        }
     }
 
     public function footer_controls()
