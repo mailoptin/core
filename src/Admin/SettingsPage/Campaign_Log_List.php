@@ -151,7 +151,7 @@ class Campaign_Log_List extends \WP_List_Table
             'content_html'   => __('HTML', 'mailoptin'),
             'content_text'   => __('Plain Text', 'mailoptin'),
             'status'         => __('Status', 'mailoptin'),
-            'email_campaign' => __('Campaign Name', 'mailoptin'),
+            'email_campaign' => __('Campaign', 'mailoptin'),
             'date_time'      => __('Date & Time', 'mailoptin'),
         );
 

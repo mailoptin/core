@@ -608,7 +608,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         if ($this->optin_campaign_type == 'lightbox') {
             return apply_filters(
                 'mailoptin_branding_attribute',
-                '<div class="mo-optin-powered-by mailoptin-powered-by">' . __('Powered by', 'mailoptin') . ' <a rel="nofollow" href="' . $affiliate_url . '" title="MailOptin" style="color:#fff;font-weight:700;text-decoration:underline;" target="_blank">MailOptin</a></div>'
+                '<div class="mo-optin-powered-by mailoptin-powered-by">' . __('Powered by', 'mailoptin') . ' <a rel="nofollow" href="' . $mailoptin_url . '" title="MailOptin" style="color:#fff;font-weight:700;text-decoration:underline;" target="_blank">MailOptin</a></div>'
             );
         }
 
