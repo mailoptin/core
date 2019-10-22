@@ -182,7 +182,7 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 2px;
-    box-shadow: rgba(0,0,0,.07) 0 1px 2px inset;
+    box-shadow: rgba(0, 0, 0, .07) 0 1px 2px inset;
     color: #a2a2a2;
     display: block;
     font-size: 14px;
@@ -209,7 +209,6 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
 li.list__item.element.element--box {
     background-color: #fff;
     border: 1px solid #e5e5e5;
-    box-shadow: rgba(0,0,0,.118) 0 1px 6px,rgba(0,0,0,.118) 0 1px 4px;
     cursor: pointer;
     line-height: 21px;
     margin: 0 0 4px;
@@ -219,6 +218,10 @@ li.list__item.element.element--box {
     transition-duration: 150ms;
     transition-property: box-shadow;
     transition-timing-function: linear;
+}
+
+li.list__item.element.element--box:hover {
+    box-shadow: rgba(0, 0, 0, .118) 0 1px 6px, rgba(0, 0, 0, .118) 0 1px 4px;
 }
 
 .list .element::before {
@@ -243,6 +246,7 @@ li.list__item.element.element--box {
     color: inherit;
     margin: 0;
 }
+
 .list--secondary .list__label {
     overflow: hidden;
     white-space: nowrap;
