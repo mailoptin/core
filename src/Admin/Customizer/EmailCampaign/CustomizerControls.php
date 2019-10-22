@@ -8,6 +8,7 @@ use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Controls_Tab_Tog
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Content;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Input_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_EA_CPT_Control;
+use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Email_Content_Repeater_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Email_Schedule_Time_Fields_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Multiple_Checkbox;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Range_Value_Control;
@@ -1392,15 +1393,13 @@ HTML;
         $controls = apply_filters(
             "mailoptin_template_newsletter_content_controls",
             array(
-                'content_background_color' => new \WP_Customize_Color_Control(
+                'email_newsletter_content' => new WP_Customize_Email_Content_Repeater_Control(
                     $this->wp_customize,
-                    $this->option_prefix . '[content_background_color]',
-                    apply_filters('mailoptin_template_customizer_content_background_color_args', array(
-                            'label'    => __('Background Color', 'mailoptin'),
-                            'section'  => $this->customizerClassInstance->newsletter_content_section_id,
-                            'settings' => $this->option_prefix . '[content_background_color]',
-                            'priority' => 10
-                        )
+                    $this->option_prefix . '[email_newsletter_content]',
+                    array(
+                        'section'  => $this->customizerClassInstance->newsletter_content_section_id,
+                        'settings' => $this->option_prefix . '[email_newsletter_content]',
+                        'priority' => 10
                     )
                 ),
             ),

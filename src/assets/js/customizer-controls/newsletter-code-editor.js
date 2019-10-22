@@ -63,7 +63,7 @@
         });
 
         // remove the temporary iframe hide css.
-        $('#customize-preview-iframe-hide').remove();
+        // $('#customize-preview-iframe-hide').remove();
     };
 
     var preview_screen = function () {
@@ -98,6 +98,10 @@
                 var iframe = cache[0];
                 insert_iframe_preloader(iframe);
                 $('.mo-email-automation-editor-wrap').hide();
+
+                // remove the temporary iframe hide css.
+                $('#customize-preview-iframe-hide').remove();
+
                 cache.show();
             } else {
                 cache.hide();
