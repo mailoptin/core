@@ -35,7 +35,14 @@
             $(document).on('click', '.mo-email-content-expand-collapse-all', toggleAllWidget);
             $(document).on('click', '.mo-email-content-widget-action', this.toggleWidget);
             $(document).on('click', '.mo-add-new-email-element', this.add_new_element);
+            $(document).on('click', '.mo-email-content-elements-back a', this.go_back);
             // $(document).on('click', '.mo-email-content-delete', this.remove_field);
+        },
+
+        go_back: function (e) {
+            e.preventDefault();
+            $(this).parents('.mo-email-content-elements-wrapper').hide();
+            $(this).parents('.mo-email-content-wrapper').find('.mo-email-content-widget-wrapper').show();
         },
 
         add_new_element: function (e) {

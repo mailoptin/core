@@ -112,24 +112,17 @@ button.mo-add-new-email-element {
     margin-bottom: 0;
 }
 
+.mo-email-content-widget-form {
+    padding: 0px 10px 10px;
+}
+
 .mo-email-content-part-widget .mo-email-content-widget-content {
     display: none;
 }
 
 .mo-email-content-widget-content {
     line-height: 16px;
-    padding: 1px 10px 10px;
-    background: rgb(255, 255, 255);
-    border-width: 0px 1px 1px;
-    border-style: solid solid solid;
-    border-color: rgb(229, 229, 229) rgb(229, 229, 229) rgb(229, 229, 229);
-    border-image: initial;
-    border-top: 0px;
-}
-
-.mo-email-content-widget-content {
-    line-height: 16px;
-    padding: 1px 10px 10px;
+    padding: 0;
     background: rgb(255, 255, 255);
     border-width: 0px 1px 1px;
     border-style: solid solid solid;
@@ -206,7 +199,7 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     box-sizing: border-box;
 }
 
-li.list__item.element.element--box {
+li.list__item.element--box {
     background-color: #fff;
     border: 1px solid #e5e5e5;
     cursor: pointer;
@@ -220,18 +213,14 @@ li.list__item.element.element--box {
     transition-timing-function: linear;
 }
 
-li.list__item.element.element--box:hover {
+li.list__item.element--box:hover {
     box-shadow: rgba(0, 0, 0, .118) 0 1px 6px, rgba(0, 0, 0, .118) 0 1px 4px;
 }
 
-.list .element::before {
-    content: "\f109";
+li.list__item.element--box span.dashicons {
     padding-right: 0.75em;
     float: left;
-    font: normal 20px/1 dashicons;
-    color: inherit;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 .list .element__wrap {
@@ -258,4 +247,36 @@ li.list__item.element.element--box:hover {
     display: block;
     color: #777;
     font-size: 12px;
+}
+
+.mo-email-content-elements-back {
+    margin: 0 0 5px;
+}
+
+.mo-email-content-elements-back a {
+    margin-left: 1px;
+}
+
+.tailor-modal-tabs {
+    border-bottom: 1px solid #efefef;
+}
+
+.tailor-modal-tabs .tabs .tab:first-child {
+    padding-left: 13px;
+}
+
+.tailor-modal-tabs .tabs .tab {
+    padding: 1px 10px;
+    margin: 0;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.tailor-modal-tabs .tabs .tab.is-active {
+    border-bottom: 2px solid #008ec2;
+}
+
+.tailor-modal-tabs .tabs .tab h3 {
+    font-size: 12px !important;
+    margin: .7em 0;
 }

@@ -44,7 +44,20 @@ class WP_Customize_Email_Content_Repeater_Control extends WP_Customize_Control
                     <h3>Name</h3>
                 </div>
             </div>
-            <div class="mo-email-content-widget-content" style="display: block;">
+            <div class="mo-email-content-widget-content">
+                <div class="tailor-modal-tabs">
+                    <ul class="tabs">
+                        <li class="tab is-active">
+                            <h3>General</h3>
+                        </li>
+                        <li class="tab">
+                            <h3>Colors</h3>
+                        </li>
+                        <li class="tab">
+                            <h3>Attributes</h3>
+                        </li>
+                    </ul>
+                </div>
                 <div class="mo-email-content-widget-form">
                     <div class="mo-email-content-block">
                         <label for="mo_optin_campaign[109][name_field_placeholder]" class="customize-control-title">Title</label>
@@ -70,20 +83,40 @@ class WP_Customize_Email_Content_Repeater_Control extends WP_Customize_Control
     {
         ?>
         <div class="mo-email-content-elements-wrapper">
-
+            <div class="mo-email-content-elements-back">
+                <a href="#">&lt;&lt; Go Back</a>
+            </div>
             <div class="search-form">
                 <span class="screen-reader-text">Search elements..</span>
                 <input class="search" type="search" role="search" placeholder="Search elements..">
             </div>
 
             <ul class="list list--secondary" id="items">
-                <li class="list__item draggable element element--box" draggable="true" tabindex="0">
-
+                <li class="list__item element element--box">
+                    <span class="dashicons dashicons-editor-insertmore"></span>
                     <div class="element__wrap">
-
-                        <h3 class="list__label">
-                            Box
-                        </h3>
+                        <h3 class="list__label">Box</h3>
+                        <div class="element__description">Display content inside a box.</div>
+                    </div>
+                </li>
+                <li class="list__item element element--box">
+                    <span class="dashicons dashicons-editor-insertmore"></span>
+                    <div class="element__wrap">
+                        <h3 class="list__label">Box</h3>
+                        <div class="element__description">Display content inside a box.</div>
+                    </div>
+                </li>
+                <li class="list__item element element--box">
+                    <span class="dashicons dashicons-editor-insertmore"></span>
+                    <div class="element__wrap">
+                        <h3 class="list__label">Box</h3>
+                        <div class="element__description">Display content inside a box.</div>
+                    </div>
+                </li>
+                <li class="list__item element element--box">
+                    <span class="dashicons dashicons-editor-insertmore"></span>
+                    <div class="element__wrap">
+                        <h3 class="list__label">Box</h3>
                         <div class="element__description">Display content inside a box.</div>
                     </div>
                 </li>
