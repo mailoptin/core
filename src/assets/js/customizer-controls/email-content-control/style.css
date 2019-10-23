@@ -261,25 +261,22 @@ li.list__item.element--box span.dashicons {
     border-bottom: 1px solid #efefef;
 }
 
-.mo-email-content-modal-tabs .tabs {
-    display: flex;
-}
-
 .mo-email-content-modal-tabs .tabs .tab {
     padding: 1px 10px;
     margin: 0;
     cursor: pointer;
     display: inline-block;
-    flex: 1;
     box-sizing: border-box;
     text-align: center;
+    flex: 1;
 }
 
 .mo-email-content-modal-tabs .tabs .tab.is-active {
-    border-bottom: 2px solid #008ec2;
+    border-bottom: 2px solid #ddd;
 }
 
 .mo-email-content-modal-tabs .tabs .tab h3 {
     font-size: 12px !important;
     margin: .7em 0;
+    color: #74787e;
 }
