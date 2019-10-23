@@ -2,11 +2,19 @@
 
 namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements;
 use WP_Customize_Control;
 
 class Customizer_Control extends WP_Customize_Control
 {
     public $type = 'mailoptin-email-content';
+
+    public $elements;
+
+    public function __construct($manager, $id, $args = array())
+    {
+        parent::__construct($manager, $id, $args);
+    }
 
     /**
      * Enqueue control related scripts/styles.
@@ -81,47 +89,28 @@ class Customizer_Control extends WP_Customize_Control
 
     public function elements_ui()
     {
+        new Elements\Init();
         $elements = apply_filters('mo_email_content_elements', []);
-
         ?>
         <div class="mo-email-content-elements-wrapper">
             <div class="mo-email-content-elements-back">
-                <a href="#">&lt;&lt; Go Back</a>
+                <a href="#">&lt;&lt; <?php esc_html_e('Go Back', 'mailoptin'); ?></a>
             </div>
             <div class="search-form">
-                <span class="screen-reader-text">Search elements..</span>
-                <input class="search" type="search" role="search" placeholder="Search elements..">
+                <span class="screen-reader-text"><?php esc_html_e('Search elements..', 'mailoptin'); ?></span>
+                <input class="search" type="search" role="search" placeholder="<?php esc_html_e('Search elements..', 'mailoptin'); ?>">
             </div>
 
             <ul class="list list--secondary" id="items">
-                <li class="list__item element element--box">
-                    <span class="dashicons dashicons-editor-insertmore"></span>
-                    <div class="element__wrap">
-                        <h3 class="list__label">Box</h3>
-                        <div class="element__description">Display content inside a box.</div>
-                    </div>
-                </li>
-                <li class="list__item element element--box">
-                    <span class="dashicons dashicons-editor-insertmore"></span>
-                    <div class="element__wrap">
-                        <h3 class="list__label">Box</h3>
-                        <div class="element__description">Display content inside a box.</div>
-                    </div>
-                </li>
-                <li class="list__item element element--box">
-                    <span class="dashicons dashicons-editor-insertmore"></span>
-                    <div class="element__wrap">
-                        <h3 class="list__label">Box</h3>
-                        <div class="element__description">Display content inside a box.</div>
-                    </div>
-                </li>
-                <li class="list__item element element--box">
-                    <span class="dashicons dashicons-editor-insertmore"></span>
-                    <div class="element__wrap">
-                        <h3 class="list__label">Box</h3>
-                        <div class="element__description">Display content inside a box.</div>
-                    </div>
-                </li>
+                <?php foreach ($elements as $element) : ?>
+                    <li class="list__item element element--box">
+                        <?= $element['icon'] ?>
+                        <div class="element__wrap">
+                            <h3 class="list__label"><?= $element['title'] ?></h3>
+                            <div class="element__description"><?= $element['description'] ?></div>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
             </ul>
 
         </div>

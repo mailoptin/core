@@ -261,6 +261,10 @@ li.list__item.element--box span.dashicons {
     border-bottom: 1px solid #efefef;
 }
 
+.mo-email-content-modal-tabs .tabs {
+    display: flex;
+}
+
 .mo-email-content-modal-tabs .tabs .tab {
     padding: 1px 10px;
     margin: 0;

@@ -1,6 +1,6 @@
 <?php
 
-namespace MailOptin\Admin\Customizer\CustomControls\EmailContentBuilder;
+namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 
 
 abstract class AbstractElement implements ElementInterface

@@ -1,9 +1,6 @@
 <?php
-/**
- * Copyright (C) 2016  Agbonghama Collins <me@w3guy.com>
- */
 
-namespace MailOptin\Admin\Customizer\CustomControls\EmailContentBuilder;
+namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 
 
 interface ElementInterface

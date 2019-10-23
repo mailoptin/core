@@ -5,21 +5,21 @@ namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Ele
 
 use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\AbstractElement;
 
-class Text extends AbstractElement
+class Button extends AbstractElement
 {
     public function icon()
     {
-        return '<span class="dashicons dashicons-text"></span>';
+        return '<img src="https://us4.admin.mailchimp.com/images/campaigns/content-blocks/button.svg">';
     }
 
     public function title()
     {
-        return esc_html__('Text', 'mailoptin');
+        return esc_html__('Button', 'mailoptin');
     }
 
     public function description()
     {
-        return esc_html__('Text, HTML and multimedia content.', 'mailoptin');
+        return esc_html__('A simple button.', 'mailoptin');
     }
 
     public function tabs()

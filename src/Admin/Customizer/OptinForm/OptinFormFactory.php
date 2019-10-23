@@ -7,8 +7,6 @@ use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 /**
  * Create a optin form class instance from its ID or class name.
- *
- * @package MailOptin\Admin\Customizer\OptinForm\
  */
 class OptinFormFactory
 {
