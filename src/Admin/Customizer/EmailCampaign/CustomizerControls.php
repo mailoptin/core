@@ -3,12 +3,12 @@
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
 use MailOptin\Core\Admin\Customizer\CustomControls\ControlsHelpers;
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Chosen_Select_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Controls_Tab_Toggle;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Content;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Input_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_EA_CPT_Control;
-use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Email_Content_Repeater_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Email_Schedule_Time_Fields_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Multiple_Checkbox;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Range_Value_Control;
@@ -1393,7 +1393,7 @@ HTML;
         $controls = apply_filters(
             "mailoptin_template_newsletter_content_controls",
             array(
-                'email_newsletter_content' => new WP_Customize_Email_Content_Repeater_Control(
+                'email_newsletter_content' => new EmailContentBuilder\Customizer_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[email_newsletter_content]',
                     array(

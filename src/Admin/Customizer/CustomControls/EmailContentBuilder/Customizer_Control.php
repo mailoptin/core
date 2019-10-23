@@ -1,10 +1,10 @@
 <?php
 
-namespace MailOptin\Core\Admin\Customizer\CustomControls;
+namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 
 use WP_Customize_Control;
 
-class WP_Customize_Email_Content_Repeater_Control extends WP_Customize_Control
+class Customizer_Control extends WP_Customize_Control
 {
     public $type = 'mailoptin-email-content';
 
@@ -45,7 +45,7 @@ class WP_Customize_Email_Content_Repeater_Control extends WP_Customize_Control
                 </div>
             </div>
             <div class="mo-email-content-widget-content">
-                <div class="tailor-modal-tabs">
+                <div class="mo-email-content-modal-tabs">
                     <ul class="tabs">
                         <li class="tab is-active">
                             <h3>General</h3>
@@ -81,6 +81,8 @@ class WP_Customize_Email_Content_Repeater_Control extends WP_Customize_Control
 
     public function elements_ui()
     {
+        $elements = apply_filters('mo_email_content_elements', []);
+
         ?>
         <div class="mo-email-content-elements-wrapper">
             <div class="mo-email-content-elements-back">

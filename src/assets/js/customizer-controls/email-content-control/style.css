@@ -257,26 +257,29 @@ li.list__item.element--box span.dashicons {
     margin-left: 1px;
 }
 
-.tailor-modal-tabs {
+.mo-email-content-modal-tabs {
     border-bottom: 1px solid #efefef;
 }
 
-.tailor-modal-tabs .tabs .tab:first-child {
-    padding-left: 13px;
+.mo-email-content-modal-tabs .tabs {
+    display: flex;
 }
 
-.tailor-modal-tabs .tabs .tab {
+.mo-email-content-modal-tabs .tabs .tab {
     padding: 1px 10px;
     margin: 0;
     cursor: pointer;
     display: inline-block;
+    flex: 1;
+    box-sizing: border-box;
+    text-align: center;
 }
 
-.tailor-modal-tabs .tabs .tab.is-active {
+.mo-email-content-modal-tabs .tabs .tab.is-active {
     border-bottom: 2px solid #008ec2;
 }
 
-.tailor-modal-tabs .tabs .tab h3 {
+.mo-email-content-modal-tabs .tabs .tab h3 {
     font-size: 12px !important;
     margin: .7em 0;
 }
