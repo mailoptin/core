@@ -32,6 +32,15 @@
                 }
             };
 
+            wp.customize.section('mailoptin_newsletter_content', function (section) {
+                section.expanded.bind(function (isExpanded) {
+                    if (isExpanded) {
+                        $('.mo-email-content-elements-wrapper').hide();
+                        $('.mo-email-content-wrapper').find('.mo-email-content-widget-wrapper').show();
+                    }
+                });
+            });
+
             $(document).on('click', '.mo-email-content-expand-collapse-all', toggleAllWidget);
             $(document).on('click', '.mo-email-content-widget-action', this.toggleWidget);
             $(document).on('click', '.mo-add-new-email-element', this.add_new_element);
@@ -64,7 +73,6 @@
         },
 
         add_new_element: function (e) {
-            console.log('element added')
             e.preventDefault();
             $(this).parents('.mo-email-content-widget-wrapper').hide();
             $(this).parents('.mo-email-content-wrapper').find('.mo-email-content-elements-wrapper').show();
