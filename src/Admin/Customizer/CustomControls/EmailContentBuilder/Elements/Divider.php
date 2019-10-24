@@ -5,21 +5,21 @@ namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Ele
 
 use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\AbstractElement;
 
-class Button extends AbstractElement
+class Divider extends AbstractElement
 {
     public function icon()
     {
-        return '<span class="dashicons dashicons-editor-removeformatting"></span>';
+        return '<span class="dashicons dashicons-minus"></span>';
     }
 
     public function title()
     {
-        return esc_html__('Button', 'mailoptin');
+        return esc_html__('Divider', 'mailoptin');
     }
 
     public function description()
     {
-        return esc_html__('A simple button.', 'mailoptin');
+        return esc_html__('A line separator.', 'mailoptin');
     }
 
     public function tabs()

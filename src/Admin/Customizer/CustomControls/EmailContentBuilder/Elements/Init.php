@@ -10,5 +10,6 @@ class Init
         new Text();
         new Image();
         new Button();
+        new Divider();
     }
 }
