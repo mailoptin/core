@@ -192,14 +192,14 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     box-sizing: border-box;
 }
 
-.list--secondary {
+.mo-email-content-elements-wrapper .list--secondary {
     padding: 0;
     margin: 8px 0;
     width: 100%;
     box-sizing: border-box;
 }
 
-li.list__item.element--box {
+.mo-email-content-elements-wrapper li.list__item.element--box {
     background-color: #fff;
     border: 1px solid #e5e5e5;
     cursor: pointer;
@@ -213,37 +213,37 @@ li.list__item.element--box {
     transition-timing-function: linear;
 }
 
-li.list__item.element--box:hover {
+.mo-email-content-elements-wrapper li.list__item.element--box:hover {
     box-shadow: rgba(0, 0, 0, .118) 0 1px 6px, rgba(0, 0, 0, .118) 0 1px 4px;
 }
 
-li.list__item.element--box span.dashicons {
+.mo-email-content-elements-wrapper li.list__item.element--box span.dashicons {
     padding-right: 0.75em;
     float: left;
     -webkit-font-smoothing: antialiased;
 }
 
-.list .element__wrap {
+.mo-email-content-elements-wrapper .list .element__wrap {
     display: block;
     overflow: hidden;
     padding: 0;
     margin: 0;
 }
 
-.list .element .list__label {
+.mo-email-content-elements-wrapper .list .element .list__label {
     padding-bottom: 5px;
     color: inherit;
     margin: 0;
 }
 
-.list--secondary .list__label {
+.mo-email-content-elements-wrapper .list--secondary .list__label {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 
-.list .element__description {
+.mo-email-content-elements-wrapper .list .element__description {
     display: block;
     color: #777;
     font-size: 12px;
