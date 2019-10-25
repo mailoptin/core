@@ -6,45 +6,21 @@
 
             var _this = this;
 
-            var toggleAllWidget = function (e) {
-                e.preventDefault();
-                var $button = $(this);
-                $button.blur();
-
-                $('.mo-email-content-widget').each(function () {
-                    var parent = $(this);
-                    if ($button.hasClass('mo-expand')) {
-                        $('.mo-email-content-widget-content', parent).slideDown(function () {
-                            parent.addClass('mo-email-content-widget-expanded');
-                        });
-
-                    } else {
-                        $('.mo-email-content-widget-content', parent).slideUp(function () {
-                            parent.removeClass('mo-email-content-widget-expanded');
-                        });
-                    }
-                });
-
-                if ($button.hasClass('mo-expand')) {
-                    $button.text($button.data('collapse-text')).removeClass('mo-expand').addClass('mo-collapse');
-                } else {
-                    $button.text($button.data('expand-text')).removeClass('mo-collapse').addClass('mo-expand');
-                }
-            };
-
             wp.customize.section('mailoptin_newsletter_content', function (section) {
                 section.expanded.bind(function (isExpanded) {
                     if (isExpanded) {
                         $('.mo-email-content-elements-wrapper').hide();
+                        $('.mo-email-content-widget.mo-email-content-element-settings').hide();
                         $('.mo-email-content-wrapper').find('.mo-email-content-widget-wrapper').show();
+                    } else {
+                        $('body').removeClass('mo-email-content-element-settings-open');
                     }
                 });
             });
 
-            $(document).on('click', '.mo-email-content-expand-collapse-all', toggleAllWidget);
-            $(document).on('click', '.mo-email-content-widget-action', this.toggleWidget);
+            $(document).on('click', '.mo-email-content-widget-title, .mo-email-content-widget-action', this.revealSettings);
             $(document).on('click', '.mo-add-new-email-element', this.add_new_element);
-            $(document).on('click', '.mo-email-content-elements-back a', this.go_back);
+            $(document).on('click', '.mo-email-content-go-back a', this.go_back);
             $(document).on('keyup change search', '.mo-email-content-elements-wrapper .search-form input', this.search_elements);
 
             // $(document).on('click', '.mo-email-content-delete', this.remove_field);
@@ -68,22 +44,24 @@
 
         go_back: function (e) {
             e.preventDefault();
-            $(this).parents('.mo-email-content-elements-wrapper').hide();
-            $(this).parents('.mo-email-content-wrapper').find('.mo-email-content-widget-wrapper').show();
+            $('.mo-email-content-elements-wrapper').hide();
+            $('.mo-email-content-widget.mo-email-content-element-settings').hide();
+            $('body').removeClass('mo-email-content-element-settings-open');
+
+            $('.mo-email-content-widget-wrapper').show();
         },
 
         add_new_element: function (e) {
             e.preventDefault();
             $(this).parents('.mo-email-content-widget-wrapper').hide();
-            $(this).parents('.mo-email-content-wrapper').find('.mo-email-content-elements-wrapper').show();
+            $(this).parents('.mo-email-content-wrapper').find('.mo-email-content-elements-wrapper').show("slide", {direction: "right"}, 300);
         },
 
-        toggleWidget: function (e) {
+        revealSettings: function (e) {
             e.preventDefault();
-            var parent = $(this).parents('.mo-email-content-widget');
-            $('.mo-email-content-widget-content', parent).slideToggle(function () {
-                parent.toggleClass('mo-email-content-widget-expanded');
-            });
+            $(this).parents('.mo-email-content-widget-wrapper').hide();
+            $('body').addClass('mo-email-content-element-settings-open');
+            $('.mo-email-content-widget.mo-email-content-element-settings').show("slide", {direction: "right"}, 300);
         }
 
     });

@@ -28,6 +28,10 @@ class Customizer_Control extends WP_Customize_Control
 
         wp_enqueue_script('wp-color-picker');
         wp_enqueue_style('wp-color-picker');
+
+
+        wp_enqueue_script('jquery-ui-core');
+        wp_enqueue_script('jquery-effects-slide');
     }
 
     public function render_content()
@@ -49,29 +53,7 @@ class Customizer_Control extends WP_Customize_Control
                     </button>
                 </div>
                 <div class="mo-email-content-widget-title">
-                    <h3>Name</h3>
-                </div>
-            </div>
-            <div class="mo-email-content-widget-content">
-                <div class="mo-email-content-modal-tabs">
-                    <ul class="tabs">
-                        <li class="tab is-active">
-                            <h3>General</h3>
-                        </li>
-                        <li class="tab">
-                            <h3>Colors</h3>
-                        </li>
-                        <li class="tab">
-                            <h3>Attributes</h3>
-                        </li>
-                    </ul>
-                </div>
-                <div class="mo-email-content-widget-form">
-                    <div class="mo-email-content-block">
-                        <label for="mo_optin_campaign[109][name_field_placeholder]" class="customize-control-title">Title</label>
-                        <div class="customize-control-notifications-container"></div>
-                        <input id="mo_optin_campaign[109][name_field_placeholder]" type="text" value="Enter your name here..." data-customize-setting-link="mo_optin_campaign[109][name_field_placeholder]">
-                    </div>
+                    <h3>Text <span class="mopreview">hello goalototos</span></h3>
                 </div>
             </div>
         </div>
@@ -85,6 +67,54 @@ class Customizer_Control extends WP_Customize_Control
         echo '</div>';
         $this->elements_ui();
         echo '</div>';
+
+        $this->element_settings();
+    }
+
+    public function element_settings()
+    {
+        ?>
+        <div class="mo-email-content-widget mo-email-content-part-widget mo-email-content-element-settings">
+
+            <div class="mo-email-content-go-back">
+                <a href="#">&lt;&lt; <?php esc_html_e('Go Back', 'mailoptin'); ?></a>
+            </div>
+
+            <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
+                <div class="mo-email-content-widget-title"><h3>Text</h3></div>
+            </div>
+            <div class="mo-email-content-widget-content">
+                <div class="mo-email-content-modal-tabs">
+                    <ul class="tabs">
+                        <li class="tab is-active">
+                            <h3>Content</h3>
+                        </li>
+                        <li class="tab">
+                            <h3>Style</h3>
+                        </li>
+                        <li class="tab">
+                            <h3>Advance</h3>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mo-email-content-widget-form">
+                    <div class="mo-email-content-blocks">
+                        <div class="mo-email-content-block">
+                            <label for="idd" class="customize-control-title">Title</label>
+                            <textarea id="idd">hello boss</textarea>
+                        </div>
+                        <div class="mo-email-content-block">
+                            <label for="idd" class="customize-control-title">Title</label>
+                            <input id="idd" type="text" value="Enter your name here...">
+                        </div>
+                    </div>
+                    <div class="mo-email-content-footer">
+                        <button class="button button-large button-primary">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
     }
 
     public function elements_ui()
@@ -93,7 +123,7 @@ class Customizer_Control extends WP_Customize_Control
         $elements = apply_filters('mo_email_content_elements', []);
         ?>
         <div class="mo-email-content-elements-wrapper">
-            <div class="mo-email-content-elements-back">
+            <div class="mo-email-content-go-back">
                 <a href="#">&lt;&lt; <?php esc_html_e('Go Back', 'mailoptin'); ?></a>
             </div>
             <div class="search-form">

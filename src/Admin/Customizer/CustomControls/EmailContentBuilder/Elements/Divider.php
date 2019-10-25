@@ -7,6 +7,11 @@ use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\AbstractE
 
 class Divider extends AbstractElement
 {
+    public function id()
+    {
+        return 'divider';
+    }
+
     public function icon()
     {
         return '<span class="dashicons dashicons-minus"></span>';

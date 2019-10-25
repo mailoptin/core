@@ -7,6 +7,11 @@ use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\AbstractE
 
 class Text extends AbstractElement
 {
+    public function id()
+    {
+        return 'text';
+    }
+
     public function icon()
     {
         return '<span class="dashicons dashicons-text"></span>';

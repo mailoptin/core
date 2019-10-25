@@ -7,6 +7,11 @@ use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\AbstractE
 
 class Button extends AbstractElement
 {
+    public function id()
+    {
+        return 'button';
+    }
+
     public function icon()
     {
         return '<span class="dashicons dashicons-editor-removeformatting"></span>';

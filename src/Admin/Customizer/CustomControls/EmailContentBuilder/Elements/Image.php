@@ -7,6 +7,11 @@ use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\AbstractE
 
 class Image extends AbstractElement
 {
+    public function id()
+    {
+        return 'image';
+    }
+
     public function icon()
     {
         return '<span class="dashicons dashicons-format-image"></span>';
