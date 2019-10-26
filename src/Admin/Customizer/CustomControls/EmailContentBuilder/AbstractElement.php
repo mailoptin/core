@@ -3,6 +3,8 @@
 namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 
 
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\ElementInterface;
+
 abstract class AbstractElement implements ElementInterface
 {
     public function __construct()
@@ -27,8 +29,58 @@ abstract class AbstractElement implements ElementInterface
 
     public function js_template()
     {
-        printf('<script type="text/html" id="tmpl-mo-email-content-element-%s">', $this->id());
+        printf('<script type="text/html" id="tmpl-mo-email-content-element-%s">', $this->id()); ?>
+        <div id="mo-email-content-settings-area">
+            <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
+                <div class="mo-email-content-widget-title"><h3><?= $this->title() ?></h3></div>
+            </div>
+            <div class="mo-email-content-widget-content">
+                <!--                    <div class="mo-email-content-modal-tabs">-->
+                <!--                        <ul class="tabs">-->
+                <!--                            <li class="tab is-active">-->
+                <!--                                <h3>Content</h3>-->
+                <!--                            </li>-->
+                <!--                            <li class="tab">-->
+                <!--                                <h3>Style</h3>-->
+                <!--                            </li>-->
+                <!--                            <li class="tab">-->
+                <!--                                <h3>Advance</h3>-->
+                <!--                            </li>-->
+                <!--                        </ul>-->
+                <!--                    </div>-->
+                <div class="mo-email-content-widget-form">
 
-        echo '</script>';
+                    <?php foreach ($this->settings() as $setting) : ?>
+                        <div class="mo-email-content-blocks">
+                            <?php if ( ! empty($setting['label'])) : ?>
+                                <label for="<?= $setting['id'] ?>" class="customize-control-title"><?= esc_html($setting['id']) ?></label>
+                            <?php endif;
+                            call_user_func(
+                                ['MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\SettingsFields', $setting['type']],
+                                $setting['id']
+                            );
+                            ?>
+                        </div>
+                    <?php endforeach; ?>
+                    <div class="mo-email-content-footer">
+                        <button class="button button-large button-primary">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php echo '</script>';
+    }
+
+    public static function get_instance()
+    {
+        static $instance = false;
+
+        $class = get_called_class();
+
+        if ( ! $instance) {
+            $instance = new $class();
+        }
+
+        return $instance;
     }
 }

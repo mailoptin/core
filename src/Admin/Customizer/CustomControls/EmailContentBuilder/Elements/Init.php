@@ -7,9 +7,9 @@ class Init
 {
     public function __construct()
     {
-        new Text();
-        new Image();
-        new Button();
-        new Divider();
+        Text::get_instance();
+        Image::get_instance();
+        Button::get_instance();
+        Divider::get_instance();
     }
 }

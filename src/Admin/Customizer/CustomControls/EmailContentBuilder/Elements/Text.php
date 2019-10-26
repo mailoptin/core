@@ -34,6 +34,11 @@ class Text extends AbstractElement
 
     public function settings()
     {
-        // TODO: Implement settings() method.
+        return [
+            [
+                'id' => 'content',
+                'type' => 'tinymce'
+            ]
+        ];
     }
 }

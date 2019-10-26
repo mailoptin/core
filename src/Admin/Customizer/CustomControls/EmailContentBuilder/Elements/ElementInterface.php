@@ -1,6 +1,6 @@
 <?php
 
-namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
+namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements;
 
 
 interface ElementInterface
