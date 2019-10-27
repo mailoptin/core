@@ -29,16 +29,25 @@ class Text extends AbstractElement
 
     public function tabs()
     {
-        // TODO: Implement tabs() method.
+        return [
+            'tab-content' => esc_html__('Content', 'mailoptin'),
+            'tab-style'   => esc_html__('Style', 'mailoptin'),
+        ];
     }
 
     public function settings()
     {
         return [
             [
-                'id' => 'content',
-                'type' => 'tinymce'
-            ]
+                'id'   => 'text-content',
+                'type' => 'tinymce',
+                'tab' => 'tab-content'
+            ],
+//            [
+//                'id'   => 'text-content2',
+//                'type' => 'tinymce',
+//                'tab' => 'tab-style'
+//            ]
         ];
     }
 }

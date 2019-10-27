@@ -19,10 +19,91 @@
             });
 
             $.fn.tinymce_field_init = function () {
-                $('#mo-email-content-field-tinymce').mo_wp_editor({mode: 'tmce'});
+                var options = {mode: 'tmce'};
+                options.mceInit = {
+                    "theme": "modern",
+                    "skin": "lightgray",
+                    "language": "en",
+                    "formats": {
+                        "alignleft": [
+                            {
+                                "selector": "p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li",
+                                "styles": {"textAlign": "left"},
+                                "deep": false,
+                                "remove": "none"
+                            },
+                            {
+                                "selector": "img,table,dl.wp-caption",
+                                "classes": ["alignleft"],
+                                "deep": false,
+                                "remove": "none"
+                            }
+                        ],
+                        "aligncenter": [
+                            {
+                                "selector": "p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li",
+                                "styles": {"textAlign": "center"},
+                                "deep": false,
+                                "remove": "none"
+                            },
+                            {
+                                "selector": "img,table,dl.wp-caption",
+                                "classes": ["aligncenter"],
+                                "deep": false,
+                                "remove": "none"
+                            }
+                        ],
+                        "alignright": [
+                            {
+                                "selector": "p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li",
+                                "styles": {"textAlign": "right"},
+                                "deep": false,
+                                "remove": "none"
+                            },
+                            {
+                                "selector": "img,table,dl.wp-caption",
+                                "classes": ["alignright"],
+                                "deep": false,
+                                "remove": "none"
+                            }
+                        ],
+                        "strikethrough": {"inline": "del", "deep": true, "split": true}
+                    },
+                    "relative_urls": false,
+                    "remove_script_host": false,
+                    "convert_urls": false,
+                    "browser_spellcheck": true,
+                    "fix_list_elements": true,
+                    "entities": "38,amp,60,lt,62,gt",
+                    "entity_encoding": "raw",
+                    "keep_styles": false,
+                    "paste_webkit_styles": "font-weight font-style color",
+                    "preview_styles": "font-family font-size font-weight font-style text-decoration text-transform",
+                    "wpeditimage_disable_captions": false,
+                    "wpeditimage_html5_captions": false,
+                    "plugins": "charmap,hr,media,paste,tabfocus,textcolor,fullscreen,wordpress,wpeditimage,wpgallery,wplink,wpdialogs,wpview,image",
+                    "content_css": moWPEditor_globals.includes_url + "css/dashicons.css?ver=3.9," + moWPEditor_globals.includes_url + "js/mediaelement/mediaelementplayer.min.css?ver=3.9," + moWPEditor_globals.includes_url + "js/mediaelement/wp-mediaelement.css?ver=3.9," + moWPEditor_globals.includes_url + "js/tinymce/skins/wordpress/wp-content.css?ver=3.9",
+                    "selector": "#moWPEditor",
+                    "resize": "vertical",
+                    "menubar": false,
+                    "wpautop": true,
+                    "indent": false,
+                    "toolbar1": "formatselect,bold,italic,strikethrough,bullist,numlist,blockquote,hr,alignleft,aligncenter,alignright,alignjustify,link,unlink,underline,wp_adv",
+                    "toolbar2": "forecolor,removeformat,charmap,outdent,indent,undo,redo",
+                    "toolbar3": "",
+                    "toolbar4": "",
+                    "tabfocus_elements": ":prev,:next",
+                    "body_class": "moWPEditor",
+                    'branding': false
+                };
 
-                tinymce.get('mo-email-content-field-tinymce').on('keyup change undo redo SetContent', function () {
-                    this.save();
+                $('.mo-email-content-field-tinymce').each(function () {
+                    var id = $(this).attr('id');
+                    $('#' + id).mo_wp_editor(options);
+
+                    tinymce.get(id).on('keyup change undo redo SetContent', function () {
+                        this.save();
+                    });
                 });
 
                 return this;

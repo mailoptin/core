@@ -35,23 +35,25 @@ abstract class AbstractElement implements ElementInterface
                 <div class="mo-email-content-widget-title"><h3><?= $this->title() ?></h3></div>
             </div>
             <div class="mo-email-content-widget-content">
-                <!--                    <div class="mo-email-content-modal-tabs">-->
-                <!--                        <ul class="tabs">-->
-                <!--                            <li class="tab is-active">-->
-                <!--                                <h3>Content</h3>-->
-                <!--                            </li>-->
-                <!--                            <li class="tab">-->
-                <!--                                <h3>Style</h3>-->
-                <!--                            </li>-->
-                <!--                            <li class="tab">-->
-                <!--                                <h3>Advance</h3>-->
-                <!--                            </li>-->
-                <!--                        </ul>-->
-                <!--                    </div>-->
+                <div class="mo-email-content-modal-tabs">
+                    <ul class="tabs">
+                        <?php
+                        $tabs = $this->tabs();
+                        if (is_array($tabs) && ! empty($tabs)) {
+                            foreach ($tabs as $key => $label) { ?>
+                                <li id="<?= $key ?>" class="tab is-active">
+                                    <h3><?= $label ?></h3>
+                                </li>
+                                <?php
+                            }
+                        }
+                        ?>
+                    </ul>
+                </div>
                 <div class="mo-email-content-widget-form">
 
                     <?php foreach ($this->settings() as $setting) : ?>
-                        <div class="mo-email-content-blocks">
+                        <div class="mo-email-content-blocks" <?= ! empty($setting['tab']) ? 'id="' . $setting['tab'] . '"' : '' ?>>
                             <?php if ( ! empty($setting['label'])) : ?>
                                 <label for="<?= $setting['id'] ?>" class="customize-control-title"><?= esc_html($setting['id']) ?></label>
                             <?php endif;
