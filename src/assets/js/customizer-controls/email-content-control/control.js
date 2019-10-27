@@ -20,13 +20,12 @@
 
             $.fn.tinymce_field_init = function () {
                 $('#mo-email-content-field-tinymce').mo_wp_editor({mode: 'tmce'});
-                return this;
-            };
 
-            var tinymce_event_handler = function () {
                 tinymce.get('mo-email-content-field-tinymce').on('keyup change undo redo SetContent', function () {
                     this.save();
                 });
+
+                return this;
             };
 
             var revealSettings = function (e) {
@@ -37,11 +36,7 @@
                 $('#mo-email-content-settings-area').remove();
                 var template = wp.template('mo-email-content-element-' + $(this).data('element-type'));
 
-                $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show("slide", {direction: "right"}, 300);
-
-                $('#mo-email-content-field-tinymce').mo_wp_editor({mode: 'tmce'});
-
-                tinymce_event_handler();
+                $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show().tinymce_field_init();
             };
 
             $(document).on('click', '.element-bar .mo-email-content-widget-title, .element-bar .mo-email-content-widget-action', revealSettings);
