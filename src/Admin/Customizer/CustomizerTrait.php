@@ -328,9 +328,11 @@ trait CustomizerTrait
             wp_enqueue_script('wp-embed');
 
             $post = get_post(1);
+
             if ( ! $post && ! empty($GLOBALS['post_ID'])) {
                 $post = $GLOBALS['post_ID'];
             }
+
             wp_enqueue_media(array(
                 'post' => $post,
             ));

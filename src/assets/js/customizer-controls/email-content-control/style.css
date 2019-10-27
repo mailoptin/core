@@ -292,7 +292,7 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
 }
 
 .mo-email-content-element-settings {
-    display:none;
+    display: none;
 }
 
 .mo-email-content-widget.mo-email-content-element-settings {
@@ -301,10 +301,19 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     width: 100%;
 }
 
-.mo-email-content-element-settings-open .wp-full-overlay-sidebar .wp-full-overlay-sidebar-content{
+.mo-email-content-element-settings-open .wp-full-overlay-sidebar .wp-full-overlay-sidebar-content {
     top: 0 !important;
 }
 
 .mo-email-content-element-settings-open #customize-header-actions {
-    display:none !important;
+    display: none !important;
+}
+
+#wp-mo-email-content-field-tinymce-wrap {
+    padding-top: 10px;
+}
+
+#mo-email-content-settings-area .mo-email-content-footer {
+    padding-top: 10px;
+    text-align: right;
 }

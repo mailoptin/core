@@ -18,8 +18,15 @@
                 });
             });
 
-            var tinymce_field_init = function () {
-                $('.mo-email-content-field-tinymce').mo_wp_editor({mode: 'tmce'});
+            $.fn.tinymce_field_init = function () {
+                $('#mo-email-content-field-tinymce').mo_wp_editor({mode: 'tmce'});
+                return this;
+            };
+
+            var tinymce_event_handler = function () {
+                tinymce.get('mo-email-content-field-tinymce').on('keyup change undo redo SetContent', function () {
+                    this.save();
+                });
             };
 
             var revealSettings = function (e) {
@@ -32,7 +39,9 @@
 
                 $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show("slide", {direction: "right"}, 300);
 
-                tinymce_field_init();
+                $('#mo-email-content-field-tinymce').mo_wp_editor({mode: 'tmce'});
+
+                tinymce_event_handler();
             };
 
             $(document).on('click', '.element-bar .mo-email-content-widget-title, .element-bar .mo-email-content-widget-action', revealSettings);

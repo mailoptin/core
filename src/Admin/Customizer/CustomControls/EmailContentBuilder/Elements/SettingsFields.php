@@ -8,6 +8,6 @@ class SettingsFields
     public static function tinymce($id)
     {
         // {{{data.%s}}}
-        printf('<textarea style="height: 300px" class="mo-email-content-field-tinymce"></textarea>', $id);
+        printf('<textarea style="height: 300px" id="mo-email-content-field-tinymce">lll</textarea>', $id);
     }
 }
