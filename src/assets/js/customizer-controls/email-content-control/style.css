@@ -263,15 +263,15 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     margin-left: 1px;
 }
 
-.mo-email-content-modal-tabs {
+.mo-email-content-modal-motabs {
     border-bottom: 1px solid #efefef;
 }
 
-.mo-email-content-modal-tabs .tabs {
+.mo-email-content-modal-motabs .motabs {
     display: flex;
 }
 
-.mo-email-content-modal-tabs .tabs .tab {
+.mo-email-content-modal-motabs .motabs .motab {
     padding: 1px 10px;
     margin: 0;
     cursor: pointer;
@@ -281,11 +281,11 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     flex: 1;
 }
 
-.mo-email-content-modal-tabs .tabs .tab.is-active {
+.mo-email-content-modal-motabs .motabs .motab.is-active {
     border-bottom: 2px solid #ddd;
 }
 
-.mo-email-content-modal-tabs .tabs .tab h3 {
+.mo-email-content-modal-motabs .motabs .motab h3 {
     font-size: 12px !important;
     margin: .7em 0;
     color: #74787e;
@@ -309,11 +309,11 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     display: none !important;
 }
 
-#wp-mo-email-content-field-tinymce-wrap {
-    padding-top: 10px;
+.mo-email-content-field-tinymce-wrap {
+    padding-top: 15px;
 }
 
-.mo-email-content-settings-area .mo-email-content-footer {
+#mo-email-content-settings-area .mo-email-content-footer {
     padding-top: 10px;
     text-align: right;
 }

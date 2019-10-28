@@ -35,13 +35,13 @@ abstract class AbstractElement implements ElementInterface
                 <div class="mo-email-content-widget-title"><h3><?= $this->title() ?></h3></div>
             </div>
             <div class="mo-email-content-widget-content">
-                <div class="mo-email-content-modal-tabs">
-                    <ul class="tabs">
+                <div class="mo-email-content-modal-motabs">
+                    <ul class="motabs">
                         <?php
                         $tabs = $this->tabs();
                         if (is_array($tabs) && ! empty($tabs)) {
                             foreach ($tabs as $key => $label) { ?>
-                                <li id="<?= $key ?>" class="tab is-active">
+                                <li data-tab-id="<?= $key ?>" class="motab is-active">
                                     <h3><?= $label ?></h3>
                                 </li>
                                 <?php
@@ -51,9 +51,8 @@ abstract class AbstractElement implements ElementInterface
                     </ul>
                 </div>
                 <div class="mo-email-content-widget-form">
-
                     <?php foreach ($this->settings() as $setting) : ?>
-                        <div class="mo-email-content-blocks" <?= ! empty($setting['tab']) ? 'id="' . $setting['tab'] . '"' : '' ?>>
+                        <div class="mo-email-content-blocks <?= ! empty($setting['tab']) ? $setting['tab'] : ''; ?>">
                             <?php if ( ! empty($setting['label'])) : ?>
                                 <label for="<?= $setting['id'] ?>" class="customize-control-title"><?= esc_html($setting['id']) ?></label>
                             <?php endif;

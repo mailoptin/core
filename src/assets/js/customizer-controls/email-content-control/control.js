@@ -109,23 +109,34 @@
                 return this;
             };
 
-            var revealSettings = function (e) {
-                e.preventDefault();
-                $(this).parents('.mo-email-content-widget-wrapper').hide();
-                $('body').addClass('mo-email-content-element-settings-open');
-
-                $('#mo-email-content-settings-area').remove();
-                var template = wp.template('mo-email-content-element-' + $(this).data('element-type'));
-
-                $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show().tinymce_field_init();
-            };
-
-            $(document).on('click', '.element-bar .mo-email-content-widget-title, .element-bar .mo-email-content-widget-action', revealSettings);
+            $(document).on('click', '.element-bar .mo-email-content-widget-title, .element-bar .mo-email-content-widget-action', this.revealSettings);
             $(document).on('click', '.mo-add-new-email-element', this.add_new_element);
             $(document).on('click', '.mo-email-content-go-back a', this.go_back);
             $(document).on('keyup change search', '.mo-email-content-elements-wrapper .search-form input', this.search_elements);
 
+            $(document).on('click', '.mo-email-content-modal-motabs .motabs .motab', this.toggle_settings_tab);
+
             // $(document).on('click', '.mo-email-content-delete', this.remove_field);
+        },
+
+        revealSettings: function (e) {
+            e.preventDefault();
+            $(this).parents('.mo-email-content-widget-wrapper').hide();
+            $('body').addClass('mo-email-content-element-settings-open');
+
+            $('#mo-email-content-settings-area').remove();
+            var template = wp.template('mo-email-content-element-' + $(this).data('element-type'));
+
+            $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show().tinymce_field_init();
+
+            $('.mo-email-content-modal-motabs .motabs .motab').eq(0).click();
+        },
+
+        toggle_settings_tab: function () {
+            $('.mo-email-content-modal-motabs .motabs .motab').removeClass('is-active');
+            $(this).addClass('is-active');
+            $('.mo-email-content-blocks').hide();
+            $('.mo-email-content-widget-form .' + $(this).data('tab-id')).show();
         },
 
         search_elements: function (e) {
