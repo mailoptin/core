@@ -31,7 +31,7 @@ class Text extends AbstractElement
     {
         return [
             'tab-content' => esc_html__('Content', 'mailoptin'),
-            'tab-style'   => esc_html__('Style', 'mailoptin'),
+            'tab-style'   => esc_html__('Block Settings', 'mailoptin'),
         ];
     }
 
@@ -43,11 +43,12 @@ class Text extends AbstractElement
                 'type' => 'tinymce',
                 'tab' => 'tab-content'
             ],
-//            [
-//                'id'   => 'text-content2',
-//                'type' => 'tinymce',
-//                'tab' => 'tab-style'
-//            ]
+            [
+                'id'   => 'block-margin',
+                'label' => esc_html__('Margin', 'mailoptin'),
+                'type' => 'dimension',
+                'tab' => 'tab-style'
+            ]
         ];
     }
 }

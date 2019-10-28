@@ -54,7 +54,7 @@ abstract class AbstractElement implements ElementInterface
                     <?php foreach ($this->settings() as $setting) : ?>
                         <div class="mo-email-content-blocks <?= ! empty($setting['tab']) ? $setting['tab'] : ''; ?>">
                             <?php if ( ! empty($setting['label'])) : ?>
-                                <label for="<?= $setting['id'] ?>" class="customize-control-title"><?= esc_html($setting['id']) ?></label>
+                                <label for="<?= $setting['id'] ?>" class="customize-control-title"><?= esc_html($setting['label']) ?></label>
                             <?php endif;
                             call_user_func(
                                 ['MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\SettingsFields', $setting['type']],
