@@ -1,4 +1,5 @@
 (function (api, $) {
+
     wp.customize.controlConstructor["mailoptin-email-content"] = wp.customize.Control.extend({
 
         ready: function () {
@@ -17,6 +18,8 @@
                     }
                 });
             });
+
+            this.dimension_field_init();
 
             $.fn.tinymce_field_init = function () {
                 var options = {mode: 'tmce'};
@@ -169,6 +172,45 @@
             $(this).parents('.mo-email-content-widget-wrapper').hide();
             $(this).parents('.mo-email-content-wrapper').find('.mo-email-content-elements-wrapper').show("slide", {direction: "right"}, 300);
         },
+
+        dimension_field_init: function () {
+            // Connected button
+            $(document).on('click', '.mo-border-connected', function () {
+
+                // Remove connected class
+                jQuery(this).parent().parent('.mo-border-wrapper').find('input').removeClass('connected').attr('data-element-connect', '');
+
+                // Remove class
+                jQuery(this).parent('.mo-border-input-item-link').removeClass('disconnected');
+
+            });
+
+            // Disconnected button
+            $(document).on('click', '.mo-border-disconnected', function () {
+
+                // Set up variables
+                var elements = jQuery(this).data('element-connect');
+
+                // Add connected class
+                jQuery(this).parent().parent('.mo-border-wrapper').find('input').addClass('connected').attr('data-element-connect', elements);
+
+                // Add class
+                jQuery(this).parent('.mo-border-input-item-link').addClass('disconnected');
+
+            });
+
+            // Values connected inputs
+            $(document).on('input', '.mo-border-input-item .connected', function () {
+
+                var dataElement = $(this).attr('data-element-connect'),
+                    currentFieldValue = $(this).val();
+
+                $(this).parent().parent('.mo-border-wrapper').find('.connected[ data-element-connect="' + dataElement + '" ]').each(function (key, value) {
+                    $(this).val(currentFieldValue).change();
+                });
+
+            });
+        }
     });
 
 })(wp.customize, jQuery);

@@ -39,12 +39,12 @@ class Text extends AbstractElement
     {
         return [
             [
-                'id'   => 'text-content',
+                'name'   => 'text-content',
                 'type' => 'tinymce',
                 'tab' => 'tab-content'
             ],
             [
-                'id'   => 'block-margin',
+                'name'   => 'block-margin',
                 'label' => esc_html__('Margin', 'mailoptin'),
                 'type' => 'dimension',
                 'tab' => 'tab-style'

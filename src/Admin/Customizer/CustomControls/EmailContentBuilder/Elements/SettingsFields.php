@@ -13,8 +13,9 @@ class SettingsFields
         echo '</div>';
     }
 
-    public static function dimension()
+    public static function dimension($id)
     {
+        $item_link_desc = esc_html__('Link Values Together', 'mailoptin');
         ?>
         <div class="customize-control-mo-border">
             <div class="mo-border-outer-wrapper">
@@ -22,23 +23,23 @@ class SettingsFields
 
                     <ul class="mo-border-wrapper desktop active">
                         <li class="mo-border-input-item-link">
-                            <span class="dashicons dashicons-admin-links mo-border-connected wp-ui-highlight" data-element-connect="astra-settings[primary-submenu-border]" title="Link Values Together"></span>
-                            <span class="dashicons dashicons-editor-unlink mo-border-disconnected" data-element-connect="astra-settings[primary-submenu-border]" title="Link Values Together"></span>
+                            <span class="dashicons dashicons-admin-links mo-border-connected wp-ui-highlight" title="<?= $item_link_desc ?>"></span>
+                            <span class="dashicons dashicons-editor-unlink mo-border-disconnected" title="<?= $item_link_desc ?>"></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input mo-border-desktop" data-id="top" data-name="" value="2" data-element-connect="">
+                            <input type="number" class="mo-border-input" data-id="top" value="0" name="<?= $id ?>">
                             <span class="mo-border-title">Top</span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input mo-border-desktop" data-id="right" data-name="" value="0" data-element-connect="">
+                            <input type="number" class="mo-border-input" data-id="right" value="0" name="<?= $id ?>">
                             <span class="mo-border-title">Right</span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input mo-border-desktop" data-id="bottom" data-name="" value="0" data-element-connect="">
+                            <input type="number" class="mo-border-input" data-id="bottom" value="0" name="<?= $id ?>">
                             <span class="mo-border-title">Bottom</span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input mo-border-desktop" data-id="left" data-name="" value="0" data-element-connect="">
+                            <input type="number" class="mo-border-input" data-id="left" value="0" name="<?= $id ?>">
                             <span class="mo-border-title">Left</span>
                         </li>
                     </ul>
