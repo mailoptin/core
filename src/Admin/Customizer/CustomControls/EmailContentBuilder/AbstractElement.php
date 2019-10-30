@@ -52,7 +52,7 @@ abstract class AbstractElement implements ElementInterface
                 </div>
                 <div class="mo-email-content-widget-form">
                     <?php foreach ($this->settings() as $name => $setting) : ?>
-                        <div class="mo-email-content-blocks <?= ! empty($setting['tab']) ? $setting['tab'] : ''; ?>">
+                        <div class="mo-email-content-blocks customize-control <?= ! empty($setting['tab']) ? $setting['tab'] : ''; ?>">
                             <?php if ( ! empty($setting['label'])) : ?>
                                 <label for="<?= $name ?>" class="customize-control-title"><?= esc_html($setting['label']) ?></label>
                             <?php endif;

@@ -31,31 +31,31 @@ class Text extends AbstractElement
     {
         return [
             'tab-content' => esc_html__('Content', 'mailoptin'),
-            'tab-style'   => esc_html__('Block Settings', 'mailoptin'),
+            'tab-block-settings'   => esc_html__('Block Settings', 'mailoptin'),
         ];
     }
 
     public function settings()
     {
         return apply_filters('mo_email_content_elements_text_element', [
-            'block-background-color' => [
-                'label' => esc_html__('Background Color', 'mailoptin'),
-                'type'  => 'color_picker',
-                'tab'   => 'tab-style'
-            ],
-            'text-content'           => [
+            'text_content'           => [
                 'type' => 'tinymce',
                 'tab'  => 'tab-content'
             ],
-            'block-margin'           => [
+            'block_background_color' => [
+                'label' => esc_html__('Background Color', 'mailoptin'),
+                'type'  => 'color_picker',
+                'tab'   => 'tab-block-settings'
+            ],
+            'block_margin'           => [
                 'label' => esc_html__('Margin', 'mailoptin'),
                 'type'  => 'dimension',
-                'tab'   => 'tab-style'
+                'tab'   => 'tab-block-settings'
             ],
-            'block-padding'          => [
+            'block_padding'          => [
                 'label' => esc_html__('Padding', 'mailoptin'),
                 'type'  => 'dimension',
-                'tab'   => 'tab-style'
+                'tab'   => 'tab-block-settings'
             ],
         ]);
     }

@@ -29,11 +29,51 @@ class Button extends AbstractElement
 
     public function tabs()
     {
-        // TODO: Implement tabs() method.
+        return [
+            'tab-content' => esc_html__('Content', 'mailoptin'),
+            'tab-style'   => esc_html__('Style', 'mailoptin'),
+            'tab-block-settings'   => esc_html__('Block Settings', 'mailoptin'),
+        ];
     }
 
     public function settings()
     {
-        // TODO: Implement settings() method.
+        return apply_filters('mo_email_content_elements_button_element', [
+            'button_text' => [
+                'label' => esc_html__('Button Text', 'mailoptin'),
+                'type'  => 'text',
+                'tab'   => 'tab-content'
+            ],
+            'button_link' => [
+                'label' => esc_html__('Button Link (URL)', 'mailoptin'),
+                'type'  => 'text',
+                'tab'   => 'tab-content'
+            ],
+            'button_background_color' => [
+                'label' => esc_html__('Background Color', 'mailoptin'),
+                'type'  => 'text',
+                'tab'   => 'tab-style'
+            ],
+            'button_color' => [
+                'label' => esc_html__('Color', 'mailoptin'),
+                'type'  => 'text',
+                'tab'   => 'tab-style'
+            ],
+            'block-background-color' => [
+                'label' => esc_html__('Background Color', 'mailoptin'),
+                'type'  => 'color_picker',
+                'tab'   => 'tab-block-settings'
+            ],
+            'block-margin'           => [
+                'label' => esc_html__('Margin', 'mailoptin'),
+                'type'  => 'dimension',
+                'tab'   => 'tab-block-settings'
+            ],
+            'block-padding'          => [
+                'label' => esc_html__('Padding', 'mailoptin'),
+                'type'  => 'dimension',
+                'tab'   => 'tab-block-settings'
+            ],
+        ]);
     }
 }

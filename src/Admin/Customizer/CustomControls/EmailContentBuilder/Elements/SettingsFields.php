@@ -12,6 +12,10 @@ class SettingsFields
         printf('<textarea id="%s" style="height: 280px" class="mo-email-content-field-tinymce">lll</textarea>', $name);
         echo '</div>';
     }
+    public static function text($name)
+    {
+        printf('<input type="text" name="%1$s" id="%1$s" value="">', $name);
+    }
 
     public static function color_picker($name)
     {
