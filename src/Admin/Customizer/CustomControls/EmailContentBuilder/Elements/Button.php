@@ -51,12 +51,17 @@ class Button extends AbstractElement
             ],
             'button_background_color' => [
                 'label' => esc_html__('Background Color', 'mailoptin'),
-                'type'  => 'text',
+                'type'  => 'color_picker',
                 'tab'   => 'tab-style'
             ],
             'button_color' => [
                 'label' => esc_html__('Color', 'mailoptin'),
-                'type'  => 'text',
+                'type'  => 'color_picker',
+                'tab'   => 'tab-style'
+            ],
+            'button_font_size' => [
+                'label' => esc_html__('Font Size', 'mailoptin'),
+                'type'  => 'range',
                 'tab'   => 'tab-style'
             ],
             'block-background-color' => [

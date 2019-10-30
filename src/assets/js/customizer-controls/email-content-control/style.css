@@ -325,9 +325,11 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     display: flex;
     position: relative;
 }
+
 .customize-control-mo-border .mo-border-wrapper {
     display: flex;
 }
+
 .customize-control-mo-border .mo-border-btns {
     display: block;
     text-align: center;
@@ -336,12 +338,14 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     background-color: #fff;
     border-radius: 0 3px 3px 0;
 }
+
 .customize-control-mo-border .mo-border-btns > li {
     margin-bottom: 0;
     display: none;
     width: 35px;
     height: 26px;
 }
+
 .customize-control-mo-border .mo-border-btns > li.active {
     display: inline-block;
 }
@@ -355,6 +359,7 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     margin-bottom: 0;
     box-sizing: initial;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper li input.mo-border-input {
     text-align: center;
     display: block;
@@ -367,30 +372,38 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     box-shadow: none;
     padding-left: 11px;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper li .mo-border-connected {
     color: #fff;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper li:lmo-child input.mo-border-input {
     border-right-width: 1px;
     border-radius: 0 3px 3px 0;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper.active {
     display: flex;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper span.mo-border-title {
     text-transform: uppercase;
     font-size: 10px;
     opacity: 0.75;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper .mo-border-input-item-link .mo-border-connected {
     display: none;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper .mo-border-input-item-link.disconnected .mo-border-disconnected {
     display: none;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper .mo-border-input-item-link.disconnected .mo-border-connected {
     display: block;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper .mo-border-input-item-link span {
     width: 35px;
     height: 26px;
@@ -401,10 +414,21 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     border-radius: 3px 0 0 3px;
     border-right-width: 0;
 }
+
 .customize-control-mo-border .input-wrapper .mo-border-wrapper .mo-border-input-item-link .mo-border-connected {
     background-color: #1e8cbe;
 }
 
-.mo-border-input-item-link,.customize-control .mo-spacing-input-item-link {
+.mo-border-input-item-link, .customize-control .mo-spacing-input-item-link {
     cursor: pointer
+}
+
+.customize-control + .customize-control {
+    border-top: none !important;
+    padding-top: 0 !important;
+}
+
+.mo-email-content-widget-content .customize-control[style*='display: block'] + .customize-control[style*='display: block'] {
+    border-top: 1px solid #ddd !important;
+    padding-top: 10px !important;
 }

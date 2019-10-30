@@ -58,7 +58,7 @@ abstract class AbstractElement implements ElementInterface
                             <?php endif;
                             call_user_func(
                                 ['MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\SettingsFields', $setting['type']],
-                                $name
+                                $name, $setting
                             );
                             ?>
                         </div>
