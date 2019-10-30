@@ -39,15 +39,27 @@ class Text extends AbstractElement
     {
         return [
             [
-                'name'   => 'text-content',
+                'name' => 'text-content',
                 'type' => 'tinymce',
-                'tab' => 'tab-content'
+                'tab'  => 'tab-content'
             ],
             [
-                'name'   => 'block-margin',
+                'name'  => 'block-margin',
                 'label' => esc_html__('Margin', 'mailoptin'),
-                'type' => 'dimension',
-                'tab' => 'tab-style'
+                'type'  => 'dimension',
+                'tab'   => 'tab-style'
+            ],
+            [
+                'name'  => 'block-padding',
+                'label' => esc_html__('Padding', 'mailoptin'),
+                'type'  => 'dimension',
+                'tab'   => 'tab-style'
+            ],
+            [
+                'name'  => 'block-background-color',
+                'label' => esc_html__('Background Color', 'mailoptin'),
+                'type'  => 'color_picker',
+                'tab'   => 'tab-style'
             ]
         ];
     }

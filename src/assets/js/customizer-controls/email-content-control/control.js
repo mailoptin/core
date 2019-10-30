@@ -21,6 +21,11 @@
 
             this.dimension_field_init();
 
+            $.fn.color_picker_init = function () {
+                console.log('color picker init');
+                $(this).find('.mo-color-picker-hex').wpColorPicker();
+            };
+
             $.fn.tinymce_field_init = function () {
                 var options = {mode: 'tmce'};
                 options.mceInit = {
@@ -130,7 +135,7 @@
             $('#mo-email-content-settings-area').remove();
             var template = wp.template('mo-email-content-element-' + $(this).data('element-type'));
 
-            $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show().tinymce_field_init();
+            $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show().tinymce_field_init().color_picker_init();
 
             $('.mo-email-content-modal-motabs .motabs .motab').eq(0).click();
         },
@@ -178,10 +183,10 @@
             $(document).on('click', '.mo-border-connected', function () {
 
                 // Remove connected class
-                jQuery(this).parent().parent('.mo-border-wrapper').find('input').removeClass('connected').attr('data-element-connect', '');
+                $(this).parent().parent('.mo-border-wrapper').find('input').removeClass('connected').attr('data-element-connect', '');
 
                 // Remove class
-                jQuery(this).parent('.mo-border-input-item-link').removeClass('disconnected');
+                $(this).parent('.mo-border-input-item-link').removeClass('disconnected');
 
             });
 
@@ -189,13 +194,13 @@
             $(document).on('click', '.mo-border-disconnected', function () {
 
                 // Set up variables
-                var elements = jQuery(this).data('element-connect');
+                var elements = $(this).data('element-connect');
 
                 // Add connected class
-                jQuery(this).parent().parent('.mo-border-wrapper').find('input').addClass('connected').attr('data-element-connect', elements);
+                $(this).parent().parent('.mo-border-wrapper').find('input').addClass('connected').attr('data-element-connect', elements);
 
                 // Add class
-                jQuery(this).parent('.mo-border-input-item-link').addClass('disconnected');
+                $(this).parent('.mo-border-input-item-link').addClass('disconnected');
 
             });
 
