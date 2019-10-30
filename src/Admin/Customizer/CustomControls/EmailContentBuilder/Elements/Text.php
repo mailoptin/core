@@ -38,6 +38,11 @@ class Text extends AbstractElement
     public function settings()
     {
         return apply_filters('mo_email_content_elements_text_element', [
+            'block-background-color' => [
+                'label' => esc_html__('Background Color', 'mailoptin'),
+                'type'  => 'color_picker',
+                'tab'   => 'tab-style'
+            ],
             'text-content'           => [
                 'type' => 'tinymce',
                 'tab'  => 'tab-content'
@@ -52,11 +57,6 @@ class Text extends AbstractElement
                 'type'  => 'dimension',
                 'tab'   => 'tab-style'
             ],
-            'block-background-color' => [
-                'label' => esc_html__('Background Color', 'mailoptin'),
-                'type'  => 'color_picker',
-                'tab'   => 'tab-style'
-            ]
         ]);
     }
 }
