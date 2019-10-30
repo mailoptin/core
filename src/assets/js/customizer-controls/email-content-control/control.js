@@ -22,7 +22,6 @@
             this.dimension_field_init();
 
             $.fn.color_picker_init = function () {
-                console.log('color picker init');
                 $(this).find('.mo-color-picker-hex').wpColorPicker();
             };
 

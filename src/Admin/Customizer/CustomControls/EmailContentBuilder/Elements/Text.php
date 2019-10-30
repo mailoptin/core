@@ -37,30 +37,26 @@ class Text extends AbstractElement
 
     public function settings()
     {
-        return [
-            [
-                'name' => 'text-content',
+        return apply_filters('mo_email_content_elements_text_element', [
+            'text-content'           => [
                 'type' => 'tinymce',
                 'tab'  => 'tab-content'
             ],
-            [
-                'name'  => 'block-margin',
+            'block-margin'           => [
                 'label' => esc_html__('Margin', 'mailoptin'),
                 'type'  => 'dimension',
                 'tab'   => 'tab-style'
             ],
-            [
-                'name'  => 'block-padding',
+            'block-padding'          => [
                 'label' => esc_html__('Padding', 'mailoptin'),
                 'type'  => 'dimension',
                 'tab'   => 'tab-style'
             ],
-            [
-                'name'  => 'block-background-color',
+            'block-background-color' => [
                 'label' => esc_html__('Background Color', 'mailoptin'),
                 'type'  => 'color_picker',
                 'tab'   => 'tab-style'
             ]
-        ];
+        ]);
     }
 }
