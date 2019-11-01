@@ -49,6 +49,17 @@ class Button extends AbstractElement
                 'type'  => 'text',
                 'tab'   => 'tab-content'
             ],
+            'button_alignment' => [
+                'label' => esc_html__('Button Alignment', 'mailoptin'),
+                'choices' => [
+                    'left' => esc_html__('Left', 'mailoptin'),
+                    'right' => esc_html__('Right', 'mailoptin'),
+                    'center' => esc_html__('Center', 'mailoptin'),
+                    'full_width' => esc_html__('Full Width', 'mailoptin'),
+                ],
+                'type'  => 'select',
+                'tab'   => 'tab-content'
+            ],
             'button_background_color' => [
                 'label' => esc_html__('Background Color', 'mailoptin'),
                 'type'  => 'color_picker',

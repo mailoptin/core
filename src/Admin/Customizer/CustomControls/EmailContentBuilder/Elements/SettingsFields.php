@@ -18,12 +18,27 @@ class SettingsFields
         printf('<input type="text" name="%1$s" id="%1$s" value="">', $name);
     }
 
+    public static function select($name, $setting)
+    {
+        $choices = $setting['choices'];
+
+        printf('<select id="%1$s" name="%1$s">', $name);
+
+        foreach ($choices as $value => $label) {
+            printf('<option value="%s">%s</option>', $value, $label);
+        }
+
+        echo '</select>';
+    }
+
     public static function range($name, $setting)
     {
+        echo '<div class="customize-control-mo-range">';
         echo '<div class="control-wrap">';
         printf('<input name="%s" type="range" min="0" max="4096" step="1" value="1200" data-reset_value="1200">', $name);
-        printf('<input type="number" min="0" max="4096" step="1" class="oceanwp-range-input" value="1200">');
-        echo '<span class="oceanwp-reset-slider"><span class="dashicons dashicons-image-rotate"></span></span>';
+        printf('<input type="number" min="0" max="4096" step="1" class="mo-range-input" value="1200">');
+        echo '<span class="mo-reset-slider"><span class="dashicons dashicons-image-rotate"></span></span>';
+        echo '</div>';
         echo '</div>';
     }
 

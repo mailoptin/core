@@ -131,8 +131,14 @@
             $(this).parents('.mo-email-content-widget-wrapper').hide();
             $('body').addClass('mo-email-content-element-settings-open');
 
+            var element_type = $(this).data('element-type');
+
+            if (typeof element_type === 'undefined') {
+                element_type = $(this).parents('.element-bar').data('element-type');
+            }
+
             $('#mo-email-content-settings-area').remove();
-            var template = wp.template('mo-email-content-element-' + $(this).data('element-type'));
+            var template = wp.template('mo-email-content-element-' + element_type);
 
             $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show().tinymce_field_init().color_picker_init();
 
