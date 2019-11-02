@@ -18,6 +18,34 @@ class SettingsFields
         printf('<input type="text" name="%1$s" id="%1$s" value="">', $name);
     }
 
+    public static function font_family($name, $setting)
+    {
+        $setting['choices'] = [
+            'Arial'               => esc_html__('Arial', 'mailoptin'),
+            'Arial Black'         => esc_html__('Arial Black', 'mailoptin'),
+            'Book Antiqua'        => esc_html__('Book Antiqua', 'mailoptin'),
+            'Comic Sans MS'       => esc_html__('Comic Sans MS', 'mailoptin'),
+            'Courier New'         => esc_html__('Courier New', 'mailoptin'),
+            'Georgia'             => esc_html__('Georgia', 'mailoptin'),
+            'Geneva'              => esc_html__('Geneva', 'mailoptin'),
+            'Helvetica'           => esc_html__('Helvetica', 'mailoptin'),
+            'Impact'              => esc_html__('Impact', 'mailoptin'),
+            'Lucida'              => esc_html__('Lucida', 'mailoptin'),
+            'Lucida Console'      => esc_html__('Lucida Console', 'mailoptin'),
+            'Lucida Sans Unicode' => esc_html__('Lucida Sans Unicode', 'mailoptin'),
+            'Lucida Grande'       => esc_html__('Lucida Grande', 'mailoptin'),
+            'Monaco'              => esc_html__('Monaco', 'mailoptin'),
+            'Palatino'            => esc_html__('Palatino', 'mailoptin'),
+            'Palatino Linotype'   => esc_html__('Palatino Linotype', 'mailoptin'),
+            'Tahoma'              => esc_html__('Tahoma', 'mailoptin'),
+            'Times New Roman'     => esc_html__('Times New Roman', 'mailoptin'),
+            'Trebuchet MS'        => esc_html__('Trebuchet MS', 'mailoptin'),
+            'Verdana'             => esc_html__('Verdana', 'mailoptin'),
+        ];
+
+        self::select($name, $setting);
+    }
+
     public static function select($name, $setting)
     {
         $choices = $setting['choices'];
