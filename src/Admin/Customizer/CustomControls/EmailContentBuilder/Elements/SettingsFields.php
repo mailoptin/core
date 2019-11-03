@@ -21,54 +21,56 @@ class SettingsFields
     public static function font_family($name, $setting)
     {
         $setting['choices'] = [
-            'Arial'               => esc_html__('Arial', 'mailoptin'),
-            'Arial Black'         => esc_html__('Arial Black', 'mailoptin'),
-            'Book Antiqua'        => esc_html__('Book Antiqua', 'mailoptin'),
-            'Comic Sans MS'       => esc_html__('Comic Sans MS', 'mailoptin'),
-            'Courier New'         => esc_html__('Courier New', 'mailoptin'),
-            'Georgia'             => esc_html__('Georgia', 'mailoptin'),
-            'Geneva'              => esc_html__('Geneva', 'mailoptin'),
-            'Helvetica'           => esc_html__('Helvetica', 'mailoptin'),
-            'Impact'              => esc_html__('Impact', 'mailoptin'),
-            'Lucida'              => esc_html__('Lucida', 'mailoptin'),
-            'Lucida Console'      => esc_html__('Lucida Console', 'mailoptin'),
-            'Lucida Sans Unicode' => esc_html__('Lucida Sans Unicode', 'mailoptin'),
-            'Lucida Grande'       => esc_html__('Lucida Grande', 'mailoptin'),
-            'Monaco'              => esc_html__('Monaco', 'mailoptin'),
-            'Palatino'            => esc_html__('Palatino', 'mailoptin'),
-            'Palatino Linotype'   => esc_html__('Palatino Linotype', 'mailoptin'),
-            'Tahoma'              => esc_html__('Tahoma', 'mailoptin'),
-            'Times New Roman'     => esc_html__('Times New Roman', 'mailoptin'),
-            'Trebuchet MS'        => esc_html__('Trebuchet MS', 'mailoptin'),
-            'Verdana'             => esc_html__('Verdana', 'mailoptin'),
-
-            'Arvo'              => esc_html__('Arvo', 'mailoptin'),
-            'Lato'              => esc_html__('Lato', 'mailoptin'),
-            'Lora'              => esc_html__('Lora', 'mailoptin'),
-            'Merriweather'      => esc_html__('Merriweather', 'mailoptin'),
-            'Merriweather Sans' => esc_html__('Merriweather Sans', 'mailoptin'),
-            'Noticia Text'      => esc_html__('Noticia Text', 'mailoptin'),
-            'Open Sans'         => esc_html__('Open Sans', 'mailoptin'),
-            'Playfair Display'  => esc_html__('Playfair Display', 'mailoptin'),
-            'Roboto'            => esc_html__('Roboto', 'mailoptin'),
-            'Source Sans Pro'   => esc_html__('Source Sans Pro', 'mailoptin'),
-            'Oswald'            => esc_html__('Oswald', 'mailoptin'),
-            'Raleway'           => esc_html__('Raleway', 'mailoptin'),
-            'Permanent Marker'  => esc_html__('Permanent Marker', 'mailoptin'),
-            'Pacifico'          => esc_html__('Pacifico', 'mailoptin'),
+            esc_html__('Standard Fonts', 'mailoptin') => [
+                'Arial'               => esc_html__('Arial', 'mailoptin'),
+                'Comic Sans MS'       => esc_html__('Comic Sans MS', 'mailoptin'),
+                'Courier New'         => esc_html__('Courier New', 'mailoptin'),
+                'Georgia'             => esc_html__('Georgia', 'mailoptin'),
+                'Helvetica'           => esc_html__('Helvetica', 'mailoptin'),
+                'Lucida Sans Unicode' => esc_html__('Lucida', 'mailoptin'),
+                'Palatino'            => esc_html__('Palatino', 'mailoptin'),
+                'Tahoma'              => esc_html__('Tahoma', 'mailoptin'),
+                'Times New Roman'     => esc_html__('Times New Roman', 'mailoptin'),
+                'Trebuchet MS'        => esc_html__('Trebuchet MS', 'mailoptin'),
+                'Verdana'             => esc_html__('Verdana', 'mailoptin')
+            ],
+            esc_html__('Custom Fonts', 'mailoptin')   => [
+                'Arvo'              => esc_html__('Arvo', 'mailoptin'),
+                'Lato'              => esc_html__('Lato', 'mailoptin'),
+                'Lora'              => esc_html__('Lora', 'mailoptin'),
+                'Merriweather'      => esc_html__('Merriweather', 'mailoptin'),
+                'Merriweather Sans' => esc_html__('Merriweather Sans', 'mailoptin'),
+                'Noticia Text'      => esc_html__('Noticia Text', 'mailoptin'),
+                'Open Sans'         => esc_html__('Open Sans', 'mailoptin'),
+                'Playfair Display'  => esc_html__('Playfair Display', 'mailoptin'),
+                'Roboto'            => esc_html__('Roboto', 'mailoptin'),
+                'Source Sans Pro'   => esc_html__('Source Sans Pro', 'mailoptin'),
+                'Oswald'            => esc_html__('Oswald', 'mailoptin'),
+                'Raleway'           => esc_html__('Raleway', 'mailoptin'),
+                'Permanent Marker'  => esc_html__('Permanent Marker', 'mailoptin'),
+                'Pacifico'          => esc_html__('Pacifico', 'mailoptin'),
+            ]
         ];
 
         self::select($name, $setting);
     }
 
-    public static function select($name, $setting)
+    public static function select($name, $setting = [])
     {
         $choices = $setting['choices'];
 
         printf('<select id="%1$s" name="%1$s">', $name);
 
-        foreach ($choices as $value => $label) {
-            printf('<option value="%s">%s</option>', $value, $label);
+        foreach ($choices as $key => $value) {
+            if (is_array($value)) {
+                echo "<optgroup label='$key'>";
+                foreach ($value as $key2 => $value2) {
+                    printf('<option value="%s">%s</option>', $key2, $value2);
+                }
+                echo "</optgroup>";
+            } else {
+                printf('<option value="%s">%s</option>', $key, $value);
+            }
         }
 
         echo '</select>';

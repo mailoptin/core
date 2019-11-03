@@ -30,8 +30,9 @@ class Text extends AbstractElement
     public function tabs()
     {
         return [
-            'tab-content' => esc_html__('Content', 'mailoptin'),
-            'tab-block-settings'   => esc_html__('Block Settings', 'mailoptin'),
+            'tab-content'        => esc_html__('Content', 'mailoptin'),
+            'tab-style'          => esc_html__('Style', 'mailoptin'),
+            'tab-block-settings' => esc_html__('Block Settings', 'mailoptin'),
         ];
     }
 
@@ -41,6 +42,11 @@ class Text extends AbstractElement
             'text_content'           => [
                 'type' => 'tinymce',
                 'tab'  => 'tab-content'
+            ],
+            'button_font_family'     => [
+                'label' => esc_html__('Font Family', 'mailoptin'),
+                'type'  => 'font_family',
+                'tab'   => 'tab-style'
             ],
             'block_background_color' => [
                 'label' => esc_html__('Background Color', 'mailoptin'),

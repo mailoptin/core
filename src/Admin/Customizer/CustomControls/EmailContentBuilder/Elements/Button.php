@@ -49,16 +49,10 @@ class Button extends AbstractElement
                 'type'  => 'text',
                 'tab'   => 'tab-content'
             ],
-            'button_alignment'        => [
-                'label'   => esc_html__('Button Alignment', 'mailoptin'),
-                'choices' => [
-                    'left'       => esc_html__('Left', 'mailoptin'),
-                    'right'      => esc_html__('Right', 'mailoptin'),
-                    'center'     => esc_html__('Center', 'mailoptin'),
-                    'full_width' => esc_html__('Full Width', 'mailoptin'),
-                ],
-                'type'    => 'select',
-                'tab'     => 'tab-content'
+            'button_width'            => [
+                'label' => esc_html__('Width (%)', 'mailoptin'),
+                'type'  => 'range',
+                'tab'   => 'tab-content'
             ],
             'button_background_color' => [
                 'label' => esc_html__('Background Color', 'mailoptin'),
@@ -71,36 +65,38 @@ class Button extends AbstractElement
                 'tab'   => 'tab-style'
             ],
             'button_font_size'        => [
-                'label' => esc_html__('Font Size', 'mailoptin'),
+                'label' => esc_html__('Font Size (px)', 'mailoptin'),
                 'type'  => 'range',
                 'tab'   => 'tab-style'
             ],
             'button_font_family'      => [
-                'label'   => esc_html__('Font Family', 'mailoptin'),
+                'label' => esc_html__('Font Family', 'mailoptin'),
+                'type'  => 'font_family',
+                'tab'   => 'tab-style'
+            ],
+            'button_font_weight'      => [
+                'label'   => esc_html__('Font Weight', 'mailoptin'),
+                'type'    => 'select',
                 'choices' => [
-                    'Arial'               => esc_html__('Arial', 'mailoptin'),
-                    'Arial Black'         => esc_html__('Arial Black', 'mailoptin'),
-                    'Book Antiqua'        => esc_html__('Book Antiqua', 'mailoptin'),
-                    'Comic Sans MS'       => esc_html__('Comic Sans MS', 'mailoptin'),
-                    'Courier New'         => esc_html__('Courier New', 'mailoptin'),
-                    'Georgia'             => esc_html__('Georgia', 'mailoptin'),
-                    'Geneva'              => esc_html__('Geneva', 'mailoptin'),
-                    'Helvetica'           => esc_html__('Helvetica', 'mailoptin'),
-                    'Impact'              => esc_html__('Impact', 'mailoptin'),
-                    'Lucida'              => esc_html__('Lucida', 'mailoptin'),
-                    'Lucida Console'      => esc_html__('Lucida Console', 'mailoptin'),
-                    'Lucida Sans Unicode' => esc_html__('Lucida Sans Unicode', 'mailoptin'),
-                    'Lucida Grande'       => esc_html__('Lucida Grande', 'mailoptin'),
-                    'Monaco'              => esc_html__('Monaco', 'mailoptin'),
-                    'Palatino'            => esc_html__('Palatino', 'mailoptin'),
-                    'Palatino Linotype'   => esc_html__('Palatino Linotype', 'mailoptin'),
-                    'Tahoma'              => esc_html__('Tahoma', 'mailoptin'),
-                    'Times New Roman'     => esc_html__('Times New Roman', 'mailoptin'),
-                    'Trebuchet MS'        => esc_html__('Trebuchet MS', 'mailoptin'),
-                    'Verdana'             => esc_html__('Verdana', 'mailoptin'),
+                    'normal' => esc_html__('Normal', 'mailoptin'),
+                    'bold'   => esc_html__('Bold', 'mailoptin')
+                ],
+                'tab'     => 'tab-style'
+            ],
+            'button_alignment'        => [
+                'label'   => esc_html__('Alignment', 'mailoptin'),
+                'choices' => [
+                    'left'   => esc_html__('Left', 'mailoptin'),
+                    'right'  => esc_html__('Right', 'mailoptin'),
+                    'center' => esc_html__('Center', 'mailoptin'),
                 ],
                 'type'    => 'select',
                 'tab'     => 'tab-style'
+            ],
+            'button_border_radius'            => [
+                'label' => esc_html__('Rounded Corner', 'mailoptin'),
+                'type'  => 'range',
+                'tab'   => 'tab-style'
             ],
             'block-background-color'  => [
                 'label' => esc_html__('Background Color', 'mailoptin'),
