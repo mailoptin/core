@@ -41,6 +41,21 @@ class SettingsFields
             'Times New Roman'     => esc_html__('Times New Roman', 'mailoptin'),
             'Trebuchet MS'        => esc_html__('Trebuchet MS', 'mailoptin'),
             'Verdana'             => esc_html__('Verdana', 'mailoptin'),
+
+            'Arvo'              => esc_html__('Arvo', 'mailoptin'),
+            'Lato'              => esc_html__('Lato', 'mailoptin'),
+            'Lora'              => esc_html__('Lora', 'mailoptin'),
+            'Merriweather'      => esc_html__('Merriweather', 'mailoptin'),
+            'Merriweather Sans' => esc_html__('Merriweather Sans', 'mailoptin'),
+            'Noticia Text'      => esc_html__('Noticia Text', 'mailoptin'),
+            'Open Sans'         => esc_html__('Open Sans', 'mailoptin'),
+            'Playfair Display'  => esc_html__('Playfair Display', 'mailoptin'),
+            'Roboto'            => esc_html__('Roboto', 'mailoptin'),
+            'Source Sans Pro'   => esc_html__('Source Sans Pro', 'mailoptin'),
+            'Oswald'            => esc_html__('Oswald', 'mailoptin'),
+            'Raleway'           => esc_html__('Raleway', 'mailoptin'),
+            'Permanent Marker'  => esc_html__('Permanent Marker', 'mailoptin'),
+            'Pacifico'          => esc_html__('Pacifico', 'mailoptin'),
         ];
 
         self::select($name, $setting);
