@@ -378,7 +378,7 @@ class Email_Campaign_List extends \WP_List_Table
         </div>
         <div class="alignleft actions bulkactions">
             <label for="mo-listing-filter" class="screen-reader-text">
-                <?php _e('Filter email automations by', 'mailoptin'); ?>
+                <?php _e('Filter email automation by', 'mailoptin'); ?>
             </label>
             <select name="mo_email_automations_filter" id="mo-listing-filter">
                 <option value="">

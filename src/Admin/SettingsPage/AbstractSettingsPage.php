@@ -95,7 +95,7 @@ abstract class AbstractSettingsPage
         $args = [];
 
         if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
-            $args[80]  = array('url' => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE, 'label' => __('Email Automations', 'mailoptin'));
+            $args[80]  = array('url' => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE, 'label' => __('Email Automation', 'mailoptin'));
             $args[90]  = array('url' => MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE, 'label' => __('Newsletters', 'mailoptin'));
             $args[100] = array('url' => MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE, 'label' => __('Log', 'mailoptin'));
         }
