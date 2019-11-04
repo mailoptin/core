@@ -29,11 +29,38 @@ class Image extends AbstractElement
 
     public function tabs()
     {
-        // TODO: Implement tabs() method.
+        return [
+            'tab-content'        => esc_html__('Content', 'mailoptin'),
+            'tab-style'          => esc_html__('Style', 'mailoptin'),
+            'tab-block-settings' => esc_html__('Block Settings', 'mailoptin'),
+        ];
     }
 
     public function settings()
     {
-        // TODO: Implement settings() method.
+
+        return apply_filters('mo_email_content_elements_image_element', [
+            'image-url'  => [
+                'label' => esc_html__('Image URL', 'mailoptin'),
+                'type'  => 'select_image',
+                'tab'   => 'tab-content'
+            ],
+
+            'block-background-color'  => [
+                'label' => esc_html__('Background Color', 'mailoptin'),
+                'type'  => 'color_picker',
+                'tab'   => 'tab-block-settings'
+            ],
+            'block-margin'            => [
+                'label' => esc_html__('Margin', 'mailoptin'),
+                'type'  => 'dimension',
+                'tab'   => 'tab-block-settings'
+            ],
+            'block-padding'           => [
+                'label' => esc_html__('Padding', 'mailoptin'),
+                'type'  => 'dimension',
+                'tab'   => 'tab-block-settings'
+            ],
+        ]);
     }
 }

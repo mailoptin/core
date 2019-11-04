@@ -18,6 +18,12 @@ class SettingsFields
         printf('<input type="text" name="%1$s" id="%1$s" value="">', $name);
     }
 
+    public static function select_image($name, $setting)
+    {
+        printf('<div class="mo-select-image-field"><input type="text" name="%1$s" id="%1$s" value=""></div>', $name);
+        printf('<div class="mo-select-image-btn"><a href="#" class="button action">%s</a></div>', esc_html__('Choose Image', 'mailoptin'));
+    }
+
     public static function font_family($name, $setting)
     {
         $setting['choices'] = [

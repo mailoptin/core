@@ -124,6 +124,8 @@
 
             $(document).on('click', '.mo-email-content-modal-motabs .motabs .motab', this.toggle_settings_tab);
 
+            $(document).on('click', '.mo-select-image-btn a', this.media_upload);
+
             // $(document).on('click', '.mo-email-content-delete', this.remove_field);
         },
 
@@ -182,6 +184,34 @@
             e.preventDefault();
             $(this).parents('.mo-email-content-widget-wrapper').hide();
             $(this).parents('.mo-email-content-wrapper').find('.mo-email-content-elements-wrapper').show("slide", {direction: "right"}, 300);
+        },
+
+        media_upload: function (e) {
+
+            e.preventDefault();
+
+            let frame, _this = $(e.target);
+
+            if (frame) {
+                frame.open();
+                return;
+            }
+
+            frame = wp.media.frames.file_frame = wp.media({
+                frame: 'select',
+                multiple: false,
+                library: {
+                    type: 'image' // limits the frame to show only images
+                },
+            });
+
+            frame.on('select', function () {
+                let attachment = frame.state().get('selection').first().toJSON();
+                _this.parents('.mo-email-content-blocks').find('.mo-select-image-field input').val(attachment.url);
+
+            });
+
+            frame.open();
         },
 
         dimension_field_init: function () {
