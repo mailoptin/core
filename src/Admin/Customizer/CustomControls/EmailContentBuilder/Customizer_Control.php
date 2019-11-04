@@ -22,15 +22,19 @@ class Customizer_Control extends WP_Customize_Control
     {
         return [
             [
-                'id'       => 'text',
+                'type'     => 'text',
                 'settings' => []
             ],
             [
-                'id'       => 'button',
+                'type'     => 'button',
                 'settings' => []
             ],
             [
-                'id'       => 'image',
+                'type'     => 'image',
+                'settings' => []
+            ],
+            [
+                'type'     => 'divider',
                 'settings' => []
             ]
         ];
@@ -68,7 +72,7 @@ class Customizer_Control extends WP_Customize_Control
         );
 
         foreach ($this->saved_values() as $element) {
-            $this->element_bar($element['id'], $element['settings']);
+            $this->element_bar($element['type'], $element['settings']);
         }
         ?>
 
@@ -87,16 +91,16 @@ class Customizer_Control extends WP_Customize_Control
         $this->element_settings();
     }
 
-    public function element_bar($id, $settings)
+    public function element_bar($element_type, $settings)
     {
-        $class = 'MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\\' . ucfirst($id);
+        $class = 'MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\\' . ucfirst($element_type);
         /** @var AbstractElement $instance */
         $instance = call_user_func([$class, 'get_instance'])
         ?>
-        <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-type="<?= $id ?>">
+        <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-type="<?= $element_type ?>">
             <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
                 <div class="mo-email-content-part-widget-title-action">
-                    <button type="button" class="mo-email-content-widget-action" data-element-type="<?= $id ?>">
+                    <button type="button" class="mo-email-content-widget-action" data-element-type="<?= $element_type ?>">
                         <span class="toggle-indicator"></span>
                     </button>
                 </div>

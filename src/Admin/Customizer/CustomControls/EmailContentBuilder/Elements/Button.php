@@ -98,17 +98,17 @@ class Button extends AbstractElement
                 'type'  => 'range',
                 'tab'   => 'tab-style'
             ],
-            'block-background-color'  => [
+            'block_background_color'  => [
                 'label' => esc_html__('Background Color', 'mailoptin'),
                 'type'  => 'color_picker',
                 'tab'   => 'tab-block-settings'
             ],
-            'block-margin'            => [
+            'block_margin'            => [
                 'label' => esc_html__('Margin', 'mailoptin'),
                 'type'  => 'dimension',
                 'tab'   => 'tab-block-settings'
             ],
-            'block-padding'           => [
+            'block_padding'           => [
                 'label' => esc_html__('Padding', 'mailoptin'),
                 'type'  => 'dimension',
                 'tab'   => 'tab-block-settings'
