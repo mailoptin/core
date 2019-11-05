@@ -211,7 +211,7 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     cursor: pointer;
     line-height: 21px;
     margin: 0 0 4px;
-    padding: 10px 15px 11px;
+    padding: 10px 15px 15px 5px;
     position: relative;
     transition-delay: 0s;
     transition-duration: 150ms;
@@ -227,6 +227,15 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     padding-right: 0.75em;
     float: left;
     -webkit-font-smoothing: antialiased;
+}
+
+.mo-email-content-elements-wrapper li.list__item.element--box .mo-email-content-element-img {
+    padding-right: 0.75em;
+    vertical-align: 0;
+    float: left;
+    -webkit-font-smoothing: antialiased;
+    width: 70px !important;
+    height: auto;
 }
 
 .mo-email-content-elements-wrapper .list .element__wrap {

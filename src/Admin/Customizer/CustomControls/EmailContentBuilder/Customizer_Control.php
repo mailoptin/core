@@ -140,7 +140,8 @@ class Customizer_Control extends WP_Customize_Control
             <ul class="list list--secondary" id="items">
                 <?php foreach ($elements as $element) : ?>
                     <li class="list__item element element--box" data-element-type="<?= $element['id'] ?>">
-                        <?= $element['icon'] ?>
+                        <?php $icon_url = MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/' . $element['icon']; ?>
+                        <img src="<?= $icon_url ?>" class="mo-email-content-element-img">
                         <div class="element__wrap">
                             <h3 class="list__label"><?= $element['title'] ?></h3>
                             <div class="element__description"><?= $element['description'] ?></div>

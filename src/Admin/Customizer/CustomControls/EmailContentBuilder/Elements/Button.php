@@ -14,7 +14,7 @@ class Button extends AbstractElement
 
     public function icon()
     {
-        return '<span class="dashicons dashicons-editor-removeformatting"></span>';
+        return 'button.svg';
     }
 
     public function title()

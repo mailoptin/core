@@ -14,7 +14,7 @@ class Image extends AbstractElement
 
     public function icon()
     {
-        return '<span class="dashicons dashicons-format-image"></span>';
+        return 'image.svg';
     }
 
     public function title()

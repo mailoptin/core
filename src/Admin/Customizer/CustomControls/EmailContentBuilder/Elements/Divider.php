@@ -14,7 +14,7 @@ class Divider extends AbstractElement
 
     public function icon()
     {
-        return '<span class="dashicons dashicons-minus"></span>';
+        return 'divider.svg';
     }
 
     public function title()

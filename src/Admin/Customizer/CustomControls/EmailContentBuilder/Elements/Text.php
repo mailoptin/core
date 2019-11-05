@@ -14,7 +14,7 @@ class Text extends AbstractElement
 
     public function icon()
     {
-        return '<span class="dashicons dashicons-text"></span>';
+        return 'text.svg';
     }
 
     public function title()
