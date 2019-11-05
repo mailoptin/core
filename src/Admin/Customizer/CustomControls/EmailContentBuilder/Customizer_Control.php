@@ -15,7 +15,18 @@ class Customizer_Control extends WP_Customize_Control
     {
         parent::__construct($manager, $id, $args);
 
+        add_action('customize_controls_print_footer_scripts', [$this, 'element_bar_tmpl']);
+
         new Elements\Init();
+    }
+
+    protected function get_element_title($element_type)
+    {
+        $class = 'MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\\' . ucfirst($element_type);
+        /** @var AbstractElement $instance */
+        $instance = call_user_func([$class, 'get_instance']);
+
+        return $instance->title();
     }
 
     public function saved_values()
@@ -23,18 +34,22 @@ class Customizer_Control extends WP_Customize_Control
         return [
             [
                 'type'     => 'text',
+                'title'    => $this->get_element_title('text'),
                 'settings' => []
             ],
             [
                 'type'     => 'button',
+                'title'    => $this->get_element_title('button'),
                 'settings' => []
             ],
             [
                 'type'     => 'image',
+                'title'    => $this->get_element_title('image'),
                 'settings' => []
             ],
             [
                 'type'     => 'divider',
+                'title'    => $this->get_element_title('divider'),
                 'settings' => []
             ]
         ];
@@ -53,6 +68,7 @@ class Customizer_Control extends WP_Customize_Control
         wp_enqueue_script('wp-color-picker');
         wp_enqueue_style('wp-color-picker');
 
+        wp_enqueue_script('underscore');
 
         wp_enqueue_script('jquery-ui-core');
         wp_enqueue_script('jquery-effects-slide');
@@ -65,37 +81,47 @@ class Customizer_Control extends WP_Customize_Control
             'block_padding'          => '',
         ];
 
-        wp_localize_script('mailoptin-customizer-email-content', 'mo_email_content_builder_elements', [
-            'text'    => $block_settings_default + [
-                    'text_content'     => '',
-                    'text_font_family' => ''
-                ],
-            'button'  => $block_settings_default + [
-                    'button_text'             => esc_html__('Button', 'mailoptin'),
-                    'button_link'             => '#',
-                    'button_width'            => '70',
-                    'button_background_color' => '',
-                    'button_color'            => '',
-                    'button_font_size'        => '18',
-                    'button_font_family'      => '',
-                    'button_font_weight'      => 'bold',
-                    'button_alignment'        => 'center',
-                    'button_border_radius'    => '0'
-                ],
-            'divider' => $block_settings_default + [
-                    'divider_width'     => '100',
-                    'divider_alignment' => 'center',
-                    'divider_style'     => 'solid',
-                    'divider_color'     => '#dcd6d1',
-                    'divider_height'    => '1'
-                ],
-            'image'   => $block_settings_default + [
-                    'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
-                    'image_width'     => '100',
-                    'image_alignment' => 'center',
-                    'image_alt_text'  => '',
-                ]
-        ]);
+        wp_localize_script(
+            'mailoptin-customizer-email-content',
+            'mo_email_content_builder_saved_elements',
+            ['data' => $this->saved_values()]
+        );
+
+        wp_localize_script(
+            'mailoptin-customizer-email-content',
+            'mo_email_content_builder_elements',
+            [
+                'text'    => $block_settings_default + [
+                        'text_content'     => '',
+                        'text_font_family' => ''
+                    ],
+                'button'  => $block_settings_default + [
+                        'button_text'             => esc_html__('Button', 'mailoptin'),
+                        'button_link'             => '#',
+                        'button_width'            => '70',
+                        'button_background_color' => '',
+                        'button_color'            => '',
+                        'button_font_size'        => '18',
+                        'button_font_family'      => '',
+                        'button_font_weight'      => 'bold',
+                        'button_alignment'        => 'center',
+                        'button_border_radius'    => '0'
+                    ],
+                'divider' => $block_settings_default + [
+                        'divider_width'     => '100',
+                        'divider_alignment' => 'center',
+                        'divider_style'     => 'solid',
+                        'divider_color'     => '#dcd6d1',
+                        'divider_height'    => '1'
+                    ],
+                'image'   => $block_settings_default + [
+                        'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
+                        'image_width'     => '100',
+                        'image_alignment' => 'center',
+                        'image_alt_text'  => '',
+                    ]
+            ]
+        );
     }
 
     public function render_content()
@@ -109,9 +135,9 @@ class Customizer_Control extends WP_Customize_Control
             $collapse_text, $expand_text
         );
 
-        foreach ($this->saved_values() as $element) {
-            $this->element_bar($element['type'], $element['settings']);
-        }
+        echo '<div id="mo-email-content-element-bars-wrap">';
+        // saved elements will be rendered here
+        echo '</div>';
         ?>
 
         <div class="mo-email-content__add_new">
@@ -129,24 +155,23 @@ class Customizer_Control extends WP_Customize_Control
         $this->element_settings();
     }
 
-    public function element_bar($element_type, $settings)
+    public function element_bar_tmpl()
     {
-        $class = 'MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\\' . ucfirst($element_type);
-        /** @var AbstractElement $instance */
-        $instance = call_user_func([$class, 'get_instance'])
         ?>
-        <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-type="<?= $element_type ?>">
-            <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
-                <div class="mo-email-content-part-widget-title-action">
-                    <button type="button" class="mo-email-content-widget-action" data-element-type="<?= $element_type ?>">
-                        <span class="toggle-indicator"></span>
-                    </button>
-                </div>
-                <div class="mo-email-content-widget-title">
-                    <h3><?= $instance->title() ?> <span class="mopreview">hello goalototos</span></h3>
+        <script type="text/html" id="tmpl-mo-email-content-element-bar">
+            <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-type="{{data.type}}">
+                <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
+                    <div class="mo-email-content-part-widget-title-action">
+                        <button type="button" class="mo-email-content-widget-action" data-element-type="{{data.type}}">
+                            <span class="toggle-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="mo-email-content-widget-title">
+                        <h3>{{data.title}} <span class="mopreview">hello goalototos</span></h3>
+                    </div>
                 </div>
             </div>
-        </div>
+        </script>
         <?php
     }
 
@@ -177,7 +202,7 @@ class Customizer_Control extends WP_Customize_Control
 
             <ul class="list list--secondary" id="items">
                 <?php foreach ($elements as $element) : ?>
-                    <li class="list__item element element--box" data-element-type="<?= $element['id'] ?>">
+                    <li class="list__item element element--box mo-email-builder-add-element" data-element-type="<?= $element['id'] ?>" data-element-title="<?= $element['title'] ?>">
                         <?php $icon_url = MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/' . $element['icon']; ?>
                         <img src="<?= $icon_url ?>" class="mo-email-content-element-img">
                         <div class="element__wrap">
@@ -187,7 +212,6 @@ class Customizer_Control extends WP_Customize_Control
                     </li>
                 <?php endforeach; ?>
             </ul>
-
         </div>
         <?php
     }

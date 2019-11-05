@@ -98,6 +98,7 @@ class Button extends AbstractElement
                     'type'  => 'range',
                     'tab'   => 'tab-style'
                 ]
-            ]);
+            ]
+        );
     }
 }

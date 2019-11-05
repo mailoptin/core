@@ -48,6 +48,7 @@ class Text extends AbstractElement
                     'type'  => 'font_family',
                     'tab'   => 'tab-style'
                 ]
-            ]);
+            ]
+        );
     }
 }

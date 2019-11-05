@@ -64,6 +64,7 @@ class Image extends AbstractElement
                     'type'  => 'text',
                     'tab'   => 'tab-style'
                 ]
-            ]);
+            ]
+        );
     }
 }

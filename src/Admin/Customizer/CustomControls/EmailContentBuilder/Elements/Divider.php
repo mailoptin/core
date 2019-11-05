@@ -79,6 +79,7 @@ class Divider extends AbstractElement
                     'type'  => 'range',
                     'tab'   => 'tab-style'
                 ]
-            ]);
+            ]
+        );
     }
 }
