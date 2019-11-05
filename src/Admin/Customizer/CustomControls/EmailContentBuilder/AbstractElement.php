@@ -27,6 +27,27 @@ abstract class AbstractElement implements ElementInterface
         return $elements;
     }
 
+    public function element_block_settings()
+    {
+        return [
+            'block_background_color' => [
+                'label' => esc_html__('Background Color', 'mailoptin'),
+                'type'  => 'color_picker',
+                'tab'   => 'tab-block-settings'
+            ],
+            'block_margin'           => [
+                'label' => esc_html__('Margin', 'mailoptin'),
+                'type'  => 'dimension',
+                'tab'   => 'tab-block-settings'
+            ],
+            'block_padding'          => [
+                'label' => esc_html__('Padding', 'mailoptin'),
+                'type'  => 'dimension',
+                'tab'   => 'tab-block-settings'
+            ]
+        ];
+    }
+
     public function js_template()
     {
         printf('<script type="text/html" id="tmpl-mo-email-content-element-%s">', $this->id()); ?>

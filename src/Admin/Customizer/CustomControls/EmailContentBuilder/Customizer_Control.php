@@ -58,6 +58,44 @@ class Customizer_Control extends WP_Customize_Control
         wp_enqueue_script('jquery-effects-slide');
 
         wp_enqueue_media();
+
+        $block_settings_default = [
+            'block_background_color' => '',
+            'block_margin'           => '',
+            'block_padding'          => '',
+        ];
+
+        wp_localize_script('mailoptin-customizer-email-content', 'mo_email_content_builder_elements', [
+            'text'    => $block_settings_default + [
+                    'text_content'     => '',
+                    'text_font_family' => ''
+                ],
+            'button'  => $block_settings_default + [
+                    'button_text'             => esc_html__('Button', 'mailoptin'),
+                    'button_link'             => '#',
+                    'button_width'            => '70',
+                    'button_background_color' => '',
+                    'button_color'            => '',
+                    'button_font_size'        => '18',
+                    'button_font_family'      => '',
+                    'button_font_weight'      => 'bold',
+                    'button_alignment'        => 'center',
+                    'button_border_radius'    => '0'
+                ],
+            'divider' => $block_settings_default + [
+                    'divider_width'     => '100',
+                    'divider_alignment' => 'center',
+                    'divider_style'     => 'solid',
+                    'divider_color'     => '#dcd6d1',
+                    'divider_height'    => '1'
+                ],
+            'image'   => $block_settings_default + [
+                    'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
+                    'image_width'     => '100',
+                    'image_alignment' => 'center',
+                    'image_alt_text'  => '',
+                ]
+        ]);
     }
 
     public function render_content()

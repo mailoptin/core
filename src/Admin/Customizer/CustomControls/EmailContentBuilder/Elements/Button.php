@@ -38,81 +38,66 @@ class Button extends AbstractElement
 
     public function settings()
     {
-        return apply_filters('mo_email_content_elements_button_element', [
-            'button_text'             => [
-                'label' => esc_html__('Button Text', 'mailoptin'),
-                'type'  => 'text',
-                'tab'   => 'tab-content'
-            ],
-            'button_link'             => [
-                'label' => esc_html__('Button Link (URL)', 'mailoptin'),
-                'type'  => 'text',
-                'tab'   => 'tab-content'
-            ],
-            'button_width'            => [
-                'label' => esc_html__('Width (%)', 'mailoptin'),
-                'type'  => 'range',
-                'tab'   => 'tab-content'
-            ],
-            'button_background_color' => [
-                'label' => esc_html__('Background Color', 'mailoptin'),
-                'type'  => 'color_picker',
-                'tab'   => 'tab-style'
-            ],
-            'button_color'            => [
-                'label' => esc_html__('Color', 'mailoptin'),
-                'type'  => 'color_picker',
-                'tab'   => 'tab-style'
-            ],
-            'button_font_size'        => [
-                'label' => esc_html__('Font Size (px)', 'mailoptin'),
-                'type'  => 'range',
-                'tab'   => 'tab-style'
-            ],
-            'button_font_family'      => [
-                'label' => esc_html__('Font Family', 'mailoptin'),
-                'type'  => 'font_family',
-                'tab'   => 'tab-style'
-            ],
-            'button_font_weight'      => [
-                'label'   => esc_html__('Font Weight', 'mailoptin'),
-                'type'    => 'select',
-                'choices' => [
-                    'normal' => esc_html__('Normal', 'mailoptin'),
-                    'bold'   => esc_html__('Bold', 'mailoptin')
+        return apply_filters('mo_email_content_elements_button_element', $this->element_block_settings() + [
+                'button_text'             => [
+                    'label' => esc_html__('Button Text', 'mailoptin'),
+                    'type'  => 'text',
+                    'tab'   => 'tab-content'
                 ],
-                'tab'     => 'tab-style'
-            ],
-            'button_alignment'        => [
-                'label'   => esc_html__('Alignment', 'mailoptin'),
-                'choices' => [
-                    'left'   => esc_html__('Left', 'mailoptin'),
-                    'right'  => esc_html__('Right', 'mailoptin'),
-                    'center' => esc_html__('Center', 'mailoptin'),
+                'button_link'             => [
+                    'label' => esc_html__('Button Link (URL)', 'mailoptin'),
+                    'type'  => 'text',
+                    'tab'   => 'tab-content'
                 ],
-                'type'    => 'select',
-                'tab'     => 'tab-style'
-            ],
-            'button_border_radius'            => [
-                'label' => esc_html__('Rounded Corner', 'mailoptin'),
-                'type'  => 'range',
-                'tab'   => 'tab-style'
-            ],
-            'block_background_color'  => [
-                'label' => esc_html__('Background Color', 'mailoptin'),
-                'type'  => 'color_picker',
-                'tab'   => 'tab-block-settings'
-            ],
-            'block_margin'            => [
-                'label' => esc_html__('Margin', 'mailoptin'),
-                'type'  => 'dimension',
-                'tab'   => 'tab-block-settings'
-            ],
-            'block_padding'           => [
-                'label' => esc_html__('Padding', 'mailoptin'),
-                'type'  => 'dimension',
-                'tab'   => 'tab-block-settings'
-            ],
-        ]);
+                'button_width'            => [
+                    'label' => esc_html__('Width (%)', 'mailoptin'),
+                    'type'  => 'range',
+                    'tab'   => 'tab-content'
+                ],
+                'button_background_color' => [
+                    'label' => esc_html__('Background Color', 'mailoptin'),
+                    'type'  => 'color_picker',
+                    'tab'   => 'tab-style'
+                ],
+                'button_color'            => [
+                    'label' => esc_html__('Color', 'mailoptin'),
+                    'type'  => 'color_picker',
+                    'tab'   => 'tab-style'
+                ],
+                'button_font_size'        => [
+                    'label' => esc_html__('Font Size (px)', 'mailoptin'),
+                    'type'  => 'range',
+                    'tab'   => 'tab-style'
+                ],
+                'button_font_family'      => [
+                    'label' => esc_html__('Font Family', 'mailoptin'),
+                    'type'  => 'font_family',
+                    'tab'   => 'tab-style'
+                ],
+                'button_font_weight'      => [
+                    'label'   => esc_html__('Font Weight', 'mailoptin'),
+                    'type'    => 'select',
+                    'choices' => [
+                        'normal' => esc_html__('Normal', 'mailoptin'),
+                        'bold'   => esc_html__('Bold', 'mailoptin')
+                    ],
+                    'tab'     => 'tab-style'
+                ],
+                'button_alignment'        => [
+                    'label'   => esc_html__('Alignment', 'mailoptin'),
+                    'choices' => [
+                        'left'   => esc_html__('Left', 'mailoptin'),
+                        'right'  => esc_html__('Right', 'mailoptin'),
+                        'center' => esc_html__('Center', 'mailoptin'),
+                    ],
+                    'type'    => 'select',
+                    'tab'     => 'tab-style'
+                ],
+                'button_border_radius'    => [
+                    'label' => esc_html__('Rounded Corner', 'mailoptin'),
+                    'type'  => 'range',
+                    'tab'   => 'tab-style'
+                ]
+            ]);
     }
 }

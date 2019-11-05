@@ -27,6 +27,7 @@ class SettingsFields
     public static function font_family($name, $setting)
     {
         $setting['choices'] = [
+                '' => esc_html__('Select...', 'mailoptin'),
             esc_html__('Standard Fonts', 'mailoptin') => [
                 'Arial'               => esc_html__('Arial', 'mailoptin'),
                 'Comic Sans MS'       => esc_html__('Comic Sans MS', 'mailoptin'),
