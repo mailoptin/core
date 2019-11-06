@@ -8,10 +8,6 @@
 
             _this = this;
 
-            console.log(this.setting);
-
-            // this.setting.set(jQuery("#" + id).tagit('assignedTags'));
-
             wp.customize.section('mailoptin_newsletter_content', function (section) {
                 section.expanded.bind(function (isExpanded) {
                     if (isExpanded) {
@@ -50,23 +46,28 @@
 
         add_new_element: function () {
             var type = $(this).data('element-type');
+            var id = Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
             var template = wp.template('mo-email-content-element-bar');
 
-            $('#mo-email-content-element-bars-wrap').append(template({type: type}));
+            $('#mo-email-content-element-bars-wrap').append(template({type: type, id: id}));
 
-            _this.setting.get().push({
+            var data = JSON.parse(_this.setting.get());
+            data.push({
+                'id': id,
                 'type': type,
                 'settings': mo_email_content_builder_elements_defaults[type]
             });
+
+            $('#mo-email-content-save-field').val(JSON.stringify(data)).change();
 
             _this.go_back();
         },
 
         display_saved_elements: function () {
-            _.each(mo_email_content_builder_saved_elements.data, function (element, index) {
+            _.each(JSON.parse(_this.setting.get()), function (element, index) {
                 var template = wp.template('mo-email-content-element-bar');
 
-                $('#mo-email-content-element-bars-wrap').append(template({type: element.type}));
+                $('#mo-email-content-element-bars-wrap').append(template(element));
             });
         },
 
@@ -76,15 +77,22 @@
             $('body').addClass('mo-email-content-element-settings-open');
 
             var element_type = $(this).data('element-type');
+            var element_id = $(this).data('element-id');
 
-            if (typeof element_type === 'undefined') {
+            if (typeof element_type === 'undefined' || typeof element_id === 'undefined') {
                 element_type = $(this).parents('.element-bar').data('element-type');
+                element_id = $(this).parents('.element-bar').data('element-id');
             }
 
             $('#mo-email-content-settings-area').remove();
             var template = wp.template('mo-email-content-element-' + element_type);
+            var template_data = _.findWhere(JSON.parse(_this.setting.get()), {id: element_id});
 
-            $('.mo-email-content-widget.mo-email-content-element-settings').append(template()).show().tinymce_field_init().color_picker_init();
+            if (typeof template_data !== 'undefined') {
+                template_data = template_data.settings;
+            }
+
+            $('.mo-email-content-widget.mo-email-content-element-settings').append(template(template_data)).show().tinymce_field_init().color_picker_init();
 
             $('.mo-email-content-modal-motabs .motabs .motab').eq(0).click();
         },

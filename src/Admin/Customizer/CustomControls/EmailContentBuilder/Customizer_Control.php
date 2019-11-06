@@ -29,25 +29,44 @@ class Customizer_Control extends WP_Customize_Control
         return $instance->title();
     }
 
-    public function saved_values()
+    public static function elements_default_fields_values()
     {
+        $block_settings_default = [
+            'block_background_color' => '',
+            'block_margin'           => '',
+            'block_padding'          => '',
+        ];
+
         return [
-            [
-                'type'     => 'text',
-                'settings' => []
-            ],
-            [
-                'type'     => 'button',
-                'settings' => []
-            ],
-            [
-                'type'     => 'image',
-                'settings' => []
-            ],
-            [
-                'type'     => 'divider',
-                'settings' => []
-            ]
+            'text'    => $block_settings_default + [
+                    'text_content'     => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+                    'text_font_family' => ''
+                ],
+            'button'  => $block_settings_default + [
+                    'button_text'             => esc_html__('Button', 'mailoptin'),
+                    'button_link'             => '#',
+                    'button_width'            => '70',
+                    'button_background_color' => '',
+                    'button_color'            => '',
+                    'button_font_size'        => '18',
+                    'button_font_family'      => '',
+                    'button_font_weight'      => 'bold',
+                    'button_alignment'        => 'center',
+                    'button_border_radius'    => '0'
+                ],
+            'divider' => $block_settings_default + [
+                    'divider_width'     => '100',
+                    'divider_alignment' => 'center',
+                    'divider_style'     => 'solid',
+                    'divider_color'     => '#dcd6d1',
+                    'divider_height'    => '1'
+                ],
+            'image'   => $block_settings_default + [
+                    'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
+                    'image_width'     => '100',
+                    'image_alignment' => 'center',
+                    'image_alt_text'  => '',
+                ]
         ];
     }
 
@@ -71,52 +90,10 @@ class Customizer_Control extends WP_Customize_Control
 
         wp_enqueue_media();
 
-        $block_settings_default = [
-            'block_background_color' => '',
-            'block_margin'           => '',
-            'block_padding'          => '',
-        ];
-
-        wp_localize_script(
-            'mailoptin-customizer-email-content',
-            'mo_email_content_builder_saved_elements',
-            ['data' => $this->saved_values()]
-        );
-
         wp_localize_script(
             'mailoptin-customizer-email-content',
             'mo_email_content_builder_elements_defaults',
-            [
-                'text'    => $block_settings_default + [
-                        'text_content'     => '',
-                        'text_font_family' => ''
-                    ],
-                'button'  => $block_settings_default + [
-                        'button_text'             => esc_html__('Button', 'mailoptin'),
-                        'button_link'             => '#',
-                        'button_width'            => '70',
-                        'button_background_color' => '',
-                        'button_color'            => '',
-                        'button_font_size'        => '18',
-                        'button_font_family'      => '',
-                        'button_font_weight'      => 'bold',
-                        'button_alignment'        => 'center',
-                        'button_border_radius'    => '0'
-                    ],
-                'divider' => $block_settings_default + [
-                        'divider_width'     => '100',
-                        'divider_alignment' => 'center',
-                        'divider_style'     => 'solid',
-                        'divider_color'     => '#dcd6d1',
-                        'divider_height'    => '1'
-                    ],
-                'image'   => $block_settings_default + [
-                        'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
-                        'image_width'     => '100',
-                        'image_alignment' => 'center',
-                        'image_alt_text'  => '',
-                    ]
-            ]
+            $this->elements_default_fields_values()
         );
     }
 
@@ -135,6 +112,9 @@ class Customizer_Control extends WP_Customize_Control
                 <?php _e('Add Element', 'mailoptin') ?>
             </button>
         </div>
+
+        <input id="mo-email-content-save-field" type="hidden" <?php $this->link(); ?>/>
+
         <?php
         echo '</div>';
         $this->elements_ui();
@@ -170,10 +150,10 @@ class Customizer_Control extends WP_Customize_Control
             }
         </script>
         <script type="text/html" id="tmpl-mo-email-content-element-bar">
-            <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-type="{{data.type}}">
+            <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-id="{{data.id}}" data-element-type="{{data.type}}">
                 <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
                     <div class="mo-email-content-part-widget-title-action">
-                        <button type="button" class="mo-email-content-widget-action" data-element-type="{{data.type}}">
+                        <button type="button" class="mo-email-content-widget-action" data-element-id="{{data.id}}" data-element-type="{{data.type}}">
                             <span class="toggle-indicator"></span>
                         </button>
                     </div>

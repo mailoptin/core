@@ -1,4 +1,4 @@
-(function(blocks, editor, __, element, components, wp) {
+(function(blocks, editor, __, element, components, wp, $) {
     var el = element.createElement;
     var InspectorControls = editor.InspectorControls;
     var SelectControl = components.SelectControl;
@@ -132,5 +132,6 @@
     window.wp.i18n.__,
     window.wp.element,
     window.wp.components,
-    window.wp
+    window.wp,
+    jQuery
 );

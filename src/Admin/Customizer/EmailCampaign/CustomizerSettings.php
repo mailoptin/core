@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Customizer_Control;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class CustomizerSettings extends AbstractCustomizer
@@ -216,7 +217,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage'
                 ),
-                'post_authors'                       => array(
+                'post_authors'                    => array(
                     'default'   => $this->customizer_defaults['post_authors'],
                     'type'      => 'option',
                     'transport' => 'postMessage'
@@ -441,7 +442,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'content_post_meta'                 => array(
+                'content_post_meta'                        => array(
                     'default'   => $this->customizer_defaults['content_post_meta'],
                     'type'      => 'option',
                     'transport' => 'refresh',
@@ -496,8 +497,14 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'email_newsletter_content'                => array(
-                    'default'   => [],
+                'email_newsletter_content'                 => array(
+                    'default'   => json_encode([
+                        [
+                            'id'       => wp_generate_password(18, false),
+                            'type'     => 'text',
+                            'settings' => Customizer_Control::elements_default_fields_values()['text']
+                        ]
+                    ]),
                     'type'      => 'option',
                     'transport' => 'refresh',
                 )
