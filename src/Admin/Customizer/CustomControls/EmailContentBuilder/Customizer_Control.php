@@ -145,7 +145,7 @@ class Customizer_Control extends WP_Customize_Control
                 return title;
             }
 
-            function mo_email_content_element_get_field_value(key, obj) {
+            function mo_ece_get_field_value(key, obj) {
                 return typeof obj !== 'undefined' && typeof obj[key] !== 'undefined' ? obj[key] : '';
             }
         </script>
