@@ -71,11 +71,11 @@ class SettingsFields
             if (is_array($value)) {
                 echo "<optgroup label='$key'>";
                 foreach ($value as $key2 => $value2) {
-                    printf('<option value="%s">%s</option>', $key2, $value2);
+                    printf('<option value="%1$s" <# if(mo_email_content_element_get_field_value("%3$s", data) == "%1$s") { #> selected <# } #>>%2$s</option>', $key2, $value2, $name);
                 }
                 echo "</optgroup>";
             } else {
-                printf('<option value="%s">%s</option>', $key, $value);
+                printf('<option value="%1$s" <# if(mo_email_content_element_get_field_value("%3$s", data) == "%1$s") { #> selected <# } #>>%2$s</option>', $key, $value, $name);
             }
         }
 
