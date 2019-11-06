@@ -1,9 +1,16 @@
 (function (api, $) {
+    var _this;
 
     wp.customize.controlConstructor["mailoptin-email-content"] = wp.customize.Control.extend({
 
         ready: function () {
             "use strict";
+
+            _this = this;
+
+            console.log(this.setting);
+
+            // this.setting.set(jQuery("#" + id).tagit('assignedTags'));
 
             wp.customize.section('mailoptin_newsletter_content', function (section) {
                 section.expanded.bind(function (isExpanded) {
@@ -36,20 +43,30 @@
 
             $(document).on('click', '.mo-select-image-btn a', this.media_upload);
 
-            $(document).on('click', '.mo-email-builder-add-element a', this.add_new_element);
+            $(document).on('click', '.mo-email-builder-add-element', this.add_new_element);
 
             // $(document).on('click', '.mo-email-content-delete', this.remove_field);
         },
 
-        add_new_element: function() {
+        add_new_element: function () {
+            var type = $(this).data('element-type');
+            var template = wp.template('mo-email-content-element-bar');
 
+            $('#mo-email-content-element-bars-wrap').append(template({type: type}));
+
+            _this.setting.get().push({
+                'type': type,
+                'settings': mo_email_content_builder_elements_defaults[type]
+            });
+
+            _this.go_back();
         },
 
         display_saved_elements: function () {
             _.each(mo_email_content_builder_saved_elements.data, function (element, index) {
                 var template = wp.template('mo-email-content-element-bar');
 
-                $('#mo-email-content-element-bars-wrap').append(template(element));
+                $('#mo-email-content-element-bars-wrap').append(template({type: element.type}));
             });
         },
 
@@ -96,7 +113,9 @@
         },
 
         go_back: function (e) {
-            e.preventDefault();
+            if (typeof e !== 'undefined') {
+                e.preventDefault();
+            }
             $('.mo-email-content-elements-wrapper').hide();
             $('.mo-email-content-widget.mo-email-content-element-settings').hide();
             $('body').removeClass('mo-email-content-element-settings-open');

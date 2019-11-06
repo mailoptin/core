@@ -497,7 +497,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'transport' => 'postMessage',
                 ),
                 'email_newsletter_content'                => array(
-                    'default'   => '',
+                    'default'   => [],
                     'type'      => 'option',
                     'transport' => 'refresh',
                 )

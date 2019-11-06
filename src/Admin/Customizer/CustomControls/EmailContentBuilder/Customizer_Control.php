@@ -34,22 +34,18 @@ class Customizer_Control extends WP_Customize_Control
         return [
             [
                 'type'     => 'text',
-                'title'    => $this->get_element_title('text'),
                 'settings' => []
             ],
             [
                 'type'     => 'button',
-                'title'    => $this->get_element_title('button'),
                 'settings' => []
             ],
             [
                 'type'     => 'image',
-                'title'    => $this->get_element_title('image'),
                 'settings' => []
             ],
             [
                 'type'     => 'divider',
-                'title'    => $this->get_element_title('divider'),
                 'settings' => []
             ]
         ];
@@ -89,7 +85,7 @@ class Customizer_Control extends WP_Customize_Control
 
         wp_localize_script(
             'mailoptin-customizer-email-content',
-            'mo_email_content_builder_elements',
+            'mo_email_content_builder_elements_defaults',
             [
                 'text'    => $block_settings_default + [
                         'text_content'     => '',
@@ -126,14 +122,8 @@ class Customizer_Control extends WP_Customize_Control
 
     public function render_content()
     {
-        $collapse_text = __('Collapse all', 'mailoptin');
-        $expand_text   = __('Expand all', 'mailoptin');
         echo '<div class="mo-email-content-wrapper">';
         echo '<div class="mo-email-content-widget-wrapper">';
-        printf(
-            '<div class="mo-email-content-expand-collapse-wrap"><a href="#" class="mo-email-content-expand-collapse-all mo-expand" data-collapse-text="%1$s" data-expand-text="%2$s">%2$s</a></div>',
-            $collapse_text, $expand_text
-        );
 
         echo '<div id="mo-email-content-element-bars-wrap">';
         // saved elements will be rendered here
@@ -145,8 +135,6 @@ class Customizer_Control extends WP_Customize_Control
                 <?php _e('Add Element', 'mailoptin') ?>
             </button>
         </div>
-        <input class="mo-email-content-save-field" id="<?= '_customize-input-' . $this->id; ?>" type="hidden" <?php $this->link(); ?>/>
-
         <?php
         echo '</div>';
         $this->elements_ui();
@@ -158,6 +146,29 @@ class Customizer_Control extends WP_Customize_Control
     public function element_bar_tmpl()
     {
         ?>
+        <script type="text/javascript">
+            function mo_email_content_element_get_title(element_type) {
+                var title = '';
+                if (element_type === 'text') {
+                    title = '<?=$this->get_element_title('text')?>';
+                }
+                if (element_type === 'button') {
+                    title = '<?=$this->get_element_title('button')?>';
+                }
+                if (element_type === 'image') {
+                    title = '<?=$this->get_element_title('image')?>';
+                }
+                if (element_type === 'divider') {
+                    title = '<?=$this->get_element_title('divider')?>';
+                }
+
+                return title;
+            }
+
+            function mo_email_content_element_get_field_value(key, obj) {
+                return typeof obj !== 'undefined' && typeof obj[key] !== 'undefined' ? obj[key] : '';
+            }
+        </script>
         <script type="text/html" id="tmpl-mo-email-content-element-bar">
             <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-type="{{data.type}}">
                 <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
@@ -167,7 +178,8 @@ class Customizer_Control extends WP_Customize_Control
                         </button>
                     </div>
                     <div class="mo-email-content-widget-title">
-                        <h3>{{data.title}} <span class="mopreview">hello goalototos</span></h3>
+                        <h3>{{ mo_email_content_element_get_title(data.type) }}
+                            <span class="mopreview">hello goalototos</span></h3>
                     </div>
                 </div>
             </div>
@@ -202,7 +214,7 @@ class Customizer_Control extends WP_Customize_Control
 
             <ul class="list list--secondary" id="items">
                 <?php foreach ($elements as $element) : ?>
-                    <li class="list__item element element--box mo-email-builder-add-element" data-element-type="<?= $element['id'] ?>" data-element-title="<?= $element['title'] ?>">
+                    <li class="list__item element element--box mo-email-builder-add-element" data-element-type="<?= $element['id'] ?>">
                         <?php $icon_url = MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/' . $element['icon']; ?>
                         <img src="<?= $icon_url ?>" class="mo-email-content-element-img">
                         <div class="element__wrap">

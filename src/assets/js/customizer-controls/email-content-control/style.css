@@ -72,10 +72,6 @@ button.mo-add-new-email-element {
     text-decoration: none !important;
 }
 
-.mo-email-content-widget-expanded .toggle-indicator:before {
-    content: '\f142';
-}
-
 .mo-email-content-widget-action:focus .toggle-indicator:before {
     box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, .8);
 }
@@ -83,13 +79,6 @@ button.mo-add-new-email-element {
 .mo-email-content-part-widget-title-action {
     float: right;
     cursor: pointer;
-}
-
-.mo-email-content-expand-collapse-wrap {
-    text-align: right;
-    font-weight: normal;
-    font-size: 11px;
-    margin: 5px 0;
 }
 
 .mo-email-content-widget-title h3 {
@@ -110,10 +99,6 @@ button.mo-add-new-email-element {
     color: #b9bfc6;
     white-space: nowrap;
     padding-left: 5px;
-}
-
-.mo-email-content-part-widget.mo-email-content-widget-expanded .mo-email-content-widget-content {
-    display: block;
 }
 
 .mo-email-content-widget-content .mo-email-content-widget-form .customize-control-title {

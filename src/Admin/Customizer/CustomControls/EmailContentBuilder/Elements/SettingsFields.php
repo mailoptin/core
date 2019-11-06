@@ -8,26 +8,25 @@ class SettingsFields
     public static function tinymce($name, $setting)
     {
         echo '<div class="mo-email-content-field-tinymce-wrap">';
-        // {{{data.%s}}}
-        printf('<textarea id="%s" style="height: 280px" class="mo-email-content-field-tinymce">lll</textarea>', $name);
+        printf('<textarea id="%1$s" name="%1$s" style="height: 280px" class="mo-email-content-field-tinymce">{{{mo_email_content_element_get_field_value("%1$s", data)}}}</textarea>', $name);
         echo '</div>';
     }
 
     public static function text($name, $setting)
     {
-        printf('<input type="text" name="%1$s" id="%1$s" value="">', $name);
+        printf('<input type="text" name="%1$s" id="%1$s" value="{{{mo_email_content_element_get_field_value("%1$s", data)}}}">', $name);
     }
 
     public static function select_image($name, $setting)
     {
-        printf('<div class="mo-select-image-field"><input type="text" name="%1$s" id="%1$s" value=""></div>', $name);
+        printf('<div class="mo-select-image-field"><input type="text" name="%1$s" id="%1$s" value="{{{mo_email_content_element_get_field_value("%1$s", data)}}}"></div>', $name);
         printf('<div class="mo-select-image-btn"><a href="#" class="button action">%s</a></div>', esc_html__('Choose Image', 'mailoptin'));
     }
 
     public static function font_family($name, $setting)
     {
         $setting['choices'] = [
-                '' => esc_html__('Select...', 'mailoptin'),
+            ''                                        => esc_html__('Select...', 'mailoptin'),
             esc_html__('Standard Fonts', 'mailoptin') => [
                 'Arial'               => esc_html__('Arial', 'mailoptin'),
                 'Comic Sans MS'       => esc_html__('Comic Sans MS', 'mailoptin'),
@@ -87,8 +86,8 @@ class SettingsFields
     {
         echo '<div class="customize-control-mo-range">';
         echo '<div class="control-wrap">';
-        printf('<input name="%s" type="range" min="0" max="4096" step="1" value="1200" data-reset_value="1200">', $name);
-        printf('<input type="number" min="0" max="4096" step="1" class="mo-range-input" value="1200">');
+        printf('<input name="%1$s" type="range" min="0" max="4096" step="1" value="{{{mo_email_content_element_get_field_value("%1$s", data)}}}" data-reset_value="1200">', $name);
+        printf('<input name="%1$s" type="number" min="0" max="4096" step="1" class="mo-range-input" value="{{{mo_email_content_element_get_field_value("%1$s", data)}}}">', $name);
         echo '<span class="mo-reset-slider"><span class="dashicons dashicons-image-rotate"></span></span>';
         echo '</div>';
         echo '</div>';
