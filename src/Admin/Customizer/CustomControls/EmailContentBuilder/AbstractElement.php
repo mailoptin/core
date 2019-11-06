@@ -79,13 +79,13 @@ abstract class AbstractElement implements ElementInterface
                             <?php endif;
                             call_user_func(
                                 ['MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\SettingsFields', $setting['type']],
-                                $name, $setting
+                                $name, $setting, $this->id()
                             );
                             ?>
                         </div>
                     <?php endforeach; ?>
                     <div class="mo-email-content-footer">
-                        <button class="button button-large button-primary">Apply</button>
+                        <button class="button button-large button-primary"><?php esc_attr_e('Apply', 'mailoptin'); ?></button>
                     </div>
                 </div>
             </div>

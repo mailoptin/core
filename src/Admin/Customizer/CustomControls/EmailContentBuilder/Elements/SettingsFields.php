@@ -93,13 +93,13 @@ class SettingsFields
         echo '</div>';
     }
 
-    public static function color_picker($name, $setting)
+    public static function color_picker($name, $setting, $element_type)
     {
-        $default     = sprintf('{{mo_email_content_builder_elements_defaults["color_picker"]["%s"]}}', $name);
+        $default     = sprintf('{{mo_email_content_builder_elements_defaults["%s"]["%s"]}}', $element_type, $name);
         $saved_value = sprintf('{{mo_ece_get_field_value("%1$s", data)}}', $name);
 
         printf(
-            '<input name="%1$s" class="mo-color-picker-hex" type="text" maxlength="7" value="%%2$s" placeholder="%3$s" data-default-color="%3$s"/>',
+            '<input name="%1$s" class="mo-color-picker-hex" type="text" maxlength="7" value="%2$s" placeholder="%3$s" data-default-color="%3$s"/>',
             $name, $saved_value, $default
         );
     }
