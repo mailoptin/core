@@ -39,7 +39,12 @@ class Customizer_Control extends WP_Customize_Control
                 'right'  => '0',
                 'left'   => '0'
             ],
-            'block_padding'          => '',
+            'block_padding'          => [
+                'top'    => '0',
+                'bottom' => '0',
+                'right'  => '0',
+                'left'   => '0'
+            ],
         ];
 
         return [
