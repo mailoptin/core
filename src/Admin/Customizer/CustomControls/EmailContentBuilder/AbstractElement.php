@@ -51,7 +51,7 @@ abstract class AbstractElement implements ElementInterface
     public function js_template()
     {
         printf('<script type="text/html" id="tmpl-mo-email-content-element-%s">', $this->id()); ?>
-        <div id="mo-email-content-settings-area">
+        <div id="mo-email-content-settings-area" data-element-id="{{data.element_id}}">
             <div class="mo-email-content-widget-top mo-email-content-part-widget-top">
                 <div class="mo-email-content-widget-title"><h3><?= $this->title() ?></h3></div>
             </div>

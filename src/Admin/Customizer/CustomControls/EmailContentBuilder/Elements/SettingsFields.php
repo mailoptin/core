@@ -120,6 +120,7 @@ class SettingsFields
     {
         $item_link_desc = esc_html__('Link Values Together', 'mailoptin');
         ?>
+        <# var values = mo_ece_get_field_value("<?= $name ?>", data); #>
         <div class="customize-control-mo-border">
             <div class="mo-border-outer-wrapper">
                 <div class="input-wrapper mo-border-wrapper">
@@ -130,19 +131,19 @@ class SettingsFields
                             <span class="dashicons dashicons-editor-unlink mo-border-disconnected" title="<?= $item_link_desc ?>"></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="top" value="0" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="top" value="{{values.top}}" name="<?= $name ?>">
                             <span class="mo-border-title"><?= esc_html__('Top', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="right" value="0" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="right" value="{{values.right}}" name="<?= $name ?>">
                             <span class="mo-border-title"><?= esc_html__('Right', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="bottom" value="0" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="bottom" value="{{values.bottom}}" name="<?= $name ?>">
                             <span class="mo-border-title"><?= esc_html__('Bottom', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="left" value="0" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="left" value="{{values.left}}" name="<?= $name ?>">
                             <span class="mo-border-title"><?= esc_html__('Left', 'mailoptin') ?></span>
                         </li>
                     </ul>

@@ -33,7 +33,12 @@ class Customizer_Control extends WP_Customize_Control
     {
         $block_settings_default = [
             'block_background_color' => '',
-            'block_margin'           => '',
+            'block_margin'           => [
+                'top'    => '0',
+                'bottom' => '0',
+                'right'  => '0',
+                'left'   => '0'
+            ],
             'block_padding'          => '',
         ];
 
@@ -164,6 +169,7 @@ class Customizer_Control extends WP_Customize_Control
                 </div>
             </div>
         </script>
+
         <?php
     }
 
