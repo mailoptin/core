@@ -591,3 +591,12 @@ a.mo-email-content-footer-link.mo-delete {
 .mo-email-content-blocks .mo-select-image-btn a.button {
     padding: 2px 10px;
 }
+
+.mo-email-content-blocks-sortable-placeholder {
+    margin: 10px 0 !important;
+    padding: 20px 0;
+    background: #fff;
+    border-color: #bbb;
+    border-width: 1px;
+    border-style: dashed;
+}

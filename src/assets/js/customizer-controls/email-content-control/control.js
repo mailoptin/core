@@ -22,12 +22,12 @@
 
             this.render_saved_elements();
             this.dimension_field_init();
+            this.sortable_init();
 
             $.fn.color_picker_init = function () {
                 $(this).find('.mo-color-picker-hex').wpColorPicker();
+                return this;
             };
-
-            $.fn.tinymce_field_init = this.tinymce_field_init;
 
             $(document).on('click', '.element-bar .mo-email-content-widget-title, .element-bar .mo-email-content-widget-action', this.revealSettings);
             $(document).on('click', '.mo-add-new-email-element', this.reveal_add_elements_ui);
@@ -43,6 +43,19 @@
             $(document).on('click', '.mo-email-content-footer-link.mo-delete', this.remove_element);
 
             $(document).on('click', '.mo-email-content-footer-link.mo-duplicate', this.duplicate_element);
+        },
+
+        sortable_init: function () {
+            $("#mo-email-content-element-bars-wrap").sortable({
+                cursor: "move",
+                containment: "ul[id*='mailoptin_newsletter_content']",
+                axis: 'y',
+                scrollSensitivity: 40,
+                placeholder: 'mo-email-content-blocks-sortable-placeholder',
+                update: function (event, ui) {
+
+                }
+            });
         },
 
         generate_unique_id: function () {
@@ -99,7 +112,7 @@
         },
 
         render_saved_elements: function () {
-            $('#mo-email-content-element-bars-wrap').html('');
+            $('#mo-email-content-element-bars-wrap *').remove();
             _.each(JSON.parse(_this.setting.get()), function (element, index) {
                 var template = wp.template('mo-email-content-element-bar');
                 $('#mo-email-content-element-bars-wrap').append(template(element));
@@ -128,7 +141,8 @@
                 template_data['element_id'] = element_id;
             }
 
-            $('.mo-email-content-widget.mo-email-content-element-settings').append(template(template_data)).show().tinymce_field_init().color_picker_init();
+            $('.mo-email-content-widget.mo-email-content-element-settings').append(template(template_data)).show(300).color_picker_init();
+            _this.tinymce_field_init();
             _this.range_field_init();
             $('.mo-email-content-modal-motabs .motabs .motab').eq(0).click();
         },
@@ -406,15 +420,17 @@
                 "body_class": "moWPEditor",
                 'branding': false
             };
+            var cache = $('.mo-email-content-field-tinymce');
+            if (cache.length > 0) {
+                cache.each(function () {
+                    var id = $(this).attr('id');
+                    $('#' + id).mo_wp_editor(options);
 
-            $('.mo-email-content-field-tinymce').each(function () {
-                var id = $(this).attr('id');
-                $('#' + id).mo_wp_editor(options);
-
-                tinymce.get(id).on('keyup change undo redo SetContent', function () {
-                    this.save();
+                    // tinymce.get(id).on('keyup change undo redo SetContent', function () {
+                    //     this.save();
+                    // });
                 });
-            });
+            }
 
             return this;
         }
