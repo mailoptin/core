@@ -21,7 +21,6 @@
             });
 
             this.display_saved_elements();
-
             this.dimension_field_init();
 
             $.fn.color_picker_init = function () {
@@ -93,7 +92,7 @@
             }
 
             $('.mo-email-content-widget.mo-email-content-element-settings').append(template(template_data)).show().tinymce_field_init().color_picker_init();
-
+            _this.range_field_init();
             $('.mo-email-content-modal-motabs .motabs .motab').eq(0).click();
         },
 
@@ -163,6 +162,95 @@
             });
 
             frame.open();
+        },
+
+        range_field_init: function () {
+            var range,
+                range_input,
+                value,
+                this_input,
+                input_default,
+                mo_range_input_number_timeout;
+
+            // Update the text value
+            $('input[type=range]').on('mousedown', function () {
+
+                range = $(this);
+                range_input = range.parent().children('.mo-range-input');
+                value = range.attr('value');
+
+                range_input.val(value);
+
+                range.mousemove(function () {
+                    value = range.attr('value');
+                    range_input.val(value);
+                });
+
+            });
+
+            // Auto correct the number input
+            function mo_autocorrect_range_input_number(input_number, timeout) {
+
+                var range_input = input_number,
+                    range = range_input.parent().find('input[type="range"]'),
+                    value = parseFloat(range_input.val()),
+                    reset = parseFloat(range.attr('data-reset_value')),
+                    step = parseFloat(range_input.attr('step')),
+                    min = parseFloat(range_input.attr('min')),
+                    max = parseFloat(range_input.attr('max'));
+
+                clearTimeout(mo_range_input_number_timeout);
+
+                mo_range_input_number_timeout = setTimeout(function () {
+
+                    if (isNaN(value)) {
+                        range_input.val(reset);
+                        range.val(reset).trigger('change');
+                        return;
+                    }
+
+                    if (step >= 1 && value % 1 !== 0) {
+                        value = Math.round(value);
+                        range_input.val(value);
+                        range.val(value);
+                    }
+
+                    if (value > max) {
+                        range_input.val(max);
+                        range.val(max).trigger('change');
+                    }
+
+                    if (value < min) {
+                        range_input.val(min);
+                        range.val(min).trigger('change');
+                    }
+
+                }, timeout);
+
+                range.val(value).trigger('change');
+
+            }
+
+            // Change the text value
+            $('input.mo-range-input').on('change keyup', function () {
+                mo_autocorrect_range_input_number($(this), 1000);
+
+            }).on('focusout', function () {
+
+                mo_autocorrect_range_input_number($(this), 0);
+
+            });
+
+            // Handle the reset button
+            $('.mo-reset-slider').on('click', function () {
+
+                this_input = $(this).parent('.control-wrap').find('input');
+                input_default = this_input.data('reset_value');
+
+                this_input.val(input_default);
+                this_input.change();
+
+            });
         },
 
         dimension_field_init: function () {

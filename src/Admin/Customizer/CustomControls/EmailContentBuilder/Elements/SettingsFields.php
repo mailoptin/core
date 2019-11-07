@@ -82,11 +82,12 @@ class SettingsFields
         echo '</select>';
     }
 
-    public static function range($name, $setting)
+    public static function range($name, $setting, $element_type)
     {
+        $default     = sprintf('{{mo_email_content_builder_elements_defaults["%s"]["%s"]}}', $element_type, $name);
         echo '<div class="customize-control-mo-range">';
         echo '<div class="control-wrap">';
-        printf('<input name="%1$s" type="range" min="0" max="4096" step="1" value="{{mo_ece_get_field_value("%1$s", data)}}" data-reset_value="1200">', $name);
+        printf('<input name="%1$s" type="range" min="0" max="4096" step="1" value="{{mo_ece_get_field_value("%1$s", data)}}" data-reset_value="%2$s">', $name, $default);
         printf('<input name="%1$s" type="number" min="0" max="4096" step="1" class="mo-range-input" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name);
         echo '<span class="mo-reset-slider"><span class="dashicons dashicons-image-rotate"></span></span>';
         echo '</div>';
