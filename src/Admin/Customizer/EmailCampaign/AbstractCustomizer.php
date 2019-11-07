@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Customizer_Control;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 /**
@@ -409,6 +410,14 @@ HTML;
      */
     public function register_customizer_defaults()
     {
+        $email_newsletter_content_default = json_encode([
+            [
+                'id'       => wp_generate_password(18, false),
+                'type'     => 'text',
+                'settings' => Customizer_Control::elements_default_fields_values()['text']
+            ]
+        ]);
+
         $email_campaign_id = $this->email_campaign_id;
 
         $blog_name    = get_bloginfo('name');
@@ -467,6 +476,7 @@ HTML;
         $defaults['content_title_font_size']                  = apply_filters('mailoptin_content_title_font_size_default', '19', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_body_font_size']                   = apply_filters('mailoptin_content_body_font_size_default', '16', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_ellipsis_button_label']            = apply_filters('mailoptin_content_ellipsis_button_label_default', __('Read more', 'mailoptin'), $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
+        $defaults['email_newsletter_content']                 = apply_filters('mailoptin_email_newsletter_content_default', $email_newsletter_content_default, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
 
         $defaults['footer_removal']                = apply_filters('mailoptin_footer_removal_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['footer_background_color']       = apply_filters('mailoptin_footer_background_color_default', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);

@@ -84,8 +84,10 @@ abstract class AbstractElement implements ElementInterface
                             ?>
                         </div>
                     <?php endforeach; ?>
-                    <div class="mo-email-content-footer">
-                        <button class="button button-large button-primary"><?php esc_attr_e('Apply', 'mailoptin'); ?></button>
+                    <div class="mo-email-content-footer-wrap">
+                        <a href="#" class="mo-email-content-footer-link mo-delete"><?php esc_html_e('Delete', 'mailoptin'); ?></a> |
+                        <a href="#" class="mo-email-content-footer-link mo-duplicate"><?php esc_html_e('Duplicate', 'mailoptin'); ?></a>
+                        <button class="button button-large button-primary mo-apply"><?php esc_html_e('Apply', 'mailoptin'); ?></button>
                     </div>
                 </div>
             </div>

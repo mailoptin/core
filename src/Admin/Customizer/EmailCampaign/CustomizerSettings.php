@@ -498,13 +498,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'transport' => 'postMessage',
                 ),
                 'email_newsletter_content'                 => array(
-                    'default'   => json_encode([
-                        [
-                            'id'       => wp_generate_password(18, false),
-                            'type'     => 'text',
-                            'settings' => Customizer_Control::elements_default_fields_values()['text']
-                        ]
-                    ]),
+                    'default'   => $this->customizer_defaults['email_newsletter_content'],
                     'type'      => 'option',
                     'transport' => 'refresh',
                 )

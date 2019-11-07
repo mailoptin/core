@@ -41,7 +41,10 @@ class Divider extends AbstractElement
                 'divider_width'     => [
                     'label' => esc_html__('Width (%)', 'mailoptin'),
                     'type'  => 'range',
-                    'tab'   => 'tab-style'
+                    'tab'   => 'tab-style',
+                    'min'   => 5,
+                    'max'   => 100,
+                    'step'  => 1,
                 ],
                 'divider_alignment' => [
                     'label'   => esc_html__('Alignment', 'mailoptin'),
@@ -77,7 +80,10 @@ class Divider extends AbstractElement
                 'divider_height'    => [
                     'label' => esc_html__('Height (px)', 'mailoptin'),
                     'type'  => 'range',
-                    'tab'   => 'tab-style'
+                    'tab'   => 'tab-style',
+                    'min'   => 0,
+                    'max'   => 100,
+                    'step'  => 1,
                 ]
             ]
         );

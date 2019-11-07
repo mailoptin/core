@@ -52,7 +52,10 @@ class Button extends AbstractElement
                 'button_width'            => [
                     'label' => esc_html__('Width (%)', 'mailoptin'),
                     'type'  => 'range',
-                    'tab'   => 'tab-content'
+                    'tab'   => 'tab-content',
+                    'min'   => 20,
+                    'max'   => 100,
+                    'step'  => 1,
                 ],
                 'button_background_color' => [
                     'label' => esc_html__('Background Color', 'mailoptin'),
@@ -67,7 +70,10 @@ class Button extends AbstractElement
                 'button_font_size'        => [
                     'label' => esc_html__('Font Size (px)', 'mailoptin'),
                     'type'  => 'range',
-                    'tab'   => 'tab-style'
+                    'tab'   => 'tab-style',
+                    'min'   => 5,
+                    'max'   => 100,
+                    'step'  => 1,
                 ],
                 'button_font_family'      => [
                     'label' => esc_html__('Font Family', 'mailoptin'),
@@ -96,7 +102,10 @@ class Button extends AbstractElement
                 'button_border_radius'    => [
                     'label' => esc_html__('Rounded Corner', 'mailoptin'),
                     'type'  => 'range',
-                    'tab'   => 'tab-style'
+                    'tab'   => 'tab-style',
+                    'min'   => 0,
+                    'max'   => 50,
+                    'step'  => 1,
                 ]
             ]
         );

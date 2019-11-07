@@ -84,11 +84,22 @@ class SettingsFields
 
     public static function range($name, $setting, $element_type)
     {
-        $default     = sprintf('{{mo_email_content_builder_elements_defaults["%s"]["%s"]}}', $element_type, $name);
+        $min  = isset($setting['min']) ? $setting['min'] : 0;
+        $max  = isset($setting['max']) ? $setting['max'] : 100;
+        $step = isset($setting['step']) ? $setting['step'] : 1;
+
+        $default = sprintf('{{mo_email_content_builder_elements_defaults["%s"]["%s"]}}', $element_type, $name);
         echo '<div class="customize-control-mo-range">';
         echo '<div class="control-wrap">';
-        printf('<input name="%1$s" type="range" min="0" max="4096" step="1" value="{{mo_ece_get_field_value("%1$s", data)}}" data-reset_value="%2$s">', $name, $default);
-        printf('<input name="%1$s" type="number" min="0" max="4096" step="1" class="mo-range-input" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name);
+        printf(
+            '<input name="%1$s" type="range" min="%3$s" max="%4$s" step="%5$s" value="{{mo_ece_get_field_value("%1$s", data)}}" data-reset_value="%2$s">',
+            $name, $default, $min, $max, $step
+        );
+
+        printf(
+            '<input name="%1$s" type="number" min="%3$s" max="%4$s" step="%5$s" class="mo-range-input" value="{{mo_ece_get_field_value("%1$s", data)}}">',
+            $name, $default, $min, $max, $step
+        );
         echo '<span class="mo-reset-slider"><span class="dashicons dashicons-image-rotate"></span></span>';
         echo '</div>';
         echo '</div>';

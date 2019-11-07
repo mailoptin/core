@@ -47,7 +47,10 @@ class Image extends AbstractElement
                 'image_width'     => [
                     'label' => esc_html__('Width (%)', 'mailoptin'),
                     'type'  => 'range',
-                    'tab'   => 'tab-style'
+                    'tab'   => 'tab-style',
+                    'min'   => 5,
+                    'max'   => 100,
+                    'step'  => 1,
                 ],
                 'image_alignment' => [
                     'label'   => esc_html__('Alignment', 'mailoptin'),

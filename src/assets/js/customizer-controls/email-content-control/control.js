@@ -236,9 +236,7 @@
                 mo_autocorrect_range_input_number($(this), 1000);
 
             }).on('focusout', function () {
-
                 mo_autocorrect_range_input_number($(this), 0);
-
             });
 
             // Handle the reset button

@@ -307,9 +307,22 @@ li#customize-control-mo_email_campaigns-30-email_newsletter_content {
     padding-top: 15px;
 }
 
-#mo-email-content-settings-area .mo-email-content-footer {
+#mo-email-content-settings-area .mo-email-content-footer-wrap {
     padding-top: 10px;
-    text-align: right;
+}
+
+#mo-email-content-settings-area .mo-email-content-footer-wrap .mo-apply {
+    float: right;
+}
+
+#mo-email-content-settings-area .mo-email-content-footer-wrap:after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+a.mo-email-content-footer-link.mo-delete {
+    color: #a00;
 }
 
 /* dimension control */
