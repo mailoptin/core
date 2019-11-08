@@ -155,6 +155,25 @@ class Customizer_Control extends WP_Customize_Control
                 return title;
             }
 
+            function mo_email_content_element_get_preview(element_type, settings) {
+
+                var text = '';
+                if (element_type === 'text') {
+                    text = settings.text_content.substring(0, 50);
+                }
+                if (element_type === 'button') {
+                    text = settings.button_text + ' | ' + settings.button_link;
+                }
+                if (element_type === 'image') {
+                    text = settings.image_url
+                }
+                if (element_type === 'divider') {
+                    text = settings.divider_width + '% | ' + settings.divider_alignment + ' | ' + settings.divider_style;
+                }
+
+                return text;
+            }
+
             function mo_ece_get_field_value(key, obj) {
                 return typeof obj !== 'undefined' && typeof obj[key] !== 'undefined' ? obj[key] : '';
             }
@@ -169,7 +188,8 @@ class Customizer_Control extends WP_Customize_Control
                     </div>
                     <div class="mo-email-content-widget-title">
                         <h3>{{ mo_email_content_element_get_title(data.type) }}
-                            <span class="mopreview">hello goalototos</span></h3>
+                            <span class="mopreview">{{mo_email_content_element_get_preview(data.type, data.settings)}}</span>
+                        </h3>
                     </div>
                 </div>
             </div>
