@@ -145,7 +145,7 @@ class NewPublishPost extends AbstractTriggers
                     if ( ! $this->schedule_time($email_campaign_id)) continue;
 
                     // convert schedule time to timestamp.
-                    $schedule_time_timestamp = strtotime($this->schedule_time($email_campaign_id));
+                    $schedule_time_timestamp = \MailOptin\Core\strtotime_utc($this->schedule_time($email_campaign_id));
 
                     $response = wp_schedule_single_event(
                         $schedule_time_timestamp,

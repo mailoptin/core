@@ -317,3 +317,25 @@ function emogrify($content, $shouldKeepInvisibleNodes = false)
 
     return $emogrifier->emogrify();
 }
+
+/**
+ * strtotime uses the default timezone set in PHP which may or may not be UTC.
+ *
+ * @param $time
+ * @param null|int $now
+ *
+ * @return false|int
+ */
+function strtotime_utc($time, $now = null)
+{
+    if (is_null($now)) $now = time();
+
+    $old = date_default_timezone_get();
+
+    date_default_timezone_set('UTC');
+    $val = strtotime($time, $now);
+
+    date_default_timezone_set($old);
+
+    return $val;
+}
