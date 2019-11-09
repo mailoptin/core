@@ -260,7 +260,7 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
     .mo-content-background-color {background-color: $content_background_color;}
     .mo-content-title-font-size {font-size: {$content_title_font_size}px;}
     .mo-content-body-font-size {font-size: {$content_body_font_size}px;}
-    .mo-content-text-color {color: $content_text_color;}
+    .mo-content-text-color {color: $content_text_color !important;}
     .mo-content-button-background-color {background-color: $content_ellipsis_button_background_color;}
     .mo-content-remove-ellipsis-button {{$ellipsis_button_removal}}
     .mo-content-button-text-color {color: $content_ellipsis_button_text_color;}

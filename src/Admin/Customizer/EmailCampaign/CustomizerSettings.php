@@ -2,7 +2,6 @@
 
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
-use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Customizer_Control;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class CustomizerSettings extends AbstractCustomizer
@@ -435,7 +434,7 @@ class CustomizerSettings extends AbstractCustomizer
                 'content_text_color'                       => array(
                     'default'   => $this->customizer_defaults['content_text_color'],
                     'type'      => 'option',
-                    'transport' => 'postMessage',
+                    'transport' => 'refresh',
                 ),
                 'content_alignment'                        => array(
                     'default'   => $this->customizer_defaults['content_alignment'],

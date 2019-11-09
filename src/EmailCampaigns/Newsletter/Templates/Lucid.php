@@ -3,7 +3,6 @@
 namespace MailOptin\Core\EmailCampaigns\Newsletter\Templates;
 
 use MailOptin\Core\EmailCampaigns\Newsletter\AbstractTemplate;
-use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 class Lucid extends AbstractTemplate
 {
@@ -190,10 +189,8 @@ class Lucid extends AbstractTemplate
      */
     public function get_body()
     {
-        $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}">[mo_header_web_version_link_label]</a>');
-        $unsubscribe_link    = apply_filters('mo_email_template_unsubscribe_link', '<a class="unsubscribe mo-footer-unsubscribe-link-label mo-footer-unsubscribe-link-color" href="{{unsubscribe}}">[mo_footer_unsubscribe_link_label]</a>');
-        $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
-        $after_main_content  = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_after_main_content');
+        $view_web_version = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}">[mo_header_web_version_link_label]</a>');
+        $unsubscribe_link = apply_filters('mo_email_template_unsubscribe_link', '<a class="unsubscribe mo-footer-unsubscribe-link-label mo-footer-unsubscribe-link-color" href="{{unsubscribe}}">[mo_footer_unsubscribe_link_label]</a>');
 
         $body = <<<HTML
   <table class="email-wrapper mo-page-bg-color" width="100%" cellpadding="0" cellspacing="0">
@@ -211,13 +208,9 @@ class Lucid extends AbstractTemplate
           <!-- Email Body -->
           <tr>
             <td class="email-body mo-content-background-color" width="100%">
-              <table class="email-body_inner" align="center" width="570" cellpadding="0" cellspacing="0">
+              <table class="email-body_inner content-cell" align="center" width="570" cellpadding="0" cellspacing="0">
                 <!-- Body content -->
-                <tr>
-                  <td class="content-cell mo-content-text-color">
-                    {{newsletter.content}}
-                  </td>
-                </tr>
+                {{newsletter.content}}
               </table>
             </td>
           </tr>
@@ -266,6 +259,7 @@ HTML;
     }
     a {
       color: #3869D4;
+      text-decoration: underline;
     }
 
     /* Layout ------------------------------ */
@@ -429,10 +423,14 @@ CSS;
 
     public function text_block($id, $settings)
     {
+        $text       = $settings['text_content'];
+        $bg_color   = '#ffffff';
+        $text_color = '#74787e';
+
         return <<<HTML
 <tr>
-    <td align="left" style="background:#3b599a;font-size:0px;padding:10px 25px;word-break:break-word;">
-        <div style="font-family:helvetica;font-size:20px;letter-spacing:10px;line-height:100px;text-align:left;color:#dddddd;">Hello World</div>
+    <td align="left" style="background:$bg_color;font-size:0px;padding:0;word-break:break-word;">
+        <div class="mo-content-text-color" style="font-family:helvetica;font-size:16px;line-height:normal;text-align:left;color:$text_color;">$text</div>
     </td>
 </tr>
 HTML;

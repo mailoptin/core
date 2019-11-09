@@ -237,6 +237,23 @@ class EmailCampaignRepository extends AbstractRepository
     }
 
     /**
+     *
+     * Get customizer value for campaign.
+     *
+     * @param int $email_campaign_id
+     * @param string $settings_name
+     * @param string $default
+     *
+     * @return string
+     */
+    public static function get_customizer_value_without_default($email_campaign_id, $settings_name, $default = '')
+    {
+        $settings = self::get_settings();
+
+        return isset($settings[$email_campaign_id][$settings_name]) ? $settings[$email_campaign_id][$settings_name] : '';
+    }
+
+    /**
      * Return value of a email campaign customizer settings or the default settings value if not found.
      *
      * @param int $optin_campaign_id

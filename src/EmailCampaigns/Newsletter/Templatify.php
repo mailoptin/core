@@ -25,15 +25,33 @@ class Templatify implements TemplatifyInterface
         $this->email_campaign_id = $email_campaign_id;
     }
 
+    public function builderHtml()
+    {
+        $content = ER::get_customizer_value($this->email_campaign_id, 'email_newsletter_content');
+
+        if (empty($content)) return $content;
+        $content = json_decode($content, true);
+
+        if (is_null($content)) return '';
+
+        $template_class_instance = EmailCampaignFactory::make($this->email_campaign_id);
+
+        $html = '';
+        foreach ($content as $element) {
+            $method = $element['type'] . '_block';
+            $html   .= $template_class_instance->$method($element['id'], $element['settings']);
+        }
+
+        return $html;
+    }
+
     public function newsletter_content()
     {
         $preview_structure = EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure();
 
-        $content = ER::get_customizer_value($this->email_campaign_id, 'newsletter_editor_content');
+        $content = $this->builderHtml();
 
-        $search = array(
-            '{{newsletter.content}}'
-        );
+        $search = ['{{newsletter.content}}'];
 
         $replace = [$content];
 

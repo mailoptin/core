@@ -2,7 +2,7 @@
 
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
-use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Customizer_Control;
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 /**
@@ -416,7 +416,7 @@ HTML;
             [
                 'id'       => wp_generate_password(18, false),
                 'type'     => 'text',
-                'settings' => Customizer_Control::elements_default_fields_values()['text']
+                'settings' => EmailContentBuilder\Misc::elements_default_fields_values($email_campaign_id)['text']
             ]
         ]);
 

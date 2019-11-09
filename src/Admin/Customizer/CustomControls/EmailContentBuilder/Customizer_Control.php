@@ -30,73 +30,6 @@ class Customizer_Control extends WP_Customize_Control
         return $instance->title();
     }
 
-    public static function elements_default_fields_values()
-    {
-        static $cache = null;
-
-        if ( ! is_null($cache)) return $cache;
-
-        $email_campaign_id = $_GET['mailoptin_email_campaign_id'];
-
-//        var_dump($email_campaign_id, method_exists(EmailCampaignRepository::class, 'get_customizer_value'));
-
-        $text_element_default = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.';
-
-//        $newsletter_editor_content = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'newsletter_editor_content');
-
-//
-//        if ( ! empty($newsletter_editor_content)) {
-//            $text_element_default = $newsletter_editor_content;
-//        }
-
-        $block_settings_default = [
-            'block_background_color' => '',
-            'block_padding'          => [
-                'top'    => '0',
-                'bottom' => '0',
-                'right'  => '0',
-                'left'   => '0'
-            ],
-        ];
-
-        $cache = [
-            'text'    => $block_settings_default + [
-                    'text_content'        => $text_element_default,
-                    'text_font_family'    => '',
-                    'text_font_size'      => '',
-                    'text_line_height'    => '',
-                    'text_letter_spacing' => ''
-                ],
-            'button'  => $block_settings_default + [
-                    'button_text'             => esc_html__('Button', 'mailoptin'),
-                    'button_link'             => '#',
-                    'button_width'            => '70',
-                    'button_background_color' => '',
-                    'button_color'            => '',
-                    'button_font_size'        => '18',
-                    'button_font_family'      => '',
-                    'button_font_weight'      => 'bold',
-                    'button_alignment'        => 'center',
-                    'button_border_radius'    => '0'
-                ],
-            'divider' => $block_settings_default + [
-                    'divider_width'     => '100',
-                    'divider_alignment' => 'center',
-                    'divider_style'     => 'solid',
-                    'divider_color'     => '#dcd6d1',
-                    'divider_height'    => '1'
-                ],
-            'image'   => $block_settings_default + [
-                    'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
-                    'image_width'     => '100',
-                    'image_alignment' => 'center',
-                    'image_alt_text'  => '',
-                ]
-        ];
-
-        return $cache;
-    }
-
     /**
      * Enqueue control related scripts/styles.
      *
@@ -120,7 +53,7 @@ class Customizer_Control extends WP_Customize_Control
         wp_localize_script(
             'mailoptin-customizer-email-content',
             'mo_email_content_builder_elements_defaults',
-            $this->elements_default_fields_values()
+            Misc::elements_default_fields_values()
         );
     }
 
