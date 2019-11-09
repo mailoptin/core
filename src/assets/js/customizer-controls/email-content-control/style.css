@@ -157,7 +157,7 @@ div#customize-footer-actions {
     display: none;
 }
 
-li#customize-control-mo_email_campaigns-30-email_newsletter_content {
+li[id*=email_newsletter_content] {
     position: relative;
 }
 

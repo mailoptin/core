@@ -2,8 +2,7 @@
 
 namespace MailOptin\Core\EmailCampaigns\Newsletter\Templates;
 
-
-use MailOptin\Core\EmailCampaigns\AbstractTemplate;
+use MailOptin\Core\EmailCampaigns\Newsletter\AbstractTemplate;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 class Lucid extends AbstractTemplate
@@ -425,6 +424,18 @@ HTML;
         word-wrap: break-word;                 /* IE 5.5+ and up */
         }
 CSS;
+
+    }
+
+    public function text_block($id, $settings)
+    {
+        return <<<HTML
+<tr>
+    <td align="left" style="background:#3b599a;font-size:0px;padding:10px 25px;word-break:break-word;">
+        <div style="font-family:helvetica;font-size:20px;letter-spacing:10px;line-height:100px;text-align:left;color:#dddddd;">Hello World</div>
+    </td>
+</tr>
+HTML;
 
     }
 }

@@ -35,11 +35,6 @@ abstract class AbstractElement implements ElementInterface
                 'type'  => 'color_picker',
                 'tab'   => 'tab-block-settings'
             ],
-            'block_margin'           => [
-                'label' => esc_html__('Margin', 'mailoptin'),
-                'type'  => 'dimension',
-                'tab'   => 'tab-block-settings'
-            ],
             'block_padding'          => [
                 'label' => esc_html__('Padding', 'mailoptin'),
                 'type'  => 'dimension',

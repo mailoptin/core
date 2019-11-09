@@ -410,6 +410,8 @@ HTML;
      */
     public function register_customizer_defaults()
     {
+        $email_campaign_id = $this->email_campaign_id;
+
         $email_newsletter_content_default = json_encode([
             [
                 'id'       => wp_generate_password(18, false),
@@ -417,8 +419,6 @@ HTML;
                 'settings' => Customizer_Control::elements_default_fields_values()['text']
             ]
         ]);
-
-        $email_campaign_id = $this->email_campaign_id;
 
         $blog_name    = get_bloginfo('name');
         $current_year = date("Y");

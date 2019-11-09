@@ -3,6 +3,7 @@
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
 use MailOptin\Core\EmailCampaigns\AbstractTemplate;
+use MailOptin\Core\EmailCampaigns\Newsletter\AbstractTemplate as NewsletterAbstractTemplate;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 /**
@@ -16,7 +17,7 @@ class EmailCampaignFactory
      * @param int $optin_campaign_id
      * @param mixed $posts
      *
-     * @return false|AbstractTemplate
+     * @return false|AbstractTemplate|NewsletterAbstractTemplate
      */
     public static function make($email_campaign_id, $posts = null)
     {
