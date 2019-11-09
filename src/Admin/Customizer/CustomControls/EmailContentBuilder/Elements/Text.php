@@ -63,15 +63,7 @@ class Text extends AbstractElement
                     'min'   => 0,
                     'max'   => 200,
                     'step'  => 1,
-                ],
-                'text_letter_spacing' => [
-                    'label' => esc_html__('Letter Spacing (px)', 'mailoptin'),
-                    'type'  => 'range',
-                    'tab'   => 'tab-style',
-                    'min'   => 0,
-                    'max'   => 200,
-                    'step'  => 1,
-                ],
+                ]
             ]
         );
     }

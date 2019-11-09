@@ -424,13 +424,15 @@ CSS;
     public function text_block($id, $settings)
     {
         $text       = $settings['text_content'];
-        $bg_color   = '#ffffff';
+        $bg_color   = 'transparent';
         $text_color = '#74787e';
+        $font_family = 'inherit';
+        $font_size = 'medium';
 
         return <<<HTML
 <tr>
     <td align="left" style="background:$bg_color;font-size:0px;padding:0;word-break:break-word;">
-        <div class="mo-content-text-color" style="font-family:helvetica;font-size:16px;line-height:normal;text-align:left;color:$text_color;">$text</div>
+        <div class="mo-content-text-color" style="font-family:$font_family;font-size:$font_size;line-height:normal;text-align:left;color:$text_color;">$text</div>
     </td>
 </tr>
 HTML;

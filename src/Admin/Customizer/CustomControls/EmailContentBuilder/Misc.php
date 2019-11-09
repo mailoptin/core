@@ -37,8 +37,7 @@ class Misc
                     'text_content'        => $text_element_default,
                     'text_font_family'    => '',
                     'text_font_size'      => '',
-                    'text_line_height'    => '',
-                    'text_letter_spacing' => ''
+                    'text_line_height'    => ''
                 ],
             'button'  => $block_settings_default + [
                     'button_text'             => esc_html__('Button', 'mailoptin'),
