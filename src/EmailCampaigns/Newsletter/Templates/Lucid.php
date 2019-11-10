@@ -423,7 +423,7 @@ CSS;
 
     public function text_block($id, $settings)
     {
-        $text       = $settings['text_content'];
+        $text       = wpautop($settings['text_content']);
         $bg_color   = 'transparent';
         $text_color = '#74787e';
         $font_family = 'inherit';

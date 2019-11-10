@@ -5,21 +5,21 @@ namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Ele
 
 class SettingsFields
 {
-    public static function tinymce($name, $setting)
+    public static function tinymce($name)
     {
         echo '<div class="mo-email-content-field-tinymce-wrap">';
-        printf('<textarea id="%1$s" name="%1$s" style="height: 280px" class="mo-email-content-field-tinymce">{{{mo_ece_get_field_value("%1$s", data)}}}</textarea>', $name);
+        printf('<textarea data-field-type="tinymce" id="%1$s" name="%1$s" style="height: 280px" class="mo-email-content-element-field mo-email-content-field-tinymce">{{{mo_ece_get_field_value("%1$s", data)}}}</textarea>', $name);
         echo '</div>';
     }
 
-    public static function text($name, $setting)
+    public static function text($name)
     {
-        printf('<input type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name);
+        printf('<input data-field-type="text" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name);
     }
 
     public static function select_image($name, $setting)
     {
-        printf('<div class="mo-select-image-field"><input type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}"></div>', $name);
+        printf('<div class="mo-select-image-field"><input data-field-type="select_image" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}"></div>', $name);
         printf('<div class="mo-select-image-btn"><a href="#" class="button action">%s</a></div>', esc_html__('Choose Image', 'mailoptin'));
     }
 
@@ -65,7 +65,7 @@ class SettingsFields
     {
         $choices = $setting['choices'];
 
-        printf('<select id="%1$s" name="%1$s">', $name);
+        printf('<select data-field-type="select" class="mo-email-content-element-field" id="%1$s" name="%1$s">', $name);
 
         foreach ($choices as $key => $value) {
             if (is_array($value)) {
@@ -92,12 +92,12 @@ class SettingsFields
         echo '<div class="customize-control-mo-range">';
         echo '<div class="control-wrap">';
         printf(
-            '<input name="%1$s" type="range" min="%3$s" max="%4$s" step="%5$s" value="{{mo_ece_get_field_value("%1$s", data)}}" data-reset_value="%2$s">',
+            '<input type="range" min="%3$s" max="%4$s" step="%5$s" value="{{mo_ece_get_field_value("%1$s", data)}}" data-reset_value="%2$s">',
             $name, $default, $min, $max, $step
         );
 
         printf(
-            '<input name="%1$s" type="number" min="%3$s" max="%4$s" step="%5$s" class="mo-range-input" value="{{mo_ece_get_field_value("%1$s", data)}}">',
+            '<input data-field-type="range" name="%1$s" type="number" min="%3$s" max="%4$s" step="%5$s" class="mo-email-content-element-field mo-range-input" value="{{mo_ece_get_field_value("%1$s", data)}}">',
             $name, $default, $min, $max, $step
         );
         echo '<span class="mo-reset-slider"><span class="dashicons dashicons-image-rotate"></span></span>';
@@ -111,7 +111,7 @@ class SettingsFields
         $saved_value = sprintf('{{mo_ece_get_field_value("%1$s", data)}}', $name);
 
         printf(
-            '<input name="%1$s" class="mo-color-picker-hex" type="text" maxlength="7" value="%2$s" placeholder="%3$s" data-default-color="%3$s"/>',
+            '<input data-field-type="color_picker"  name="%1$s" class="mo-email-content-element-field mo-color-picker-hex" type="text" maxlength="7" value="%2$s" placeholder="%3$s" data-default-color="%3$s"/>',
             $name, $saved_value, $default
         );
     }
@@ -125,25 +125,25 @@ class SettingsFields
             <div class="mo-border-outer-wrapper">
                 <div class="input-wrapper mo-border-wrapper">
 
-                    <ul class="mo-border-wrapper desktop active">
+                    <ul data-field-type="dimension" class="mo-email-content-element-field mo-border-wrapper desktop active" name="<?= $name ?>">
                         <li class="mo-border-input-item-link">
                             <span class="dashicons dashicons-admin-links mo-border-connected wp-ui-highlight" title="<?= $item_link_desc ?>"></span>
                             <span class="dashicons dashicons-editor-unlink mo-border-disconnected" title="<?= $item_link_desc ?>"></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="top" value="{{values.top}}" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="top" value="{{values.top}}">
                             <span class="mo-border-title"><?= esc_html__('Top', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="right" value="{{values.right}}" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="right" value="{{values.right}}">
                             <span class="mo-border-title"><?= esc_html__('Right', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="bottom" value="{{values.bottom}}" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="bottom" value="{{values.bottom}}">
                             <span class="mo-border-title"><?= esc_html__('Bottom', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="left" value="{{values.left}}" name="<?= $name ?>">
+                            <input type="number" class="mo-border-input" data-id="left" value="{{values.left}}">
                             <span class="mo-border-title"><?= esc_html__('Left', 'mailoptin') ?></span>
                         </li>
                     </ul>

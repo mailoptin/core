@@ -47,6 +47,16 @@
             $(document).on('mo_sort_elements_index', this.sort_elements_index);
         },
 
+        save_changes_on_apply: function() {
+
+            $('#mo-email-content-settings-area .mo-email-content-element-field').each(function() {
+                var
+            });
+
+            _this.go_back();
+
+        },
+
         sort_elements_index: function () {
             var settings = JSON.parse(_this.setting.get());
             $('#mo-email-content-element-bars-wrap .element-bar').each(function (index) {

@@ -3,7 +3,6 @@
 namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder;
 
 use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements;
-use MailOptin\Core\Repositories\EmailCampaignRepository;
 use WP_Customize_Control;
 
 class Customizer_Control extends WP_Customize_Control
@@ -16,7 +15,7 @@ class Customizer_Control extends WP_Customize_Control
     {
         parent::__construct($manager, $id, $args);
 
-        add_action('customize_controls_print_footer_scripts', [$this, 'element_bar_tmpl']);
+        add_action('customize_controls_print_footer_scripts', [$this, 'footer_scripts']);
 
         new Elements\Init();
     }
@@ -83,7 +82,7 @@ class Customizer_Control extends WP_Customize_Control
         $this->element_settings();
     }
 
-    public function element_bar_tmpl()
+    public function footer_scripts()
     {
         ?>
         <script type="text/javascript">
