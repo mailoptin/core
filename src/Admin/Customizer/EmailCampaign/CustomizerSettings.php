@@ -434,7 +434,7 @@ class CustomizerSettings extends AbstractCustomizer
                 'content_text_color'                       => array(
                     'default'   => $this->customizer_defaults['content_text_color'],
                     'type'      => 'option',
-                    'transport' => 'refresh',
+                    'transport' => 'postMessage',
                 ),
                 'content_alignment'                        => array(
                     'default'   => $this->customizer_defaults['content_alignment'],
