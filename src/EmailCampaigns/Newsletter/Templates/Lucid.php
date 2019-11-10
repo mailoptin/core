@@ -18,6 +18,12 @@ class Lucid extends AbstractTemplate
             return $args;
         });
 
+        add_filter('mo_email_content_elements_text_element', function ($settings) {
+            unset($settings['block_background_color']);
+
+            return $settings;
+        });
+
         parent::__construct($email_campaign_id);
     }
 
@@ -421,13 +427,21 @@ CSS;
 
     }
 
+    public function email_content_builder_element_defaults($defaults)
+    {
+        $defaults['text']['text_font_family'] = 'Arial';
+        $defaults['text']['text_font_size']   = '16';
+
+        return $defaults;
+    }
+
     public function text_block($id, $settings)
     {
-        $text       = wpautop($settings['text_content']);
-        $bg_color   = 'transparent';
-        $text_color = '#74787e';
+        $text        = wpautop($settings['text_content']);
+        $bg_color    = 'transparent';
+        $text_color  = '#74787e';
         $font_family = 'inherit';
-        $font_size = 'medium';
+        $font_size   = 'medium';
 
         return <<<HTML
 <tr>

@@ -32,12 +32,12 @@ class Misc
             ],
         ];
 
-        return [
+        return apply_filters('mo_ecb_elements_default_values', [
             'text'    => $block_settings_default + [
-                    'text_content'        => $text_element_default,
-                    'text_font_family'    => '',
-                    'text_font_size'      => '',
-                    'text_line_height'    => ''
+                    'text_content'     => $text_element_default,
+                    'text_font_family' => '',
+                    'text_font_size'   => '',
+                    'text_line_height' => 'normal'
                 ],
             'button'  => $block_settings_default + [
                     'button_text'             => esc_html__('Button', 'mailoptin'),
@@ -64,6 +64,8 @@ class Misc
                     'image_alignment' => 'center',
                     'image_alt_text'  => '',
                 ]
-        ];
+        ],
+            $email_campaign_id
+        );
     }
 }

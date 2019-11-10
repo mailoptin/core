@@ -17,7 +17,7 @@ class SettingsFields
         printf('<input data-field-type="text" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name);
     }
 
-    public static function select_image($name, $setting)
+    public static function select_image($name)
     {
         printf('<div class="mo-select-image-field"><input data-field-type="select_image" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}"></div>', $name);
         printf('<div class="mo-select-image-btn"><a href="#" class="button action">%s</a></div>', esc_html__('Choose Image', 'mailoptin'));
@@ -116,7 +116,7 @@ class SettingsFields
         );
     }
 
-    public static function dimension($name, $setting)
+    public static function dimension($name)
     {
         $item_link_desc = esc_html__('Link Values Together', 'mailoptin');
         ?>

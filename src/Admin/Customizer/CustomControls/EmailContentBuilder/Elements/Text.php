@@ -39,16 +39,16 @@ class Text extends AbstractElement
     public function settings()
     {
         return apply_filters('mo_email_content_elements_text_element', $this->element_block_settings() + [
-                'text_content'        => [
+                'text_content'     => [
                     'type' => 'tinymce',
                     'tab'  => 'tab-content'
                 ],
-                'text_font_family'    => [
+                'text_font_family' => [
                     'label' => esc_html__('Font Family', 'mailoptin'),
                     'type'  => 'font_family',
                     'tab'   => 'tab-style'
                 ],
-                'text_font_size'      => [
+                'text_font_size'   => [
                     'label' => esc_html__('Font Size (px)', 'mailoptin'),
                     'type'  => 'range',
                     'tab'   => 'tab-style',
@@ -56,13 +56,17 @@ class Text extends AbstractElement
                     'max'   => 200,
                     'step'  => 1,
                 ],
-                'text_line_height'    => [
-                    'label' => esc_html__('Line Height (px)', 'mailoptin'),
-                    'type'  => 'range',
-                    'tab'   => 'tab-style',
-                    'min'   => 0,
-                    'max'   => 200,
-                    'step'  => 1,
+                'text_line_height' => [
+                    'label'   => esc_html__('Line Height (px)', 'mailoptin'),
+                    'type'    => 'select',
+                    'choices' => [
+                        'normal' => esc_html__('Default', 'mailoptin'),
+                        '100%'   => esc_html__('Single', 'mailoptin'),
+                        '125%'   => esc_html__('1.25', 'mailoptin'),
+                        '150%'   => esc_html__('1.5', 'mailoptin'),
+                        '200%'   => esc_html__('Double', 'mailoptin')
+                    ],
+                    'tab'     => 'tab-style'
                 ]
             ]
         );

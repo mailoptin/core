@@ -44,17 +44,30 @@
 
             $(document).on('click', '.mo-email-content-footer-link.mo-duplicate', this.duplicate_element);
 
+            $(document).on('click', '.mo-email-content-footer-wrap .mo-apply', this.save_changes_on_apply);
+
             $(document).on('mo_sort_elements_index', this.sort_elements_index);
         },
 
-        save_changes_on_apply: function() {
+        save_changes_on_apply: function (e) {
+            e.preventDefault();
+            var settings = JSON.parse(_this.setting.get());
+            var element_id = $(this).parents('#mo-email-content-settings-area').data('element-id');
+            var data = _.findWhere(settings, {id: element_id});
 
-            $('#mo-email-content-settings-area .mo-email-content-element-field').each(function() {
-                var
+            $('#mo-email-content-settings-area .mo-email-content-element-field').each(function () {
+                var cache = $(this);
+                var field_type = cache.data('field-type');
+                var name = cache.attr('name');
+
+                if (_.contains(['text', 'select_image', 'select', 'range', 'color_picker'], field_type)) {
+                    data['settings'][name] = $(this).val();
+                }
             });
 
-            _this.go_back();
+            $('#mo-email-content-save-field').val(JSON.stringify(settings)).change();
 
+            _this.go_back();
         },
 
         sort_elements_index: function () {
