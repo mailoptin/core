@@ -440,6 +440,24 @@ CSS;
         switch ($font_family) {
             case 'Arial':
                 return "Arial, 'Helvetica Neue', Helvetica, sans-serif";
+            case 'Comic Sans MS':
+                return "'Comic Sans MS', 'Marker Felt-Thin', Arial, sans-serif";
+            case 'Courier New':
+                return "'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace";
+            case 'Georgia':
+                return "Georgia, Times, 'Times New Roman', serif";
+            case 'Helvetica':
+                return "'Helvetica Neue', Helvetica, Arial, Verdana, sans-serif";
+            case 'Lucida':
+                return "'Lucida Sans Unicode', 'Lucida Grande', sans-serif";
+            case 'Tahoma':
+                return "Tahoma, Verdana, Segoe, sans-serif";
+            case 'Times New Roman':
+                return "'Times New Roman', Times, Baskerville, Georgia, serif";
+            case 'Trebuchet MS':
+                return "'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif";
+            case 'Verdana':
+                return "Verdana, Geneva, sans-serif";
         }
 
         return $font_family;
