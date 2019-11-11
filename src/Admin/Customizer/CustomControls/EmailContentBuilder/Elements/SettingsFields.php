@@ -131,19 +131,19 @@ class SettingsFields
                             <span class="dashicons dashicons-editor-unlink mo-border-disconnected" title="<?= $item_link_desc ?>"></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="top" value="{{values.top}}">
+                            <input type="number" class="mo-border-input motop" value="{{values.top}}">
                             <span class="mo-border-title"><?= esc_html__('Top', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="right" value="{{values.right}}">
+                            <input type="number" class="mo-border-input moright" value="{{values.right}}">
                             <span class="mo-border-title"><?= esc_html__('Right', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="bottom" value="{{values.bottom}}">
+                            <input type="number" class="mo-border-input mobottom" value="{{values.bottom}}">
                             <span class="mo-border-title"><?= esc_html__('Bottom', 'mailoptin') ?></span>
                         </li>
                         <li class="mo-border-input-item">
-                            <input type="number" class="mo-border-input" data-id="left" value="{{values.left}}">
+                            <input type="number" class="mo-border-input moleft" value="{{values.left}}">
                             <span class="mo-border-title"><?= esc_html__('Left', 'mailoptin') ?></span>
                         </li>
                     </ul>

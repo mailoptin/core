@@ -60,8 +60,15 @@
                 var field_type = cache.data('field-type');
                 var name = cache.attr('name');
 
-                if (_.contains(['text', 'select_image', 'select', 'range', 'color_picker'], field_type)) {
-                    data['settings'][name] = $(this).val();
+                if ('dimension' === field_type) {
+                    data['settings'][name] = {
+                        top: cache.find('.mo-border-input.motop').val(),
+                        right: cache.find('.mo-border-input.moright').val(),
+                        bottom: cache.find('.mo-border-input.mobottom').val(),
+                        left: cache.find('.mo-border-input.moleft').val(),
+                    }
+                } else {
+                    data['settings'][name] = cache.val();
                 }
             });
 
@@ -361,11 +368,8 @@
             // Disconnected button
             $(document).on('click', '.mo-border-disconnected', function () {
 
-                // Set up variables
-                var elements = $(this).data('element-connect');
-
                 // Add connected class
-                $(this).parent().parent('.mo-border-wrapper').find('input').addClass('connected').attr('data-element-connect', elements);
+                $(this).parent().parent('.mo-border-wrapper').find('input').addClass('connected');
 
                 // Add class
                 $(this).parent('.mo-border-input-item-link').addClass('disconnected');
@@ -375,10 +379,9 @@
             // Values connected inputs
             $(document).on('input', '.mo-border-input-item .connected', function () {
 
-                var dataElement = $(this).attr('data-element-connect'),
-                    currentFieldValue = $(this).val();
+                var currentFieldValue = $(this).val();
 
-                $(this).parent().parent('.mo-border-wrapper').find('.connected[ data-element-connect="' + dataElement + '" ]').each(function (key, value) {
+                $(this).parent().parent('.mo-border-wrapper').find('.connected').each(function (key, value) {
                     $(this).val(currentFieldValue).change();
                 });
 
