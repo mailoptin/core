@@ -435,21 +435,29 @@ CSS;
         return $defaults;
     }
 
+    public function get_font_family_stack($font_family)
+    {
+        switch ($font_family) {
+            case 'Arial':
+                return "Arial, 'Helvetica Neue', Helvetica, sans-serif";
+        }
+
+        return $font_family;
+    }
+
     public function text_block($id, $settings)
     {
         $text          = wpautop($settings['text_content']);
-        $bg_color      = 'transparent';
-        $text_color    = '#74787e';
-        $font_family   = 'inherit';
+        $font_family   = $this->get_font_family_stack($settings['text_font_family']);
         $font_size     = $settings['text_font_size'] . 'px';
-        $line_height   = 'normal';
+        $line_height   = $settings['text_line_height'];
         $block_padding = $settings['block_padding'];
         $padding       = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
 
         return <<<HTML
 <tr>
-    <td align="left" style="background:$bg_color;font-size:0px;padding:$padding;word-break:break-word;">
-        <div class="mo-content-text-color" style="font-family:$font_family;font-size:$font_size;line-height:$line_height;text-align:left;color:$text_color;">$text</div>
+    <td align="left" style="/*background:transparent;*/font-size:0px;padding:$padding;word-break:break-word;">
+        <div class="mo-content-text-color" style="font-family:$font_family;font-size:$font_size;line-height:$line_height;text-align:left;/*color:#74787e;*/">$text</div>
     </td>
 </tr>
 HTML;
