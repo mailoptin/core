@@ -458,6 +458,34 @@ CSS;
                 return "'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif";
             case 'Verdana':
                 return "Verdana, Geneva, sans-serif";
+            case 'Arvo':
+                return "Arvo, Courier, Georgia, serif";
+            case 'Lato':
+                return "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif";
+            case 'Lora':
+                return "Lora, Georgia, 'Times New Roman', serif";
+            case 'Merriweather':
+                return "Merriweather, Georgia, 'Times New Roman', serif";
+            case 'Merriweather Sans':
+                return "'Merriweather Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+            case 'Noticia Text':
+                return "'Noticia Text', Georgia, 'Times New Roman', serif";
+            case 'Open Sans':
+                return "'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+            case 'Playfair Display':
+                return "'Playfair Display', Georgia, 'Times New Roman', serif";
+            case 'Roboto':
+                return "Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif";
+            case 'Source Sans Pro':
+                return "'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+            case 'Oswald':
+                return "Oswald, 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif";
+            case 'Raleway':
+                return "Raleway, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif";
+            case 'Permanent Marker':
+                return "'Permanent Marker', Tahoma, Verdana, Segoe, sans-serif";
+            case 'Pacifico':
+                return "Pacifico, 'Arial Narrow', Arial, sans-serif";
         }
 
         return $font_family;
