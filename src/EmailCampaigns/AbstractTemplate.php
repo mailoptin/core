@@ -394,6 +394,7 @@ CSS;
                 <?php $combined_style = $template_style . "\r\n". $this->get_template_core_css() . "\r\n" . $custom_css_style; ?>
                 <?php echo apply_filters('mailoptin_email_template_style', $combined_style, $this->email_campaign_id, $this); ?>
             </style>
+            <?php do_action('mo_get_preview_structure_before_closing_head'); ?>
         </head>
         <body>
         <?php echo do_shortcode($this->get_body()); ?>
