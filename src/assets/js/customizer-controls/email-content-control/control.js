@@ -23,7 +23,6 @@
             this.render_saved_elements();
             this.dimension_field_init();
             this.sortable_init();
-            _this.save_changes_on_dirty();
 
             $.fn.color_picker_init = function () {
                 $(this).find('.mo-color-picker-hex').wpColorPicker();
@@ -51,8 +50,17 @@
         },
 
         save_changes_on_dirty: function () {
-            $(document).on('change', '.mo-email-content-element-field, .mo-email-content-element-field .mo-border-input', function () {
+            $('.mo-email-content-element-field, .mo-email-content-element-field .mo-border-input').on('change', function () {
                 _this.save_changes();
+            });
+
+            $('.mo-email-content-field-tinymce-wrap textarea.wp-editor-area').each(function () {
+
+                var editor = tinymce.get($(this).attr('id'));
+
+                editor.on('keyup change undo redo SetContent NodeChange', function () {
+                    _this.save_changes();
+                });
             });
         },
 
@@ -206,6 +214,7 @@
             $('.mo-email-content-widget.mo-email-content-element-settings').append(template(template_data)).show(200).color_picker_init();
             _this.tinymce_field_init();
             _this.range_field_init();
+            _this.save_changes_on_dirty();
             $('.mo-email-content-modal-motabs .motabs .motab').eq(0).click();
         },
 
