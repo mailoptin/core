@@ -23,6 +23,7 @@
             this.render_saved_elements();
             this.dimension_field_init();
             this.sortable_init();
+            _this.save_changes_on_dirty();
 
             $.fn.color_picker_init = function () {
                 $(this).find('.mo-color-picker-hex').wpColorPicker();
@@ -49,10 +50,15 @@
             $(document).on('mo_sort_elements_index', this.sort_elements_index);
         },
 
-        save_changes_on_apply: function (e) {
-            e.preventDefault();
+        save_changes_on_dirty: function () {
+            $(document).on('change', '.mo-email-content-element-field, .mo-email-content-element-field .mo-border-input', function () {
+                _this.save_changes();
+            });
+        },
+
+        save_changes: function () {
             var settings = JSON.parse(_this.setting.get());
-            var element_id = $(this).parents('#mo-email-content-settings-area').data('element-id');
+            var element_id = $('#mo-email-content-settings-area').data('element-id');
             var data = _.findWhere(settings, {id: element_id});
 
             $('#mo-email-content-settings-area .mo-email-content-element-field').each(function () {
@@ -73,7 +79,12 @@
             });
 
             $('#mo-email-content-save-field').val(JSON.stringify(settings)).change();
+        },
 
+        save_changes_on_apply: function (e) {
+            e.preventDefault();
+            _this.save_changes();
+            _this.render_saved_elements();
             _this.go_back();
         },
 
@@ -281,11 +292,11 @@
                 range_input = range.parent().children('.mo-range-input');
                 value = range.attr('value');
 
-                range_input.val(value);
+                range_input.val(value).change();
 
                 range.mousemove(function () {
                     value = range.attr('value');
-                    range_input.val(value);
+                    range_input.val(value).change();
                 });
 
             });
