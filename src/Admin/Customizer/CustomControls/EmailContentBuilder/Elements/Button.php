@@ -75,20 +75,6 @@ class Button extends AbstractElement
                     'max'   => 100,
                     'step'  => 1,
                 ],
-                'button_font_family'      => [
-                    'label' => esc_html__('Font Family', 'mailoptin'),
-                    'type'  => 'font_family',
-                    'tab'   => 'tab-style'
-                ],
-                'button_font_weight'      => [
-                    'label'   => esc_html__('Font Weight', 'mailoptin'),
-                    'type'    => 'select',
-                    'choices' => [
-                        'normal' => esc_html__('Normal', 'mailoptin'),
-                        'bold'   => esc_html__('Bold', 'mailoptin')
-                    ],
-                    'tab'     => 'tab-style'
-                ],
                 'button_alignment'        => [
                     'label'   => esc_html__('Alignment', 'mailoptin'),
                     'choices' => [
@@ -99,6 +85,11 @@ class Button extends AbstractElement
                     'type'    => 'select',
                     'tab'     => 'tab-style'
                 ],
+                'button_padding'          => [
+                    'label' => esc_html__('Padding', 'mailoptin'),
+                    'type'  => 'dimension',
+                    'tab'   => 'tab-style'
+                ],
                 'button_border_radius'    => [
                     'label' => esc_html__('Rounded Corner', 'mailoptin'),
                     'type'  => 'range',
@@ -106,7 +97,23 @@ class Button extends AbstractElement
                     'min'   => 0,
                     'max'   => 50,
                     'step'  => 1,
-                ]
+                ],
+                'button_font_family'      => [
+                    'label' => esc_html__('Font Family', 'mailoptin'),
+                    'type'  => 'font_family',
+                    'tab'   => 'tab-style'
+                ],
+                'button_font_weight'      => [
+                    'label'   => esc_html__('Font Weight', 'mailoptin'),
+                    'type'    => 'select',
+                    'choices' => [
+                        'normal'  => esc_html__('Normal', 'mailoptin'),
+                        'bold'    => esc_html__('Bold', 'mailoptin'),
+                        'bolder'  => esc_html__('Bolder', 'mailoptin'),
+                        'lighter' => esc_html__('Lighter', 'mailoptin')
+                    ],
+                    'tab'     => 'tab-style'
+                ],
             ]
         );
     }

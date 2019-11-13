@@ -18,13 +18,18 @@ class Lucid extends AbstractTemplate
             return $args;
         });
 
-        add_filter('mo_email_content_elements_text_element', function ($settings) {
-            unset($settings['block_background_color']);
+        add_filter('mo_email_content_elements_text_element', [$this, 'remove_block_background_color']);
 
-            return $settings;
-        });
+        add_filter('mo_email_content_elements_button_element', [$this, 'remove_block_background_color']);
 
         parent::__construct($email_campaign_id);
+    }
+
+    public function remove_block_background_color($settings)
+    {
+        unset($settings['block_background_color']);
+
+        return $settings;
     }
 
     /**
@@ -435,62 +440,6 @@ CSS;
         return $defaults;
     }
 
-    public function get_font_family_stack($font_family)
-    {
-        switch ($font_family) {
-            case 'Arial':
-                return "Arial, 'Helvetica Neue', Helvetica, sans-serif";
-            case 'Comic Sans MS':
-                return "'Comic Sans MS', 'Marker Felt-Thin', Arial, sans-serif";
-            case 'Courier New':
-                return "'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace";
-            case 'Georgia':
-                return "Georgia, Times, 'Times New Roman', serif";
-            case 'Helvetica':
-                return "'Helvetica Neue', Helvetica, Arial, Verdana, sans-serif";
-            case 'Lucida':
-                return "'Lucida Sans Unicode', 'Lucida Grande', sans-serif";
-            case 'Tahoma':
-                return "Tahoma, Verdana, Segoe, sans-serif";
-            case 'Times New Roman':
-                return "'Times New Roman', Times, Baskerville, Georgia, serif";
-            case 'Trebuchet MS':
-                return "'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif";
-            case 'Verdana':
-                return "Verdana, Geneva, sans-serif";
-            case 'Arvo':
-                return "Arvo, Courier, Georgia, serif";
-            case 'Lato':
-                return "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif";
-            case 'Lora':
-                return "Lora, Georgia, 'Times New Roman', serif";
-            case 'Merriweather':
-                return "Merriweather, Georgia, 'Times New Roman', serif";
-            case 'Merriweather Sans':
-                return "'Merriweather Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-            case 'Noticia Text':
-                return "'Noticia Text', Georgia, 'Times New Roman', serif";
-            case 'Open Sans':
-                return "'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-            case 'Playfair Display':
-                return "'Playfair Display', Georgia, 'Times New Roman', serif";
-            case 'Roboto':
-                return "Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif";
-            case 'Source Sans Pro':
-                return "'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-            case 'Oswald':
-                return "Oswald, 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif";
-            case 'Raleway':
-                return "Raleway, 'Century Gothic', CenturyGothic, AppleGothic, sans-serif";
-            case 'Permanent Marker':
-                return "'Permanent Marker', Tahoma, Verdana, Segoe, sans-serif";
-            case 'Pacifico':
-                return "Pacifico, 'Arial Narrow', Arial, sans-serif";
-        }
-
-        return $font_family;
-    }
-
     public function text_block($id, $settings)
     {
         $text          = wpautop($settings['text_content']);
@@ -504,6 +453,28 @@ CSS;
 <tr>
     <td align="left" style="/*background:transparent;*/font-size:0px;padding:$padding;word-break:break-word;">
         <div class="mo-content-text-color" style="font-family:$font_family;font-size:$font_size;line-height:$line_height;text-align:left;/*color:#74787e;*/">$text</div>
+    </td>
+</tr>
+HTML;
+
+    }
+
+    public function button_block($id, $settings)
+    {
+        $button_text  = $settings['button_text'];
+        $button_link  = esc_url_raw($settings['button_link']);
+        $button_width = esc_url_raw($settings['button_width']);
+
+        return <<<HTML
+<tr>
+    <td align="center" vertical-align="middle" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+            <tr>
+                <td align="center" bgcolor="#f45e43" role="presentation" style="border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#f45e43;" valign="middle">
+                    <p style="display:inline-block;background:#f45e43;color:white;font-family:Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;">$button_text</p>
+                </td>
+            </tr>
+        </table>
     </td>
 </tr>
 HTML;

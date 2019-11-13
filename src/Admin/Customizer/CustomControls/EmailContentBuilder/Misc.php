@@ -46,6 +46,12 @@ class Misc
                     'button_background_color' => '',
                     'button_color'            => '',
                     'button_font_size'        => '18',
+                    'button_padding'          => [
+                        'top'    => '0',
+                        'bottom' => '0',
+                        'right'  => '0',
+                        'left'   => '0'
+                    ],
                     'button_font_family'      => '',
                     'button_font_weight'      => 'bold',
                     'button_alignment'        => 'center',

@@ -14,6 +14,10 @@
                         $('.mo-email-content-elements-wrapper').hide();
                         $('.mo-email-content-widget.mo-email-content-element-settings').hide();
                         $('.mo-email-content-wrapper').find('.mo-email-content-widget-wrapper').show();
+                        // queue this so it makes going back quick
+                        setTimeout(function () {
+                            $('#mo-email-content-settings-area').remove();
+                        }, 500);
                     } else {
                         $('body').removeClass('mo-email-content-element-settings-open');
                     }
@@ -202,7 +206,10 @@
                 element_id = $(this).parents('.element-bar').data('element-id');
             }
 
-            $('#mo-email-content-settings-area').remove();
+            if ($('#mo-email-content-settings-area').length > 0) {
+                $('#mo-email-content-settings-area').remove();
+            }
+
             var template = wp.template('mo-email-content-element-' + element_type);
             var template_data = _.findWhere(JSON.parse(_this.setting.get()), {id: element_id});
 
@@ -211,7 +218,7 @@
                 template_data['element_id'] = element_id;
             }
 
-            $('.mo-email-content-widget.mo-email-content-element-settings').append(template(template_data)).show(200).color_picker_init();
+            $('.mo-email-content-widget.mo-email-content-element-settings').append(template(template_data)).show().color_picker_init();
             _this.tinymce_field_init();
             _this.range_field_init();
             _this.save_changes_on_dirty();
@@ -250,6 +257,10 @@
             $('body').removeClass('mo-email-content-element-settings-open');
 
             $('.mo-email-content-widget-wrapper').show();
+            // queue this so it makes going back quick
+            setTimeout(function () {
+                $('#mo-email-content-settings-area').remove();
+            }, 500);
         },
 
         reveal_add_elements_ui: function (e) {

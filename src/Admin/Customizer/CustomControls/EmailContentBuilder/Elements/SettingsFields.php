@@ -28,16 +28,16 @@ class SettingsFields
         $setting['choices'] = [
             ''                                        => esc_html__('Select...', 'mailoptin'),
             esc_html__('Standard Fonts', 'mailoptin') => [
-                'Arial'               => esc_html__('Arial', 'mailoptin'),
-                'Comic Sans MS'       => esc_html__('Comic Sans MS', 'mailoptin'),
-                'Courier New'         => esc_html__('Courier New', 'mailoptin'),
-                'Georgia'             => esc_html__('Georgia', 'mailoptin'),
-                'Helvetica'           => esc_html__('Helvetica', 'mailoptin'),
-                'Lucida' => esc_html__('Lucida', 'mailoptin'),
-                'Tahoma'              => esc_html__('Tahoma', 'mailoptin'),
-                'Times New Roman'     => esc_html__('Times New Roman', 'mailoptin'),
-                'Trebuchet MS'        => esc_html__('Trebuchet MS', 'mailoptin'),
-                'Verdana'             => esc_html__('Verdana', 'mailoptin')
+                'Arial'           => esc_html__('Arial', 'mailoptin'),
+                'Comic Sans MS'   => esc_html__('Comic Sans MS', 'mailoptin'),
+                'Courier New'     => esc_html__('Courier New', 'mailoptin'),
+                'Georgia'         => esc_html__('Georgia', 'mailoptin'),
+                'Helvetica'       => esc_html__('Helvetica', 'mailoptin'),
+                'Lucida'          => esc_html__('Lucida', 'mailoptin'),
+                'Tahoma'          => esc_html__('Tahoma', 'mailoptin'),
+                'Times New Roman' => esc_html__('Times New Roman', 'mailoptin'),
+                'Trebuchet MS'    => esc_html__('Trebuchet MS', 'mailoptin'),
+                'Verdana'         => esc_html__('Verdana', 'mailoptin')
             ],
             esc_html__('Custom Fonts', 'mailoptin')   => [
                 'Arvo'              => esc_html__('Arvo', 'mailoptin'),
