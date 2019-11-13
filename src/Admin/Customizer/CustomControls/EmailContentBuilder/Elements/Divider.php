@@ -46,16 +46,6 @@ class Divider extends AbstractElement
                     'max'   => 100,
                     'step'  => 1,
                 ],
-                'divider_alignment' => [
-                    'label'   => esc_html__('Alignment', 'mailoptin'),
-                    'choices' => [
-                        'left'   => esc_html__('Left', 'mailoptin'),
-                        'right'  => esc_html__('Right', 'mailoptin'),
-                        'center' => esc_html__('Center', 'mailoptin'),
-                    ],
-                    'type'    => 'select',
-                    'tab'     => 'tab-style'
-                ],
                 'divider_style'     => [
                     'label'   => esc_html__('Border Style', 'mailoptin'),
                     'type'    => 'select',

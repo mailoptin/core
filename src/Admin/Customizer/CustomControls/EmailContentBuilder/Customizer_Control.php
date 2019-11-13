@@ -117,7 +117,7 @@ class Customizer_Control extends WP_Customize_Control
                     text = settings.image_url
                 }
                 if (element_type === 'divider') {
-                    text = settings.divider_width + '% | ' + settings.divider_alignment + ' | ' + settings.divider_style;
+                    text = settings.divider_width + '% | ' + settings.divider_color + ' | ' + settings.divider_style;
                 }
 
                 return text;

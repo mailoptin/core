@@ -59,7 +59,6 @@ class Misc
                 ],
             'divider' => $block_settings_default + [
                     'divider_width'     => '100',
-                    'divider_alignment' => 'center',
                     'divider_style'     => 'solid',
                     'divider_color'     => '#dcd6d1',
                     'divider_height'    => '1'

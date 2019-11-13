@@ -89,8 +89,8 @@ HTML;
     abstract function text_block($id, $settings);
 
     abstract function button_block($id, $settings);
-//
-//    abstract function divider_block($id, $settings);
+
+    abstract function divider_block($id, $settings);
 //
 //    abstract function image_block($id, $settings);
 }

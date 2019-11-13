@@ -19,8 +19,8 @@ class Lucid extends AbstractTemplate
         });
 
         add_filter('mo_email_content_elements_text_element', [$this, 'remove_block_background_color']);
-
         add_filter('mo_email_content_elements_button_element', [$this, 'remove_block_background_color']);
+        add_filter('mo_email_content_elements_divider_element', [$this, 'remove_block_background_color']);
 
         parent::__construct($email_campaign_id);
     }
@@ -456,6 +456,13 @@ CSS;
             'left'   => '10'
         ];
 
+        $defaults['divider']['block_padding'] = [
+            'top'    => '10',
+            'bottom' => '10',
+            'right'  => '0',
+            'left'   => '0'
+        ];
+
         return $defaults;
     }
 
@@ -475,7 +482,6 @@ CSS;
     </td>
 </tr>
 HTML;
-
     }
 
     public function button_block($id, $settings)
@@ -511,6 +517,35 @@ HTML;
     </td>
 </tr>
 HTML;
+    }
 
+    public function divider_block($id, $settings)
+    {
+        $block_padding = $settings['block_padding'];
+        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
+
+        $divider_width  = $settings['divider_width'];
+        $divider_style  = $settings['divider_style'];
+        $divider_color  = $settings['divider_color'];
+        $divider_height = $settings['divider_height'];
+
+        return <<<HTML
+<tr>
+    <td style="font-size:0px;padding:$block_padding;word-break:break-word;">
+        <p style="border-top:$divider_style {$divider_height}px $divider_color;font-size:0;margin:0px auto;width:$divider_width%;"></p>
+        <!--[if mso | IE]>
+        <table
+                align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:$divider_style {$divider_height}px $divider_color;font-size:1;margin:0px auto;width:450px;" role="presentation" width="450px"
+        >
+            <tr>
+                <td style="height:0;line-height:0;">
+                    &nbsp;
+                </td>
+            </tr>
+        </table>
+        <![endif]-->
+    </td>
+</tr>
+HTML;
     }
 }
