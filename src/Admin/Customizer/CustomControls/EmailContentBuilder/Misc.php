@@ -41,7 +41,7 @@ class Misc
                 ],
             'button'  => $block_settings_default + [
                     'button_text'             => esc_html__('Button', 'mailoptin'),
-                    'button_link'             => '#',
+                    'button_link'             => home_url(),
                     'button_width'            => '70',
                     'button_background_color' => '',
                     'button_color'            => '',
@@ -53,7 +53,7 @@ class Misc
                         'left'   => '0'
                     ],
                     'button_font_family'      => '',
-                    'button_font_weight'      => 'bold',
+                    'button_font_weight'      => 'normal',
                     'button_alignment'        => 'center',
                     'button_border_radius'    => '0'
                 ],

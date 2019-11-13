@@ -29,7 +29,11 @@
             this.sortable_init();
 
             $.fn.color_picker_init = function () {
-                $(this).find('.mo-color-picker-hex').wpColorPicker();
+                $(this).find('.mo-color-picker-hex').wpColorPicker({
+                    change: function (event, ui) {
+                        $(document).trigger('mo_save_changes_on_dirty');
+                    }
+                });
                 return this;
             };
 
@@ -57,6 +61,11 @@
             $('.mo-email-content-element-field, .mo-email-content-element-field .mo-border-input').on('change', function () {
                 _this.save_changes();
             });
+
+            // we are adding a delay so the color input field is updated before changes are saved.
+            $(document).on('mo_save_changes_on_dirty', _.debounce(function () {
+                _this.save_changes();
+            }, 500));
 
             $('.mo-email-content-field-tinymce-wrap textarea.wp-editor-area').each(function () {
 

@@ -437,6 +437,25 @@ CSS;
         $defaults['text']['text_font_family'] = 'Arial';
         $defaults['text']['text_font_size']   = '16';
 
+        $defaults['button']['button_font_family']      = 'Arial';
+        $defaults['button']['button_width']            = '100';
+        $defaults['button']['button_background_color'] = '#dc4d2f';
+        $defaults['button']['button_color']            = '#ffffff';
+        $defaults['button']['button_font_size']        = '16';
+        $defaults['button']['button_border_radius']    = '3';
+        $defaults['button']['block_padding']           = [
+            'top'    => '20',
+            'bottom' => '20',
+            'right'  => '0',
+            'left'   => '0'
+        ];
+        $defaults['button']['button_padding']          = [
+            'top'    => '15',
+            'bottom' => '15',
+            'right'  => '10',
+            'left'   => '10'
+        ];
+
         return $defaults;
     }
 
@@ -461,17 +480,31 @@ HTML;
 
     public function button_block($id, $settings)
     {
-        $button_text  = $settings['button_text'];
-        $button_link  = esc_url_raw($settings['button_link']);
-        $button_width = esc_url_raw($settings['button_width']);
+        $block_padding = $settings['block_padding'];
+        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
+
+        $button_text             = $settings['button_text'];
+        $button_link             = esc_url_raw($settings['button_link']);
+        $button_width            = $settings['button_width'];
+        $button_background_color = $settings['button_background_color'];
+        $button_color            = $settings['button_color'];
+        $button_font_size        = $settings['button_font_size'];
+        $button_alignment        = $settings['button_alignment'];
+
+        $button_padding = $settings['button_padding'];
+        $button_padding = $button_padding['top'] . 'px ' . $button_padding['right'] . 'px ' . $button_padding['bottom'] . 'px ' . $button_padding['left'] . 'px';
+
+        $button_border_radius = $settings['button_border_radius'];
+        $button_font_family   = $settings['button_font_family'];
+        $button_font_weight   = $settings['button_font_weight'];
 
         return <<<HTML
 <tr>
-    <td align="center" vertical-align="middle" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+    <td align="$button_alignment" vertical-align="middle" style="font-size:0px;padding:$block_padding;word-break:break-word;">
+        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;width:$button_width%;line-height:100%;">
             <tr>
-                <td align="center" bgcolor="#f45e43" role="presentation" style="border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#f45e43;" valign="middle">
-                    <p style="display:inline-block;background:#f45e43;color:white;font-family:Helvetica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;">$button_text</p>
+                <td align="center" bgcolor="$button_background_color" role="presentation" style="border:none;border-radius:15px;cursor:auto;mso-padding-alt:$button_padding;background:$button_background_color;" valign="middle">
+                    <a href="$button_link" style="display:inline-block;width:100%;background:$button_background_color;color:$button_color;font-family:$button_font_family;font-size:{$button_font_size}px;font-weight:$button_font_weight;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:$button_padding;mso-padding-alt:0px;border-radius:{$button_border_radius}px;" target="_blank">$button_text</a>
                 </td>
             </tr>
         </table>
