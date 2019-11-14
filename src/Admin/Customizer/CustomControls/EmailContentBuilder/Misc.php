@@ -65,9 +65,10 @@ class Misc
                 ],
             'image'   => $block_settings_default + [
                     'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
-                    'image_width'     => '100',
+                    'image_width'     => '500',
                     'image_alignment' => 'center',
                     'image_alt_text'  => '',
+                    'image_link'  => '',
                 ]
         ],
             $email_campaign_id

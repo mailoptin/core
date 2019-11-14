@@ -44,12 +44,18 @@ class Image extends AbstractElement
                     'type'  => 'select_image',
                     'tab'   => 'tab-content'
                 ],
+                'image_link'      => [
+                    'label'       => esc_html__('Link', 'mailoptin'),
+                    'placeholder' => 'https://',
+                    'type'        => 'text',
+                    'tab'         => 'tab-content'
+                ],
                 'image_width'     => [
-                    'label' => esc_html__('Width (%)', 'mailoptin'),
+                    'label' => esc_html__('Width (px)', 'mailoptin'),
                     'type'  => 'range',
                     'tab'   => 'tab-style',
-                    'min'   => 5,
-                    'max'   => 100,
+                    'min'   => 10,
+                    'max'   => 600,
                     'step'  => 1,
                 ],
                 'image_alignment' => [
@@ -66,7 +72,7 @@ class Image extends AbstractElement
                     'label' => esc_html__('Alternative Text (alt tag)', 'mailoptin'),
                     'type'  => 'text',
                     'tab'   => 'tab-style'
-                ]
+                ],
             ]
         );
     }

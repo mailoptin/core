@@ -58,9 +58,9 @@
         },
 
         save_changes_on_dirty: function () {
-            $('.mo-email-content-element-field, .mo-email-content-element-field .mo-border-input').on('change', function () {
+            $('.mo-email-content-element-field, .mo-email-content-element-field .mo-border-input').on('change', _.debounce(function () {
                 _this.save_changes();
-            });
+            }, 500));
 
             // we are adding a delay so the color input field is updated before changes are saved.
             $(document).on('mo_save_changes_on_dirty', _.debounce(function () {
@@ -69,9 +69,7 @@
 
             $('.mo-email-content-field-tinymce-wrap textarea.wp-editor-area').each(function () {
 
-                var editor = tinymce.get($(this).attr('id'));
-
-                editor.on('keyup change undo redo SetContent NodeChange', function () {
+                tinymce.get($(this).attr('id')).on('keyup change undo redo SetContent NodeChange', function () {
                     _this.save_changes();
                 });
             });
@@ -299,7 +297,7 @@
 
             frame.on('select', function () {
                 let attachment = frame.state().get('selection').first().toJSON();
-                _this.parents('.mo-email-content-blocks').find('.mo-select-image-field input').val(attachment.url);
+                _this.parents('.mo-email-content-blocks').find('.mo-select-image-field input').val(attachment.url).change();
 
             });
 

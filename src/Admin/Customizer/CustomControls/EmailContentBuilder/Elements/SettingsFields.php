@@ -12,9 +12,10 @@ class SettingsFields
         echo '</div>';
     }
 
-    public static function text($name)
+    public static function text($name, $setting)
     {
-        printf('<input data-field-type="text" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name);
+        $placeholder = isset($setting['placeholder']) ? $setting['placeholder'] : '';
+        printf('<input placeholder="%2$s" data-field-type="text" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name, $placeholder);
     }
 
     public static function select_image($name)

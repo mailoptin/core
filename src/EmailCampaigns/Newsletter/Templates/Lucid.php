@@ -21,6 +21,7 @@ class Lucid extends AbstractTemplate
         add_filter('mo_email_content_elements_text_element', [$this, 'remove_block_background_color']);
         add_filter('mo_email_content_elements_button_element', [$this, 'remove_block_background_color']);
         add_filter('mo_email_content_elements_divider_element', [$this, 'remove_block_background_color']);
+        add_filter('mo_email_content_elements_image_element', [$this, 'remove_block_background_color']);
 
         parent::__construct($email_campaign_id);
     }
@@ -266,8 +267,17 @@ HTML;
       margin: 0;
       line-height: 1.4;
       color: #74787E;
-      -webkit-text-size-adjust: none;
+      padding: 0;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
     }
+    
+    body * {
+        -moz-box-sizing:    border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing:         border-box;
+    }
+    
     a {
       color: #3869D4;
       text-decoration: underline;
@@ -428,6 +438,25 @@ HTML;
         white-space: -o-pre-wrap;              /* Opera 7 and up */
         word-wrap: break-word;                 /* IE 5.5+ and up */
         }
+        /* from mjml */
+        #outlook a {
+              padding: 0;
+        }
+        
+         td {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+         }
+        
+         img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+         }
 CSS;
 
     }
@@ -444,8 +473,8 @@ CSS;
         $defaults['button']['button_font_size']        = '16';
         $defaults['button']['button_border_radius']    = '3';
         $defaults['button']['block_padding']           = [
-            'top'    => '20',
-            'bottom' => '20',
+            'top'    => '10',
+            'bottom' => '10',
             'right'  => '0',
             'left'   => '0'
         ];
@@ -457,6 +486,13 @@ CSS;
         ];
 
         $defaults['divider']['block_padding'] = [
+            'top'    => '10',
+            'bottom' => '10',
+            'right'  => '0',
+            'left'   => '0'
+        ];
+
+        $defaults['image']['block_padding'] = [
             'top'    => '10',
             'bottom' => '10',
             'right'  => '0',
@@ -547,5 +583,41 @@ HTML;
     </td>
 </tr>
 HTML;
+    }
+
+    public function image_block($id, $settings)
+    {
+        $block_padding = $settings['block_padding'];
+        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
+
+        $image_url       = $settings['image_url'];
+        $image_width     = $settings['image_width'];
+        $image_alignment = $settings['image_alignment'];
+        $image_alt_text  = $settings['image_alt_text'];
+        $image_link      = $settings['image_link'];
+
+        ob_start();
+        ?>
+        <tr>
+            <td align="<?= $image_alignment ?>" style="font-size:0px;padding:<?= $block_padding ?>;word-break:break-word;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                    <tbody>
+                    <tr>
+                        <td style="width:<?= $image_width ?>px;">
+                            <?php if ( ! empty($image_link)) : ?>
+                            <a href="<?= $image_link ?>" target="_blank">
+                                <?php endif; ?>
+                                <img alt="<?= $image_alt_text ?>" height="auto" src="<?= $image_url ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="<?= $image_width ?>"/>
+                                <?php if ( ! empty($image_link)) : ?>
+                            </a>
+                        <?php endif; ?>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        <?php
+        return ob_get_clean();
     }
 }
