@@ -22,6 +22,7 @@ class Lucid extends AbstractTemplate
         add_filter('mo_email_content_elements_button_element', [$this, 'remove_block_background_color']);
         add_filter('mo_email_content_elements_divider_element', [$this, 'remove_block_background_color']);
         add_filter('mo_email_content_elements_image_element', [$this, 'remove_block_background_color']);
+        add_filter('mo_email_content_elements_spacer_element', [$this, 'remove_block_background_color']);
 
         parent::__construct($email_campaign_id);
     }
@@ -579,6 +580,33 @@ HTML;
                 </td>
             </tr>
         </table>
+        <![endif]-->
+    </td>
+</tr>
+HTML;
+    }
+
+    public function spacer_block($id, $settings)
+    {
+        $block_padding = $settings['block_padding'];
+        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
+
+        $spacer_height  = $settings['spacer_height'];
+        $spacer_background_color  = $settings['spacer_background_color'];
+
+        return <<<HTML
+<tr>
+    <td style="background:$spacer_background_color;font-size:0px;padding:$block_padding;word-break:break-word;">
+        <!--[if mso | IE]>
+
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td height="{$spacer_height}px" style="vertical-align:top;height:{$spacer_height}px;">
+
+        <![endif]-->
+        <div style="height:{$spacer_height}px;"> &nbsp; </div>
+        <!--[if mso | IE]>
+
+        </td></tr></table>
+
         <![endif]-->
     </td>
 </tr>

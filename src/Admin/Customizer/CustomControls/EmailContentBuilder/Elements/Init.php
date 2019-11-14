@@ -11,5 +11,6 @@ class Init
         Image::get_instance();
         Button::get_instance();
         Divider::get_instance();
+        Spacer::get_instance();
     }
 }

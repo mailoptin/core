@@ -93,4 +93,6 @@ HTML;
     abstract function divider_block($id, $settings);
 
     abstract function image_block($id, $settings);
+
+    abstract function spacer_block($id, $settings);
 }

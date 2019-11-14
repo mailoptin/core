@@ -58,17 +58,21 @@ class Misc
                     'button_border_radius'    => '0'
                 ],
             'divider' => $block_settings_default + [
-                    'divider_width'     => '100',
-                    'divider_style'     => 'solid',
-                    'divider_color'     => '#dcd6d1',
-                    'divider_height'    => '1'
+                    'divider_width'  => '100',
+                    'divider_style'  => 'solid',
+                    'divider_color'  => '#dcd6d1',
+                    'divider_height' => '1'
+                ],
+            'spacer'  => $block_settings_default + [
+                    'spacer_height' => '20',
+                    'spacer_background_color' => '#ffffff'
                 ],
             'image'   => $block_settings_default + [
                     'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
                     'image_width'     => '500',
                     'image_alignment' => 'center',
                     'image_alt_text'  => '',
-                    'image_link'  => '',
+                    'image_link'      => '',
                 ]
         ],
             $email_campaign_id

@@ -57,7 +57,7 @@ class Text extends AbstractElement
                     'step'  => 1,
                 ],
                 'text_line_height' => [
-                    'label'   => esc_html__('Line Height (px)', 'mailoptin'),
+                    'label'   => esc_html__('Line Height', 'mailoptin'),
                     'type'    => 'select',
                     'choices' => [
                         'normal' => esc_html__('Default', 'mailoptin'),

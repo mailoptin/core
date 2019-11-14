@@ -100,6 +100,9 @@ class Customizer_Control extends WP_Customize_Control
                 if (element_type === 'divider') {
                     title = '<?=$this->get_element_title('divider')?>';
                 }
+                if (element_type === 'spacer') {
+                    title = '<?=$this->get_element_title('spacer')?>';
+                }
 
                 return title;
             }
@@ -118,6 +121,9 @@ class Customizer_Control extends WP_Customize_Control
                 }
                 if (element_type === 'divider') {
                     text = settings.divider_width + '% | ' + settings.divider_color + ' | ' + settings.divider_style;
+                }
+                if (element_type === 'spacer') {
+                    text = settings.spacer_height + 'px' + ' | ' + settings.spacer_background_color;
                 }
 
                 return text;
