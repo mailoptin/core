@@ -515,7 +515,7 @@ CSS;
         return <<<HTML
 <tr>
     <td align="left" style="/*background:transparent;*/font-size:0px;padding:$padding;word-break:break-word;">
-        <div class="mo-content-text-color" style="font-family:$font_family;font-size:$font_size;line-height:$line_height;text-align:left;/*color:#74787e;*/">$text</div>
+        <div class="mo-email-builder-element mo-content-text-color" id="$id" style="font-family:$font_family;font-size:$font_size;line-height:$line_height;text-align:left;/*color:#74787e;*/">$text</div>
     </td>
 </tr>
 HTML;
@@ -544,7 +544,7 @@ HTML;
         return <<<HTML
 <tr>
     <td align="$button_alignment" vertical-align="middle" style="font-size:0px;padding:$block_padding;word-break:break-word;">
-        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;width:$button_width%;line-height:100%;">
+        <table class="mo-email-builder-element" id="$id" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;width:$button_width%;line-height:100%;">
             <tr>
                 <td align="center" bgcolor="$button_background_color" role="presentation" style="border:none;border-radius:15px;cursor:auto;mso-padding-alt:$button_padding;background:$button_background_color;" valign="middle">
                     <a href="$button_link" style="display:inline-block;width:100%;background:$button_background_color;color:$button_color;font-family:$button_font_family;font-size:{$button_font_size}px;font-weight:$button_font_weight;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:$button_padding;mso-padding-alt:0px;border-radius:{$button_border_radius}px;" target="_blank">$button_text</a>
@@ -568,7 +568,7 @@ HTML;
 
         return <<<HTML
 <tr>
-    <td style="font-size:0px;padding:$block_padding;word-break:break-word;">
+    <td class="mo-email-builder-element" id="$id" style="font-size:0px;padding:$block_padding;word-break:break-word;">
         <p style="border-top:$divider_style {$divider_height}px $divider_color;font-size:0;margin:0px auto;width:$divider_width%;"></p>
         <!--[if mso | IE]>
         <table
@@ -591,12 +591,12 @@ HTML;
         $block_padding = $settings['block_padding'];
         $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
 
-        $spacer_height  = $settings['spacer_height'];
-        $spacer_background_color  = $settings['spacer_background_color'];
+        $spacer_height           = $settings['spacer_height'];
+        $spacer_background_color = $settings['spacer_background_color'];
 
         return <<<HTML
 <tr>
-    <td style="background:$spacer_background_color;font-size:0px;padding:$block_padding;word-break:break-word;">
+    <td class="mo-email-builder-element" id="$id" style="background:$spacer_background_color;font-size:0px;padding:$block_padding;word-break:break-word;">
         <!--[if mso | IE]>
 
         <table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td height="{$spacer_height}px" style="vertical-align:top;height:{$spacer_height}px;">
@@ -635,7 +635,7 @@ HTML;
                             <?php if ( ! empty($image_link)) : ?>
                             <a href="<?= $image_link ?>" target="_blank">
                                 <?php endif; ?>
-                                <img alt="<?= $image_alt_text ?>" height="auto" src="<?= $image_url ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="<?= $image_width ?>"/>
+                                <img class="mo-email-builder-element" id="<?= $id ?>" alt="<?= $image_alt_text ?>" height="auto" src="<?= $image_url ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="<?= $image_width ?>"/>
                                 <?php if ( ! empty($image_link)) : ?>
                             </a>
                         <?php endif; ?>

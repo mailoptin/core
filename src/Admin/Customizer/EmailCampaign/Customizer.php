@@ -233,17 +233,6 @@ class Customizer
                 'type'     => 'section',
                 'value'    => $this->campaign_content_section_id
             ];
-        } else {
-            $mappings[] = [
-                'selector' => '.mo-body-container',
-                'type'     => 'section',
-                'value'    => $this->newsletter_content_section_id
-            ];
-            $mappings[] = [
-                'selector' => '.mo-content-background-color',
-                'type'     => 'section',
-                'value'    => $this->newsletter_content_section_id
-            ];
         }
 
         if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
@@ -257,6 +246,7 @@ class Customizer
 
         // source: https://stackoverflow.com/a/35957563/2648410
         $last_mapping  = array_values(array_slice($mappings, -1))[0];
+
         $css_selectors = '';
         foreach ($mappings as $mapping) {
             $css_selectors .= $mapping['selector'] . ':hover';
@@ -266,6 +256,7 @@ class Customizer
             }
         }
         $css_selectors .= '{background: rgba(255, 185, 0, 0.52) !important;border: 1px dashed #ffb900 !important;cursor: pointer !important;}';
+        $css_selectors .= '.mo-email-builder-element:hover {border: 2px solid #0071a1 !important; padding: 5px; cursor: pointer !important;}';
         ?>
 
         <style type="text/css"><?php echo $css_selectors; ?></style>
@@ -274,19 +265,21 @@ class Customizer
             (function ($) {
                 $(function () {
                     $.each(mailoptin_option_mapping, function (key, value) {
-                        $(document).on('click', value.selector, function (e) {
-                            e.preventDefault();
-                            e.stopImmediatePropagation();
-                            if (value.type === 'section') {
-                                parent.wp.customize.section(value.value).focus()
-                            }
-                            if (value.type === 'control') {
-                                parent.wp.customize.control('mo_email_campaigns[' + mailoptin_email_campaign_id + '][' + value.value + ']').focus()
-                            }
-                            if (value.type === 'panel') {
-                                parent.wp.customize.panel(value.value).focus()
-                            }
-                        });
+                        if (typeof value.type !== 'undefined') {
+                            $(document).on('click', value.selector, function (e) {
+                                e.preventDefault();
+                                e.stopImmediatePropagation();
+                                if (value.type === 'section') {
+                                    parent.wp.customize.section(value.value).focus()
+                                }
+                                if (value.type === 'control') {
+                                    parent.wp.customize.control('mo_email_campaigns[' + mailoptin_email_campaign_id + '][' + value.value + ']').focus()
+                                }
+                                if (value.type === 'panel') {
+                                    parent.wp.customize.panel(value.value).focus()
+                                }
+                            });
+                        }
                     });
                 });
             })(jQuery);

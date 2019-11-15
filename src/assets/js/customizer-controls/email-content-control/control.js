@@ -17,7 +17,7 @@
                         // queue this so it makes going back quick
                         setTimeout(function () {
                             $('#mo-email-content-settings-area').remove();
-                        }, 500);
+                        }, 100);
                     } else {
                         $('body').removeClass('mo-email-content-element-settings-open');
                     }
@@ -54,7 +54,26 @@
 
             $(document).on('click', '.mo-email-content-footer-wrap .mo-apply', this.save_changes_on_apply);
 
+            $(window).on('load', this.reveal_settings_on_contextual_click);
+
             $(document).on('mo_sort_elements_index', this.sort_elements_index);
+        },
+
+        reveal_settings_on_contextual_click: function () {
+
+            var cache = $('#customize-preview iframe').contents();
+
+            cache.find(".mo-email-builder-element").click(function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var self = this;
+
+                wp.customize.section('mailoptin_newsletter_content').focus({
+                    completeCallback: function () {
+                        $(document).find('.element-bar[data-element-id="' + $(self).attr('id') + '"] .mo-email-content-widget-title').click();
+                    }
+                });
+            });
         },
 
         save_changes_on_dirty: function () {
@@ -267,7 +286,7 @@
             // queue this so it makes going back quick
             setTimeout(function () {
                 $('#mo-email-content-settings-area').remove();
-            }, 500);
+            }, 100);
         },
 
         reveal_add_elements_ui: function (e) {
