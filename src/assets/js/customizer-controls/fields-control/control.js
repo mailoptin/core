@@ -100,7 +100,7 @@
                 var template = wp.template('mo-fields-js-template');
                 // replace index placeholder with actual value.
                 var template_structure = template().replace(/{mo-fields-index}/g, index);
-                $(template_structure).insertBefore('.mo-fields__add_new').addClass('mo-fields-widget-expanded').attr('data-field-index', index);
+                $(template_structure).appendTo('.mo-custom-fields-container.mo-fields-widgets').addClass('mo-fields-widget-expanded').attr('data-field-index', index);
                 contextual_display_init();
 
                 // search and replace ID of fields

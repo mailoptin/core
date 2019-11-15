@@ -47,6 +47,8 @@ class Customizer_Control extends WP_Customize_Control
         wp_enqueue_script('jquery-ui-core');
         wp_enqueue_script('jquery-effects-slide');
 
+        wp_enqueue_script('jquery-ui-sortable');
+
         wp_enqueue_media();
 
         wp_localize_script(
