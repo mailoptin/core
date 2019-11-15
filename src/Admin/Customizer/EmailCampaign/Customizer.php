@@ -270,7 +270,6 @@ class Customizer
 
         <style type="text/css"><?php echo $css_selectors; ?></style>
         <script type="text/javascript">
-            console.log(jQuery)
             var mailoptin_option_mapping = <?php echo wp_json_encode($mappings); ?>;
             (function ($) {
                 $(function () {
@@ -282,7 +281,7 @@ class Customizer
                                 parent.wp.customize.section(value.value).focus()
                             }
                             if (value.type === 'control') {
-                                parent.wp.customize.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][' + value.value + ']').focus()
+                                parent.wp.customize.control('mo_email_campaigns[' + mailoptin_email_campaign_id + '][' + value.value + ']').focus()
                             }
                             if (value.type === 'panel') {
                                 parent.wp.customize.panel(value.value).focus()
