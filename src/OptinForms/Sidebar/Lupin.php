@@ -468,8 +468,8 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container {
 
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container h2.lupinSidebar-heading {
          color: #fff;
-         line-height: 50px;
-         margin: 0;
+         line-height: 30px;
+         margin: 10 0 20px;
      }
 
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .lupinSidebar-description {
