@@ -219,7 +219,7 @@ class Lucid extends AbstractTemplate
             </td>
           </tr>
           <!-- Email Body -->
-          <tr>
+          <tr class="mo-body-container">
             <td class="email-body mo-content-background-color" width="100%">
               <table class="email-body_inner content-cell" align="center" width="570" cellpadding="0" cellspacing="0">
                 <!-- Body content -->

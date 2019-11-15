@@ -944,7 +944,6 @@ HTML;
             $this->customizerClassInstance
         );
 
-
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
             $content = sprintf(
                 __('Upgrade to %sMailOptin Premium%s to access the Custom CSS feature that will allow you customize this template to your heart content.', 'mailoptin'),
@@ -1536,6 +1535,10 @@ HTML;
             $this->option_prefix,
             $this->customizerClassInstance
         );
+
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+            unset($footer_control_args['footer_removal']);
+        }
 
         do_action('mailoptin_before_footer_controls_addition',
             $footer_control_args,

@@ -201,6 +201,100 @@ class Customizer
         <?php
     }
 
+    public function selector_mapping_scripts_styles()
+    {
+        $mappings = apply_filters('mo_optin_selectors_mapping', [
+            [
+                'selector' => '.mo-header-container',
+                'type'     => 'section',
+                'value'    => $this->campaign_header_section_id
+            ],
+            [
+                'selector' => '.mo-footer-container',
+                'type'     => 'section',
+                'value'    => $this->campaign_footer_section_id
+            ],
+            [
+                'selector' => '.mo-powered-by-attribute',
+                'type'     => 'control',
+                'value'    => 'footer_removal'
+            ]
+        ]);
+
+
+        if ( ! ER::is_newsletter($this->email_campaign_id)) {
+            $mappings[] = [
+                'selector' => '.mo-body-container',
+                'type'     => 'section',
+                'value'    => $this->campaign_content_section_id
+            ];
+            $mappings[] = [
+                'selector' => '.mo-content-background-color',
+                'type'     => 'section',
+                'value'    => $this->campaign_content_section_id
+            ];
+        } else {
+            $mappings[] = [
+                'selector' => '.mo-body-container',
+                'type'     => 'section',
+                'value'    => $this->newsletter_content_section_id
+            ];
+            $mappings[] = [
+                'selector' => '.mo-content-background-color',
+                'type'     => 'section',
+                'value'    => $this->newsletter_content_section_id
+            ];
+        }
+
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+            $mappings[] =
+                [
+                    'selector' => '.mo-optin-powered-by',
+                    'type'     => 'control',
+                    'value'    => 'remove_branding'
+                ];
+        }
+
+        // source: https://stackoverflow.com/a/35957563/2648410
+        $last_mapping  = array_values(array_slice($mappings, -1))[0];
+        $css_selectors = '';
+        foreach ($mappings as $mapping) {
+            $css_selectors .= $mapping['selector'] . ':hover';
+            // do not add comma to trailing/last selector
+            if ($mapping != $last_mapping) {
+                $css_selectors .= ',';
+            }
+        }
+        $css_selectors .= '{background: rgba(255, 185, 0, 0.52) !important;border: 1px dashed #ffb900 !important;cursor: pointer !important;}';
+        ?>
+
+        <style type="text/css"><?php echo $css_selectors; ?></style>
+        <script type="text/javascript">
+            console.log(jQuery)
+            var mailoptin_option_mapping = <?php echo wp_json_encode($mappings); ?>;
+            (function ($) {
+                $(function () {
+                    $.each(mailoptin_option_mapping, function (key, value) {
+                        $(document).on('click', value.selector, function (e) {
+                            e.preventDefault();
+                            e.stopImmediatePropagation();
+                            if (value.type === 'section') {
+                                parent.wp.customize.section(value.value).focus()
+                            }
+                            if (value.type === 'control') {
+                                parent.wp.customize.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][' + value.value + ']').focus()
+                            }
+                            if (value.type === 'panel') {
+                                parent.wp.customize.panel(value.value).focus()
+                            }
+                        });
+                    });
+                });
+            })(jQuery);
+        </script>
+        <?php
+    }
+
     public function monkey_patch_customizer_payload()
     {
         wp_add_inline_script('customize-controls', '(function ( api ) {
@@ -420,6 +514,8 @@ class Customizer
 
         // rewrite panel name from blog name to email campaign name.
         add_filter('pre_option_blogname', array($this, 'rewrite_customizer_panel_title'));
+
+        add_action('wp_footer', [$this, 'selector_mapping_scripts_styles'], 99);
     }
 
     /**
