@@ -12,7 +12,6 @@ use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class PostsEmailDigest extends AbstractTriggers
 {
-
     public function __construct()
     {
         parent::__construct();
@@ -35,17 +34,9 @@ class PostsEmailDigest extends AbstractTriggers
         return $timezone;
     }
 
-    public function post_collection($email_campaign_id)
+    public function post_collect_query($email_campaign_id)
     {
         $item_count = EmailCampaignRepository::get_merged_customizer_value($email_campaign_id, 'item_number');
-
-        $newer_than_timestamp = EmailCampaignMeta::get_meta_data($email_campaign_id, 'created_at', true);
-
-        $last_processed_at = $this->last_processed_at($email_campaign_id);
-
-        if ( ! empty($last_processed_at)) {
-            $newer_than_timestamp = $last_processed_at;
-        }
 
         $parameters = [
             'posts_per_page' => $item_count,
@@ -53,13 +44,6 @@ class PostsEmailDigest extends AbstractTriggers
             'post_type'      => 'post',
             'order'          => 'DESC',
             'orderby'        => 'post_date'
-        ];
-
-        $parameters['date_query'] = [
-            [
-                'column' => 'post_date',
-                'after'  => $newer_than_timestamp
-            ]
         ];
 
         $post_authors = ER::get_merged_customizer_value($email_campaign_id, 'post_authors');
@@ -106,6 +90,28 @@ class PostsEmailDigest extends AbstractTriggers
                 $parameters['tag_id'] = implode(',', array_map('trim', $tags));
             }
         }
+
+        return $parameters;
+    }
+
+    public function post_collection($email_campaign_id)
+    {
+        $newer_than_timestamp = EmailCampaignMeta::get_meta_data($email_campaign_id, 'created_at', true);
+
+        $last_processed_at = $this->last_processed_at($email_campaign_id);
+
+        if ( ! empty($last_processed_at)) {
+            $newer_than_timestamp = $last_processed_at;
+        }
+
+        $parameters = $this->post_collect_query($email_campaign_id);
+
+        $parameters['date_query'] = [
+            [
+                'column' => 'post_date',
+                'after'  => $newer_than_timestamp
+            ]
+        ];
 
         return get_posts(apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id));
     }

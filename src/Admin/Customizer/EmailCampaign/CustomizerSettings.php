@@ -308,7 +308,11 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         if ($this->email_campaign_type == ER::POSTS_EMAIL_DIGEST) {
-            $email_campaign_settings_args['custom_post_type']['transport'] = 'refresh';
+            $email_campaign_settings_args['custom_post_type']['transport']          = 'refresh';
+            $email_campaign_settings_args['custom_post_type_settings']['transport'] = 'refresh';
+            $email_campaign_settings_args['post_categories']['transport']           = 'refresh';
+            $email_campaign_settings_args['post_tags']['transport']                 = 'refresh';
+            $email_campaign_settings_args['post_authors']['transport']              = 'refresh';
         }
 
         foreach ($email_campaign_settings_args as $id => $args) {

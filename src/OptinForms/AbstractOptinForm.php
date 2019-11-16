@@ -261,6 +261,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $body_padding_top = in_array($this->optin_campaign_type, ['bar']) ? 0 : '10%';
         ob_start();
 
+        printf('<title>%s</title>', OptinCampaignsRepository::get_optin_campaign_name($this->optin_campaign_id));
         wp_head();
 
         echo "<body style='background: #f3f3f3 !important;padding-top:$body_padding_top;'>";

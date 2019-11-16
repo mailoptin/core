@@ -3,8 +3,9 @@
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
 
+use MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest;
 use MailOptin\Core\EmailCampaigns\PostsEmailDigest\Templatify;
-use MailOptin\Core\Repositories\EmailCampaignRepository;
+use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class PostsEmailDigestTemplatePreview extends Templatify
 {
@@ -15,9 +16,9 @@ class PostsEmailDigestTemplatePreview extends Templatify
 
     public function post_collection($email_campaign_id)
     {
-        $item_count = EmailCampaignRepository::get_merged_customizer_value($email_campaign_id, 'item_number');
+        $item_count = ER::get_merged_customizer_value($email_campaign_id, 'item_number');
 
-        $parameters = $default_params = [
+        $default_params = [
             'posts_per_page' => $item_count,
             'post_status'    => 'publish',
             'post_type'      => 'post',
@@ -25,11 +26,7 @@ class PostsEmailDigestTemplatePreview extends Templatify
             'orderby'        => 'post_date'
         ];
 
-        $custom_post_type = EmailCampaignRepository::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
-
-        if ($custom_post_type != 'post') {
-            $parameters['post_type'] = $custom_post_type;
-        }
+        $parameters = PostsEmailDigest::get_instance()->post_collect_query($email_campaign_id);
 
         $parameters = apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id, 'customizer');
 
