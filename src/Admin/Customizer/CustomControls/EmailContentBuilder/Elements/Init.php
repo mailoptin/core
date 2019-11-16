@@ -12,5 +12,6 @@ class Init
         Button::get_instance();
         Divider::get_instance();
         Spacer::get_instance();
+        Posts::get_instance();
     }
 }

@@ -209,9 +209,12 @@ li[id*=email_newsletter_content] {
 }
 
 .mo-email-content-elements-wrapper li.list__item.element--box span.dashicons {
-    padding-right: 0.75em;
+    padding-right: 0.2em;
+    padding-top: 0.2em;
     float: left;
     -webkit-font-smoothing: antialiased;
+    font-size: 40px;
+    color: #e0e0e0;
 }
 
 .mo-email-content-elements-wrapper li.list__item.element--box .mo-email-content-element-img {

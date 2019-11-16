@@ -184,7 +184,11 @@ class Customizer_Control extends WP_Customize_Control
                 <?php foreach ($elements as $element) : ?>
                     <li class="list__item element element--box mo-email-builder-add-element" data-element-type="<?= $element['id'] ?>">
                         <?php $icon_url = MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/' . $element['icon']; ?>
-                        <img src="<?= $icon_url ?>" class="mo-email-content-element-img">
+                        <?php if (strpos($element['icon'], 'class="dashicons') === false) { ?>
+                            <img src="<?= $icon_url ?>" class="mo-email-content-element-img">
+                        <?php } else {
+                            echo $element['icon'];
+                        } ?>
                         <div class="element__wrap">
                             <h3 class="list__label"><?= $element['title'] ?></h3>
                             <div class="element__description"><?= $element['description'] ?></div>
