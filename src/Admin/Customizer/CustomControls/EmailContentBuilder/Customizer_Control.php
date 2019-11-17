@@ -39,6 +39,10 @@ class Customizer_Control extends WP_Customize_Control
         wp_enqueue_script('mailoptin-customizer-email-content', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/email-content-control/control.js', array('jquery', 'customize-base'), false, true);
         wp_enqueue_style('mailoptin-customizer-email-content', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/email-content-control/style.css', null);
 
+
+        wp_enqueue_script('mailoptin-customizer-select2', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/select2/select2.min.js', array('jquery'), false, true);
+        wp_enqueue_style('mailoptin-customizer-select2', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/select2/select2.min.css', null);
+
         wp_enqueue_script('wp-color-picker');
         wp_enqueue_style('wp-color-picker');
 
@@ -55,6 +59,11 @@ class Customizer_Control extends WP_Customize_Control
             'mailoptin-customizer-email-content',
             'mo_email_content_builder_elements_defaults',
             Misc::elements_default_fields_values()
+        );
+
+        wp_add_inline_style(
+            'mailoptin-customizer-select2',
+            '.select2-container .select2-dropdown {z-index: 900000;}.select2-results__option.select2-results__message {margin: 0;}.select2-search.select2-search--inline {margin-bottom:0;}'
         );
     }
 
@@ -105,6 +114,9 @@ class Customizer_Control extends WP_Customize_Control
                 if (element_type === 'spacer') {
                     title = '<?=$this->get_element_title('spacer')?>';
                 }
+                if (element_type === 'posts') {
+                    title = '<?=$this->get_element_title('posts')?>';
+                }
 
                 return title;
             }
@@ -126,6 +138,9 @@ class Customizer_Control extends WP_Customize_Control
                 }
                 if (element_type === 'spacer') {
                     text = settings.spacer_height + 'px' + ' | ' + settings.spacer_background_color;
+                }
+                if (element_type === 'posts') {
+                    text = '<?=esc_html__('Post list', 'mailoptin');?>';
                 }
 
                 return text;

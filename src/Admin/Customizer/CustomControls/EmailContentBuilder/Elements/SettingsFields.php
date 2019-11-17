@@ -63,9 +63,15 @@ class SettingsFields
 
     public static function select($name, $setting = [])
     {
+        $setting['select2_options'] = isset($setting['select2_options']) ? esc_attr(wp_json_encode($setting['select2_options'])) : '{}';
+
         $choices = $setting['choices'];
 
-        printf('<select data-field-type="select" class="mo-email-content-element-field" id="%1$s" name="%1$s">', $name);
+        $multiple        = isset($setting['multiple']) && $setting['multiple'] === true ? ' multiple' : '';
+        $multiple_class  = isset($setting['multiple']) && $setting['multiple'] === true ? ' mo-multiple-select' : '';
+        $select2_options = isset($setting['multiple']) && $setting['multiple'] === true ? sprintf(' data-select2-options="%s"', $setting['select2_options']) : '';
+
+        printf('<select data-field-type="select" class="mo-email-content-element-field%3$s" id="%1$s" name="%1$s"%4$s%2$s>', $name, $multiple, $multiple_class, $select2_options);
 
         foreach ($choices as $key => $value) {
             if (is_array($value)) {

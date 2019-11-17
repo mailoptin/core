@@ -73,6 +73,10 @@ class Misc
                     'image_alignment' => 'center',
                     'image_alt_text'  => '',
                     'image_link'      => '',
+                ],
+            'posts'   => $block_settings_default + [
+                    'posts_post_type'      => 'post',
+                    'post_list'      => [],
                 ]
         ],
             $email_campaign_id
