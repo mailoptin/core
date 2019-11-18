@@ -298,7 +298,9 @@
 
         select2_field_init: function () {
             $('#mo-email-content-settings-area .mo-multiple-select').each(function () {
-                var options = $(this).data('select2-options');
+                var selectDropdown = $(this);
+
+                var options = selectDropdown.data('select2-options');
 
                 if (typeof options !== 'undefined' && _.isObject(options) && this.id === 'post_list') {
                     options.ajax.data = function (params) {
@@ -311,7 +313,31 @@
                     }
                 }
 
-                $(this).select2(options);
+                selectDropdown.select2(options);
+
+                $.ajax({
+                    type: 'POST',
+                    url: ajaxurl,
+                    data: {
+                        action: 'mailoptin_ecb_fetch_post_type_posts',
+                        nonce: $("input[data-customize-setting-link*='[ajax_nonce]']").val(),
+                        default_selections: ["1399", "2678", "2679", "2591", "2589"]
+                    },
+                }).then(function (response) {
+                    if (_.isArray(response) && response.length > 0) {
+                        _.each(response, function (element) {
+                            var option = new Option(element.text, element.id, true, true);
+                            selectDropdown.append(option).trigger('change');
+                        });
+
+                        selectDropdown.trigger({
+                            type: 'select2:select',
+                            params: {
+                                data: response
+                            }
+                        });
+                    }
+                });
             });
         },
 

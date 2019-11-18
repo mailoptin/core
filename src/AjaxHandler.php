@@ -1007,21 +1007,28 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'nonce');
 
-        if (current_user_has_privilege()) {
-            $post_type = sanitize_text_field($_POST['post_type']);
-            $search    = sanitize_text_field($_POST['search']);
+        if ( ! current_user_has_privilege()) exit;
 
-            $result = ControlsHelpers::get_post_type_posts($post_type, 1000, 'publish', $search);
-
+        if (isset($_POST['default_selections']) && is_array($_POST['default_selections'])) {
             $formatted_result = [];
-            foreach ($result as $key => $value) {
-                $formatted_result[] = ['id' => $key, 'text' => $value];
+            foreach ($_POST['default_selections'] as $post_id) {
+                $formatted_result[] = ['id' => $post_id, 'text' => get_the_title($post_id)];
             }
 
-            wp_send_json(['results' => $formatted_result], 200);
+            wp_send_json($formatted_result, 200);
         }
 
-        exit;
+        $post_type = sanitize_text_field($_POST['post_type']);
+        $search    = sanitize_text_field($_POST['search']);
+
+        $result = ControlsHelpers::get_post_type_posts($post_type, 1000, 'publish', $search);
+
+        $formatted_result = [];
+        foreach ($result as $key => $value) {
+            $formatted_result[] = ['id' => $key, 'text' => $value];
+        }
+
+        wp_send_json(['results' => $formatted_result], 200);
     }
 
     public function customizer_email_automation_get_taxonomy()
