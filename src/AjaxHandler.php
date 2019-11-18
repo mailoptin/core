@@ -61,6 +61,7 @@ class AjaxHandler
             'view_error_log'                           => false,
             'customizer_get_templates'                 => false,
             'customizer_set_template'                  => false,
+            'ecb_fetch_post_type_posts'                => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -994,6 +995,30 @@ class AjaxHandler
 
         } else {
             wp_die(-1, 403);
+        }
+
+        exit;
+    }
+
+    /**
+     * Set the template of an optin
+     */
+    public function ecb_fetch_post_type_posts()
+    {
+        check_ajax_referer('customizer-fetch-email-list', 'nonce');
+
+        if (current_user_has_privilege()) {
+            $post_type = sanitize_text_field($_POST['post_type']);
+            $search    = sanitize_text_field($_POST['search']);
+
+            $result = ControlsHelpers::get_post_type_posts($post_type, 1000, 'publish', $search);
+
+            $formatted_result = [];
+            foreach ($result as $key => $value) {
+                $formatted_result[] = ['id' => $key, 'text' => $value];
+            }
+
+            wp_send_json(['results' => $formatted_result], 200);
         }
 
         exit;

@@ -303,8 +303,10 @@
                 if (typeof options !== 'undefined' && _.isObject(options) && this.id === 'post_list') {
                     options.ajax.data = function (params) {
                         return {
+                            action: 'mailoptin_ecb_fetch_post_type_posts',
                             search: params.term,
-                            post_type: 'post'
+                            post_type: $('#posts_post_type').val(),
+                            nonce: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
                         };
                     }
                 }
