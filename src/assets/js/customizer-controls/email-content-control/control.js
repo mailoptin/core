@@ -313,6 +313,19 @@
                     }
                 }
 
+                var settings = JSON.parse(_this.setting.get());
+                var element_id = $('#mo-email-content-settings-area').data('element-id');
+                var data = _.findWhere(settings, {id: element_id});
+
+                // return here skips to next iteration
+                if (typeof data.settings.post_list === 'undefined') return;
+
+                // disable selection
+                selectDropdown.prop("disabled", true);
+
+                var selected_posts = data.settings.post_list;
+
+                // see https://select2.org/programmatic-control/add-select-clear-items#preselecting-options-in-an-remotely-sourced-ajax-select2
                 selectDropdown.select2(options);
 
                 $.ajax({
@@ -321,7 +334,7 @@
                     data: {
                         action: 'mailoptin_ecb_fetch_post_type_posts',
                         nonce: $("input[data-customize-setting-link*='[ajax_nonce]']").val(),
-                        default_selections: ["1399", "2678", "2679", "2591", "2589"]
+                        default_selections: selected_posts
                     },
                 }).then(function (response) {
                     if (_.isArray(response) && response.length > 0) {
@@ -336,6 +349,9 @@
                                 data: response
                             }
                         });
+                        
+                        // enable back again.
+                        selectDropdown.prop("disabled", false);
                     }
                 });
             });
