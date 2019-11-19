@@ -25,7 +25,7 @@ class Posts extends AbstractElement
 
     public function description()
     {
-        return esc_html__('Embed a list of post.', 'mailoptin');
+        return esc_html__('Embed a list of posts.', 'mailoptin');
     }
 
     public function tabs()

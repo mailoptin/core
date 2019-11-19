@@ -317,8 +317,10 @@
                 var element_id = $('#mo-email-content-settings-area').data('element-id');
                 var data = _.findWhere(settings, {id: element_id});
 
+                selectDropdown.select2(options);
+
                 // return here skips to next iteration
-                if (typeof data.settings.post_list === 'undefined') return;
+                if (typeof data.settings.post_list === 'undefined' || data.settings.post_list.length === 0) return;
 
                 // disable selection
                 selectDropdown.prop("disabled", true);
@@ -326,8 +328,6 @@
                 var selected_posts = data.settings.post_list;
 
                 // see https://select2.org/programmatic-control/add-select-clear-items#preselecting-options-in-an-remotely-sourced-ajax-select2
-                selectDropdown.select2(options);
-
                 $.ajax({
                     type: 'POST',
                     url: ajaxurl,
@@ -349,7 +349,7 @@
                                 data: response
                             }
                         });
-                        
+
                         // enable back again.
                         selectDropdown.prop("disabled", false);
                     }

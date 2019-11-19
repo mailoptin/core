@@ -140,7 +140,7 @@ class Customizer_Control extends WP_Customize_Control
                     text = settings.spacer_height + 'px' + ' | ' + settings.spacer_background_color;
                 }
                 if (element_type === 'posts') {
-                    text = '<?=esc_html__('Post list', 'mailoptin');?>';
+                    text = '<?=esc_html__('Embedded list of posts', 'mailoptin');?>';
                 }
 
                 return text;
