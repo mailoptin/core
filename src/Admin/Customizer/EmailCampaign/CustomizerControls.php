@@ -90,6 +90,7 @@ class CustomizerControls
                     'content_ellipsis_button_alignment',
                     'content_background_color',
                     'content_text_color',
+                    'content_headline_color',
                     'content_title_font_size',
                     'content_body_font_size',
                     'content_ellipsis_button_text_color',
@@ -980,6 +981,18 @@ HTML;
                 )
             );
 
+            $page_control_args['content_headline_color'] = new \WP_Customize_Color_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[content_headline_color]',
+                apply_filters('mailoptin_template_customizer_content_headline_color_args', array(
+                        'label'    => __('Headings Color', 'mailoptin'),
+                        'section'  => $this->customizerClassInstance->campaign_page_section_id,
+                        'settings' => $this->option_prefix . '[content_headline_color]',
+                        'priority' => 17
+                    )
+                )
+            );
+
             $page_control_args['content_text_color'] = new \WP_Customize_Color_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[content_text_color]',
@@ -1196,6 +1209,17 @@ HTML;
                         )
                     )
                 ),
+                'content_headline_color'                   => new \WP_Customize_Color_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[content_headline_color]',
+                    apply_filters('mailoptin_template_customizer_content_headline_color_args', array(
+                            'label'    => __('Post Title Color', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->campaign_content_section_id,
+                            'settings' => $this->option_prefix . '[content_headline_color]',
+                            'priority' => 15
+                        )
+                    )
+                ),
                 'content_text_color'                       => new \WP_Customize_Color_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[content_text_color]',
@@ -1361,6 +1385,7 @@ HTML;
         if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
             unset($content_control_args['content_background_color']);
             unset($content_control_args['content_text_color']);
+            unset($content_control_args['content_headline_color']);
         }
 
         do_action('mailoptin_before_content_controls_addition',

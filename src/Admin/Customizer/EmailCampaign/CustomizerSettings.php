@@ -440,6 +440,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'content_headline_color'                       => array(
+                    'default'   => $this->customizer_defaults['content_headline_color'],
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'content_alignment'                        => array(
                     'default'   => $this->customizer_defaults['content_alignment'],
                     'type'      => 'option',

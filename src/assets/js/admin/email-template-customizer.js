@@ -70,6 +70,13 @@
         });
     });
 
+    wp.customize(mailoptin_email_campaign_option_prefix + '[' + mailoptin_email_campaign_id + '][content_headline_color]', function (value) {
+        value.bind(function (to) {
+            // https://stackoverflow.com/a/25100304/2648410
+            $('.mo-content-headline-color')[0].style.setProperty( 'color', to, 'important' );
+        });
+    });
+
     wp.customize(mailoptin_email_campaign_option_prefix + '[' + mailoptin_email_campaign_id + '][content_text_color]', function (value) {
         value.bind(function (to) {
             // https://stackoverflow.com/a/25100304/2648410

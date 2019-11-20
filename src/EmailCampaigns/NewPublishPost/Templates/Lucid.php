@@ -35,6 +35,7 @@ class Lucid extends AbstractTemplate
             'header_text_color'                        => '#bbbfc3',
             'header_web_version_link_color'            => '#74787e',
             'content_background_color'                 => '#ffffff',
+            'content_headline_color'                   => '#2F3133',
             'content_text_color'                       => '#74787e',
             'content_ellipsis_button_background_color' => '#dc4d2f',
             'content_ellipsis_button_text_color'       => '#ffffff',
@@ -195,7 +196,7 @@ class Lucid extends AbstractTemplate
                   <td class="content-cell mo-content-text-color">
                   <div class="mo-before-main-content">$before_main_content</div>
                     <a href="{{post.url}}">
-                    <h1 class="mo-content-title-font-size">{{post.title}}</h1>
+                    <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
                     {{post.meta}}
                     <img class"mo-imgix" src="{{post.feature.image}}">
                     </a>

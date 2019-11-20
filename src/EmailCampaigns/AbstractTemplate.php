@@ -17,6 +17,7 @@ use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
  * @method string content_background_color()
  * @method string content_title_font_size()
  * @method string content_body_font_size()
+ * @method string content_headline_color()
  * @method string content_text_color()
  * @method string content_ellipsis_button_background_color()
  * @method string content_ellipsis_button_text_color()
@@ -180,6 +181,9 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
         add_shortcode('mo_content_body_font_size', function () {
             return $this->content_body_font_size();
         });
+        add_shortcode('mo_content_headline_color', function () {
+            return $this->content_headline_color();
+        });
         add_shortcode('mo_content_text_color', function () {
             return $this->content_text_color();
         });
@@ -243,6 +247,7 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
         $content_ellipsis_button_text_color       = $this->content_ellipsis_button_text_color();
         $content_body_font_size                   = absint($this->content_body_font_size());
         $content_text_color                       = $this->content_text_color();
+        $content_headline_color                       = $this->content_headline_color();
 
         $footer_removal                = ($this->footer_removal() === true) ? 'display:none' : '';
         $header_removal                = ($this->header_removal() === true) ? 'display:none' : '';
@@ -261,6 +266,7 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
     .mo-content-title-font-size {font-size: {$content_title_font_size}px;}
     .mo-content-body-font-size {font-size: {$content_body_font_size}px;}
     .mo-content-text-color {color: $content_text_color !important;}
+    .mo-content-headline-color {color: $content_headline_color !important;}
     .mo-content-button-background-color {background-color: $content_ellipsis_button_background_color;}
     .mo-content-remove-ellipsis-button {{$ellipsis_button_removal}}
     .mo-content-button-text-color {color: $content_ellipsis_button_text_color;}
