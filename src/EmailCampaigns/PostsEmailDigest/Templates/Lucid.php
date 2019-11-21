@@ -40,6 +40,7 @@ class Lucid extends AbstractTemplate
             'header_web_version_link_color'            => '#74787e',
             'content_background_color'                 => '#ffffff',
             'content_text_color'                       => '#74787e',
+            'content_headline_color'                   => '#2F3133',
             'content_ellipsis_button_background_color' => '#dc4d2f',
             'content_ellipsis_button_text_color'       => '#ffffff',
             'footer_text_color'                        => '#aeaeae',
@@ -169,7 +170,7 @@ class Lucid extends AbstractTemplate
         ob_start();
         ?>
         <a href="{{post.url}}">
-            <h1 class="mo-content-title-font-size">{{post.title}}</h1>
+            <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
             {{post.meta}}
             <img class"mo-imgix" src="{{post.feature.image}}">
         </a>
@@ -395,7 +396,6 @@ HTML;
       margin-top: 0;
       color: #2F3133;
       font-weight: bold;
-      /*text-align: left;*/
     }
     h2 {
       margin-top: 0;

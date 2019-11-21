@@ -73,7 +73,9 @@
     wp.customize(mailoptin_email_campaign_option_prefix + '[' + mailoptin_email_campaign_id + '][content_headline_color]', function (value) {
         value.bind(function (to) {
             // https://stackoverflow.com/a/25100304/2648410
-            $('.mo-content-headline-color')[0].style.setProperty('color', to, 'important');
+            $('.mo-content-headline-color').each(function () {
+                $(this).get(0).style.setProperty('color', to, 'important');
+            });
         });
     });
 
