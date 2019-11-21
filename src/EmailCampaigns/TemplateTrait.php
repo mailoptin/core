@@ -69,7 +69,7 @@ trait TemplateTrait
             }
         }
 
-        $html = '<div class="mo-post-meta">';
+        $html = '<div class="mo-post-meta mo-content-text-color">';
         $html .= implode('<span>&nbsp;•&nbsp;</span>', $bucket);
         $html .= '</div>';
 

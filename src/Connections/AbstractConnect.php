@@ -291,6 +291,8 @@ abstract class AbstractConnect
             self::send_optin_error_email($optin_campaign_id, $message);
         }
 
+        add_filter('mailoptin_disable_send_optin_error_email', '__return_true');
+
         return $response;
     }
 
