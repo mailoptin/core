@@ -64,7 +64,7 @@ class Misc
                     'divider_height' => '1'
                 ],
             'spacer'  => $block_settings_default + [
-                    'spacer_height' => '20',
+                    'spacer_height'           => '20',
                     'spacer_background_color' => '#ffffff'
                 ],
             'image'   => $block_settings_default + [
@@ -75,8 +75,9 @@ class Misc
                     'image_link'      => '',
                 ],
             'posts'   => $block_settings_default + [
-                    'posts_post_type'      => 'post',
-                    'post_list'      => [],
+                    'posts_post_type'   => 'post',
+                    'post_list'         => [],
+                    'default_image_url' => MAILOPTIN_ASSETS_URL . 'images/email-templates/default-feature-img.jpg',
                 ]
         ],
             $email_campaign_id

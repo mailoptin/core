@@ -477,18 +477,26 @@ CSS;
             'left'   => '0'
         ];
 
+        $defaults['posts']['block_padding'] = [
+            'top'    => '10',
+            'bottom' => '10',
+            'right'  => '0',
+            'left'   => '0'
+        ];
+
         return $defaults;
     }
 
     /**
      * @param \WP_Post $post
      */
-    public function posts_block_tmpl($post)
+    public function posts_block_tmpl($post, $settings)
     {
+        $block_padding = $settings['block_padding'];
         ob_start();
         ?>
         <tr>
-            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+            <td align="left" style="font-size:0px;padding-top:<?= $block_padding['top'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-bottom:0;word-break:break-word;">
                 <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
                     <a href="<?= $this->post_url($post) ?>"><h1><?= $this->post_title($post) ?></h1></a>
                 </div>
@@ -500,7 +508,7 @@ CSS;
                     <tbody>
                     <tr>
                         <td style="width:550px;">
-                            <img height="auto" src="<?= $this->feature_image($post) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
+                            <img height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, @$settings['default_image_url']) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
                         </td>
                     </tr>
                     </tbody>
@@ -521,7 +529,7 @@ CSS;
             </td>
         </tr>
         <tr>
-            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+            <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
                 <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;color:#6f6f6f;">
                     <span>Marketing, promotional video</span> <span>&nbsp;•&nbsp;</span> <span>2019-11-19</span>
                     <span>&nbsp;•&nbsp;</span> <span>Will Morris</span></div>
@@ -538,14 +546,14 @@ CSS;
 //        $font_family   = $this->get_font_family_stack($settings['text_font_family']);
 //        $font_size     = $settings['text_font_size'] . 'px';
 //        $line_height   = $settings['text_line_height'];
-//        $block_padding = $settings['block_padding'];
-//        $padding       = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
 
         $html = '';
 
         if (is_array($post_list) && ! empty($post_list)) {
             foreach ($post_list as $post) {
-                $html .= $this->posts_block_tmpl($post);
+                $html .= $this->posts_block_header();
+                $html .= $this->posts_block_tmpl($post, $settings);
+                $html .= $this->posts_block_footer();
             }
         }
 

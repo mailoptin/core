@@ -40,13 +40,13 @@ class Posts extends AbstractElement
     public function settings()
     {
         return apply_filters('mo_email_content_elements_posts_element', $this->element_block_settings() + [
-                'posts_post_type' => [
+                'posts_post_type'   => [
                     'label'   => esc_html__('Select Post Type', 'mailoptin'),
                     'choices' => ['post' => esc_html__('Posts', 'mailoptin')] + ControlsHelpers::custom_post_types(),
                     'type'    => 'select',
                     'tab'     => 'tab-content'
                 ],
-                'post_list'       => [
+                'post_list'         => [
                     'label'           => esc_html__('Select Posts', 'mailoptin'),
                     'type'            => 'select',
                     'choices'         => [],
@@ -61,7 +61,12 @@ class Posts extends AbstractElement
                             'dataType' => 'json',
                         ]
                     ]
-                ]
+                ],
+                'default_image_url' => [
+                    'label' => esc_html__('Fallback Featured Image', 'mailoptin'),
+                    'type'  => 'select_image',
+                    'tab'   => 'tab-content'
+                ],
             ]
         );
     }

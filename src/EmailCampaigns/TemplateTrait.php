@@ -61,7 +61,7 @@ trait TemplateTrait
                     $bucket[] = sprintf('<span>%s</span>', strip_tags(get_the_author_meta('display_name', $post->post_author)));
                     break;
                 case 'date':
-                    $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option( 'date_format' ), $post));
+                    $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option('date_format'), $post));
                     break;
                 case 'category':
                     $bucket[] = sprintf('<span>%s</span>', strip_tags(get_the_term_list($post->ID, 'category', '', ', ')));
@@ -116,11 +116,11 @@ trait TemplateTrait
      *
      * @return mixed|string
      */
-    public function feature_image($post, $email_campaign_id = '')
+    public function feature_image($post, $email_campaign_id = '', $default_feature_image = '')
     {
         $email_campaign_id = ! empty($email_campaign_id) ? $email_campaign_id : $this->email_campaign_id;
 
-        $default_feature_image = ER::get_merged_customizer_value($email_campaign_id, 'default_image_url');
+        $default_feature_image = ! empty($default_feature_image) ? $default_feature_image : ER::get_merged_customizer_value($email_campaign_id, 'default_image_url');
 
         $is_remove_featured_image = ER::get_merged_customizer_value(
             $email_campaign_id,
