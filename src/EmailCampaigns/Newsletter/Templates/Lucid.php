@@ -172,30 +172,6 @@ class Lucid extends AbstractTemplate
     {
     }
 
-    public function single_post_item()
-    {
-        ob_start();
-        ?>
-        <a href="{{post.url}}">
-            <h1 class="mo-content-title-font-size">{{post.title}}</h1>
-            <img class"mo-imgix" src="{{post.feature.image}}">
-        </a>
-        {{post.content}}
-        <!-- Action -->
-        <table class="body-action mo-content-remove-ellipsis-button" width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-                <td>
-                    <div class="mo-content-button-alignment">
-                        <a href="{{post.url}}" class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label">[mo_content_ellipsis_button_label]</a>
-                    </div>
-                </td>
-            </tr>
-        </table>
-        <?php
-
-        return ob_get_clean();
-    }
-
     /**
      * Template body.
      *

@@ -981,18 +981,6 @@ HTML;
                 )
             );
 
-            $page_control_args['content_headline_color'] = new \WP_Customize_Color_Control(
-                $this->wp_customize,
-                $this->option_prefix . '[content_headline_color]',
-                apply_filters('mailoptin_template_customizer_content_headline_color_args', array(
-                        'label'    => __('Headings Color', 'mailoptin'),
-                        'section'  => $this->customizerClassInstance->campaign_page_section_id,
-                        'settings' => $this->option_prefix . '[content_headline_color]',
-                        'priority' => 17
-                    )
-                )
-            );
-
             $page_control_args['content_text_color'] = new \WP_Customize_Color_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[content_text_color]',
