@@ -2,13 +2,12 @@
 
 namespace MailOptin\Core\EmailCampaigns\Newsletter;
 
-use WP_Post;
-use MailOptin\Core\Admin\Customizer\EmailCampaign\Customizer;
-use MailOptin\Core\Admin\Customizer\EmailCampaign\AbstractCustomizer;
-use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
+use MailOptin\Core\EmailCampaigns\TemplateTrait;
 
 abstract class AbstractTemplate extends \MailOptin\Core\EmailCampaigns\AbstractTemplate
 {
+    use TemplateTrait;
+
     public function __construct($email_campaign_id)
     {
         parent::__construct($email_campaign_id);

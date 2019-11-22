@@ -111,7 +111,7 @@ trait TemplateTrait
     }
 
     /**
-     * @param WP_Post|\stdClass $post
+     * @param int|WP_Post|\stdClass $post
      * @param string $email_campaign_id
      *
      * @return mixed|string

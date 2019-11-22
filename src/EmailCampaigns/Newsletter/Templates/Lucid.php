@@ -480,57 +480,76 @@ CSS;
         return $defaults;
     }
 
+    /**
+     * @param \WP_Post $post
+     */
+    public function posts_block_tmpl($post)
+    {
+        ob_start();
+        ?>
+        <tr>
+            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+                <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
+                    <a href="<?= $this->post_url($post) ?>"><h1><?= $this->post_title($post) ?></h1></a>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                    <tbody>
+                    <tr>
+                        <td style="width:550px;">
+                            <img height="auto" src="<?= $this->feature_image($post) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#6f6f6f;">
+                    <?= $this->post_content($post) ?>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:1;text-align:left;text-decoration:underline;color:#007bff;">
+                    <a href="<?= $this->post_url($post) ?>">Read more</a></div>
+            </td>
+        </tr>
+        <tr>
+            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;color:#6f6f6f;">
+                    <span>Marketing, promotional video</span> <span>&nbsp;•&nbsp;</span> <span>2019-11-19</span>
+                    <span>&nbsp;•&nbsp;</span> <span>Will Morris</span></div>
+            </td>
+        </tr>
+        <?php
+
+        return ob_get_clean();
+    }
+
     public function posts_block($id, $settings)
     {
-//        $text          = wpautop($settings['text_content']);
+        $post_list = $settings['post_list'];
 //        $font_family   = $this->get_font_family_stack($settings['text_font_family']);
 //        $font_size     = $settings['text_font_size'] . 'px';
 //        $line_height   = $settings['text_line_height'];
 //        $block_padding = $settings['block_padding'];
 //        $padding       = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
 
-        return <<<HTML
-<tr>
-    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
-            <h1>How to Shrink Your Global Header Size</h1>
-        </div>
-    </td>
-</tr>
-<tr>
-    <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
-            <tbody>
-            <tr>
-                <td style="width:550px;">
-                    <img height="auto" src="http://www.online-image-editor.com//styles/2014/images/example_image.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </td>
-</tr>
-<tr>
-    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-        <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#6f6f6f;">Promotional videos are nothing new. Television ads have been running since the early 1940s. The format and delivery channels might have changed, but this marketing technique is still all about brand awareness and sales. If you incorporate
-            the right elements, you can dramatically boost your business’ growth. In this article, we’re going to talk about The post 4 Elements of a Successful Promotional Video appeared first on Elegant Themes Blog.
-        </div>
-    </td>
-</tr>
-<tr>
-    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-        <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:1;text-align:left;text-decoration:underline;color:#007bff;">
-            <a href="#">Read more</a></div>
-    </td>
-</tr>
-<tr>
-    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-        <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;color:#6f6f6f;">
-            <span>Marketing, promotional video</span> <span>&nbsp;•&nbsp;</span> <span>2019-11-19</span>
-            <span>&nbsp;•&nbsp;</span> <span>Will Morris</span></div>
-    </td>
-</tr>
-HTML;
+        $html = '';
+
+        if (is_array($post_list) && ! empty($post_list)) {
+            foreach ($post_list as $post) {
+                $html .= $this->posts_block_tmpl($post);
+            }
+        }
+
+        return $html;
     }
 
     public function text_block($id, $settings)
