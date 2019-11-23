@@ -54,7 +54,7 @@
 
             $(document).on('click', '.mo-email-content-footer-wrap .mo-apply', this.save_changes_on_apply);
 
-            $(window).on('load', this.reveal_settings_on_contextual_click);
+            wp.customize.previewer.bind('ready', this.reveal_settings_on_contextual_click);
 
             $(document).on('mo_sort_elements_index', this.sort_elements_index);
         },
