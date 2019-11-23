@@ -357,13 +357,13 @@ HTML;
     }
     h2 {
       margin-top: 0;
-      color: #2F3133;
+      /*color: #2F3133;*/
       font-weight: bold;
       /*text-align: left;*/
     }
     h3 {
       margin-top: 0;
-      color: #2F3133;
+      /*color: #2F3133;*/
       font-weight: bold;
       /*text-align: left;*/
     }
@@ -484,6 +484,16 @@ CSS;
             'left'   => '0'
         ];
 
+        $defaults['posts']['post_title_color'] = '#2F3133';
+        $defaults['posts']['read_more_color']  = '#3869D4';
+
+        $defaults['posts']['block_padding'] = [
+            'top'    => '10',
+            'bottom' => '10',
+            'right'  => '0',
+            'left'   => '0'
+        ];
+
         return $defaults;
     }
 
@@ -492,13 +502,25 @@ CSS;
      */
     public function posts_block_tmpl($post, $settings)
     {
-        $block_padding = $settings['block_padding'];
+        $block_padding       = $settings['block_padding'];
+        $read_more_link_text = $settings['read_more_text'];
+        $post_title_color    = $settings['post_title_color'];
+        $read_more_color     = $settings['read_more_color'];
+
         ob_start();
         ?>
         <tr>
             <td align="left" style="font-size:0px;padding-top:<?= $block_padding['top'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-bottom:0;word-break:break-word;">
                 <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
-                    <a href="<?= $this->post_url($post) ?>"><h1><?= $this->post_title($post) ?></h1></a>
+                    <a href="<?= $this->post_url($post) ?>">
+                        <h1 style="color:<?= $post_title_color ?>"><?= $this->post_title($post) ?></h1></a>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
+                <div class="mo-content-text-color" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
+                    <?= $this->post_meta($post, ['author', 'date', 'category']) ?>
                 </div>
             </td>
         </tr>
@@ -517,22 +539,32 @@ CSS;
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#6f6f6f;">
+                <div class="mo-content-text-color" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
                     <?= $this->post_content($post) ?>
                 </div>
             </td>
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:1;text-align:left;text-decoration:underline;color:#007bff;">
-                    <a href="<?= $this->post_url($post) ?>">Read more</a></div>
+                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
+                    <a style="color:<?=$read_more_color?>" href="<?= $this->post_url($post) ?>"><?= $read_more_link_text ?></a></div>
             </td>
         </tr>
         <tr>
-            <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
-                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;color:#6f6f6f;">
-                    <span>Marketing, promotional video</span> <span>&nbsp;•&nbsp;</span> <span>2019-11-19</span>
-                    <span>&nbsp;•&nbsp;</span> <span>Will Morris</span></div>
+            <td style="background:transparent;font-size:0px;word-break:break-word;">
+                <!--[if mso | IE]>
+
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td height=25px" style="vertical-align:top;height:25px;">
+
+                <![endif]-->
+                <div style="height:25px;"> &nbsp;</div>
+                <!--[if mso | IE]>
+
+                </td></tr></table>
+
+                <![endif]-->
             </td>
         </tr>
         <?php
@@ -543,17 +575,12 @@ CSS;
     public function posts_block($id, $settings)
     {
         $post_list = $settings['post_list'];
-//        $font_family   = $this->get_font_family_stack($settings['text_font_family']);
-//        $font_size     = $settings['text_font_size'] . 'px';
-//        $line_height   = $settings['text_line_height'];
 
         $html = '';
 
         if (is_array($post_list) && ! empty($post_list)) {
             foreach ($post_list as $post) {
-                $html .= $this->posts_block_header();
                 $html .= $this->posts_block_tmpl($post, $settings);
-                $html .= $this->posts_block_footer();
             }
         }
 
@@ -565,14 +592,13 @@ CSS;
         $text          = wpautop($settings['text_content']);
         $font_family   = $this->get_font_family_stack($settings['text_font_family']);
         $font_size     = $settings['text_font_size'] . 'px';
-        $line_height   = $settings['text_line_height'];
         $block_padding = $settings['block_padding'];
         $padding       = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
 
         return <<<HTML
 <tr>
     <td align="left" style="/*background:transparent;*/font-size:0px;padding:$padding;word-break:break-word;">
-        <div class="mo-email-builder-element mo-content-text-color" id="$id" style="font-family:$font_family;font-size:$font_size;line-height:$line_height;text-align:left;/*color:#74787e;*/">$text</div>
+        <div class="mo-email-builder-element mo-content-text-color" id="$id" style="font-family:$font_family;font-size:$font_size;line-height:1;text-align:left;/*color:#74787e;*/">$text</div>
     </td>
 </tr>
 HTML;
@@ -648,12 +674,11 @@ HTML;
         $block_padding = $settings['block_padding'];
         $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
 
-        $spacer_height           = $settings['spacer_height'];
-        $spacer_background_color = $settings['spacer_background_color'];
+        $spacer_height = $settings['spacer_height'];
 
         return <<<HTML
 <tr>
-    <td class="mo-email-builder-element" id="$id" style="background:$spacer_background_color;font-size:0px;padding:$block_padding;word-break:break-word;">
+    <td class="mo-email-builder-element" id="$id" style="background:transparent;font-size:0px;padding:$block_padding;word-break:break-word;">
         <!--[if mso | IE]>
 
         <table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td height="{$spacer_height}px" style="vertical-align:top;height:{$spacer_height}px;">

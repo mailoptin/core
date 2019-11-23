@@ -37,7 +37,6 @@ class Misc
                     'text_content'     => $text_element_default,
                     'text_font_family' => '',
                     'text_font_size'   => '',
-                    'text_line_height' => 'normal'
                 ],
             'button'  => $block_settings_default + [
                     'button_text'             => esc_html__('Button', 'mailoptin'),
@@ -65,7 +64,6 @@ class Misc
                 ],
             'spacer'  => $block_settings_default + [
                     'spacer_height'           => '20',
-                    'spacer_background_color' => '#ffffff'
                 ],
             'image'   => $block_settings_default + [
                     'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
@@ -75,7 +73,10 @@ class Misc
                     'image_link'      => '',
                 ],
             'posts'   => $block_settings_default + [
+                    'post_title_color'   => '',
+                    'read_more_color'   => '',
                     'posts_post_type'   => 'post',
+                    'read_more_text'    => esc_html__('Read More', 'mailoptin'),
                     'post_list'         => [],
                     'default_image_url' => MAILOPTIN_ASSETS_URL . 'images/email-templates/default-feature-img.jpg',
                 ]

@@ -45,17 +45,25 @@ trait TemplateTrait
      *
      * @return string
      */
-    public function post_meta($post)
+    public function post_meta($post, $post_metas = '')
     {
-        $post_meta = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
+        if (empty($post_metas)) {
+            $post_metas = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
 
-        if (empty($post_meta)) return '';
+            if (empty($post_metas)) return '';
 
-        $post_meta = array_map('sanitize_text_field', explode(',', $post_meta));
+            $post_metas = array_map('sanitize_text_field', explode(',', $post_metas));
+        }
+
+        $post = get_post($post);
+
+        if ( ! $post) {
+            return false;
+        }
 
         $bucket = [];
 
-        foreach ($post_meta as $meta) {
+        foreach ($post_metas as $meta) {
             switch ($meta) {
                 case 'author':
                     $bucket[] = sprintf('<span>%s</span>', strip_tags(get_the_author_meta('display_name', $post->post_author)));

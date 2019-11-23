@@ -367,12 +367,12 @@ HTML;
     }
     h2 {
       margin-top: 0;
-      color: #2F3133;
+      /*color: #2F3133;*/
       font-weight: bold;
     }
     h3 {
       margin-top: 0;
-      color: #2F3133;
+      /*color: #2F3133;*/
       font-weight: bold;
     }
     p {

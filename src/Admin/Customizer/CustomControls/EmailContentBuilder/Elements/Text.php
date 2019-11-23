@@ -55,18 +55,6 @@ class Text extends AbstractElement
                     'min'   => 5,
                     'max'   => 200,
                     'step'  => 1,
-                ],
-                'text_line_height' => [
-                    'label'   => esc_html__('Line Height', 'mailoptin'),
-                    'type'    => 'select',
-                    'choices' => [
-                        'normal' => esc_html__('Default', 'mailoptin'),
-                        '100%'   => esc_html__('Single', 'mailoptin'),
-                        '125%'   => esc_html__('1.25', 'mailoptin'),
-                        '150%'   => esc_html__('1.5', 'mailoptin'),
-                        '200%'   => esc_html__('Double', 'mailoptin')
-                    ],
-                    'tab'     => 'tab-style'
                 ]
             ]
         );

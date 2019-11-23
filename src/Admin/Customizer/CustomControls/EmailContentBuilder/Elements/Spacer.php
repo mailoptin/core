@@ -38,19 +38,14 @@ class Spacer extends AbstractElement
     public function settings()
     {
         return apply_filters('mo_email_content_elements_spacer_element', $this->element_block_settings() + [
-                'spacer_height'     => [
+                'spacer_height' => [
                     'label' => esc_html__('Height (px)', 'mailoptin'),
                     'type'  => 'range',
                     'tab'   => 'tab-style',
                     'min'   => 5,
                     'max'   => 200,
                     'step'  => 1,
-                ],
-                'spacer_background_color'     => [
-                    'label' => esc_html__('Background Color', 'mailoptin'),
-                    'type'  => 'color_picker',
-                    'tab'   => 'tab-style'
-                ],
+                ]
             ]
         );
     }

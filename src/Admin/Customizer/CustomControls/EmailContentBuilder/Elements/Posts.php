@@ -32,7 +32,7 @@ class Posts extends AbstractElement
     {
         return [
             'tab-content'        => esc_html__('Content', 'mailoptin'),
-//            'tab-style'          => esc_html__('Style', 'mailoptin'),
+            'tab-style'          => esc_html__('Style', 'mailoptin'),
             'tab-block-settings' => esc_html__('Block Settings', 'mailoptin'),
         ];
     }
@@ -62,10 +62,25 @@ class Posts extends AbstractElement
                         ]
                     ]
                 ],
+                'read_more_text'    => [
+                    'label' => esc_html__('Read More Link Text', 'mailoptin'),
+                    'type'  => 'text',
+                    'tab'   => 'tab-content'
+                ],
                 'default_image_url' => [
                     'label' => esc_html__('Fallback Featured Image', 'mailoptin'),
                     'type'  => 'select_image',
                     'tab'   => 'tab-content'
+                ],
+                'post_title_color' => [
+                    'label' => esc_html__('Post Title Color', 'mailoptin'),
+                    'type'  => 'color_picker',
+                    'tab'   => 'tab-style'
+                ],
+                'read_more_color' => [
+                    'label' => esc_html__('Read More Link Color', 'mailoptin'),
+                    'type'  => 'color_picker',
+                    'tab'   => 'tab-style'
                 ],
             ]
         );
