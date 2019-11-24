@@ -62,6 +62,17 @@ class Posts extends AbstractElement
                         ]
                     ]
                 ],
+                'post_metas'        => [
+                    'label'    => esc_html__('Post Meta Data', 'mailoptin'),
+                    'type'     => 'select',
+                    'choices'  => [
+                        'author'   => esc_html__('Author', 'mailoptin'),
+                        'date'     => esc_html__('Date', 'mailoptin'),
+                        'category' => esc_html__('Categories', 'mailoptin'),
+                    ],
+                    'multiple' => true,
+                    'tab'      => 'tab-content'
+                ],
                 'read_more_text'    => [
                     'label' => esc_html__('Read More Link Text', 'mailoptin'),
                     'type'  => 'text',
@@ -72,17 +83,17 @@ class Posts extends AbstractElement
                     'type'  => 'select_image',
                     'tab'   => 'tab-content'
                 ],
-                'post_title_color' => [
+                'post_title_color'  => [
                     'label' => esc_html__('Post Title Color', 'mailoptin'),
                     'type'  => 'color_picker',
                     'tab'   => 'tab-style'
                 ],
-                'read_more_color' => [
+                'read_more_color'   => [
                     'label' => esc_html__('Read More Link Color', 'mailoptin'),
                     'type'  => 'color_picker',
                     'tab'   => 'tab-style'
                 ],
-                'post_font_family' => [
+                'post_font_family'  => [
                     'label' => esc_html__('Font Family', 'mailoptin'),
                     'type'  => 'font_family',
                     'tab'   => 'tab-style'

@@ -73,6 +73,7 @@ class Misc
                     'image_link'      => '',
                 ],
             'posts'   => $block_settings_default + [
+                    'post_metas'  => ['author', 'date', 'category'],
                     'post_font_family'  => '',
                     'post_title_color'  => '',
                     'read_more_color'   => '',

@@ -314,14 +314,14 @@
                     }
                 }
 
+                selectDropdown.select2(options);
+
                 var settings = JSON.parse(_this.setting.get());
                 var element_id = $('#mo-email-content-settings-area').data('element-id');
                 var data = _.findWhere(settings, {id: element_id});
 
-                selectDropdown.select2(options);
-
                 // return here skips to next iteration
-                if (typeof data.settings.post_list === 'undefined' || data.settings.post_list.length === 0) return;
+                if (this.id !== 'post_list' || typeof data.settings.post_list === 'undefined' || data.settings.post_list.length === 0) return;
 
                 // disable selection
                 selectDropdown.prop("disabled", true);

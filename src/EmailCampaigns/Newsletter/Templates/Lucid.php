@@ -507,6 +507,7 @@ CSS;
         $post_title_color    = $settings['post_title_color'];
         $read_more_color     = $settings['read_more_color'];
         $post_font_family    = $settings['post_font_family'];
+        $post_metas          = $settings['post_metas'];
 
         ob_start();
         ?>
@@ -521,7 +522,7 @@ CSS;
         <tr>
             <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
                 <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
-                    <?= $this->post_meta($post, ['author', 'date', 'category']) ?>
+                    <?= $this->post_meta($post, $post_metas) ?>
                 </div>
             </td>
         </tr>

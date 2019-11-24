@@ -61,15 +61,27 @@ class SettingsFields
         self::select($name, $setting);
     }
 
+    protected static function _selected($name, $value, $is_multiple = false)
+    {
+        $status = sprintf('<# if(mo_ece_get_field_value("%1$s", data) == "%2$s") { #> selected <# } #>', $name, $value);
+
+        if ($is_multiple) {
+            $status = sprintf('<# if(_.contains(mo_ece_get_field_value("%1$s", data), "%2$s")) { #> selected <# } #>', $name, $value);
+        }
+
+        return $status;
+    }
+
     public static function select($name, $setting = [])
     {
         $setting['select2_options'] = isset($setting['select2_options']) ? esc_attr(wp_json_encode($setting['select2_options'])) : '{}';
 
         $choices = $setting['choices'];
 
-        $multiple        = isset($setting['multiple']) && $setting['multiple'] === true ? ' multiple' : '';
-        $multiple_class  = isset($setting['multiple']) && $setting['multiple'] === true ? ' mo-multiple-select' : '';
-        $select2_options = isset($setting['multiple']) && $setting['multiple'] === true ? sprintf(' data-select2-options="%s"', $setting['select2_options']) : '';
+        $is_multiple     = isset($setting['multiple']) && $setting['multiple'] === true;
+        $multiple        = $is_multiple ? ' multiple' : '';
+        $multiple_class  = $is_multiple ? ' mo-multiple-select' : '';
+        $select2_options = $is_multiple ? sprintf(' data-select2-options="%s"', $setting['select2_options']) : '';
 
         printf('<select data-field-type="select" class="mo-email-content-element-field%3$s" id="%1$s" name="%1$s"%4$s%2$s>', $name, $multiple, $multiple_class, $select2_options);
 
@@ -77,11 +89,11 @@ class SettingsFields
             if (is_array($value)) {
                 echo "<optgroup label='$key'>";
                 foreach ($value as $key2 => $value2) {
-                    printf('<option value="%1$s" <# if(mo_ece_get_field_value("%3$s", data) == "%1$s") { #> selected <# } #>>%2$s</option>', $key2, $value2, $name);
+                    printf('<option value="%1$s" %3$s>%2$s</option>', $key2, $value2, self::_selected($name, $key2, $is_multiple));
                 }
                 echo "</optgroup>";
             } else {
-                printf('<option value="%1$s" <# if(mo_ece_get_field_value("%3$s", data) == "%1$s") { #> selected <# } #>>%2$s</option>', $key, $value, $name);
+                printf('<option value="%1$s" %3$s>%2$s</option>', $key, $value, self::_selected($name, $key, $is_multiple));
             }
         }
 

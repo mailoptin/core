@@ -1228,7 +1228,7 @@ HTML;
                             'settings' => $this->option_prefix . '[content_post_meta]',
                             'choices'  => array(
                                 'author'   => __('Author', 'mailoptin'),
-                                'category' => __('Category', 'mailoptin'),
+                                'category' => __('Categories', 'mailoptin'),
                                 'date'     => __('Date', 'mailoptin'),
                             ),
                             'priority' => 23
