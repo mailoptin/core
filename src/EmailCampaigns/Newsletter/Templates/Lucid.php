@@ -500,7 +500,7 @@ CSS;
     /**
      * @param \WP_Post $post
      */
-    public function posts_block_tmpl($post, $settings)
+    public function posts_block_tmpl($id, $post, $settings)
     {
         $block_padding       = $settings['block_padding'];
         $read_more_link_text = $settings['read_more_text'];
@@ -511,7 +511,7 @@ CSS;
         ?>
         <tr>
             <td align="left" style="font-size:0px;padding-top:<?= $block_padding['top'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-bottom:0;word-break:break-word;">
-                <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
+                <div class="mo-email-builder-element" data-id="<?= $id ?>" style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
                     <a href="<?= $this->post_url($post) ?>">
                         <h1 style="color:<?= $post_title_color ?>"><?= $this->post_title($post) ?></h1></a>
                 </div>
@@ -519,7 +519,7 @@ CSS;
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
-                <div class="mo-content-text-color" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
+                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
                     <?= $this->post_meta($post, ['author', 'date', 'category']) ?>
                 </div>
             </td>
@@ -530,7 +530,7 @@ CSS;
                     <tbody>
                     <tr>
                         <td style="width:550px;">
-                            <img height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, @$settings['default_image_url']) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
+                            <img class="mo-email-builder-element" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, @$settings['default_image_url']) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
                         </td>
                     </tr>
                     </tbody>
@@ -539,15 +539,16 @@ CSS;
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div class="mo-content-text-color" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
+                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
                     <?= $this->post_content($post) ?>
                 </div>
             </td>
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
-                    <a style="color:<?=$read_more_color?>" href="<?= $this->post_url($post) ?>"><?= $read_more_link_text ?></a></div>
+                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
+                    <a style="color:<?= $read_more_color ?>" href="<?= $this->post_url($post) ?>"><?= $read_more_link_text ?></a>
+                </div>
             </td>
         </tr>
         <tr>
@@ -580,7 +581,7 @@ CSS;
 
         if (is_array($post_list) && ! empty($post_list)) {
             foreach ($post_list as $post) {
-                $html .= $this->posts_block_tmpl($post, $settings);
+                $html .= $this->posts_block_tmpl($id, $post, $settings);
             }
         }
 

@@ -70,7 +70,8 @@
 
                 wp.customize.section('mailoptin_newsletter_content').focus({
                     completeCallback: function () {
-                        $(document).find('.element-bar[data-element-id="' + $(self).attr('id') + '"] .mo-email-content-widget-title').click();
+                        var id = typeof $(self).attr('id') === 'undefined' ? $(self).data('id') : $(self).attr('id');
+                        $(document).find('.element-bar[data-element-id="' + id + '"] .mo-email-content-widget-title').click();
                     }
                 });
             });
