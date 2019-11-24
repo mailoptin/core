@@ -82,6 +82,11 @@ class Posts extends AbstractElement
                     'type'  => 'color_picker',
                     'tab'   => 'tab-style'
                 ],
+                'post_font_family' => [
+                    'label' => esc_html__('Font Family', 'mailoptin'),
+                    'type'  => 'font_family',
+                    'tab'   => 'tab-style'
+                ],
             ]
         );
     }

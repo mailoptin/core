@@ -63,7 +63,7 @@ class Misc
                     'divider_height' => '1'
                 ],
             'spacer'  => $block_settings_default + [
-                    'spacer_height'           => '20',
+                    'spacer_height' => '20',
                 ],
             'image'   => $block_settings_default + [
                     'image_url'       => MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/default-image.png',
@@ -73,7 +73,8 @@ class Misc
                     'image_link'      => '',
                 ],
             'posts'   => $block_settings_default + [
-                    'post_title_color'   => '',
+                    'post_font_family'  => '',
+                    'post_title_color'  => '',
                     'read_more_color'   => '',
                     'posts_post_type'   => 'post',
                     'read_more_text'    => esc_html__('Read More', 'mailoptin'),

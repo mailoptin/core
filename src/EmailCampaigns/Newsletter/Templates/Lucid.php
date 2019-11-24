@@ -486,8 +486,8 @@ CSS;
 
         $defaults['posts']['post_title_color'] = '#2F3133';
         $defaults['posts']['read_more_color']  = '#3869D4';
-
-        $defaults['posts']['block_padding'] = [
+        $defaults['posts']['post_font_family'] = 'Arial';
+        $defaults['posts']['block_padding']    = [
             'top'    => '10',
             'bottom' => '10',
             'right'  => '0',
@@ -506,12 +506,13 @@ CSS;
         $read_more_link_text = $settings['read_more_text'];
         $post_title_color    = $settings['post_title_color'];
         $read_more_color     = $settings['read_more_color'];
+        $post_font_family    = $settings['post_font_family'];
 
         ob_start();
         ?>
         <tr>
             <td align="left" style="font-size:0px;padding-top:<?= $block_padding['top'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-bottom:0;word-break:break-word;">
-                <div class="mo-email-builder-element" data-id="<?= $id ?>" style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
+                <div class="mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
                     <a href="<?= $this->post_url($post) ?>">
                         <h1 style="color:<?= $post_title_color ?>"><?= $this->post_title($post) ?></h1></a>
                 </div>
@@ -519,7 +520,7 @@ CSS;
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
-                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
+                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
                     <?= $this->post_meta($post, ['author', 'date', 'category']) ?>
                 </div>
             </td>
@@ -539,14 +540,14 @@ CSS;
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
+                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
                     <?= $this->post_content($post) ?>
                 </div>
             </td>
         </tr>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:'Open Sans', Arial, Helvetica, sans-serif;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
+                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
                     <a style="color:<?= $read_more_color ?>" href="<?= $this->post_url($post) ?>"><?= $read_more_link_text ?></a>
                 </div>
             </td>
