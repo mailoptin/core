@@ -523,6 +523,7 @@ CSS;
                 </div>
             </td>
         </tr>
+        
         <?php if ( ! empty($post_metas)) : ?>
         <tr>
             <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
@@ -532,6 +533,7 @@ CSS;
             </td>
         </tr>
     <?php endif; ?>
+
         <?php if ($remove_feature_image !== true) : ?>
         <tr>
             <td align="center" style="font-size:0px;padding:10px 0px;word-break:break-word;">
@@ -547,6 +549,7 @@ CSS;
             </td>
         </tr>
     <?php endif; ?>
+
         <?php if ($remove_post_content !== true) : ?>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
@@ -565,6 +568,7 @@ CSS;
             </tr>
         <?php endif; ?>
     <?php endif; ?>
+
         <tr>
             <td style="background:transparent;font-size:0px;word-break:break-word;">
                 <!--[if mso | IE]>
