@@ -76,7 +76,9 @@ abstract class AbstractElement implements ElementInterface
                                 ['MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\SettingsFields', $setting['type']],
                                 $name, $setting, $this->id()
                             );
-                            ?>
+                            if ( ! empty($setting['description'])) : ?>
+                                <span class="description customize-control-description"><?= esc_html($setting['description']) ?></span>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                     <div class="mo-email-content-footer-wrap">

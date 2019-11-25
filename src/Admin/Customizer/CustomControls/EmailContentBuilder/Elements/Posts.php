@@ -62,6 +62,15 @@ class Posts extends AbstractElement
                         ]
                     ]
                 ],
+                'post_content_length'     => [
+                    'label' => esc_html__('Post Content Length', 'mailoptin'),
+                    'description' => esc_html__('Number of words to limit the post content to. Set to "0" for full post content.', 'mailoptin'),
+                    'type'  => 'range',
+                    'tab'   => 'tab-content',
+                    'min'   => 0,
+                    'max'   => 1000,
+                    'step'  => 1,
+                ],
                 'post_metas'        => [
                     'label'    => esc_html__('Post Meta Data', 'mailoptin'),
                     'type'     => 'select',

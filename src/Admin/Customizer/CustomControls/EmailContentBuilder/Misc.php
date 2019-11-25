@@ -76,6 +76,7 @@ class Misc
                     'post_metas'           => ['author', 'date', 'category'],
                     'post_font_family'     => '',
                     'post_title_color'     => '',
+                    'post_content_length'  => '150',
                     'read_more_color'      => '',
                     'remove_feature_image' => '',
                     'remove_post_content'  => '',
