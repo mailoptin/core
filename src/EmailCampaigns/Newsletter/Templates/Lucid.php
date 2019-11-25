@@ -502,15 +502,16 @@ CSS;
      */
     public function posts_block_tmpl($id, $post, $settings)
     {
-        $block_padding        = $settings['block_padding'];
-        $read_more_link_text  = $settings['read_more_text'];
-        $post_title_color     = $settings['post_title_color'];
-        $read_more_color      = $settings['read_more_color'];
-        $post_font_family     = $settings['post_font_family'];
-        $post_metas           = $settings['post_metas'];
-        $remove_feature_image = $settings['remove_feature_image'];
-        $remove_post_content  = $settings['remove_post_content'];
-        $post_content_length  = $settings['post_content_length'];
+        $block_padding         = $settings['block_padding'];
+        $read_more_link_text   = $settings['read_more_text'];
+        $post_title_color      = $settings['post_title_color'];
+        $read_more_color       = $settings['read_more_color'];
+        $post_font_family      = $settings['post_font_family'];
+        $post_metas            = $settings['post_metas'];
+        $remove_feature_image  = $settings['remove_feature_image'];
+        $remove_post_content   = $settings['remove_post_content'];
+        $remove_read_more_link = $settings['remove_read_more_link'];
+        $post_content_length   = $settings['post_content_length'];
 
         ob_start();
         ?>
@@ -554,13 +555,15 @@ CSS;
                 </div>
             </td>
         </tr>
-        <tr>
-            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
-                    <a style="color:<?= $read_more_color ?>" href="<?= $this->post_url($post) ?>"><?= $read_more_link_text ?></a>
-                </div>
-            </td>
-        </tr>
+        <?php if ($remove_read_more_link !== true) : ?>
+            <tr>
+                <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
+                    <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
+                        <a style="color:<?= $read_more_color ?>" href="<?= $this->post_url($post) ?>"><?= $read_more_link_text ?></a>
+                    </div>
+                </td>
+            </tr>
+        <?php endif; ?>
     <?php endif; ?>
         <tr>
             <td style="background:transparent;font-size:0px;word-break:break-word;">

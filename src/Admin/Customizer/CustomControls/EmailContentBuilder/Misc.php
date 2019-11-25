@@ -80,6 +80,7 @@ class Misc
                     'read_more_color'      => '',
                     'remove_feature_image' => '',
                     'remove_post_content'  => '',
+                    'remove_read_more_link'  => '',
                     'posts_post_type'      => 'post',
                     'read_more_text'       => esc_html__('Read More', 'mailoptin'),
                     'post_list'            => [],

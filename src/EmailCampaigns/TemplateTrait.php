@@ -106,7 +106,7 @@ trait TemplateTrait
             apply_filters('mo_email_automation_post_content', $post->post_content, $post, $this->email_campaign_id)
         );
 
-        $post_content_length = is_null($post_content_length) ? ER::get_merged_customizer_value($this->email_campaign_id, 'post_content_length') : $post_content_length;
+        $post_content_length = is_null($post_content_length) ? ER::get_merged_customizer_value($this->email_campaign_id, 'post_content_length') : absint($post_content_length);
 
         if (0 !== $post_content_length) {
             $post_content = \MailOptin\Core\limit_text(
