@@ -502,12 +502,14 @@ CSS;
      */
     public function posts_block_tmpl($id, $post, $settings)
     {
-        $block_padding       = $settings['block_padding'];
-        $read_more_link_text = $settings['read_more_text'];
-        $post_title_color    = $settings['post_title_color'];
-        $read_more_color     = $settings['read_more_color'];
-        $post_font_family    = $settings['post_font_family'];
-        $post_metas          = $settings['post_metas'];
+        $block_padding        = $settings['block_padding'];
+        $read_more_link_text  = $settings['read_more_text'];
+        $post_title_color     = $settings['post_title_color'];
+        $read_more_color      = $settings['read_more_color'];
+        $post_font_family     = $settings['post_font_family'];
+        $post_metas           = $settings['post_metas'];
+        $remove_feature_image = $settings['remove_feature_image'];
+        $remove_post_content  = $settings['remove_post_content'];
 
         ob_start();
         ?>
@@ -528,6 +530,7 @@ CSS;
             </td>
         </tr>
     <?php endif; ?>
+        <?php if ($remove_feature_image !== true) : ?>
         <tr>
             <td align="center" style="font-size:0px;padding:10px 0px;word-break:break-word;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
@@ -541,6 +544,8 @@ CSS;
                 </table>
             </td>
         </tr>
+    <?php endif; ?>
+        <?php if ($remove_post_content !== true) : ?>
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
                 <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
@@ -555,6 +560,7 @@ CSS;
                 </div>
             </td>
         </tr>
+    <?php endif; ?>
         <tr>
             <td style="background:transparent;font-size:0px;word-break:break-word;">
                 <!--[if mso | IE]>

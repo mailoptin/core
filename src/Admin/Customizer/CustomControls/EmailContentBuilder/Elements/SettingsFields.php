@@ -22,7 +22,7 @@ class SettingsFields
     {
         $checked = sprintf('<# console.log(mo_ece_get_field_value("%1$s", data)); if(mo_ece_get_field_value("%1$s", data) === true) { #> checked <# } #>', $name);
         printf('<input data-field-type="checkbox" class="mo-email-content-element-field" type="checkbox" name="%1$s" id="%1$s" value="yes" %2$s>', $name, $checked);
-        printf('<label style="    vertical-align: initial;font-weight: 500;">%1$s</label>', $setting['checkbox_label']);
+        printf('<label for="%2$s" style="vertical-align: initial;font-weight: 500;">%1$s</label>', $setting['checkbox_label'], $name);
     }
 
     public static function select_image($name)
