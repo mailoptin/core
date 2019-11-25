@@ -18,6 +18,13 @@ class SettingsFields
         printf('<input placeholder="%2$s" data-field-type="text" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}">', $name, $placeholder);
     }
 
+    public static function checkbox($name, $setting)
+    {
+        $checked = sprintf('<# console.log(mo_ece_get_field_value("%1$s", data)); if(mo_ece_get_field_value("%1$s", data) === true) { #> checked <# } #>', $name);
+        printf('<input data-field-type="checkbox" class="mo-email-content-element-field" type="checkbox" name="%1$s" id="%1$s" value="yes" %2$s>', $name, $checked);
+        printf('<label style="    vertical-align: initial;font-weight: 500;">%1$s</label>', $setting['checkbox_label']);
+    }
+
     public static function select_image($name)
     {
         printf('<div class="mo-select-image-field"><input data-field-type="select_image" class="mo-email-content-element-field" type="text" name="%1$s" id="%1$s" value="{{mo_ece_get_field_value("%1$s", data)}}"></div>', $name);

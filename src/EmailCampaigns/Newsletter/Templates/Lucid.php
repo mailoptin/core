@@ -519,6 +519,7 @@ CSS;
                 </div>
             </td>
         </tr>
+        <?php if ( ! empty($post_metas)) : ?>
         <tr>
             <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
                 <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
@@ -526,6 +527,7 @@ CSS;
                 </div>
             </td>
         </tr>
+    <?php endif; ?>
         <tr>
             <td align="center" style="font-size:0px;padding:10px 0px;word-break:break-word;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">

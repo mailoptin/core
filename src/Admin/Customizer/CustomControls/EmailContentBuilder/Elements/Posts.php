@@ -78,6 +78,16 @@ class Posts extends AbstractElement
                     'type'  => 'text',
                     'tab'   => 'tab-content'
                 ],
+                'remove_feature_image' => [
+                    'checkbox_label' => esc_html__('Remove Featured Image', 'mailoptin'),
+                    'type'  => 'checkbox',
+                    'tab'   => 'tab-content'
+                ],
+                'remove_post_content' => [
+                    'checkbox_label' => esc_html__('Remove Post Content', 'mailoptin'),
+                    'type'  => 'checkbox',
+                    'tab'   => 'tab-content'
+                ],
                 'default_image_url' => [
                     'label' => esc_html__('Fallback Featured Image', 'mailoptin'),
                     'type'  => 'select_image',

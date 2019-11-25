@@ -112,6 +112,8 @@
                         bottom: cache.find('.mo-border-input.mobottom').val(),
                         left: cache.find('.mo-border-input.moleft').val(),
                     }
+                } else if('checkbox' == field_type) {
+                    data['settings'][name] = this.checked;
                 } else {
                     data['settings'][name] = cache.val();
                 }
