@@ -19,7 +19,9 @@ class Misc
         $newsletter_editor_content = EmailCampaignRepository::get_customizer_value_without_default($email_campaign_id, 'newsletter_editor_content');
 
         if ( ! empty($newsletter_editor_content)) {
-            $text_element_default = $newsletter_editor_content;
+            // for some odd reasons, we had to quote string with slashes and use mo_ece_stripslashes() to strip it off
+            // on the client side.
+            $text_element_default = addslashes($newsletter_editor_content);
         }
 
         $block_settings_default = [
@@ -73,18 +75,18 @@ class Misc
                     'image_link'      => '',
                 ],
             'posts'   => $block_settings_default + [
-                    'post_metas'           => ['author', 'date', 'category'],
-                    'post_font_family'     => '',
-                    'post_title_color'     => '',
-                    'post_content_length'  => '150',
-                    'read_more_color'      => '',
-                    'remove_feature_image' => '',
-                    'remove_post_content'  => '',
-                    'remove_read_more_link'  => '',
-                    'posts_post_type'      => 'post',
-                    'read_more_text'       => esc_html__('Read More', 'mailoptin'),
-                    'post_list'            => [],
-                    'default_image_url'    => MAILOPTIN_ASSETS_URL . 'images/email-templates/default-feature-img.jpg',
+                    'post_metas'            => ['author', 'date', 'category'],
+                    'post_font_family'      => '',
+                    'post_title_color'      => '',
+                    'post_content_length'   => '150',
+                    'read_more_color'       => '',
+                    'remove_feature_image'  => '',
+                    'remove_post_content'   => '',
+                    'remove_read_more_link' => '',
+                    'posts_post_type'       => 'post',
+                    'read_more_text'        => esc_html__('Read More', 'mailoptin'),
+                    'post_list'             => [],
+                    'default_image_url'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/default-feature-img.jpg',
                 ]
         ],
             $email_campaign_id

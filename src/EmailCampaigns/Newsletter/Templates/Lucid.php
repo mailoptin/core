@@ -523,7 +523,7 @@ CSS;
                 </div>
             </td>
         </tr>
-        
+
         <?php if ( ! empty($post_metas)) : ?>
         <tr>
             <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
@@ -608,7 +608,7 @@ CSS;
 
     public function text_block($id, $settings)
     {
-        $text          = wpautop($settings['text_content']);
+        $text          = wpautop(stripslashes($settings['text_content']));
         $font_family   = $this->get_font_family_stack($settings['text_font_family']);
         $font_size     = $settings['text_font_size'] . 'px';
         $block_padding = $settings['block_padding'];
