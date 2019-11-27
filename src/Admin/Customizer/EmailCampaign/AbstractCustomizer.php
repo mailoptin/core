@@ -412,13 +412,15 @@ HTML;
     {
         $email_campaign_id = $this->email_campaign_id;
 
+        // the JSON flag options are required to prevent having an un-parsable string.
+        // thankfully, JSON.parse can parse unicodes such as u2028 https://stackoverflow.com/a/12869914/2648410
         $email_newsletter_content_default = json_encode([
             [
                 'id'       => wp_generate_password(18, false),
                 'type'     => 'text',
                 'settings' => EmailContentBuilder\Misc::elements_default_fields_values($email_campaign_id)['text']
             ]
-        ]);
+        ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
 
         $blog_name    = get_bloginfo('name');
         $current_year = date("Y");

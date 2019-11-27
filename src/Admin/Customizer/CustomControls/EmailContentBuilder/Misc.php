@@ -21,7 +21,7 @@ class Misc
         if ( ! empty($newsletter_editor_content)) {
             // for some odd reasons, we had to quote string with slashes and use mo_ece_stripslashes() to strip it off
             // on the client side.
-            $text_element_default = addslashes($newsletter_editor_content);
+            $text_element_default = $newsletter_editor_content;
         }
 
         $block_settings_default = [

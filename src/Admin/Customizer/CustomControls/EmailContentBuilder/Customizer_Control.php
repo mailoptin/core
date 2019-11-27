@@ -149,38 +149,6 @@ class Customizer_Control extends WP_Customize_Control
             function mo_ece_get_field_value(key, obj) {
                 return typeof obj !== 'undefined' && typeof obj[key] !== 'undefined' ? obj[key] : '';
             }
-
-            /**
-             * @see https://locutus.io/php/strings/stripslashes/
-             * @param str
-             * @returns {string}
-             */
-            function mo_ece_stripslashes(str) {
-                return (str + '')
-                    .replace(/\\(.?)/g, function (s, n1) {
-                        switch (n1) {
-                            case '\\':
-                                return '\\';
-                            case '0':
-                                return '\u0000';
-                            case '':
-                                return '';
-                            default:
-                                return n1;
-                        }
-                    })
-            }
-
-            /**
-             * @see https://locutus.io/php/strings/addslashes/
-             * @param str
-             * @returns {string}
-             */
-            function mo_ece_addslashes(str) {
-                return (str + '')
-                    .replace(/[\\"']/g, '\\$&')
-                    .replace(/\u0000/g, '\\0')
-            }
         </script>
         <script type="text/html" id="tmpl-mo-email-content-element-bar">
             <div class="mo-email-content-widget mo-email-content-part-widget element-bar" data-element-id="{{data.id}}" data-element-type="{{data.type}}">

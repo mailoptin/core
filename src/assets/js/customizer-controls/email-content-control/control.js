@@ -112,8 +112,6 @@
                         bottom: cache.find('.mo-border-input.mobottom').val(),
                         left: cache.find('.mo-border-input.moleft').val(),
                     }
-                } else if ('tinymce' === field_type) {
-                    data['settings'][name] = mo_ece_addslashes(cache.val());
                 } else if ('checkbox' === field_type) {
                     data['settings'][name] = this.checked;
                 } else {
