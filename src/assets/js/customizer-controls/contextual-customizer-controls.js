@@ -400,7 +400,7 @@
         //Helper function to attach a close button to a popup
         var appendPopupClose = function () {
             $(switchThemesPopup)
-                .append('<span class="mo-popup-close"><i class="fa fa-close fa-2x"></i></span>')
+                .append('<span class="mo-popup-close"><span class="dashicons dashicons-no" style="font-size: 2.5em;cursor: pointer"></span></span>')
                 .find('.mo-popup-close')
                 .attr('title', moContextualControlsLabels.close)
                 .on('click', function () {

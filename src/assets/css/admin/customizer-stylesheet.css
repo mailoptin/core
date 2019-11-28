@@ -569,8 +569,8 @@ label.mo-single-toggle-tab {
     color: #fff !important;
 }
 
-.mo-automation-code-toolbar-btn i.fa {
-    padding-right: 5px;
+.mo-automation-code-toolbar-btn span.dashicons {
+    margin-right: 5px;
 }
 
 .mo-email-automation-editor-wrap,

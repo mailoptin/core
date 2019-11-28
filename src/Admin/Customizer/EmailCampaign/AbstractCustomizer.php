@@ -396,11 +396,9 @@ HTML;
 
 </html>
 HTML;
-
         }
 
         return $output;
-
     }
 
     /**

@@ -571,18 +571,18 @@ class OptinCampaign_List extends \WP_List_Table
             '<a class="mo-tooltipster button action mailoptin-btn-blue" href="%s" title="%s">%s</a> &nbsp;',
             esc_url_raw($customize_url),
             __('Customize', 'mailoptin'),
-            '<i class="fa fa-pencil" aria-hidden="true"></i>'
+            '<span class="dashicons dashicons-edit mo-action-icon"></span>'
         );
 
         $action .= sprintf(
             '<a class="mo-tooltipster button action mailoptin-btn-red mo-delete-prompt" href="%s" title="%s">%s</a> &nbsp;',
             $delete_url,
             __('Delete', 'mailoptin'),
-            '<i class="fa fa-trash" aria-hidden="true"></i>'
+            '<span class="dashicons dashicons-trash mo-action-icon"></span>'
         );
 
         $action .= '<span class="mo-ellipsis-action">';
-        $action .= '<a class="mo-ellipsis-tooltipster button action"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a> &nbsp;';
+        $action .= '<a class="mo-ellipsis-tooltipster button action"><span class="mo-action-icon hellip">&hellip;</span>';
         $action .= "<div style='display: none'>";
         $action .= "<div class='mo-popover-content'>";
         $action .= $this->popover_action_links($optin_campaign_id);

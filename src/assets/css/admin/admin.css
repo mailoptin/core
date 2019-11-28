@@ -1,6 +1,16 @@
 @import url(https://fonts.googleapis.com/css?family=Josefin+Slab:100,300,400,600,700);
-@import url(https://fonts.googleapis.com/css?family=Rye);
 @import url('https://fonts.googleapis.com/css?family=Open+Sans|Rye|Work+Sans');
+
+.mo-action-icon {
+    line-height: 1.5;
+    font-size: 18px;
+}
+
+.mo-action-icon.hellip {
+    font-size: 16px;
+    font-weight: 900;
+    vertical-align: top;
+}
 
 #mailoptin_affiliate_url_row:target {
     background-color: #e5eecc;
@@ -16,8 +26,8 @@
     display: inline-block;
 }
 
-.mailoptin-data-listing .add-new-h2,
-.mailoptin-log-listing .add-new-h2 {
+.mailoptin-data-listing .add-new-h2, .mailoptin-data-listing .add-new-h2:hover,
+.mailoptin-log-listing .add-new-h2, .mailoptin-log-listing .add-new-h2:hover {
     background: #0085ba;
     border-color: #0073aa #006799 #006799;
     box-shadow: 0 1px 0 #006799;
@@ -1096,7 +1106,7 @@ form.mo-inline {
 }
 
 .mo-hald-first a:focus {
-    box-shadow:none;
+    box-shadow: none;
 }
 
 .mo-builder-select-active {

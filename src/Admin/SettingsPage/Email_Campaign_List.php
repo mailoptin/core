@@ -232,19 +232,19 @@ class Email_Campaign_List extends \WP_List_Table
             '<a class="mo-tooltipster button action mailoptin-btn-blue" href="%s" title="%s">%s</a> &nbsp;',
             esc_url_raw($customize_url),
             __('Customize', 'mailoptin'),
-            '<i class="fa fa-pencil" aria-hidden="true"></i>'
+            '<span class="dashicons dashicons-edit mo-action-icon"></span>'
         );
         $action .= sprintf(
             '<a class="mo-tooltipster button action" href="%s" title="%s">%s</a> &nbsp;',
             $clone_url,
             __('Clone', 'mailoptin'),
-            '<i class="fa fa-clone" aria-hidden="true"></i>'
+            '<span class="dashicons dashicons-admin-page mo-action-icon"></span>'
         );
         $action .= sprintf(
             '<a class="mo-tooltipster button action mailoptin-btn-red mo-delete-prompt" href="%s" title="%s">%s</a> &nbsp;',
             $delete_url,
             __('Delete', 'mailoptin'),
-            '<i class="fa fa-trash" aria-hidden="true"></i>'
+            '<span class="dashicons dashicons-trash mo-action-icon"></span>'
         );
 
         return $action;
