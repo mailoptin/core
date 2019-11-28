@@ -16,4 +16,6 @@ interface ElementInterface
     public function tabs();
 
     public function settings();
+
+    public function is_premium_element();
 }

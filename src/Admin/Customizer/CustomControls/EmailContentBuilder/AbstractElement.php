@@ -16,15 +16,21 @@ abstract class AbstractElement implements ElementInterface
     public function define_element($elements)
     {
         $elements[] = [
-            'id'          => $this->id(),
-            'title'       => $this->title(),
-            'icon'        => $this->icon(),
-            'description' => $this->description(),
-            'tabs'        => $this->tabs(),
-            'settings'    => $this->settings()
+            'id'                 => $this->id(),
+            'title'              => $this->title(),
+            'icon'               => $this->icon(),
+            'description'        => $this->description(),
+            'tabs'               => $this->tabs(),
+            'settings'           => $this->settings(),
+            'is_premium_element' => $this->is_premium_element()
         ];
 
         return $elements;
+    }
+
+    public function is_premium_element()
+    {
+        return false;
     }
 
     public function element_block_settings()

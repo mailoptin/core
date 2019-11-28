@@ -196,18 +196,30 @@ class Customizer_Control extends WP_Customize_Control
             </div>
 
             <ul class="list list--secondary" id="items">
-                <?php foreach ($elements as $element) : ?>
-                    <li class="list__item element element--box mo-email-builder-add-element" data-element-type="<?= $element['id'] ?>">
-                        <?php $icon_url = MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/' . $element['icon']; ?>
-                        <?php if (strpos($element['icon'], 'class="dashicons') === false) { ?>
-                            <img src="<?= $icon_url ?>" class="mo-email-content-element-img">
-                        <?php } else {
-                            echo $element['icon'];
-                        } ?>
-                        <div class="element__wrap">
-                            <h3 class="list__label"><?= $element['title'] ?></h3>
-                            <div class="element__description"><?= $element['description'] ?></div>
-                        </div>
+                <?php foreach ($elements as $element) :
+
+                    $is_premium_element_disallowed = ! defined('MAILOPTIN_DETACH_LIBSODIUM') && $element['is_premium_element'] === true;
+                    $upgrade_url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=premium_email_element';
+                    $extra_class = $is_premium_element_disallowed ? '' : ' mo-email-builder-add-element';
+                    ?>
+                    <li class="list__item element element--box <?= $extra_class ?>" data-element-type="<?= $element['id'] ?>">
+                        <?php if ($is_premium_element_disallowed) : ?>
+                        <a class="mo-premium-email-element" href="<?= $upgrade_url ?>" target="_blank">
+                            <div class="mo-premium-flag" style="width:70px;height:61px;background-repeat:round;top:5px;"></div>
+                            <?php endif;
+                            $icon_url = MAILOPTIN_ASSETS_URL . 'images/email-builder-elements/' . $element['icon']; ?>
+                            <?php if (strpos($element['icon'], 'class="dashicons') === false) { ?>
+                                <img src="<?= $icon_url ?>" class="mo-email-content-element-img">
+                            <?php } else {
+                                echo $element['icon'];
+                            } ?>
+                            <div class="element__wrap">
+                                <h3 class="list__label"><?= $element['title'] ?></h3>
+                                <div class="element__description"><?= $element['description'] ?></div>
+                            </div>
+                            <?php if ($is_premium_element_disallowed) : ?>
+                        </a>
+                    <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>

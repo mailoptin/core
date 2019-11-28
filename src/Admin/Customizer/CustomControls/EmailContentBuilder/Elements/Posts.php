@@ -23,6 +23,11 @@ class Posts extends AbstractElement
         return esc_html__('Posts', 'mailoptin');
     }
 
+    public function is_premium_element()
+    {
+        return true;
+    }
+
     public function description()
     {
         return esc_html__('Embed a list of posts.', 'mailoptin');
