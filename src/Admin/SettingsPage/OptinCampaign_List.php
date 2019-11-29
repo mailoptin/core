@@ -582,7 +582,7 @@ class OptinCampaign_List extends \WP_List_Table
         );
 
         $action .= '<span class="mo-ellipsis-action">';
-        $action .= '<a class="mo-ellipsis-tooltipster button action"><span class="mo-action-icon hellip">&hellip;</span>';
+        $action .= '<a class="mo-ellipsis-tooltipster button action"><span class="mo-action-icon hellip">&hellip;</span></a>';
         $action .= "<div style='display: none'>";
         $action .= "<div class='mo-popover-content'>";
         $action .= $this->popover_action_links($optin_campaign_id);

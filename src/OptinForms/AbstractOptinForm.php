@@ -600,7 +600,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $schedule_end      = $this->get_customizer_value('schedule_end');
         $schedule_timezone = $this->get_customizer_value('schedule_timezone');
 
-        return ( ! is_customize_preview() && ! empty($schedule_status) && ! empty($schedule_start) && ! empty($schedule_end) && ! empty($schedule_timezone));
+        // isset is used at the ending because timzone can be zero and empty(0 returns true for 0.
+        return ( ! is_customize_preview() && ! empty($schedule_status) && ! empty($schedule_start) && ! empty($schedule_end) && isset($schedule_timezone));
     }
 
     public function is_adblock_rule_active()
@@ -1096,7 +1097,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             $data['slidein_position'] = $this->get_customizer_value('slidein_position');
         }
 
-        if ($schedule_status === true && ! empty($schedule_start) && ! empty($schedule_end) && ! empty($schedule_timezone)) {
+        // isset is used at the ending because timzone can be zero and empty(0 returns true for 0.
+        if ($schedule_status === true && ! empty($schedule_start) && ! empty($schedule_end) && isset($schedule_timezone)) {
             $data['schedule_status']   = $schedule_status;
             $data['schedule_start']    = $schedule_start;
             $data['schedule_end']      = $schedule_end;

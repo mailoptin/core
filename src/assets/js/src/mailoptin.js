@@ -1228,9 +1228,11 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                             timezone_offset = schedule_timezone * 1000;
                         }
 
-                        now = d.getTime() + timezone_offset;
-                        start = Date.parse(schedule_start) + timezone_offset;
-                        end = Date.parse(schedule_end) + timezone_offset;
+                        // getTime return time in UTC/GMT
+                        now = d.getTime();
+                        // we substracting time offset to convert the time to UTC/GMT
+                        start = Date.parse(schedule_start + ' GMT') - timezone_offset;
+                        end = Date.parse(schedule_end + ' GMT') - timezone_offset;
 
                         // return true of optin should display or false otherwise
                         result = (now >= start && now <= end);
