@@ -1240,7 +1240,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                         if (result === false) {
                             $(this).remove();
                         } else {
-                            $(this).show();
+                            $(this).mailoptin();
                         }
                     }
                 });
