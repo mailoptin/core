@@ -33,10 +33,10 @@ class Cron
 
         global $wpdb;
 
-        $table = Core::conversions_table_name;
+        $table = $wpdb->prefix . Core::conversions_table_name;
 
         return $wpdb->query(
-            "DELETE FROM $table WHERE DATEDIFF(NOW(), date) >= 90"
+            "DELETE FROM $table WHERE DATEDIFF(NOW(), date_added) >= 90"
         );
     }
 
