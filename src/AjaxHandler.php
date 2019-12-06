@@ -779,7 +779,8 @@ class AjaxHandler
             'referrer'            => $conversion_data->referrer,
         ];
 
-        if (class_exists('MailOptin\Libsodium\LeadBank\LeadBank') && ! LeadBank::is_leadbank_disabled()) {
+        // lite should also store leads in leadbank albeit locked.
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') || (class_exists('MailOptin\Libsodium\LeadBank\LeadBank') && ! LeadBank::is_leadbank_disabled())) {
             // capture optin lead / conversion
             OptinConversionsRepository::add($lead_data);
         }
