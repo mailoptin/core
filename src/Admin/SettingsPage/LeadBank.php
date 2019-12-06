@@ -75,7 +75,7 @@ class LeadBank extends AbstractSettingsPage
                     <h1><?php _e('Lead Bank Locked', 'mailoptin'); ?></h1>
                     <p>
                         <?php printf(
-                            __('LeadBank records or saves backup of all leads and conversions that happen on your site.', 'mailoptin'),
+                            __('LeadBank saves a backup of all leads, subscribers or conversions that happen on your site.', 'mailoptin'),
                             '<strong>',
                             '</strong>');
                         ?>
