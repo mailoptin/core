@@ -77,6 +77,10 @@ class Base
     {
         // Install plugin.
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array('MailOptin\Core\RegisterActivation\Base', 'run_install'));
+        /**
+         *@todo check what happens if a new website is created on multisite to see if DB tables will be created by MO
+         * note MailOptin\Core\RegisterActivation should be MailOptin\Core\RegisterActivation\Base
+         */
         add_action('wpmu_new_blog', ['MailOptin\Core\RegisterActivation', 'multisite_new_blog_install']);
 
         RegisterScripts::get_instance();
