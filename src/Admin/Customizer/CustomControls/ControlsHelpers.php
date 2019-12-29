@@ -218,7 +218,7 @@ class ControlsHelpers
 
         if (empty($data) || false === $data) {
 
-            $post_types = get_post_types(array('public' => true), 'objects');
+            $post_types = get_post_types(apply_filters('mailoptin_controls_helper_get_post_types', ['public' => true]), 'objects');
 
             $data = array_reduce($post_types, function ($carry, \WP_Post_Type $item) {
                 $carry[$item->name] = $item->label;
