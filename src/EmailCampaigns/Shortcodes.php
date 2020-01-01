@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core\EmailCampaigns;
 
+use function MailOptin\Core\strtotime_utc;
+
 class Shortcodes
 {
     use TemplateTrait;
@@ -156,13 +158,25 @@ class Shortcodes
         return $this->post_url($this->wp_post_obj);
     }
 
-    public function post_date_tag()
+    public function post_date_tag($atts = [])
     {
+        $atts = shortcode_atts(['format' => ''], $atts);
+
+        if ( ! empty($atts['format'])) {
+            return date($atts['format'], strtotime_utc($this->wp_post_obj->post_date));
+        }
+
         return $this->wp_post_obj->post_date;
     }
 
-    public function post_date_gmt_tag()
+    public function post_date_gmt_tag($atts)
     {
+        $atts = shortcode_atts(['format' => ''], $atts);
+
+        if ( ! empty($atts['format'])) {
+            return date($atts['format'], strtotime_utc($this->wp_post_obj->post_date_gmt));
+        }
+
         return $this->wp_post_obj->post_date_gmt;
     }
 
