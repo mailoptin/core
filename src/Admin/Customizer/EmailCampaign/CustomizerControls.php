@@ -622,7 +622,10 @@ HTML;
                         'section'     => $this->customizerClassInstance->campaign_view_tags_section_id,
                         'content'     => '<input type="text" value="[post-date]" style="background-color:#fff;" readonly>',
                         'settings'    => $this->option_prefix . '[post_date_shortcode]',
-                        'description' => __('Publish date of the post in your local time set in WordPress.', 'mailoptin'),
+                        'description' => sprintf(
+                            esc_html__('Publish date of the post in your local time set in WordPress. You can customize or format the date like so %s[post-date format="F j, Y, g:i a"]%s', 'mailoptin'),
+                            '<strong>', '</strong>'
+                        ),
                         'priority'    => 80
                     )
                 ),
@@ -634,7 +637,10 @@ HTML;
                         'section'     => $this->customizerClassInstance->campaign_view_tags_section_id,
                         'content'     => '<input type="text" value="[post-date-gmt]" style="background-color:#fff;" readonly>',
                         'settings'    => $this->option_prefix . '[post_date_shortcode]',
-                        'description' => __('Publish date of the post in GMT.', 'mailoptin'),
+                        'description' => sprintf(
+                            esc_html__('Publish date of the post in GMT/UTC. You can customize or format the date like so %s[post-date format="F j, Y, g:i a"]%s', 'mailoptin'),
+                            '<strong>', '</strong>'
+                        ),
                         'priority'    => 90
                     )
                 ),
