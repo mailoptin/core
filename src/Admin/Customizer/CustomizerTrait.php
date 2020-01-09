@@ -50,6 +50,7 @@ trait CustomizerTrait
     {
         if (class_exists('\Ninja_Forms') && class_exists('\NF_Display_Render') && isset($_GET['mailoptin_optin_campaign_id'])) {
             $optin_campaign_id = absint($_GET['mailoptin_optin_campaign_id']);
+
             return \MailOptin\Core\is_ninja_form_shortcode($optin_campaign_id);
         }
 
@@ -217,9 +218,10 @@ trait CustomizerTrait
      */
     public function js_script()
     {
-        $ck_label      = __('ConvertKit Form', 'mailoptin');
-        $drip_label    = __('Drip Campaign', 'mailoptin');
-        $gr_label      = __('GetResponse Campaign', 'mailoptin');
+        $ck_label      = __('ConvertKit Forms', 'mailoptin');
+        $drip_label    = __('Drip Campaigns', 'mailoptin');
+        $gr_label      = __('GetResponse Campaigns', 'mailoptin');
+        $zohocrm_label = __('ZohoCRM Modules', 'mailoptin');
         $default_label = __('Email Provider List', 'mailoptin');
         ?>
 
@@ -243,6 +245,10 @@ trait CustomizerTrait
                         if (connection_service === 'DripConnect') {
                             title_obj.text('<?php echo $drip_label; ?>');
                         }
+
+                        if (connection_service === 'ZohoCRMConnect') {
+                            title_obj.text('<?php echo $zohocrm_label; ?>');
+                        }
                     }
 
                     function logic_new(connection_service, parent) {
@@ -264,9 +270,12 @@ trait CustomizerTrait
                                 if (connection_service === 'DripConnect') {
                                     title_obj.text('<?php echo $drip_label; ?>');
                                 }
+
+                                if (connection_service === 'ZohoCRMConnect') {
+                                    title_obj.text('<?php echo $zohocrm_label; ?>');
+                                }
                             });
-                        }
-                        else {
+                        } else {
 
                             connection_service = $("select[name='connection_service']", parent).val();
 
@@ -282,6 +291,10 @@ trait CustomizerTrait
 
                             if (connection_service === 'DripConnect') {
                                 title_obj.text('<?php echo $drip_label; ?>');
+                            }
+
+                            if (connection_service === 'ZohoCRMConnect') {
+                                title_obj.text('<?php echo $zohocrm_label; ?>');
                             }
                         }
                     }
