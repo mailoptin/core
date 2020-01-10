@@ -107,8 +107,7 @@
             var old_data = data_store.val();
             if (old_data === '' || typeof old_data === 'undefined') {
                 old_data = [];
-            }
-            else {
+            } else {
                 old_data = JSON.parse(old_data);
             }
 
@@ -127,13 +126,11 @@
             // shim for single checkbox
             if ($(this).attr('type') === 'checkbox' && field_name.indexOf('[]') === -1) {
                 old_data[index][field_name] = this.checked;
-            }
-            else if ($(this).hasClass('mo_mc_interest') && $(this).attr('type') === 'checkbox' && field_name.indexOf('[]') !== -1) {
+            } else if ($(this).hasClass('mo_mc_interest') && $(this).attr('type') === 'checkbox' && field_name.indexOf('[]') !== -1) {
                 var item_name = field_name.replace('[]', '');
                 if (this.checked === false) {
                     delete old_data[index][item_name][field_value];
-                }
-                else {
+                } else {
                     if (typeof old_data[index][item_name] === 'undefined') {
                         old_data[index][item_name] = {};
                         old_data[index][item_name][field_value] = $(this).next('.mo_mc_interest_label').text();
@@ -147,13 +144,11 @@
                         old_data[index][item_name][field_value] = $(this).next('.mo_mc_interest_label').text();
                     }
                 }
-            }
-            else if ($(this).attr('type') === 'checkbox' && field_name.indexOf('[]') !== -1) {
+            } else if ($(this).attr('type') === 'checkbox' && field_name.indexOf('[]') !== -1) {
                 var item_name = field_name.replace('[]', '');
                 if (this.checked === true) {
                     old_data = _.without(old_data[index][item_name], field_value);
-                }
-                else {
+                } else {
 
                     if (typeof old_data[index][item_name] === 'undefined') {
                         old_data[index][item_name] = [];
@@ -164,11 +159,9 @@
 
                     old_data[index][item_name] = _.uniq(old_data[index][item_name]);
                 }
-            }
-            else if (this.tagName === 'SELECT' && $(this).hasClass('mailoptin-integration-chosen')) {
+            } else if (this.tagName === 'SELECT' && $(this).hasClass('mailoptin-integration-chosen')) {
                 old_data[index][field_name] = $(this).val();
-            }
-            else {
+            } else {
                 old_data[index][field_name] = field_value;
             }
 
@@ -297,8 +290,7 @@
                                 _this.toggle_connect_service_connected_fields(parent);
 
                                 $(document.body).trigger('mo_new_email_list_data_found', [connect_service, parent]);
-                            }
-                            else {
+                            } else {
 
                                 $(".connection_email_list", parent).hide();
 
@@ -306,8 +298,7 @@
                                 $('div[class*="Connect"]', parent).hide();
                                 $(document.body).trigger('mo_email_list_data_not_found', [connect_service, parent]);
                             }
-                        }
-                        else {
+                        } else {
                             $(".connection_email_list", parent).hide();
 
                             // hide all dependent connection service fields if ajax response came badly or invalid.
@@ -341,14 +332,14 @@
                 // if interest selection is available, do not make group related fields hidden.
                 if ($('[name="MailChimpConnect_interests[]"]', parent).length === 0) {
                     $('div[class*="' + selected_connection_service + '"]', parent).not('.mc-group-block').show();
-                }
-                else {
+                } else {
                     $('div[class*="' + selected_connection_service + '"]', parent).show();
                 }
-            }
-            else {
+            } else {
                 $('div[class*="Connect"]', parent).hide();
             }
+
+            $(document.body).trigger('toggle_connect_service_connected_fields', [parent, selected_connection_service]);
         },
 
         /**
@@ -360,10 +351,14 @@
             // >= 2 is used because connection email list select-dropdown always have a default "Select..." option.
             if ($("select[name='connection_email_list'] option", parent).length >= 2) {
                 $('.connection_email_list', parent).show();
-            }
-            else {
+            } else {
                 $('.connection_email_list', parent).hide();
             }
+
+            var selected_connection_service = $("select[name='connection_service']", parent).val();
+            var selected_email_list = $("select[name='connection_email_list']", parent).val();
+
+            $(document.body).trigger('toggle_connect_service_email_list_field', [parent, selected_email_list, selected_connection_service]);
         },
 
         add_spinner: function (placement) {

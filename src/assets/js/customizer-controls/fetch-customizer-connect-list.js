@@ -57,20 +57,19 @@
                             toggle_connect_service_connected_fields();
 
                             $(document.body).trigger('mo_email_list_data_found', [connect_service]);
-                        }
-                        else {
+                        } else {
                             $("div#customize-theme-controls li[id*='connection_email_list']").hide();
 
                             // hide all dependent connection service fields if no connection email list was returned.
                             $('li[id*="Connect"]').hide();
                             $(document.body).trigger('mo_email_list_data_not_found', [connect_service]);
                         }
-                    }
-                    else {
+                    } else {
                         $("div#customize-theme-controls li[id*='connection_email_list']").hide();
 
                         // hide all dependent connection service fields if ajax response came badly or invalid.
                         $('li[id*="Connect"]').hide();
+
                         $(document.body).trigger('mo_email_list_invalid_response', [connect_service]);
                     }
 
@@ -107,10 +106,11 @@
                 $('li[id*="Connect"]').hide();
 
                 $('li[id*="' + selected_connection_service + '"]').show();
-            }
-            else {
+            } else {
                 $('li[id*="Connect"]').hide();
             }
+
+            $(document.body).trigger('toggle_connect_service_connected_fields', [selected_connection_service]);
         }
 
         /**
@@ -122,10 +122,14 @@
             // >= 2 is used because connection email list select-dropdown always have a default "Select..." option.
             if ($("select[data-customize-setting-link*='connection_email_list'] option").length >= 2) {
                 $("div#customize-theme-controls li[id*='connection_email_list']").show();
-            }
-            else {
+            } else {
                 $("div#customize-theme-controls li[id*='connection_email_list']").hide();
             }
+
+            var selected_connection_service = $("select[data-customize-setting-link*='connection_service']").val();
+            var selected_email_list = $("select[data-customize-setting-link*='connection_email_list']").val();
+
+            $(document.body).trigger('toggle_connect_service_email_list_field', [selected_email_list, selected_connection_service]);
         }
     });
 
