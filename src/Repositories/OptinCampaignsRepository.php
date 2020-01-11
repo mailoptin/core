@@ -529,6 +529,25 @@ class OptinCampaignsRepository extends AbstractRepository
     }
 
     /**
+     * Get the field type of a custom field.
+     *
+     * @param $cid
+     * @param $optin_campaign_id
+     *
+     * @return mixed
+     */
+    public static function get_custom_field_type_by_id($cid, $optin_campaign_id)
+    {
+        $fields = self::form_custom_fields($optin_campaign_id);
+
+        foreach ($fields as $field) {
+            if ($field['cid'] == $cid) {
+                return $field['field_type'];
+            }
+        }
+    }
+
+    /**
      * Check if an optin has a specific custom field type.
      *
      * @param int $optin_campaign_id
