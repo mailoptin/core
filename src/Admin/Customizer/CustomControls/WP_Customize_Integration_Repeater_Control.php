@@ -159,6 +159,32 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
         echo '</div>';
     }
 
+    public function textarea_field($index, $name, $class = '', $label = '', $description = '', $placeholder = '')
+    {
+        if ( ! isset($index) || ! array_key_exists($index, $this->saved_values)) {
+            $index = '{mo-integration-index}';
+        }
+
+        $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
+        $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
+
+        if ( ! empty($class)) {
+            $class = " $class";
+        }
+
+        $random_id = wp_generate_password(5, false) . '_' . $index;
+        echo "<div class=\"$name mo-integration-block{$class}\">";
+        if ( ! empty($label)) : ?>
+            <label for="<?php echo $random_id; ?>" class="customize-control-title"><?php echo esc_html($label); ?></label>
+        <?php endif; ?>
+        <?php if ( ! empty($description)) : ?>
+        <span class="description customize-control-description"><?php echo $description; ?></span>
+    <?php endif; ?>
+        <textarea id="<?php echo $random_id; ?>" name="<?php echo $name; ?>" placeholder="<?php echo $placeholder; ?>"><?php echo esc_textarea($saved_value); ?></textarea>
+        <?php
+        echo '</div>';
+    }
+
     public function select_field($index, $name, $choices, $class = '', $label = '', $description = '')
     {
         if ( ! isset($index) || ! array_key_exists($index, $this->saved_values)) {
@@ -386,6 +412,16 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
                         @$control_arg['description'],
                         @$control_arg['placeholder'],
                         @$control_arg['type']
+                    );
+                    break;
+                case 'textarea':
+                    $this->textarea_field(
+                        $index,
+                        @$control_arg['name'],
+                        @$control_arg['class'],
+                        @$control_arg['label'],
+                        @$control_arg['description'],
+                        @$control_arg['placeholder']
                     );
                     break;
                 case 'select':
