@@ -187,14 +187,14 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
 
     public function select_field($index, $name, $choices, $class = '', $label = '', $description = '')
     {
+        if (empty($choices)) return;
+
         if ( ! isset($index) || ! array_key_exists($index, $this->saved_values)) {
             $index = '{mo-integration-index}';
         }
 
         $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
         $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
-
-        if (empty($choices)) return;
 
         $random_id = wp_generate_password(5, false) . '_' . $index;
 
@@ -221,6 +221,8 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
 
     public function chosen_select_field($index, $name, $choices, $class = '', $label = '', $description = '')
     {
+        if (empty($choices)) return;
+
         $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
         $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
 
