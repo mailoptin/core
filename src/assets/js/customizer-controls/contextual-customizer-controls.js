@@ -395,7 +395,14 @@
         var switchThemesClose = '<div class="close-button-div"><button class="button button-secondary">' + moContextualControlsLabels.close + '</button></div>';
 
         //Loader
-        var loader = '<i class="fa fa-spinner fa-pulse fa-spin fa-3x"></i>';
+        var loader = '<span class="spinner" style="visibility: visible"></span>';
+
+        //Create the main popup and add a loading spinner to it
+        var switchThemesPopup =
+            $('body')
+                .append('<div class="mo-change-theme-popup"></div>')
+                .find('.mo-change-theme-popup')
+                .append(loader);
 
         //Helper function to attach a close button to a popup
         var appendPopupClose = function () {
@@ -409,13 +416,6 @@
                         .html(loader)
                 });
         };
-
-        //Create the main popup and add a loading spinner to it
-        var switchThemesPopup =
-            $('body')
-                .append('<div class="mo-change-theme-popup"></div>')
-                .find('.mo-change-theme-popup')
-                .append(loader);
 
         appendPopupClose();
 
@@ -434,7 +434,7 @@
             e.preventDefault();
 
             //Display the lightbox
-            $(switchThemesPopup).addClass('mo-change-theme-popup-show')
+            $(switchThemesPopup).addClass('mo-change-theme-popup-show');
 
             //Prepare our ajax request data
             var data = {
@@ -499,7 +499,7 @@
                                         })
                                 })
 
-                        })
+                        });
 
                     appendPopupClose();
                 })

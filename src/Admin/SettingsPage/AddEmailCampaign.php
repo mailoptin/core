@@ -48,7 +48,7 @@ class AddEmailCampaign extends AbstractSettingsPage
             </div>
             <div class="mailoptin-optin-new-list mailoptin-new-toolbar mailoptin-optin-clear">
                 <strong><?php _e('Select Email Automation', 'mailoptin'); ?></strong>
-                <i class="fa fa-spinner fa-pulse fa-spin"></i>
+                <span class="spinner mo-dash-spinner"></span>
                 <?php $this->_build_campaign_types_select_dropdown(); ?>
             </div>
         <?php }

@@ -216,12 +216,12 @@ tr#ajax_nonce_row {
     zoom: 1;
 }
 
-.mailoptin-new-toolbar i.fa-spinner {
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-    filter: alpha(opacity=0);
-    -moz-opacity: 0;
-    -khtml-opacity: 0;
-    opacity: 0;
+.mailoptin-new-toolbar .mo-dash-spinner {
+    visibility: hidden;
+    float: none;
+    margin-right: 0;
+    margin-left: 0;
+    margin-top: -3px;
 }
 
 .mailoptin-optin {

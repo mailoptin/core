@@ -20,11 +20,10 @@
 
             if (!campaign_title_obj.val()) {
                 campaign_title_obj.addClass('mailoptin-input-error');
-            }
-            else {
+            } else {
                 campaign_title_obj.removeClass('mailoptin-input-error');
                 $(".mailoptin-error").remove();
-                $('.mailoptin-optin-new-list i.fa-spinner').css('opacity', 1);
+                $('.mailoptin-new-toolbar .mo-dash-spinner').css('visibility', 'visible');
 
                 var ajaxData = {
                     action: 'mailoptin_create_email_campaign',
@@ -37,11 +36,10 @@
                 $.post(ajaxurl, ajaxData, function (response) {
                         if (response.success && response.data.redirect) {
                             window.location.assign(response.data.redirect);
-                        }
-                        else {
+                        } else {
                             var error_msg = response.data ? response.data : '';
                             campaign_title_obj.after('<span class="mailoptin-error">' + error_msg + '</span>');
-                            $('.mailoptin-new-toolbar i.fa-spinner').css('opacity', 0);
+                            $('.mailoptin-new-toolbar .mo-dash-spinner').css('visibility', 'hidden');
                         }
                     }, 'json'
                 );

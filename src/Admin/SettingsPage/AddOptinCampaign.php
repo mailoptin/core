@@ -44,7 +44,7 @@ class AddOptinCampaign extends AbstractSettingsPage
             <div id="mailoptin-sub-bar">
                 <div class="mailoptin-new-toolbar mailoptin-clear">
                     <h4><?php _e('Select Optin Type', 'mailoptin'); ?>
-                        <i class="fa fa-spinner fa-pulse fa-spin"></i>
+                        <span class="spinner mo-dash-spinner"></span>
                     </h4>
                     <span class="sr-only"><?php __('Loading...', 'mailoptin'); ?></span>
                     <ul class="mailoptin-design-options">

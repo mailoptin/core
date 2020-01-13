@@ -6,7 +6,7 @@
             $('.mo-select-optin-type').removeClass('mailoptin-type-active');
             $(this).addClass('mailoptin-type-active');
             // show spinner
-            $('.mailoptin-new-toolbar i.fa-spinner').css('opacity', 1);
+            $('.mailoptin-new-toolbar .mo-dash-spinner').css('visibility', 'visible');
 
             var ajaxData = {
                 action: 'mailoptin_optin_type_selection',
@@ -18,7 +18,7 @@
                     if (typeof response === 'string') {
                         $('.mailoptin-optin-themes').replaceWith(response);
                     }
-                    $('.mailoptin-new-toolbar i.fa-spinner').css('opacity', 0);
+                    $('.mailoptin-new-toolbar .mo-dash-spinner').css('visibility', 'hidden');
                 }
             );
 
