@@ -46,7 +46,7 @@ abstract class AbstractConnect
         $defaults          = (new AbstractCustomizer($optin_campaign_id))->customizer_defaults['integrations'];
 
         $data   = $this->is_valid_data($default) ? $default : @$defaults[$data_key];
-        $bucket = is_array($integration_data) && ! empty($integration_data) ? $integration_data : $this->extras['integration_data'];
+        $bucket = is_array($integration_data) && ! empty($integration_data) ? $integration_data : @$this->extras['integration_data'];
 
         if (isset($bucket[$data_key]) && $this->is_valid_data($bucket[$data_key])) {
             $data = $bucket[$data_key];
