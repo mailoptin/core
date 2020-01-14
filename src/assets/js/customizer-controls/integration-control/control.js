@@ -120,6 +120,12 @@
             var field_name = this.name;
             var field_value = this.value;
 
+            // if the integration or connection is changed, clear.
+            if (field_name === 'connection_service') {
+                console.log('connection changed');
+                old_data[index] = {};
+            }
+
             // returning true continue/skip the iteration.
             if (field_name === '') return;
 
