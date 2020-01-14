@@ -470,15 +470,13 @@ class OptinCampaign_List extends \WP_List_Table
 
         $optin_type = OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id);
 
-        if ($optin_type == 'bar')
-            $optin_type = __('Notification Bar', 'mailoptin');
-        if ($optin_type == 'sidebar')
-            $optin_type = __('Sidebar / Widget', 'mailoptin');
+        if ($optin_type == 'bar') $optin_type = __('Notification Bar', 'mailoptin');
+        if ($optin_type == 'sidebar') $optin_type = __('Sidebar / Widget', 'mailoptin');
 
         $optin_type = ucwords($optin_type);
 
         $actions = array(
-            'delete'    => sprintf("<a href='%s'>%s</a>", $delete_url, esc_attr__('Delete', 'mailoptin')),
+            'delete'    => sprintf("<a class='mo-delete-prompt' href='%s'>%s</a>", $delete_url, esc_attr__('Delete', 'mailoptin')),
             'test_mode' => "<a href=\"$url\">$label</a>"
         );
 

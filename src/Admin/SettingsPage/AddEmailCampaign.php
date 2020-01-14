@@ -32,7 +32,7 @@ class AddEmailCampaign extends AbstractSettingsPage
     public function back_to_optin_overview()
     {
         $url = MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
-        echo "<a class=\"add-new-h2\" href=\"$url\">" . __('Back to Overview', 'mailoptin') . '</a>';
+        echo "<a class=\"add-new-h2\" style='margin-left: 10px;' href=\"$url\">" . __('Back to Overview', 'mailoptin') . '</a>';
     }
 
     /**
@@ -43,11 +43,11 @@ class AddEmailCampaign extends AbstractSettingsPage
         if ( ! empty($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
             ?>
             <div class="mailoptin-optin-new-list mailoptin-optin-clear">
-                <strong><?php _e('Automation Title', 'mailoptin'); ?></strong>
+                <strong><?php _e('Title', 'mailoptin'); ?></strong>
                 <input type="text" name="mailoptin-optin-campaign" id="mailoptin-add-campaign-title" placeholder="<?php _e('Enter a name for this automation...', 'mailoptin'); ?>">
             </div>
             <div class="mailoptin-optin-new-list mailoptin-new-toolbar mailoptin-optin-clear">
-                <strong><?php _e('Select Email Automation', 'mailoptin'); ?></strong>
+                <strong><?php _e('Select Type', 'mailoptin'); ?></strong>
                 <span class="spinner mo-dash-spinner"></span>
                 <?php $this->_build_campaign_types_select_dropdown(); ?>
             </div>

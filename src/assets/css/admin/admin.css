@@ -273,7 +273,7 @@ tr#ajax_nonce_row {
 .mailoptin-optin-new-list input, .mailoptin-optin-new-list select {
     position: relative;
     top: 1px;
-    margin-left: 5px;
+    margin-left: 10px;
     margin-right: 10px;
     font-size: 16px;
     font-weight: 300;
