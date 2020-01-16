@@ -141,7 +141,7 @@ class Customizer
     {
         if ( ! ER::is_newsletter($this->email_campaign_id)) return;
 
-        $date_sent = EmailCampaignMeta::get_meta_data($this->email_campaign_id, 'newsletter_date_sent', true);
+        $date_sent = EmailCampaignMeta::get_meta_data($this->email_campaign_id, 'newsletter_date_sent');
 
         if ( ! empty($date_sent) && ! in_array($date_sent, [ER::NEWSLETTER_STATUS_FAILED, ER::NEWSLETTER_STATUS_DRAFT])) {
             echo '<style type="text/css">#customize-save-button-wrapper {display:none!important;}</style>';

@@ -128,7 +128,7 @@ class Newsletter_List extends \WP_List_Table
     {
         $email_campaign_id = absint($item['id']);
 
-        $date_sent = EmailCampaignMeta::get_meta_data($email_campaign_id, 'newsletter_date_sent', true);
+        $date_sent = EmailCampaignMeta::get_meta_data($email_campaign_id, 'newsletter_date_sent');
 
         if (empty($date_sent) || $date_sent == ER::NEWSLETTER_STATUS_DRAFT) {
             $date_sent = __('Draft', 'mailoptin');

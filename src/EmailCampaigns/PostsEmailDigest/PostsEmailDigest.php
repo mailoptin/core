@@ -21,7 +21,7 @@ class PostsEmailDigest extends AbstractTriggers
 
     public function last_processed_at($email_campaign_id)
     {
-        return EmailCampaignMeta::get_meta_data($email_campaign_id, 'last_processed_at', true);
+        return EmailCampaignMeta::get_meta_data($email_campaign_id, 'last_processed_at');
     }
 
     public function timezone()
@@ -96,7 +96,11 @@ class PostsEmailDigest extends AbstractTriggers
 
     public function post_collection($email_campaign_id)
     {
-        $newer_than_timestamp = EmailCampaignMeta::get_meta_data($email_campaign_id, 'created_at', true);
+        $newer_than_timestamp = EmailCampaignMeta::get_meta_data($email_campaign_id, 'created_at');
+        // backward compat for bug we've fixed where meta was being saved as array.
+        if (is_array($newer_than_timestamp)) {
+            $newer_than_timestamp = $newer_than_timestamp[0];
+        }
 
         $last_processed_at = $this->last_processed_at($email_campaign_id);
 
@@ -128,7 +132,7 @@ class PostsEmailDigest extends AbstractTriggers
         $timezone   = $this->timezone();
         $carbon_now = Carbon::now($timezone);
 
-        $last_processed_at = EmailCampaignMeta::get_meta_data($email_campaign_id, 'last_processed_at', true);
+        $last_processed_at = EmailCampaignMeta::get_meta_data($email_campaign_id, 'last_processed_at');
 
         if ( ! empty($last_processed_at)) {
             $last_processed_at_carbon_instance = Carbon::createFromFormat('Y-m-d H:i:s', $this->last_processed_at($email_campaign_id), $timezone);

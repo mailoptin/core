@@ -75,7 +75,7 @@ class EmailCampaignMeta
      * @param bool $single
      * @return mixed
      */
-    public static function get_meta_data($email_campaign_id, $meta_key = '', $single = false)
+    public static function get_meta_data($email_campaign_id, $meta_key = '', $single = true)
     {
         return get_metadata('email_campaign', $email_campaign_id, $meta_key, $single);
     }

@@ -42,7 +42,7 @@ class CloneEmailCampaign
         EmailCampaignMeta::add_meta_data(
             $new_email_campaign_id,
             'created_at',
-            EmailCampaignMeta::get_meta_data($this->email_campaign_id, 'created_at')
+            current_time('mysql')
         );
 
         $all_templates_settings = EmailCampaignRepository::get_settings();
@@ -55,7 +55,7 @@ class CloneEmailCampaign
 
         EmailCampaignRepository::deactivate_email_campaign($new_email_campaign_id);
 
-        if(EmailCampaignRepository::is_newsletter($new_email_campaign_id)) {
+        if (EmailCampaignRepository::is_newsletter($new_email_campaign_id)) {
             $all_templates_settings[$new_email_campaign_id]['email_campaign_title'] = $new_email_campaign_name;
         }
 
