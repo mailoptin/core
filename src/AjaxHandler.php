@@ -68,17 +68,10 @@ class AjaxHandler
             add_action('wp_ajax_mailoptin_' . $ajax_event, array($this, $ajax_event));
 
             if ($nopriv) {
-                // backward compat.
-                add_action('wp_ajax_nopriv_mailoptin_' . $ajax_event, array($this, $ajax_event));
-
                 // MailOptin AJAX can be used for frontend ajax requests.
                 add_action('mailoptin_ajax_' . $ajax_event, array($this, $ajax_event));
             }
         }
-
-        // backward compat
-        add_action('wp_ajax_mailoptin_add_to_email_list', [$this, 'subscribe_to_email_list']);
-        add_action('wp_ajax_nopriv_mailoptin_add_to_email_list', [$this, 'subscribe_to_email_list']);
     }
 
     public static function define_ajax()

@@ -766,10 +766,10 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                     $optin_css_id = $optin_uuid + '_' + $optin_type;
                     optin_js_config = self.optin_js_config($optin_css_id);
 
-                    self.hide_optin_error($optin_uuid);
+                    self.hide_optin_error($optin_uuid, optin_container);
 
                     // data variable is only populated if validation passes.
-                    if (self.validate_optin_form_fields($optin_css_id, optin_js_config)) {
+                    if (self.validate_optin_form_fields($optin_css_id, optin_js_config, optin_container)) {
 
                         // loop over form fields and create and object with key to the field name and value the field value.
                         var all_form_fields_and_values = $('form#' + $optin_css_id + '_form').serializeArray().reduce(function (obj, item) {
@@ -790,8 +790,8 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                         optin_data = $.extend({}, all_form_fields_and_values, {
                             optin_uuid: $optin_uuid,
                             optin_campaign_id: optin_js_config.optin_campaign_id,
-                            email: $('input#' + $optin_css_id + '_email_field').val(),
-                            name: $('input#' + $optin_css_id + '_name_field').val(),
+                            email: $('input#' + $optin_css_id + '_email_field', optin_container).val(),
+                            name: $('input#' + $optin_css_id + '_name_field', optin_container).val(),
                             _mo_timestamp: $('input#' + $optin_css_id + '_honeypot_timestamp').val(),
                             user_agent: navigator.userAgent,
                             conversion_page: window.location.href,
@@ -942,9 +942,10 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
              *
              * @param {string} $optin_css_id optin CSS ID
              * @param {object} optin_js_config optin js config
+             * @param {object} optin_container
              * @returns {boolean}
              */
-            validate_optin_form_fields: function ($optin_css_id, optin_js_config) {
+            validate_optin_form_fields: function ($optin_css_id, optin_js_config, optin_container) {
 
                 var namefield_error = optin_js_config.name_missing_error;
                 var emailfield_error = optin_js_config.email_missing_error;
@@ -952,24 +953,24 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                 var note_acceptance_error = optin_js_config.note_acceptance_error;
 
                 var self = this;
-                var name_field = $('#' + $optin_css_id + '_name_field:visible');
-                var email_field = $('#' + $optin_css_id + '_email_field:visible');
-                var acceptance_checkbox = $('#' + $optin_css_id + ' .mo-acceptance-checkbox');
+                var name_field = $('#' + $optin_css_id + '_name_field:visible', optin_container);
+                var email_field = $('#' + $optin_css_id + '_email_field:visible', optin_container);
+                var acceptance_checkbox = $('#' + $optin_css_id + ' .mo-acceptance-checkbox', optin_container);
 
-                var honeypot_email_field = $('#' + $optin_css_id + '_honeypot_email_field').val();
-                var honeypot_website_field = $('#' + $optin_css_id + '_honeypot_website_field').val();
+                var honeypot_email_field = $('#' + $optin_css_id + '_honeypot_email_field', optin_container).val();
+                var honeypot_website_field = $('#' + $optin_css_id + '_honeypot_website_field', optin_container).val();
                 var response = true;
 
                 // Throw error if either of the honeypot fields are filled.
                 if (honeypot_email_field.length > 0 || honeypot_website_field.length > 0) {
-                    self.display_optin_error.call(undefined, $optin_css_id, honeypot_error);
+                    self.display_optin_error.call(undefined, $optin_css_id, honeypot_error, optin_container);
                     response = false;
                 }
 
                 // if this is an email field, validate that the email address.
                 if (email_field.length > 0) {
                     if (self.isValidEmail(email_field.val()) === false) {
-                        self.display_optin_error.call(email_field, $optin_css_id, emailfield_error);
+                        self.display_optin_error.call(email_field, $optin_css_id, emailfield_error, optin_container);
                         response = false;
                     }
                 }
@@ -977,12 +978,12 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                 // if this is a name field, check if the field isn't empty.
                 if (optin_js_config.name_field_required === true && name_field.length > 0) {
                     if (name_field.val() === "") {
-                        self.display_optin_error.call(name_field, $optin_css_id, namefield_error);
+                        self.display_optin_error.call(name_field, $optin_css_id, namefield_error, optin_container);
                         response = false;
                     }
                 }
 
-                $('#' + $optin_css_id + ' .mo-optin-form-custom-field').each(function () {
+                $('#' + $optin_css_id + ' .mo-optin-form-custom-field', optin_container).each(function () {
                     var cache = $(this);
                     var field_id = $(this).data('field-id');
                     var required_field_bucket = optin_js_config.required_custom_fields;
@@ -997,7 +998,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                     }
 
                     if ($.inArray(field_id, required_field_bucket) !== -1 && cache_value === "") {
-                        self.display_optin_error.call(cache, $optin_css_id);
+                        self.display_optin_error.call(cache, $optin_css_id, optin_container);
                         response = false;
                     }
                 });
@@ -1007,7 +1008,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
                 if (acceptance_checkbox.length > 0) {
                     if (acceptance_checkbox[0].checked === false) {
-                        self.display_optin_error.call(undefined, $optin_css_id, note_acceptance_error);
+                        self.display_optin_error.call(undefined, $optin_css_id, note_acceptance_error, optin_container);
                         return false;
                     }
                 }
@@ -1023,16 +1024,17 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
              * Output an optin error with the field highlighted red.
              *
              * @param {string} $optin_css_id optin CSS ID
+             * @param {object} optin_container
              * @param {string} error
              */
-            display_optin_error: function ($optin_css_id, error) {
+            display_optin_error: function ($optin_css_id, error, optin_container) {
                 if (this !== undefined) {
                     this.css("-webkit-box-shadow", "inset 0px 0px 0px 2px #f45a4a");
                     this.css("-moz-box-shadow", "inset 0px 0px 0px 2px #f45a4a");
                     this.css("box-shadow", "inset 0px 0px 0px 2px #f45a4a");
                 }
 
-                var mo_optin_error_text = $('div#' + $optin_css_id + ' .mo-optin-error');
+                var mo_optin_error_text = $('div#' + $optin_css_id + ' .mo-optin-error', optin_container);
                 if (typeof error !== 'undefined' && typeof mo_optin_error_text !== 'undefined' && mo_optin_error_text.length > 0) {
                     mo_optin_error_text.text(error).show();
                 }
@@ -1042,10 +1044,11 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
              * Hide optin error including removing the red border.
              *
              * @param {string} $optin_css_id optin CSS ID
+             * @param {object} optin_container
              */
-            hide_optin_error: function ($optin_css_id) {
-                var input_fields = $('div#' + $optin_css_id + ' .mo-optin-field');
-                $('div#' + $optin_css_id + ' .mo-optin-error').hide();
+            hide_optin_error: function ($optin_css_id, optin_container) {
+                var input_fields = $('div#' + $optin_css_id + ' .mo-optin-field', optin_container);
+                $('div#' + $optin_css_id + ' .mo-optin-error', optin_container).hide();
                 input_fields.css('-webkit-box-shadow', '');
                 input_fields.css('-moz-box-shadow', '');
                 input_fields.css('box-shadow', '');
