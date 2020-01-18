@@ -1268,8 +1268,8 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                         maxDate: new Date(currentYr + range, 0),
                         yearRange: range + range,
                         toString: function (date, format) {
-                            const day = date.getDate();
-                            const month = date.getMonth() + 1;
+                            const day = ('0' + date.getDate()).slice(-2);
+                            const month = ('0' + (date.getMonth() + 1)).slice(-2);
                             const year = date.getFullYear();
                             return year + '-' + month + '-' + day;
                         }
