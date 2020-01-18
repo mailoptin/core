@@ -338,7 +338,7 @@ $footer_content";
             $footer_message = sprintf(
                 __('This e-mail was sent by %s plugin on %s (%s)', 'mailoptin'),
                 'MailOptin',
-                get_bloginfo('name'),
+                \MailOptin\Core\site_title(),
                 site_url()
             );
 
@@ -364,7 +364,7 @@ $footer_content";
                     $optin_campaign_name,
                     $error_message,
                     'MailOptin',
-                    get_bloginfo('name'),
+                    \MailOptin\Core\site_title(),
                     site_url(),
                     "\r\n\n"
                 )
