@@ -22,8 +22,8 @@ class VideoToImageLink
     {
         $return = preg_replace_callback(
             [
-                '/<iframe.*src="(?:.+)?youtube(?:-nocookie)?.com\/(?:embed|\?)?\/([\w-_]+).+".+<\/iframe>/',
-                '/[^\"\']https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([\w-_]+)[^\"\']/'
+                '/<iframe.*src="(?:.+)?youtube(?:-nocookie)?.com\/(?:embed|\?)?\/([a-z0-9-_]+).+".+<\/iframe>/i',
+                '/[^\"\']https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([a-z0-9-_]+)[^\"\']/i'
             ],
             function ($matches) {
                 return $this->convertYoutube($matches[1]);
