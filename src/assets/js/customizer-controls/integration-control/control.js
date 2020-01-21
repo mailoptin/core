@@ -122,7 +122,6 @@
 
             // if the integration or connection is changed, clear.
             if (field_name === 'connection_service') {
-                console.log('connection changed');
                 old_data[index] = {};
             }
 
@@ -294,6 +293,7 @@
                                 }
 
                                 _this.toggle_connect_service_connected_fields(parent);
+                                _this.toggle_connect_service_email_list_field(parent);
 
                                 $(document.body).trigger('mo_new_email_list_data_found', [connect_service, parent]);
                             } else {
