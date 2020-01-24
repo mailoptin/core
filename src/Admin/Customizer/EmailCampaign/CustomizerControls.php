@@ -574,7 +574,9 @@ HTML;
                         'label'       => __('Feature Image URL', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->campaign_view_tags_section_id,
                         'content'     => '<input type="text" value="[post-feature-image-url]" style="background-color:#fff;" readonly>',
-                        'description' => __('URL of post\'s featured image.', 'mailoptin'),
+                        'description' => sprintf(
+                                esc_html__('URL of post\'s featured image. You can specify a default image if a post doesn\'t have feature image like so %s', 'mailoptin'),
+                                '<strong>[post-feature-image-url default="https://site.com/image.png"]</strong>'),
                         'settings'    => $this->option_prefix . '[post_feature_image_url_shortcode]',
                         'priority'    => 55
                     )

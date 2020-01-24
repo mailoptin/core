@@ -139,18 +139,22 @@ class Shortcodes
         return $this->wp_post_obj->post_title;
     }
 
-    public function post_feature_image_tag()
+    public function post_feature_image_tag($att)
     {
+        $default_feature_image = ! empty($att['default']) ? $att['default'] : '';
+
         return sprintf(
             '<img class="mo-post-feature-image" src="%s" alt="%s">',
-            $this->feature_image($this->wp_post_obj),
+            $this->feature_image($this->wp_post_obj, $this->email_campaign_id, $default_feature_image),
             $this->wp_post_obj->post_title
         );
     }
 
-    public function post_feature_image_url_tag()
+    public function post_feature_image_url_tag($att)
     {
-        return $this->feature_image($this->wp_post_obj);
+        $default_feature_image = ! empty($att['default']) ? $att['default'] : '';
+
+        return $this->feature_image($this->wp_post_obj, $this->email_campaign_id, $default_feature_image);
     }
 
     public function post_url_tag()
