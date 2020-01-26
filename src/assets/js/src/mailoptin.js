@@ -140,6 +140,8 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                                 if ($.MailOptin.is_customize_preview === true) return;
                                 // set cookie for this option conversion when button is clicked.
                                 self.set_cookie('success', $optin_uuid, optin_js_config);
+                                self.ga_event_tracking('conversion', optin_js_config);
+
                                 window.location.assign(optin_js_config.cta_navigate_url);
                             } else if (optin_js_config.cta_action === 'reveal_optin_form') {
                                 var cache = $('#' + $optin_css_id);
