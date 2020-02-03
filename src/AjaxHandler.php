@@ -172,7 +172,7 @@ class AjaxHandler
             return;
         }
 
-        $admin_email       = get_option('admin_email');
+        $admin_email       = apply_filters('mailoptin_email_campaign_test_admin_email', get_option('admin_email'));
         $email_campaign_id = absint($_REQUEST['email_campaign_id']);
         $campaign_subject  = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
 

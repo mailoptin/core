@@ -626,6 +626,7 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container textarea.mo-optin-form-
          color: #181818;
          font-size: 15px;
          background-color: #ffffff;
+         box-shadow: none;
      }
 
 

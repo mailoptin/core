@@ -1,7 +1,4 @@
 <?php
-/**
- * Copyright (C) 2016  Agbonghama Collins <me@w3guy.com>
- */
 
 namespace MailOptin\Core\Admin\Customizer\CustomControls;
 
