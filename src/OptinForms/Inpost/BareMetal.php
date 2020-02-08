@@ -504,7 +504,7 @@ width: 100%;
 border-radius: 3px;
 float: initial;
 cursor: pointer;
-font-weight: 600;
+font-weight: 700;
 }
 
 html div#$optin_uuid div#$optin_css_id.mo-baremetal-container .mo-optin-error {

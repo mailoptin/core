@@ -951,6 +951,15 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         $webfont = apply_filters('mo_optin_form_fonts_list', $webfont, $this->optin_campaign_id);
 
+        $webfont = array_map(function ($font) {
+            if (strpos($font, ':') === false) {
+                $font = str_replace("'", '', $font);
+                return "'$font:400,700'";
+            }
+
+            return $font;
+        }, $webfont);
+
         $delimiter = ! empty($webfont) ? ',' : null;
 
         return implode(',', array_unique($webfont)) . $delimiter;

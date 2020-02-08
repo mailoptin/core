@@ -671,7 +671,7 @@ html div#$optin_uuid div#$optin_css_id.columbine-container input[type="submit"].
          color: #fff;
          outline: none;
          cursor: pointer;
-         font-weight: 600;
+         font-weight: 700;
          width: 100%;
          margin: 0;
          border-radius: 0;
