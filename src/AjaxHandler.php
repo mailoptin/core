@@ -786,8 +786,7 @@ class AjaxHandler
             return AbstractConnect::ajax_success();
         }
 
-        // we are not checking if $connection_email_list is set because it can be null when supplied by elementor connection
-        // for esp such as convertfox.
+        // we are not checking if $connection_email_list is set because it can be null when supplied by elementor connection such as convertfox.
         $connection_service = isset($conversion_data->connection_service) ? $conversion_data->connection_service : '';
 
         if ( ! empty($connection_service)) {
@@ -886,6 +885,10 @@ class AjaxHandler
         $extras['optin_campaign_id']     = $optin_campaign_id;
         $extras['connection_service']    = $connection_service;
         $extras['connection_email_list'] = $connection_email_list;
+        // useful for third party integration to specify subscribers tags.
+        if ( ! empty($conversion_data->form_tags)) {
+            $extras['form_tags'] = $conversion_data->form_tags;
+        }
 
         do_action_ref_array('mailoptin_before_optin_subscription', $extras);
 
