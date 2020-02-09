@@ -538,7 +538,7 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input[type="submit
          outline: none;
          text-transform: uppercase;
          cursor: pointer;
-         font-weight: 600;
+         font-weight: 700;
      }
 
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .lupinSidebar-note {

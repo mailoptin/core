@@ -592,7 +592,7 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-inner {
 
 html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-inner .gridgum_header2 {
          text-transform: uppercase;
-         font-weight: 900;
+         font-weight: 700;
          padding-bottom: 10px;
          font-size: 12px;
          color: $mini_headline_font_color;
@@ -662,7 +662,7 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container input[type="submit"].gr
          background: #46ca9b;
          text-transform: uppercase;
          color: #fff;
-         font-weight: 600;
+         font-weight: 700;
          width: 100%;
      }
 

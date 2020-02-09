@@ -244,7 +244,7 @@ abstract class AbstractConnect
 
         return sprintf(
             __('%sView Error Log%s', 'mailoptin'),
-            "<a href='$url' style='color: #cc0000; font-weight: 500' target='_blank'>",
+            "<a href='$url' style='color: #cc0000; font-weight: 400' target='_blank'>",
             '</a>'
         );
     }
