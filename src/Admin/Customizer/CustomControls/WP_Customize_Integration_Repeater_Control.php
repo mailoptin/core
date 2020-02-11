@@ -532,8 +532,8 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
             <div class="mo-integration-widget-content">
                 <div class="mo-integration-widget-form">
                     <?php $this->parse_control($index, apply_filters('mo_optin_integrations_controls_before', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
-                    <?php $this->select_field($index, 'connection_service', $email_providers, '', __('Email Provider', 'mailoptin')); ?>
-                    <?php $this->select_field($index, 'connection_email_list', $connection_email_list, '', __('Email Provider List', 'mailoptin')); ?>
+                    <?php $this->select_field($index, 'connection_service', $email_providers, '', __('Select Integration', 'mailoptin')); ?>
+                    <?php $this->select_field($index, 'connection_email_list', $connection_email_list, '', __('Select Email List', 'mailoptin')); ?>
                     <?php $this->parse_control($index, apply_filters('mo_optin_integrations_controls_after', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                     <?php $this->map_custom_field_btn(); ?>
                     <?php $this->advance_settings($index); ?>

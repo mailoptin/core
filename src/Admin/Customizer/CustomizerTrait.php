@@ -222,7 +222,7 @@ trait CustomizerTrait
         $drip_label    = __('Drip Campaigns', 'mailoptin');
         $gr_label      = __('GetResponse Campaigns', 'mailoptin');
         $zohocrm_label = __('ZohoCRM Modules', 'mailoptin');
-        $default_label = __('Email Provider List', 'mailoptin');
+        $default_label = __('Select Email List', 'mailoptin');
         ?>
 
         <script type="text/javascript">

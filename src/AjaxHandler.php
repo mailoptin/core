@@ -1067,7 +1067,7 @@ class AjaxHandler
 
         $response = $close_btn;
         $response .= '<div style="text-align:center" class="customize-control-title">';
-        $response .= __('Map Integration Fields with Form Custom Fields', 'mailoptin');
+        $response .= __('Map integration fields to form custom fields', 'mailoptin');
         $response .= '</div>';
         $response .= apply_filters('mo_optin_customizer_field_map_description', '', $connection, $list_id);
 
