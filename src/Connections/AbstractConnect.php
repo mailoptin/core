@@ -26,6 +26,8 @@ abstract class AbstractConnect
 
     public $extras = [];
 
+    public $name;
+
     public function __construct()
     {
     }
@@ -391,6 +393,16 @@ $footer_content";
         $data[] = isset($names[1]) ? trim($names[1]) : '';
 
         return $data;
+    }
+
+    public function get_first_name()
+    {
+        return self::get_first_last_names($this->name)[0];
+    }
+
+    public function get_last_name()
+    {
+        return self::get_first_last_names($this->name)[1];
     }
 
     /**

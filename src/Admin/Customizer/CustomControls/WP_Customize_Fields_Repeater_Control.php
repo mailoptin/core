@@ -164,7 +164,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                             <input data-customize-setting-link="<?php echo $required_setting; ?>" id="<?php echo $required_setting; ?>" type="checkbox" class="tgl tgl-light" <?php checked($required_field_value); ?>>
                             <label for="<?php echo $required_setting; ?>" class="tgl-btn"></label>
                         </div>
-                        <span class="description customize-control-description"><?php _e('Activate to make name field required.', 'mailoptin') ?></span>
+                        <span class="description customize-control-description"><?php _e('Activate to make name field required', 'mailoptin') ?></span>
                     </div>
                 </div>
             </div>
@@ -264,6 +264,32 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                 placeholder="<?php echo $placeholder; ?>"
                 value="<?php echo esc_attr($saved_value); ?>"
         />
+        <?php
+        echo '</div>';
+    }
+
+    public function repeater_textarea_field($index, $name, $class = '', $label = '', $description = '', $placeholder = '', $type = 'text')
+    {
+        if ( ! isset($index) || ! array_key_exists($index, $this->saved_values)) {
+            $index = '{mo-fields-index}';
+        }
+
+        $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
+        $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
+
+        if ( ! empty($class)) {
+            $class = " $class";
+        }
+
+        $random_id = wp_generate_password(5, false) . '_' . $index;
+        echo "<div class=\"$name mo-fields-block{$class}\">";
+        if ( ! empty($label)) : ?>
+            <label for="<?php echo $random_id; ?>" class="customize-control-title"><?php echo esc_html($label); ?></label>
+        <?php endif; ?>
+        <?php if ( ! empty($description)) : ?>
+        <span class="description customize-control-description"><?php echo $description; ?></span>
+    <?php endif; ?>
+        <textarea rows="3" id="<?php echo $random_id; ?>" name="<?php echo $name; ?>" placeholder="<?php echo $placeholder; ?>"><?php echo esc_attr($saved_value); ?></textarea>
         <?php
         echo '</div>';
     }
@@ -583,7 +609,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_before', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                     <?php $this->repeater_text_field($index, 'placeholder', '', __('Title', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
-                    <?php $this->repeater_text_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma separated list of options', 'mailoptin')); ?>
+                    <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'color', '', __('Color', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'background', '', __('Background', 'mailoptin')); ?>
                     <?php $this->repeater_font_field($index, 'font', '', __('Font', 'mailoptin')); ?>
