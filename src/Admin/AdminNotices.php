@@ -38,6 +38,7 @@ class AdminNotices
         $args[] = 'settings-updated';
         $args[] = 'license-settings-updated';
         $args[] = 'failed-campaign';
+        $args[] = 'fbca';
 
         return $args;
     }

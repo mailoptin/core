@@ -222,6 +222,7 @@ trait CustomizerTrait
         $drip_label    = __('Drip Campaigns', 'mailoptin');
         $gr_label      = __('GetResponse Campaigns', 'mailoptin');
         $zohocrm_label = __('ZohoCRM Modules', 'mailoptin');
+        $fbca_label    = __('Custom Audience', 'mailoptin');
         $default_label = __('Select Email List', 'mailoptin');
         ?>
 
@@ -249,6 +250,10 @@ trait CustomizerTrait
                         if (connection_service === 'ZohoCRMConnect') {
                             title_obj.text('<?php echo $zohocrm_label; ?>');
                         }
+
+                        if (connection_service === 'FacebookCustomAudienceConnect') {
+                            title_obj.text('<?php echo $fbca_label; ?>');
+                        }
                     }
 
                     function logic_new(connection_service, parent) {
@@ -274,6 +279,10 @@ trait CustomizerTrait
                                 if (connection_service === 'ZohoCRMConnect') {
                                     title_obj.text('<?php echo $zohocrm_label; ?>');
                                 }
+
+                                if (connection_service === 'FacebookCustomAudienceConnect') {
+                                    title_obj.text('<?php echo $fbca_label; ?>');
+                                }
                             });
                         } else {
 
@@ -295,6 +304,10 @@ trait CustomizerTrait
 
                             if (connection_service === 'ZohoCRMConnect') {
                                 title_obj.text('<?php echo $zohocrm_label; ?>');
+                            }
+
+                            if (connection_service === 'FacebookCustomAudienceConnect') {
+                                title_obj.text('<?php echo $fbca_label; ?>');
                             }
                         }
                     }
