@@ -10,6 +10,7 @@ use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Font_Size_Contro
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Google_Font_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Chosen_Select_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Integration_Repeater_Control;
+use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Range_Value_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Tinymce_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Toggle_Control;
 use MailOptin\Core\OptinForms\AbstractOptinForm;
@@ -60,6 +61,29 @@ class CustomizerControls
             $this->wp_customize,
             $this->option_prefix,
             $this->customizerClassInstance
+        );
+
+        $suffix = 'px';
+        if (in_array($this->customizerClassInstance->optin_campaign_type, ['sidebar', 'inpost'])) {
+            $suffix = '%';
+        }
+
+        $page_control_args['form_width'] = new WP_Customize_Range_Value_Control(
+            $this->wp_customize,
+            $this->option_prefix . '[form_width]',
+            apply_filters('mo_optin_form_customizer_form_width_args', array(
+                    'section'     => $this->customizerClassInstance->design_section_id,
+                    'settings'    => $this->option_prefix . '[form_width]',
+                    'label'       => __('Form Width', 'mailoptin'),
+                    'input_attrs' => array(
+                        'min'    => 100,
+                        'max'    => 1000,
+                        'step'   => 10,
+                        'suffix' => $suffix, //optional suffix
+                    ),
+                    'priority'    => 5,
+                )
+            )
         );
 
         if (apply_filters('mo_optin_form_enable_form_image', false)) {
@@ -132,7 +156,7 @@ class CustomizerControls
             );
         }
 
-        $page_control_args ['form_background_color'] = new \WP_Customize_Color_Control(
+        $page_control_args['form_background_color'] = new \WP_Customize_Color_Control(
             $this->wp_customize,
             $this->option_prefix . '[form_background_color]',
             apply_filters('mailoptin_optin_customizer_form_background_color_args', array(
@@ -578,7 +602,7 @@ class CustomizerControls
         $field_controls_args = apply_filters(
             "mo_optin_form_customizer_fields_controls",
             array(
-                'use_custom_html'      => new WP_Customize_Toggle_Control(
+                'use_custom_html'          => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[use_custom_html]',
                     apply_filters('mo_optin_form_customizer_use_custom_html_args', array(
@@ -595,14 +619,14 @@ class CustomizerControls
                     $this->wp_customize,
                     $this->option_prefix . '[custom_html_content]',
                     apply_filters('mo_optin_form_customizer_custom_html_content_args', array(
-                            'editor_id' => 'custom-css',
-                            'language' => 'html',
-                            'type' => 'textarea',
+                            'editor_id'   => 'custom-css',
+                            'language'    => 'html',
+                            'type'        => 'textarea',
                             'label'       => __('Custom HTML', 'mailoptin'),
-                            'section' => $this->customizerClassInstance->fields_section_id,
-                            'settings' => $this->option_prefix . '[custom_html_content]',
+                            'section'     => $this->customizerClassInstance->fields_section_id,
+                            'settings'    => $this->option_prefix . '[custom_html_content]',
                             'description' => __('Type or paste your HTML here. Shortcodes are supported.', 'mailoptin'),
-                            'priority' => 3
+                            'priority'    => 3
                         )
                     )
                 ),
@@ -1377,9 +1401,9 @@ class CustomizerControls
                             'settings'    => $this->option_prefix . '[filter_query_action]',
                             'priority'    => 10,
                             'choices'     => [
-                                '0'         => __('Select Action', 'mailoptin'),
-                                'show'      => __('Only show on matching pages', 'mailoptin'),
-                                'hide'      => __('Hide on matching pages', 'mailoptin'),
+                                '0'    => __('Select Action', 'mailoptin'),
+                                'show' => __('Only show on matching pages', 'mailoptin'),
+                                'hide' => __('Hide on matching pages', 'mailoptin'),
                             ],
                             'description' => __('Specify whether to display or hide the opt-in if the conditions below are met.', 'mailoptin')
                         )
@@ -1452,16 +1476,16 @@ class CustomizerControls
                         'priority'    => 10,
                     )
                 ),
-                'show_to_roles'             => new WP_Customize_Chosen_Select_Control(
+                'show_to_roles' => new WP_Customize_Chosen_Select_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[show_to_roles]',
                     apply_filters('mo_optin_form_customizer_show_to_roles_args', array(
-                            'label'         => __('Restrict to User Role', 'mailoptin'),
-                            'section'       => $this->customizerClassInstance->user_targeting_display_rule_section_id,
-                            'settings'      => $this->option_prefix . '[show_to_roles]',
-                            'description'   => __('The opt-in form will only be shown to users with any of the roles you select here.', 'mailoptin'),
-                            'choices'       => ControlsHelpers::get_roles(),
-                            'priority'      => 11
+                            'label'       => __('Restrict to User Role', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->user_targeting_display_rule_section_id,
+                            'settings'    => $this->option_prefix . '[show_to_roles]',
+                            'description' => __('The opt-in form will only be shown to users with any of the roles you select here.', 'mailoptin'),
+                            'choices'     => ControlsHelpers::get_roles(),
+                            'priority'    => 11
                         )
                     )
                 )

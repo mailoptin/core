@@ -38,9 +38,17 @@ class AbstractCustomizer
      */
     public function register_customizer_defaults()
     {
+        $form_width = 700;
+        if (in_array($this->optin_campaign_type, ['slidein', 'sidebar'])) {
+            $form_width = 400;
+        }
+        if ($this->optin_campaign_type == 'inpost') {
+            $form_width = 100;
+        }
         $defaults                    = [];
         $defaults['remove_branding'] = apply_filters('mo_optin_form_remove_branding_default', true, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
 
+        $defaults['form_width']            = apply_filters('mo_optin_form_width_default', $form_width, $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['form_background_image'] = apply_filters('mo_optin_form_background_image_default', '', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['form_image']            = apply_filters('mo_optin_form_image_default', '', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['form_background_color'] = apply_filters('mo_optin_form_background_color_default', '', $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);

@@ -39,6 +39,12 @@ class CustomizerSettings extends AbstractCustomizer
     {
         $design_settings_args = apply_filters("mo_optin_form_customizer_design_settings",
             array(
+                'form_width'            => array(
+                    'default'           => $this->customizer_defaults['form_width'],
+                    'type'              => 'option',
+                    'sanitize_callback' => 'absint',
+                    'transport'         => 'postMessage',
+                ),
                 'form_background_image' => array(
                     'default'           => $this->customizer_defaults['form_background_image'],
                     'type'              => 'option',
@@ -425,12 +431,12 @@ class CustomizerSettings extends AbstractCustomizer
                     'transport' => 'refresh',
                 ),
 
-                'use_custom_html'   => array(
+                'use_custom_html'     => array(
                     'default'   => $this->customizer_defaults['use_custom_html'],
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),
-                'custom_html_content'   => array(
+                'custom_html_content' => array(
                     'default'   => $this->customizer_defaults['custom_html_content'],
                     'type'      => 'option',
                     'transport' => 'refresh',
@@ -489,7 +495,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),
-                'close_backdrop_click'          => array(
+                'close_backdrop_click'       => array(
                     'default'   => $this->customizer_defaults['close_backdrop_click'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
@@ -543,7 +549,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'custom_field_mappings'          => array(
+                'custom_field_mappings' => array(
                     'default'   => '',
                     'type'      => 'option',
                     'transport' => 'postMessage',
@@ -552,7 +558,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'leadbank_notice' => array(
+                'leadbank_notice'       => array(
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
@@ -641,7 +647,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'filter_query_value'             => array(
+                'filter_query_value'              => array(
                     'default'   => '',
                     'type'      => 'option',
                     'transport' => 'postMessage',
