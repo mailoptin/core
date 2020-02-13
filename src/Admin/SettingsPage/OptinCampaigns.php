@@ -168,25 +168,27 @@ class OptinCampaigns extends AbstractSettingsPage
         ?>
         <div style="display: none">
             <div id="mo-optin-add-split">
-                <div class="mo-split-header">
-                    <h2><?php _e('Create New Split Test', 'mailoptin'); ?></h2>
-                </div>
-                <div class="mo-split-content">
-                    <p>
-                        <label for="mo-variant-name"><?php _e('Variant Name', 'mailoptin'); ?></label>
-                        <input type="text" id="mo-variant-name" tabindex="59">
-                        <input type="hidden" id="mo-split-parent-id">
-                    </p>
-                    <p>
-                        <label for="mo-split-notes"><?php _e('Split Test Note', 'mailoptin'); ?></label>
-                        <textarea id="mo-split-notes" tabindex="60" rows="7"></textarea><br>
-                        <span class="description mo-split-description"><?php _e('Useful for keeping track of changes between each split test you create.', 'mailoptin'); ?></span>
-                    </p>
-                    <p>
-                        <input type="submit" class="button button-primary" id="mo-split-submit" value="<?php _e('Create Split Test', 'mailoptin'); ?>" tabindex="61">
-                        <img class="mo-spinner" id="mo-split-submit-spinner" style="margin:10px;display:none" src="<?php echo admin_url('images/spinner.gif'); ?>"/>
-                    </p>
-                    <div id="mo-split-submit-error" class="mailoptin-error" style="display:none;text-align:center;font-weight:normal;"><?php _e('An error occurred. Please try again.', 'mailoptin'); ?></div>
+                <div class="mo-modal">
+                    <div class="mo-header">
+                        <h2><?php _e('Create New Split Test', 'mailoptin'); ?></h2>
+                    </div>
+                    <div class="mo-content">
+                        <p>
+                            <label for="mo-variant-name"><?php _e('Variant Name', 'mailoptin'); ?></label>
+                            <input type="text" id="mo-variant-name">
+                            <input type="hidden" id="mo-split-parent-id">
+                        </p>
+                        <p>
+                            <label for="mo-split-notes"><?php _e('Split Test Note', 'mailoptin'); ?></label>
+                            <textarea id="mo-split-notes" rows="7"></textarea><br>
+                            <span class="description mo-description"><?php _e('Useful for keeping track of changes between each split test you create.', 'mailoptin'); ?></span>
+                        </p>
+                        <p>
+                            <input type="submit" class="button button-primary" id="mo-split-submit" value="<?php _e('Create Split Test', 'mailoptin'); ?>">
+                            <img class="mo-spinner" id="mo-split-submit-spinner" style="margin:10px;display:none" src="<?php echo admin_url('images/spinner.gif'); ?>"/>
+                        </p>
+                        <div id="mo-split-submit-error" class="mailoptin-error" style="display:none;text-align:center;font-weight:normal;"><?php _e('An error occurred. Please try again.', 'mailoptin'); ?></div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -756,44 +756,53 @@ form.mo-inline {
     border: 0 none;
 }
 
-/* split test form */
-#mo-optin-add-split .mo-split-header {
+/* modal styling */
+.mo-modal {
+    min-width: 400px;
+}
+
+.mo-modal .mo-header {
     background: #3b94d1;
     padding: 12px 20px;
 }
 
-#mo-optin-add-split .mo-split-header h2 {
+.mo-modal .mo-header h2 {
     color: #fff;
     margin: 0;
     padding: 9px 0 4px 10px;
 }
 
-#mo-optin-add-split .mo-split-content {
+.mo-modal .mo-content {
     background: #fff;
     padding: 10px 20px;
 }
 
-#mo-optin-add-split .mo-split-description {
+.mo-modal .mo-description {
     color: #999;
 }
 
-#mo-optin-add-split .mo-split-content label {
+.mo-modal .mo-content label {
     font-weight: bold;
     display: block;
     font-size: 15px;
     margin: 5px 0;
 }
 
-#mo-optin-add-split .mo-split-content input[type="text"],
-#mo-optin-add-split .mo-split-content textarea {
+.mo-modal .mo-content input[type="text"],
+.mo-modal .mo-content textarea {
     min-width: 350px;
     padding: 10px;
     width: 100%;
 }
 
-#mo-optin-add-split .mo-split-content input#mo-split-submit {
+.mo-modal .mo-content input[type="text"] {
+    padding: 5px;
+}
+
+.mo-modal .mo-content input[type=submit] {
     height: auto;
-    padding: 5px 20px;
+    padding: 3px 10px;
+    min-width: 100px;
 }
 
 /* css for end and select winner split test modal */
