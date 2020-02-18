@@ -268,7 +268,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         if (in_array($this->optin_campaign_type,
             ['sidebar', 'inpost'])) { // ensure sidebar and inpost optin has a max width for preview sake.
-            echo '<div style="max-width:700px;margin: auto">';
+            echo '<div style="max-width:900px;margin: auto">';
         }
 
         echo $this->get_optin_form_structure();
@@ -387,6 +387,16 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             $global_css .= file_get_contents(MAILOPTIN_ASSETS_DIR . 'css/pikaday.min.css');
         }
 
+        $form_width = $this->get_customizer_value('form_width');
+
+        if ($this->optin_campaign_type == 'inpost') {
+            $global_css .= "html div#$optin_campaign_uuid div#$optin_css_id.mo-optin-form-wrapper {max-width:$form_width% !important}";
+        }
+
+        if ($this->optin_campaign_type == 'sidebar') {
+            $global_css .= "html div#$optin_campaign_uuid div#$optin_css_id.mo-optin-form-wrapper {max-width:{$form_width}px !important}";
+        }
+
         if ($this->optin_campaign_type == 'bar') {
             $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-top {top: 0;position: absolute;}";
             $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-bottom {bottom: 0;position: fixed;}";
@@ -398,8 +408,6 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         if ($this->optin_campaign_type == 'lightbox') {
             $close_image_url = MAILOPTIN_ASSETS_URL . 'images/close@2x.png';
-            $global_css      .= "div#$optin_campaign_uuid.mo-slidein-bottom_right {right: 10px;}";
-            $global_css      .= "div#$optin_campaign_uuid.mo-slidein-bottom_left {left: 10px;}";
             $global_css      .= "
             #$optin_campaign_uuid.moModal a.mo-close-modal {
                 position: absolute;
@@ -420,7 +428,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             }
     
             #$optin_campaign_uuid.moModal .mo-optin-form-container {
-                max-width: 700px;
+                max-width: {$form_width}px;
             }
     
             #$optin_campaign_uuid.moModal .mo-optin-form-container p {
@@ -460,18 +468,22 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         }
 
         if ($this->optin_campaign_type == 'slidein') {
+            $global_css .= "html div#$optin_campaign_uuid.moOptinForm.mo-optin-form-slidein {max-width:{$form_width}px !important}";
+            $global_css .= "html div#$optin_campaign_uuid div#$optin_css_id.mo-optin-form-wrapper {max-width:{$form_width}px !important}";
+
             $global_css .= "div#$optin_campaign_uuid.mo-slidein-bottom_right {right: 10px;}";
             $global_css .= "div#$optin_campaign_uuid.mo-slidein-bottom_left {left: 10px;}";
             $global_css .= "
             /* make slide-in optin form full width and full height on mobile/small screens */
             @media only screen and (max-width: 575px) {
-                #$optin_campaign_uuid.mo-optin-form-slidein .mo-optin-form-wrapper {
+                html div#$optin_campaign_uuid.mo-optin-form-slidein div#$optin_css_id.mo-optin-form-wrapper {
                     max-width: 100% !important;
                 }
     
-                #$optin_campaign_uuid.mo-optin-form-slidein {
+                html div#$optin_campaign_uuid.mo-optin-form-slidein {
                     max-width: 100% !important;
                     bottom: 0 !important;
+                    left: 0 !important;
                     right: 0 !important;
                 }
             }";
@@ -710,7 +722,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 'display: none',
                 'position: fixed',
                 'bottom: 10px',
-                'width: auto',
+                'width: 100%',
                 'margin: 0',
                 'z-index: 999999999'
             ];
@@ -954,6 +966,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $webfont = array_map(function ($font) {
             if (strpos($font, ':') === false) {
                 $font = str_replace("'", '', $font);
+
                 return "'$font:400,700'";
             }
 

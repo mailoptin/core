@@ -336,6 +336,29 @@
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][mini_headline]', linkSettingValueToControlActiveState);
         });
 
+        api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][hide_form_image]', function (setting) {
+            var is_displayed, linkSettingValueToControlActiveState;
+
+            is_displayed = function () {
+                return !setting.get();
+            };
+
+            linkSettingValueToControlActiveState = function (control) {
+                var setActiveState = function () {
+                    control.active.set(is_displayed());
+                };
+
+                control.active.validate = is_displayed;
+
+                // Set initial active state.
+                setActiveState();
+
+                setting.bind(setActiveState);
+            };
+
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][form_image]', linkSettingValueToControlActiveState);
+        });
+
         api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][note_close_optin_onclick]', function (setting) {
             var is_displayed, controlAcceptanceCheckbox;
 

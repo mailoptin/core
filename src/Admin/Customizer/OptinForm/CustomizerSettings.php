@@ -43,7 +43,7 @@ class CustomizerSettings extends AbstractCustomizer
                     'default'           => $this->customizer_defaults['form_width'],
                     'type'              => 'option',
                     'sanitize_callback' => 'absint',
-                    'transport'         => 'postMessage',
+                    'transport'         => 'refresh',
                 ),
                 'form_background_image' => array(
                     'default'           => $this->customizer_defaults['form_background_image'],
@@ -56,6 +56,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'              => 'option',
                     'sanitize_callback' => 'absint',
                     'transport'         => 'postMessage',
+                ),
+                'hide_form_image'            => array(
+                    'default'           => $this->customizer_defaults['hide_form_image'],
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
                 ),
                 'form_background_color' => array(
                     'default'           => $this->customizer_defaults['form_background_color'],

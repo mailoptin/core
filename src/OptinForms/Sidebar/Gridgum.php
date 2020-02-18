@@ -547,10 +547,13 @@ HTML;
 
         $mini_headline_font_color = $this->get_customizer_value('mini_headline_font_color', '#46ca9b');
 
-        $is_mini_hadline_display = '';
+        $is_mini_headline_display = '';
         if ($this->get_customizer_value('hide_mini_headline', false)) {
-            $is_mini_hadline_display = 'display:none;';
+            $is_mini_headline_display = 'display:none;';
         }
+
+        // mini headline must share same font as headline.
+        $mini_headline_font_family = $this->_construct_font_family($this->get_customizer_value('headline_font'));
 
         return <<<CSS
 html div#$optin_uuid div#$optin_css_id.gridgum_container * {
@@ -568,7 +571,7 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container {
          box-sizing: border-box;
          border: 3px solid #cccccc;
          margin: 10px auto;
-         max-width: 400px;
+         width: 100%;
      }
 
 html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-error {
@@ -597,7 +600,8 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-inner .gr
          font-size: 12px;
          color: $mini_headline_font_color;
          text-align: center;
-         $is_mini_hadline_display
+         font-family: $mini_headline_font_family;
+         $is_mini_headline_display
      }
 
 html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-inner .gridgum_headline {

@@ -14,6 +14,12 @@ class Lupin extends AbstractOptinTheme
         $this->init_config_filters([
                 // -- default for design sections -- //
                 [
+                    'name'        => 'mo_optin_form_width_default',
+                    'value'       => '350',
+                    'optin_class' => 'Lupin',
+                    'optin_type'  => 'sidebar'
+                ],
+                [
                     'name'        => 'mo_optin_form_background_color_default',
                     'value'       => '#1998d6',
                     'optin_class' => 'Lupin',
@@ -457,7 +463,7 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container {
          border-radius: 5px;
          border: 3px solid #1998d6;
          max-width: 350px;
-         padding: 10px 20px 10px;
+         padding: 10px 20px 30px;
          color: #fff;
          text-align: center;
          margin: 0 auto;
@@ -469,7 +475,7 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container {
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container h2.lupinSidebar-heading {
          color: #fff;
          line-height: 30px;
-         margin: 10 0 20px;
+         margin: 10px 0;
      }
 
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .lupinSidebar-description {
@@ -478,7 +484,7 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .lupinSidebar-desc
      }
 
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .lupinSidebar-form {
-         max-width: 280px;
+         padding: 0 20px;
          margin: 30px auto 0;
      }
 

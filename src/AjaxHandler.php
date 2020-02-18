@@ -932,7 +932,7 @@ class AjaxHandler
             }
 
             //Maybe delete log
-            if ( ! empty($_GET['delete']) || '1' == $_GET['delete']) {
+            if (isset($_GET['delete']) && ( ! empty($_GET['delete']) || '1' == $_GET['delete'])) {
                 unlink($error_log_file);
                 die(__('Error log successfully deleted', 'mailoptin'));
             }

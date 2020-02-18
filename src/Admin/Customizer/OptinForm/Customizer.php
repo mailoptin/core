@@ -265,6 +265,11 @@ class Customizer
                 'selector' => '.columbine-miniText',
                 'type'     => 'control',
                 'value'    => 'mini_headline'
+            ],
+            [
+                'selector' => '.liatris_mini_headline',
+                'type'     => 'control',
+                'value'    => 'mini_headline'
             ]
         ]);
 

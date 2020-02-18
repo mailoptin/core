@@ -63,30 +63,62 @@ class CustomizerControls
             $this->customizerClassInstance
         );
 
-        $suffix = 'px';
-        if (in_array($this->customizerClassInstance->optin_campaign_type, ['sidebar', 'inpost'])) {
-            $suffix = '%';
+        if ($this->customizerClassInstance->optin_campaign_type != 'bar') {
+            $form_width_input_attrs = [
+                'min'    => 100,
+                'max'    => 2000,
+                'step'   => 10,
+                'suffix' => 'px'
+            ];
+
+            if ($this->customizerClassInstance->optin_campaign_type == 'sidebar') {
+                $form_width_input_attrs = [
+                    'min'    => 100,
+                    'max'    => 1000,
+                    'step'   => 5,
+                    'suffix' => 'px'
+                ];
+            }
+
+            if (in_array($this->customizerClassInstance->optin_campaign_type, ['inpost'])) {
+                $form_width_input_attrs = [
+                    'min'    => 1,
+                    'max'    => 100,
+                    'step'   => 1,
+                    'suffix' => '%'
+                ];
+            }
+
+            $page_control_args['form_width'] = new WP_Customize_Range_Value_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[form_width]',
+                apply_filters('mo_optin_form_customizer_form_width_args', array(
+                        'section'     => $this->customizerClassInstance->design_section_id,
+                        'settings'    => $this->option_prefix . '[form_width]',
+                        'label'       => __('Optin Width', 'mailoptin'),
+                        'input_attrs' => $form_width_input_attrs,
+                        'priority'    => 5,
+                    )
+                )
+            );
         }
 
-        $page_control_args['form_width'] = new WP_Customize_Range_Value_Control(
-            $this->wp_customize,
-            $this->option_prefix . '[form_width]',
-            apply_filters('mo_optin_form_customizer_form_width_args', array(
-                    'section'     => $this->customizerClassInstance->design_section_id,
-                    'settings'    => $this->option_prefix . '[form_width]',
-                    'label'       => __('Form Width', 'mailoptin'),
-                    'input_attrs' => array(
-                        'min'    => 100,
-                        'max'    => 1000,
-                        'step'   => 10,
-                        'suffix' => $suffix, //optional suffix
-                    ),
-                    'priority'    => 5,
-                )
-            )
-        );
-
         if (apply_filters('mo_optin_form_enable_form_image', false)) {
+
+            if (apply_filters('mo_optin_form_enable_hide_form_image', false)) {
+                $page_control_args['hide_form_image'] = new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[hide_form_image]',
+                    apply_filters('mo_optin_form_customizer_hide_form_image_args', array(
+                            'label'    => __('Hide Image', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->design_section_id,
+                            'settings' => $this->option_prefix . '[hide_form_image]',
+                            'type'     => 'light',
+                            'priority' => 10,
+                        )
+                    )
+                );
+            }
 
             $this->default_form_image = apply_filters('mo_optin_form_partial_default_image', '');
 
@@ -95,7 +127,7 @@ class CustomizerControls
                     // Whether to refresh the entire preview in case a partial cannot be refreshed.
                     // A partial render is considered a failure if the render_callback returns false.
                     'fallback_refresh'    => true,
-                    'selector'            => apply_filters('mo_optin_form_image_partial_selector', '.mo-optin-form-image-wrapper'),
+                    'selector'            => '.mo-optin-form-image-wrapper',
                     // determines if change will apply to container / wrapper element.
                     'container_inclusive' => apply_filters('mo_optin_form_image_partial_container_inclusive', false),
                     'render_callback'     => apply_filters('mo_optin_form_image_render_callback', function () {
@@ -118,7 +150,7 @@ class CustomizerControls
                         'label'       => __('Image', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->design_section_id,
                         'settings'    => $this->option_prefix . '[form_image]',
-                        'priority'    => 10,
+                        'priority'    => 11,
                     )
                 )
             );
@@ -257,18 +289,6 @@ class CustomizerControls
                             'label'    => __('Color', 'mailoptin'),
                             'section'  => $this->customizerClassInstance->headline_section_id,
                             'settings' => $this->option_prefix . '[headline_font_color]',
-                            'priority' => 30
-                        )
-                    )
-                ),
-                'headline_font'              => new WP_Customize_Google_Font_Control(
-                    $this->wp_customize,
-                    $this->option_prefix . '[headline_font]',
-                    apply_filters('mo_optin_form_customizer_headline_font_args', array(
-                            'label'    => __('Font Family', 'mailoptin'),
-                            'section'  => $this->customizerClassInstance->headline_section_id,
-                            'settings' => $this->option_prefix . '[headline_font]',
-                            'count'    => 300,
                             'priority' => 20
                         )
                     )
@@ -280,7 +300,7 @@ class CustomizerControls
                         'label'    => esc_attr__('Font Size', 'mailoptin'),
                         'section'  => $this->customizerClassInstance->headline_section_id,
                         'settings' => $this->option_prefix . '[headline_font_size_desktop]',
-                        'priority' => 40
+                        'priority' => 30
                     )
                 ),
                 'headline_font_size_tablet'  => new WP_Customize_Font_Size_Control(
@@ -290,7 +310,7 @@ class CustomizerControls
                         'label'    => esc_attr__('Font Size', 'mailoptin'),
                         'section'  => $this->customizerClassInstance->headline_section_id,
                         'settings' => $this->option_prefix . '[headline_font_size_tablet]',
-                        'priority' => 41
+                        'priority' => 31
                     )
                 ),
                 'headline_font_size_mobile'  => new WP_Customize_Font_Size_Control(
@@ -300,9 +320,21 @@ class CustomizerControls
                         'label'    => esc_attr__('Font Size', 'mailoptin'),
                         'section'  => $this->customizerClassInstance->headline_section_id,
                         'settings' => $this->option_prefix . '[headline_font_size_mobile]',
-                        'priority' => 42
+                        'priority' => 32
                     )
                 ),
+                'headline_font'              => new WP_Customize_Google_Font_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[headline_font]',
+                    apply_filters('mo_optin_form_customizer_headline_font_args', array(
+                            'label'    => __('Font Family', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->headline_section_id,
+                            'settings' => $this->option_prefix . '[headline_font]',
+                            'count'    => 300,
+                            'priority' => 40
+                        )
+                    )
+                )
             ),
             $this->wp_customize,
             $this->option_prefix,

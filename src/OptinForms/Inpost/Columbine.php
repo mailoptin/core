@@ -277,7 +277,7 @@ class Columbine extends AbstractOptinTheme
                     'section'       => $customizerClassInstance->headline_section_id,
                     'settings'      => $option_prefix . '[mini_headline]',
                     'editor_id'     => 'mini_headline',
-                    'quicktags' => true,
+                    'quicktags'     => true,
                     'editor_height' => 50,
                     'priority'      => 4
                 )
@@ -486,7 +486,7 @@ class Columbine extends AbstractOptinTheme
 
     public function customizer_preview_js()
     {
-        if(!\MailOptin\Core\is_mailoptin_customizer_preview()) return;
+        if ( ! \MailOptin\Core\is_mailoptin_customizer_preview()) return;
         ?>
         <script type="text/javascript">
             (function ($) {
@@ -558,6 +558,9 @@ HTML;
             $is_mini_headline_display = 'display:none;';
         }
 
+        // mini headline must share same font as headline.
+        $mini_headline_font_family = $this->_construct_font_family($this->get_customizer_value('headline_font'));
+
         return <<<CSS
 html div#$optin_uuid div#$optin_css_id.columbine-container {
          background: #fff;
@@ -565,7 +568,6 @@ html div#$optin_uuid div#$optin_css_id.columbine-container {
          -webkit-border-radius: 5px;
          -moz-border-radius: 5px;
          border-radius: 5px;
-         max-width: 100%;
          margin: 10px auto;
          text-align: center;
          width: 100%;
@@ -582,6 +584,7 @@ html div#$optin_uuid div#$optin_css_id.columbine-container div.columbine-miniTex
          text-transform: uppercase;
          color: $mini_headline_font_color;
          font-weight: bold;
+         font-family: $mini_headline_font_family;
          $is_mini_headline_display
      }
 
@@ -664,7 +667,7 @@ html div#$optin_uuid div#$optin_css_id.columbine-container input[type="submit"].
          -webkit-appearance: none;
          border: 0;
          background: #54C3A5;
-         padding: 13px 18px;
+         padding: 13px 10px;
          font-size: 16px;
          line-height: 16px;
          text-align: center;

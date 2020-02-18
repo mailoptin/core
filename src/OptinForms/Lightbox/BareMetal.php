@@ -14,6 +14,12 @@ class BareMetal extends AbstractOptinTheme
         $this->init_config_filters([
                 // -- default for design sections -- //
                 [
+                    'name'        => 'mo_optin_form_width_default',
+                    'value'       => '650',
+                    'optin_class' => 'BareMetal',
+                    'optin_type'  => 'lightbox'
+                ],
+                [
                     'name'        => 'mo_optin_form_background_color_default',
                     'value'       => '#f0f0f0',
                     'optin_class' => 'BareMetal',
@@ -399,6 +405,8 @@ HTML;
         $optin_css_id = $this->optin_css_id;
         $optin_uuid   = $this->optin_campaign_uuid;
 
+        $form_width = $this->get_customizer_value('form_width');
+
         return <<<CSS
 html div#$optin_uuid div#$optin_css_id.mo-baremetal-container {
 text-align:left;
@@ -413,7 +421,7 @@ box-sizing: border-box;
 -moz-border-radius: 5px;
 padding: 1.5em;
 margin: 10px;
-max-width: 650px;
+max-width: {$form_width}px;
 }
 
 html div#$optin_uuid div#$optin_css_id.mo-baremetal-container h2.mo-optin-form-headline {

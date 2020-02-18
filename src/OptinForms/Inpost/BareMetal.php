@@ -405,7 +405,6 @@ box-sizing: border-box;
 -moz-border-radius: 5px;
 padding: 1.5em;
 margin: 10px auto;
-max-width: 100%;
 width: 100%;
 }
 

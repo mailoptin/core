@@ -403,6 +403,10 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
             $this->optin_campaign_uuid
         );
 
+        if ($this->optin_campaign_type == 'slidein') {
+            $style_arg['margin-right'] = '0';
+            $style_arg['margin-left']  = '0';
+        }
 
         $style = '';
 
@@ -506,7 +510,11 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
         $tag = $atts['tag'];
 
-        $class = ' ' . esc_attr($atts['class']);
+        $class = '';
+        if ( ! empty($atts['class'])) {
+            $class = ' ' . esc_attr($atts['class']);
+        }
+
         $class = "mo-optin-fields-wrapper{$class}";
 
         $style = '';
@@ -702,10 +710,15 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
      */
     public function shortcode_optin_form_image($atts)
     {
+        if ($this->get_customizer_value('hide_form_image', false)) return '';
+
         $atts = shortcode_atts(
             array(
-                'default' => '',
-                'style'   => '',
+                'default'         => '',
+                'style'           => '',
+                'wrapper_enabled' => false,
+                'wrapper_tag'     => 'div',
+                'wrapper_class'   => '',
             ),
             $atts
         );
@@ -714,7 +727,21 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
         $src = $this->get_form_image_url($atts['default']);
 
-        return sprintf('<img src="%s" class="mo-optin-form-image" style="%s"/>', esc_url_raw($src), $style);
+        $wrapper_class = ' ' . $atts['wrapper_class'];
+        $tag           = $atts['wrapper_tag'];
+
+        $html = '';
+        if ($atts['wrapper_enabled'] == 'true') {
+            $html .= sprintf('<%s class="mo-optin-form-image-wrapper%s">', $tag, $wrapper_class);
+        }
+
+        $html .= sprintf('<img src="%s" class="mo-optin-form-image" style="%s"/>', esc_url_raw($src), $style);
+
+        if ($atts['wrapper_enabled'] == 'true') {
+            $html .= "</$tag>";
+        }
+
+        return $html;
     }
 
     /**

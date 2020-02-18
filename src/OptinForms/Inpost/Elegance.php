@@ -395,6 +395,7 @@ HTML;
     {
         $optin_css_id = $this->optin_css_id;
         $optin_uuid    = $this->optin_campaign_uuid;
+
         return <<<CSS
 html div#$optin_uuid div#$optin_css_id.moEleganceModal {
   border: 3px solid #fff;

@@ -24,6 +24,12 @@ class Elegance extends AbstractOptinTheme
         $this->init_config_filters([
             // -- default for design sections -- //
             [
+                'name'        => 'mo_optin_form_width_default',
+                'value'       => '600',
+                'optin_class' => 'Elegance',
+                'optin_type'  => 'lightbox'
+            ],
+            [
                 'name'        => 'mo_optin_form_background_color_default',
                 'value'       => '#ffffff',
                 'optin_class' => 'Elegance',
@@ -413,16 +419,18 @@ HTML;
      */
     public function optin_form_css()
     {
-        $optin_css_id    = $this->optin_css_id;
-        $optin_uuid    = $this->optin_campaign_uuid;
+        $optin_css_id = $this->optin_css_id;
+        $optin_uuid   = $this->optin_campaign_uuid;
 
         $image_asset_url = MAILOPTIN_OPTIN_THEMES_ASSETS_URL;
+
+        $form_width = $this->get_customizer_value('form_width');
 
         return <<<CSS
 html div#$optin_uuid div#$optin_css_id.moEleganceModal {
   border: 3px solid #fff;
   width: 100%;
-  max-width: 600px;
+  max-width: {$form_width}px;
   position: relative;
   margin: auto;
   border-radius: 10px;
