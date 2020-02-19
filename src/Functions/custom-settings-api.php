@@ -522,10 +522,11 @@ class Custom_Settings_Page_Api
      */
     public function _arbitrary($db_options, $key, $args)
     {
+        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
         $data        = @$args['data'];
         $description = @$args['description'];
 
-        return $data . $description;
+        return "<tr id=\"$tr_id\"><td colspan=\"5\" style='margin:0;padding:0;'>" . $data . $description . '</td></tr>';
     }
 
     /**
