@@ -954,7 +954,7 @@ class CustomizerControls
                         'settings'    => $this->option_prefix . '[cookie]',
                         'priority'    => 80,
                         'description' => sprintf(
-                            __('The length of time before this optin will display again to the user once they exit this campaign (defaults to 30 days). %sSet to 0 to prevent cookies from being set.%s', 'mailoptin'),
+                            __('The length of time before this optin will display again to the user once they exit or close this campaign (defaults to 30 days). %sSet to 0 to prevent cookies from being set.%s', 'mailoptin'),
                             '<strong>', '</strong>'
                         )
                     )

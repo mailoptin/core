@@ -873,11 +873,18 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
             set_cookie: function (type, optin_uuid, optin_js_config) {
                 // default test mode to false.
                 var test_mode = optin_js_config.test_mode || false;
+
+                var cookie = optin_js_config.cookie;
+                if (type == 'success') {
+                    var cookie = optin_js_config.success_cookie;
+                }
+
                 // if type is exit cookie, return empty. if it's success, it get appended to 'mo_' when setting cookie key.
                 type = type === 'exit' ? '' : type + '_';
 
                 if (!test_mode) {
-                    Cookies.set('mo_' + type + optin_uuid, true, {expires: optin_js_config.cookie});
+
+                    Cookies.set('mo_' + type + optin_uuid, true, {expires: cookie});
                     // set either global exit or success cookie depending on the context in which set_cookie() is called.
                     // cookie expiration could be optin_js_config.global_cookie or optin_js_config.global_success_cookie
                     // no need to check if cookie value is not zero(0) before setting cookie because a cookie set to expires in 0 days
