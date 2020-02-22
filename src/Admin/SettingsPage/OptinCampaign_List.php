@@ -160,8 +160,15 @@ class OptinCampaign_List extends \WP_List_Table
     public static function clear_cookie($optin_campaign_id)
     {
         $optin_campaign_uuid = OptinCampaignsRepository::get_optin_campaign_uuid($optin_campaign_id);
-        setcookie("mo_$optin_campaign_uuid", '', -1, COOKIEPATH, COOKIE_DOMAIN, false);
-        setcookie("mo_success_$optin_campaign_uuid", '', -1, COOKIEPATH, COOKIE_DOMAIN, false);
+        // on multisite COOKIE_DOMAIN is prefixed with . eg .mailoptin.io
+        // js cookie set cookie with the domain name eg mailoptin.io hence this
+        $cookie_domain = COOKIE_DOMAIN;
+        if (substr($cookie_domain, 0, 1) == '.') {
+            $cookie_domain = substr($cookie_domain, 1);
+        }
+
+        setcookie("mo_$optin_campaign_uuid", '', 1, COOKIEPATH, $cookie_domain, false);
+        setcookie("mo_success_$optin_campaign_uuid", '', 1, COOKIEPATH, $cookie_domain, false);
 
         do_action('mo_optin_after_clear_cookie', $optin_campaign_id, $optin_campaign_uuid);
     }
