@@ -71,6 +71,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                     // remove the close optin event if we're in customizer.
                     if ($.MailOptin.is_customize_preview === true) {
                         $(document).off('submit.moOptinSubmit', 'form.mo-optin-form');
+                        $(document).off('click.moOptinSubmit', '.mo-optin-form-submit-button');
                         $(document).off('click.moOptin', 'a[rel~="moOptin:close"]');
                         $(document).off('click.moOptin', '.mo-close-optin');
                     }
@@ -759,8 +760,9 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                 // if we are in customizer preview, bail.
                 if ($.MailOptin.is_customize_preview === true) return;
 
-                $(document).on('submit.moOptinSubmit', 'form.mo-optin-form', function (e) {
+                var process_form = function (e) {
                     e.preventDefault();
+                    e.stopPropagation();
 
                     optin_container = $(this).parents('.moOptinForm');
                     $optin_uuid = optin_container.attr('id');
@@ -804,7 +806,12 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
                         self.subscribe_to_email_list(optin_data, optin_container, optin_js_config, $optin_type);
                     }
-                });
+                };
+
+                // this is important so form can be processed when say enter button is pressed to submit form.
+                $(document).on('submit.moOptinSubmit', 'form.mo-optin-form', process_form);
+                // added this option because there was an issue where form submit event didn't work.
+                $(document).on('click.moOptinSubmit', '.mo-optin-form-submit-button', process_form);
             },
 
             /**
