@@ -193,7 +193,7 @@ class Lucid extends AbstractTemplate
               <table class="email-body_inner mo-content-body-font-size mo-content-alignment" align="center" width="570" cellpadding="0" cellspacing="0">
                 <!-- Body content -->
                 <tr>
-                  <td class="content-cell mo-content-text-color">
+                  <td class="content-cell mo-content-text-color" style="width: 570px;max-width: 570px;">
                   <div class="mo-before-main-content">$before_main_content</div>
                     <a href="{{post.url}}">
                     <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
