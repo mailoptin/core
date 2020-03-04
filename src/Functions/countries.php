@@ -5,7 +5,7 @@
  * Returns an array of countries and codes.
  */
 
-if (!defined('ABSPATH')) {
+if ( ! defined('ABSPATH')) {
     exit;
 }
 
@@ -44,7 +44,6 @@ return array(
     'BV' => __('Bouvet Island', 'mailoptin'),
     'BR' => __('Brazil', 'mailoptin'),
     'IO' => __('British Indian Ocean Territory', 'mailoptin'),
-    'VG' => __('British Virgin Islands', 'mailoptin'),
     'BN' => __('Brunei', 'mailoptin'),
     'BG' => __('Bulgaria', 'mailoptin'),
     'BF' => __('Burkina Faso', 'mailoptin'),
@@ -116,7 +115,7 @@ return array(
     'ID' => __('Indonesia', 'mailoptin'),
     'IR' => __('Iran', 'mailoptin'),
     'IQ' => __('Iraq', 'mailoptin'),
-    'IE' => __('Republic of Ireland', 'mailoptin'),
+    'IE' => __('Ireland', 'mailoptin'),
     'IM' => __('Isle of Man', 'mailoptin'),
     'IL' => __('Israel', 'mailoptin'),
     'IT' => __('Italy', 'mailoptin'),
@@ -139,8 +138,8 @@ return array(
     'LI' => __('Liechtenstein', 'mailoptin'),
     'LT' => __('Lithuania', 'mailoptin'),
     'LU' => __('Luxembourg', 'mailoptin'),
-    'MO' => __('Macao S.A.R., China', 'mailoptin'),
-    'MK' => __('Macedonia', 'mailoptin'),
+    'MO' => __('Macao', 'mailoptin'),
+    'MK' => __('North Macedonia', 'mailoptin'),
     'MG' => __('Madagascar', 'mailoptin'),
     'MW' => __('Malawi', 'mailoptin'),
     'MY' => __('Malaysia', 'mailoptin'),
@@ -246,13 +245,14 @@ return array(
     'GB' => __('United Kingdom (UK)', 'mailoptin'),
     'US' => __('United States (US)', 'mailoptin'),
     'UM' => __('United States (US) Minor Outlying Islands', 'mailoptin'),
-    'VI' => __('United States (US) Virgin Islands', 'mailoptin'),
     'UY' => __('Uruguay', 'mailoptin'),
     'UZ' => __('Uzbekistan', 'mailoptin'),
     'VU' => __('Vanuatu', 'mailoptin'),
     'VA' => __('Vatican', 'mailoptin'),
     'VE' => __('Venezuela', 'mailoptin'),
     'VN' => __('Vietnam', 'mailoptin'),
+    'VG' => __('Virgin Islands (British)', 'mailoptin'),
+    'VI' => __('Virgin Islands (US)', 'mailoptin'),
     'WF' => __('Wallis and Futuna', 'mailoptin'),
     'EH' => __('Western Sahara', 'mailoptin'),
     'WS' => __('Samoa', 'mailoptin'),
