@@ -365,6 +365,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $asset_image_url = MAILOPTIN_ASSETS_URL . 'images';
 
         $global_css = "div#{$optin_campaign_uuid} *, div#{$optin_campaign_uuid} *:before, div#{$optin_campaign_uuid} *:after {box-sizing: border-box;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;}";
+        $global_css .= "div#{$optin_css_id}_container div#{$optin_css_id} .mo-optin-field:focus {outline:0}";
         $global_css .= "div#{$optin_css_id}_container div#{$optin_css_id} .mo-optin-form-submit-button:focus {outline:0}";
         $global_css .= "div#{$optin_css_id}_container div.mo-optin-powered-by{margin:5px auto 2px;text-align:center;}";
         $global_css .= "div#{$optin_css_id}_container div.mo-optin-powered-by a {font-size:16px !important; text-decoration: none !important;box-shadow:none !important;border-bottom-width:0px !important;cursor:pointer !important;}";
