@@ -85,6 +85,7 @@ trait PageTargetingRuleTrait
             if (apply_filters('mailoptin_page_targeting_optin_rule', false, $id)) {
                 return false;
             }
+            
             // if current view is neither frontpage, homepage, archive page or search page, return false.
             if ( ! empty($load_optin_index) && ( ! (is_front_page() || is_home() || is_archive() || is_search()))) {
                 return false;
@@ -98,6 +99,15 @@ trait PageTargetingRuleTrait
             // if current page should never contain optin, return false.
             if ( ! empty($pages_never_load) && is_page($post_id) && in_array($post_id, $pages_never_load)) {
                 return false;
+            }
+
+            // if current post category contain a category that optin should not load for, return false.
+            if ( ! empty($post_categories_hide) && is_singular('post') ) {
+
+                $intersect = array_intersect($post_categories, $post_categories_hide);
+                if (!empty($intersect)) {
+                    return false;
+                }
             }
 
             // if current CPT post should never contain optin, return false.
@@ -114,15 +124,6 @@ trait PageTargetingRuleTrait
 
                 $intersect = array_intersect($post_categories, $post_categories_load);
                 if (empty($intersect)) {
-                    return false;
-                }
-            }
-
-            // if current post category contain a category that optin should not load for, return false.
-            if ( ! empty($post_categories_hide) && is_singular('post') ) {
-
-                $intersect = array_intersect($post_categories, $post_categories_hide);
-                if (!empty($intersect)) {
                     return false;
                 }
             }
@@ -146,6 +147,6 @@ trait PageTargetingRuleTrait
             }
         }
 
-        return true;
+        return false;
     }
 }
