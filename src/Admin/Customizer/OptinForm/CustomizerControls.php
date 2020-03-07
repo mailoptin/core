@@ -1240,10 +1240,10 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[exclusive_post_types_posts_load]',
                 apply_filters('mo_optin_form_customizer_exclusive_post_types_posts_load_args', array(
-                        'label'       => __('Load optin exclusively on:', 'mailoptin'),
+                        'label'       => __('Load optin specifically on:', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[exclusive_post_types_posts_load]',
-                        'description' => __('Display the optin only on the selected posts and pages.', 'mailoptin'),
+                        'description' => __('Display the optin only on the selected posts and/or pages.', 'mailoptin'),
                         'search_type' => 'exclusive_post_types_posts_load',
                         'choices'     => ControlsHelpers::get_all_post_types_posts(),
                         'priority'    => 35
@@ -1296,10 +1296,10 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[exclusive_post_types_load]',
                 apply_filters('mo_optin_form_customizer_exclusive_post_types_load_args', array(
-                        'label'       => __('Load optin only on "post types":', 'mailoptin'),
+                        'label'       => __('Load optin on post types:', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[exclusive_post_types_load]',
-                        'description' => __('Display the optin only on the selected "post types".', 'mailoptin'),
+                        'description' => __('Display the optin only on the selected post types.', 'mailoptin'),
                         'choices'     => ControlsHelpers::get_post_types(),
                         'priority'    => 50
                     )
