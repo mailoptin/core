@@ -74,7 +74,7 @@ trait PageTargetingRuleTrait
             return true;
         }
 
-        if (apply_filters('mailoptin_page_targeting_optin_rule', false, $id)) {
+        if (apply_filters('mailoptin_page_targeting_optin_rule', false, $id, $post_id)) {
             return true;
         }
 
