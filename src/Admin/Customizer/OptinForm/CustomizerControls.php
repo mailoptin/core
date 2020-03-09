@@ -1223,11 +1223,11 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[load_optin_globally]',
                 apply_filters('mo_optin_form_customizer_load_optin_globally_args', array(
-                        'label'       => __('Globally load optin', 'mailoptin'),
+                        'label'       => __('Globally show optin', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[load_optin_globally]',
                         'description' => sprintf(
-                            __('The optin will be loaded on all pages of your website if activated. %sDo not activate%s if you want to load optin on specific areas of your site using the settings below.', 'mailoptin'),
+                            __('The optin will be shown on all pages of your website if activated. %sDo not activate%s if you want to show optin on specific areas of your site using the settings below.', 'mailoptin'),
                             '<strong>',
                             '</strong>'
                         ),
@@ -1240,7 +1240,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[exclusive_post_types_posts_load]',
                 apply_filters('mo_optin_form_customizer_exclusive_post_types_posts_load_args', array(
-                        'label'       => __('Load optin specifically on:', 'mailoptin'),
+                        'label'       => __('Show optin specifically on:', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[exclusive_post_types_posts_load]',
                         'description' => __('Display the optin only on the selected posts and/or pages.', 'mailoptin'),
@@ -1270,7 +1270,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[post_categories_load]',
                 apply_filters('mo_optin_form_customizer_post_categories_load_args', array(
-                        'label'       => __('Load on post categories:'),
+                        'label'       => __('Show on post categories:'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[post_categories_load]',
                         'description' => __('Display the optin on posts that are in any of the selected categories.', 'mailoptin'),
@@ -1283,7 +1283,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[post_tags_load]',
                 apply_filters('mo_optin_form_customizer_post_tags_load_args', array(
-                        'label'       => __('Load on post tags:'),
+                        'label'       => __('Show on post tags:'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[post_tags_load]',
                         'description' => __('Display the optin on posts that are in any of the selected tags.', 'mailoptin'),
@@ -1296,7 +1296,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[exclusive_post_types_load]',
                 apply_filters('mo_optin_form_customizer_exclusive_post_types_load_args', array(
-                        'label'       => __('Load optin on post types:', 'mailoptin'),
+                        'label'       => __('Show optin on post types:', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[exclusive_post_types_load]',
                         'description' => __('Display the optin only on the selected post types.', 'mailoptin'),
@@ -1309,7 +1309,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[posts_never_load]',
                 apply_filters('mo_optin_form_customizer_posts_never_load_args', array(
-                        'label'       => __('Never load optin on these posts:'),
+                        'label'       => __('Never show optin on these posts:'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[posts_never_load]',
                         'description' => __('Select the posts this optin should never be loaded on.', 'mailoptin'),
@@ -1323,7 +1323,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[post_categories_hide]',
                 apply_filters('mo_optin_form_customizer_post_categories_hide_args', array(
-                        'label'       => __('Never load on these post categories:'),
+                        'label'       => __('Never show on these post categories:'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[post_categories_hide]',
                         'description' => __('Hide the optin on posts that are in any of the selected categories.', 'mailoptin'),
@@ -1336,7 +1336,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[pages_never_load]',
                 apply_filters('mo_optin_form_customizer_pages_never_load_args', array(
-                        'label'       => __('Never load optin on these pages:'),
+                        'label'       => __('Never show optin on these pages:'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[pages_never_load]',
                         'description' => __('Select the pages this optin should never be loaded on.', 'mailoptin'),
@@ -1350,7 +1350,7 @@ class CustomizerControls
                 $this->wp_customize,
                 $this->option_prefix . '[cpt_never_load]',
                 apply_filters('mo_optin_form_customizer_cpt_never_load_args', array(
-                        'label'       => __('Never load optin on these CPT posts:'),
+                        'label'       => __('Never show optin on these CPT posts:'),
                         'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
                         'settings'    => $this->option_prefix . '[cpt_never_load]',
                         'description' => __('Select "custom post type" posts this optin should never be loaded on.', 'mailoptin'),

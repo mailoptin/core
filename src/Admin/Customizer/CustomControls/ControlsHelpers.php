@@ -143,6 +143,20 @@ class ControlsHelpers
         return $data;
     }
 
+    /**
+     * Array of terms of a taxonomy.
+     *
+     * @return mixed
+     */
+    public static function get_terms($taxonomy)
+    {
+        return get_terms([
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+            'fields'     => 'id=>name'
+        ]);
+    }
+
     public static function get_roles()
     {
         $all_roles = wp_roles()->roles;
