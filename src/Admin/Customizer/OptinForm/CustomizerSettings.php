@@ -57,10 +57,10 @@ class CustomizerSettings extends AbstractCustomizer
                     'sanitize_callback' => 'absint',
                     'transport'         => 'postMessage',
                 ),
-                'hide_form_image'            => array(
-                    'default'           => $this->customizer_defaults['hide_form_image'],
-                    'type'              => 'option',
-                    'transport'         => 'refresh',
+                'hide_form_image'       => array(
+                    'default'   => $this->customizer_defaults['hide_form_image'],
+                    'type'      => 'option',
+                    'transport' => 'refresh',
                 ),
                 'form_background_color' => array(
                     'default'           => $this->customizer_defaults['form_background_color'],
@@ -669,6 +669,11 @@ class CustomizerSettings extends AbstractCustomizer
                 ),
                 'show_to_roles'                   => array(
                     'default'   => apply_filters('mo_optin_form_show_to_roles', ''),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                'prefill_logged_user_data'        => array(
+                    'default'   => apply_filters('mo_optin_form_prefill_logged_user_data', false),
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),

@@ -413,7 +413,9 @@
         }).change();
 
         $('select[data-customize-setting-link*=who_see_optin]').change(function () {
-            $('li[id*=show_to_roles]').toggle($(this).val() == 'show_to_roles');
+            var value = $(this).val();
+            $('li[id*=show_to_roles]').toggle(value === 'show_to_roles');
+            $('li[id*=prefill_logged_user_data]').toggle(value !== 'show_non_logged_in');
         }).change();
 
         // handles click to select on input readonly fields

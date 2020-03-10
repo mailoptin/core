@@ -936,8 +936,14 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $style = esc_attr($atts['style']);
         $style = "$name_field_styles $style";
 
+        $value = '';
+        if ($this->get_customizer_value('prefill_logged_user_data')) {
+            $cache = wp_get_current_user();
+            $value = $cache->first_name . ' ' . $cache->last_name;
+        }
+
         $html = apply_filters('mo_optin_form_before_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
-        $html .= "<input id=\"{$optin_css_id}_name_field\" class=\"$class\" style='$style' type=\"text\" placeholder=\"$name_field_placeholder\" name=\"mo-name\" autocomplete=\"on\">";
+        $html .= "<input id=\"{$optin_css_id}_name_field\" class=\"$class\" style='$style' type=\"text\" placeholder=\"$name_field_placeholder\" name=\"mo-name\" autocomplete=\"on\" value=\"$value\">";
         $html .= apply_filters('mo_optin_form_after_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
 
         return $html;
@@ -970,8 +976,13 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $style = esc_attr($atts['style']);
         $style = "$email_field_styles $style";
 
+        $value = '';
+        if ($this->get_customizer_value('prefill_logged_user_data')) {
+            $value = wp_get_current_user()->user_email;
+        }
+
         $html = apply_filters('mo_optin_form_before_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
-        $html .= "<input id=\"{$optin_css_id}_email_field\" class=\"$class\" style=\"$style\" type=\"email\" placeholder=\"$email_field_placeholder\" name=\"mo-email\" autocomplete=\"on\">";
+        $html .= "<input id=\"{$optin_css_id}_email_field\" class=\"$class\" style=\"$style\" type=\"email\" placeholder=\"$email_field_placeholder\" name=\"mo-email\" autocomplete=\"on\" value=\"$value\">";
         $html .= apply_filters('mo_optin_form_after_form_email_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
 
         return $html;

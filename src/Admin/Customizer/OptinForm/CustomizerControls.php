@@ -1493,7 +1493,7 @@ class CustomizerControls
         $user_filter_control_args = apply_filters(
             "mo_optin_form_customizer_user_filter_controls",
             array(
-                'who_see_optin' => apply_filters('mo_optin_form_customizer_who_see_optin_args', array(
+                'who_see_optin'            => apply_filters('mo_optin_form_customizer_who_see_optin_args', array(
                         'type'        => 'select',
                         'label'       => __('Who should see this optin?', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->user_targeting_display_rule_section_id,
@@ -1508,7 +1508,7 @@ class CustomizerControls
                         'priority'    => 10,
                     )
                 ),
-                'show_to_roles' => new WP_Customize_Chosen_Select_Control(
+                'show_to_roles'            => new WP_Customize_Chosen_Select_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[show_to_roles]',
                     apply_filters('mo_optin_form_customizer_show_to_roles_args', array(
@@ -1518,6 +1518,19 @@ class CustomizerControls
                             'description' => __('The opt-in form will only be shown to users with any of the roles you select here.', 'mailoptin'),
                             'choices'     => ControlsHelpers::get_roles(),
                             'priority'    => 11
+                        )
+                    )
+                ),
+                'prefill_logged_user_data' => new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[prefill_logged_user_data]',
+                    apply_filters('mo_optin_form_customizer_prefill_logged_user_data_args', array(
+                            'label'       => __('Prefill Form with User Data', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->user_targeting_display_rule_section_id,
+                            'settings'    => $this->option_prefix . '[prefill_logged_user_data]',
+                            'description' => __('Enable to prefill form with the name and email address of logged in users.', 'mailoptin'),
+                            'type'        => 'flat',// light, ios, flat
+                            'priority'    => 12
                         )
                     )
                 )
