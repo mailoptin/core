@@ -310,6 +310,53 @@
             api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][mini_headline]', linkSettingValueToControlActiveState);
         });
 
+        api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][woocommerce_show_all_endpoints]', function (setting) {
+            var is_displayed, linkSettingValueToControlActiveState;
+
+            is_displayed = function () {
+                return !setting.get();
+            };
+
+            linkSettingValueToControlActiveState = function (control) {
+                var setActiveState = function () {
+                    control.active.set(is_displayed());
+                };
+
+                control.active.validate = is_displayed;
+
+                setActiveState();
+
+                setting.bind(setActiveState);
+            };
+
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][woocommerce_show_order_pay_endpoint]', linkSettingValueToControlActiveState);
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][woocommerce_show_order_received_endpoint]', linkSettingValueToControlActiveState);
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][woocommerce_show_view_order_endpoint]', linkSettingValueToControlActiveState);
+        });
+
+        api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][woocommerce_show_woo_products]', function (setting) {
+            var is_displayed, linkSettingValueToControlActiveState;
+
+            is_displayed = function () {
+                return !setting.get();
+            };
+
+            linkSettingValueToControlActiveState = function (control) {
+                var setActiveState = function () {
+                    control.active.set(is_displayed());
+                };
+
+                control.active.validate = is_displayed;
+
+                setActiveState();
+
+                setting.bind(setActiveState);
+            };
+
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][woocommerce_show_specific_woo_products]', linkSettingValueToControlActiveState);
+            api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][woocommerce_show_specific_categories]', linkSettingValueToControlActiveState);
+        });
+
         api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][hide_form_image]', function (setting) {
             var is_displayed, linkSettingValueToControlActiveState;
 
