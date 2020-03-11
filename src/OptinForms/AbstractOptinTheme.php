@@ -939,7 +939,9 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $value = '';
         if ($this->get_customizer_value('prefill_logged_user_data')) {
             $cache = wp_get_current_user();
-            $value = $cache->first_name . ' ' . $cache->last_name;
+            if ( ! empty($cache->first_name) || ! empty($cache->last_name)) {
+                $value = $cache->first_name . ' ' . $cache->last_name;
+            }
         }
 
         $html = apply_filters('mo_optin_form_before_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
@@ -978,7 +980,10 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
         $value = '';
         if ($this->get_customizer_value('prefill_logged_user_data')) {
-            $value = wp_get_current_user()->user_email;
+            $email = wp_get_current_user()->user_email;
+            if ( ! empty($email)) {
+                $value = wp_get_current_user()->user_email;
+            }
         }
 
         $html = apply_filters('mo_optin_form_before_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
@@ -1207,34 +1212,5 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $html = "<div class=\"$class\" style='$style'>$label</div>";
 
         return $html;
-    }
-
-    /**
-     * Filter form field attributes for unofficial attributes.
-     *
-     * @param array $atts supplied shortcode attributes
-     *
-     * @return mixed
-     */
-    function mo_optin_form_other_field_atts($atts)
-    {
-        if ( ! is_array($atts)) return $atts;
-
-        $official_atts = array('name', 'class', 'id', 'value', 'title', 'required', 'placeholder', 'key');
-
-        $other_atts = array();
-
-        foreach ($atts as $key => $value) {
-            if ( ! in_array($key, $official_atts)) {
-                $other_atts[$key] = $value;
-            }
-        }
-
-        $other_atts_html = '';
-        foreach ($other_atts as $key => $value) {
-            $other_atts_html .= "$key=\"$value\" ";
-        }
-
-        return $other_atts_html;
     }
 }
