@@ -906,6 +906,11 @@ class AjaxHandler
      */
     public function track_optin_impression()
     {
+        $disable_impression = apply_filters('mo_disable_impression_tracking', Settings::instance()->disable_impression_tracking());
+        if ( ! empty($disable_impression) && ($disable_impression == 'true' || $disable_impression === true)) {
+            return;
+        }
+
         $payload           = sanitize_data($_REQUEST['stat_data']);
         $optin_uuid        = $payload['optin_uuid'];
         $optin_campaign_id = OptinCampaignsRepository::get_optin_campaign_id_by_uuid($optin_uuid);
