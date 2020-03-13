@@ -6,6 +6,7 @@ use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
+use pb_backupbuddy;
 use WP_Post;
 
 class NewPublishPost extends AbstractTriggers
@@ -55,6 +56,10 @@ class NewPublishPost extends AbstractTriggers
     public function new_publish_post($new_status, $old_status, $post)
     {
         if ($new_status == 'publish' && $old_status != 'publish') {
+
+            if (class_exists('pb_backupbuddy') && method_exists('pb_backupbuddy', 'remove_action')) {
+                pb_backupbuddy::remove_action(array('save_post', 'save_post_iterate_edits_since_last'));
+            }
 
             // hopefully this will cause all custom field to be updated before new post is triggered.
             do_action('save_post', $post->ID, $post, true);
