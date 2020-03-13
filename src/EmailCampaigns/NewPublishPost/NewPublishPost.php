@@ -57,6 +57,7 @@ class NewPublishPost extends AbstractTriggers
     {
         if ($new_status == 'publish' && $old_status != 'publish') {
 
+            // fix incompatibility with backupbuddy making post content empty.
             if (class_exists('pb_backupbuddy') && method_exists('pb_backupbuddy', 'remove_action')) {
                 pb_backupbuddy::remove_action(array('save_post', 'save_post_iterate_edits_since_last'));
             }
