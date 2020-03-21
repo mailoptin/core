@@ -436,12 +436,6 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
     
             #$optin_campaign_uuid.moModal .mo-optin-form-container p {
                 margin: 0;
-            }
-    
-            @media (max-width: 700px) {
-                #$optin_campaign_uuid.moModal .mo-optin-form-container {
-                    margin: 0 15px !important;
-                }
             }";
 
             $global_css .= "
@@ -691,6 +685,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 'left: 0',
                 'top: 0',
                 'width: 100%',
+                'padding: 0 10px',
                 'height: 100%',
                 'overflow: auto', // fixes overflow scrolling bar being shown :D
                 'background: rgba(0,0,0,0.7)'

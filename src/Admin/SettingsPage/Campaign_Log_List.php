@@ -183,7 +183,6 @@ class Campaign_Log_List extends \WP_List_Table
     {
         $name              = '<strong>' . $item['title'] . '</strong>';
         $campaign_log_id   = absint($item['id']);
-        $email_campaign_id = absint($item['email_campaign_id']);
 
         $delete_href = add_query_arg(
             [

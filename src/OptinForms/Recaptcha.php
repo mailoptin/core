@@ -19,7 +19,6 @@ class Recaptcha
 
     public function enqueue_script()
     {
-
         $site_key    = Settings::instance()->recaptcha_site_key();
         $site_secret = Settings::instance()->recaptcha_site_secret();
 

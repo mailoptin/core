@@ -204,7 +204,7 @@ class Email_Campaign_List extends \WP_List_Table
         $customize_url = self::_campaign_customize_url($email_campaign_id);
 
         $delete_url = self::_campaign_delete_url($email_campaign_id);
-        $name       = "<a href=\"$customize_url\"><strong>" . $item['name'] . '</strong></a>';
+        $name       = "<strong><a href=\"$customize_url\">" . $item['name'] . '</a></strong>';
 
         $actions = array(
             'delete' => sprintf("<a href=\"$delete_url\">%s</a>", __('Delete', 'mailoptin')),
