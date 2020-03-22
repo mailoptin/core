@@ -9,7 +9,7 @@ jQuery.fn.mo_wp_editor = function (options) {
     }
 
     default_options = {
-        'mode': 'html',
+        'mode': 'tmce',
         'mceInit': {
             "theme": "modern",
             "skin": "lightgray",
@@ -76,15 +76,17 @@ jQuery.fn.mo_wp_editor = function (options) {
             "selector": "#moWPEditor",
             "resize": "vertical",
             "menubar": false,
-            "wpautop": true,
-            "indent": false,
             "toolbar1": "bold,italic,strikethrough,bullist,numlist,blockquote,hr,alignleft,aligncenter,alignright,link,unlink,wp_more,spellchecker,fullscreen,wp_adv",
             "toolbar2": "formatselect,underline,alignjustify,forecolor,pastetext,removeformat,charmap,outdent,indent,undo,redo,wp_help",
             "toolbar3": "",
             "toolbar4": "",
             "tabfocus_elements": ":prev,:next",
             "body_class": "moWPEditor",
-            'branding': false
+            'branding': false,
+            // ensure paragraphs are wrapped in <p> and the indent makes the paragraphs to be in new line instead of
+            // <p>ss</p><p>kk</p>
+            "wpautop": false,
+            "indent": true
         }
     };
 

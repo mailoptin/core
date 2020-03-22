@@ -336,34 +336,15 @@ trait CustomizerTrait
 
     public function js_wp_editor()
     {
-        if ( ! class_exists('\_WP_Editors')) {
-            require(ABSPATH . WPINC . '/class-wp-editor.php');
+        // Enable rich editing for this view (Overrides 'Disable the visual editor when writing' option for current user)
+        add_filter('user_can_richedit', '__return_true');
+        wp_enqueue_editor();
+        wp_enqueue_editor();
+
+        if ( ! empty($GLOBALS['post'])) {
+            wp_enqueue_media(array('post' => $GLOBALS['post']->ID));
+        } else {
+            wp_enqueue_media();
         }
-
-        $set = \_WP_Editors::parse_settings('mo_autoresponder_message', []);
-
-        if ( ! current_user_can('upload_files')) {
-            $set['media_buttons'] = false;
-        }
-
-        if ($set['media_buttons']) {
-            wp_enqueue_style('buttons');
-            wp_enqueue_script('thickbox');
-            wp_enqueue_style('thickbox');
-            wp_enqueue_script('media-upload');
-            wp_enqueue_script('wp-embed');
-
-            $post = get_post(1);
-
-            if ( ! $post && ! empty($GLOBALS['post_ID'])) {
-                $post = $GLOBALS['post_ID'];
-            }
-
-            wp_enqueue_media(array(
-                'post' => $post,
-            ));
-        }
-
-        \_WP_Editors::editor_settings('mo_autoresponder_message', $set);
     }
 }

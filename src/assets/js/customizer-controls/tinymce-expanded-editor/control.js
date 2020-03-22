@@ -19,10 +19,7 @@
                 content_editor = '<div class="mo-tinymce-expanded-editor"><textarea style="height:200px" id="mo-tinymce-expanded-textarea" data-control-id="' + control_id + '">' + api(control_id).get() + '</textarea></div>';
                 $('.wp-full-overlay').prepend(content_editor);
 
-                var config = {mode: 'tmce'};
-                config['mceInit'] = {wpautop: false};
-
-                $('#mo-tinymce-expanded-textarea').mo_wp_editor(config);
+                $('#mo-tinymce-expanded-textarea').mo_wp_editor();
                 editor = tinymce.get('mo-tinymce-expanded-textarea');
 
                 editor.on('keyup change undo redo SetContent NodeChange', function () {
