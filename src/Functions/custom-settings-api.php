@@ -39,7 +39,7 @@ class Custom_Settings_Page_Api
     /** @var array config of settings page tabs */
     private $tabs_config = array();
 
-    /** @var array config of main settings page */
+    /** @var array config of main settings builpage */
     private $main_content_config = array();
 
     /** @var array config of settings page sidebar */
@@ -94,12 +94,10 @@ class Custom_Settings_Page_Api
      */
     public function settings_page_tab()
     {
-        if ($this->exclude_top_tav_nav)
-            return;
+        if ($this->exclude_top_tav_nav) return;
 
         $args = $this->tabs_config;
-        if (empty($args))
-            return;
+        if (empty($args)) return;
 
         echo '<h2 class="nav-tab-wrapper">';
         if ( ! empty($args)) {
@@ -181,7 +179,7 @@ class Custom_Settings_Page_Api
         $sanitized_data = array();
         foreach ($data as $key => $value) {
             // skip sanitation. useful for fields that expects html
-            if ($a = apply_filters('wp_cspa_sanitize_skip', false, $key, $value)) {
+            if (apply_filters('wp_cspa_sanitize_skip', false, $key, $value)) {
                 $sanitized_data[$key] = $data[$key];
                 continue;
             }
@@ -291,48 +289,6 @@ class Custom_Settings_Page_Api
     public function nonce_field()
     {
         printf('<input id="wp_csa_nonce" type="hidden" name="wp_csa_nonce" value="%s">', wp_create_nonce('wp-csa-nonce'));
-    }
-
-    /**
-     * Build the settings page.
-     *
-     * @param bool $exclude_sidebar set to true to remove sidebar markup (.column-2)
-     */
-    public function build($exclude_sidebar = false, $exclude_top_tav_nav = false)
-    {
-        $this->persist_plugin_settings();
-
-        $this->exclude_top_tav_nav = $exclude_top_tav_nav;
-
-        $columns2_class = ! $exclude_sidebar ? ' columns-2' : null;
-        ?>
-        <div class="wrap">
-            <?php $this->settings_page_heading(); ?>
-            <?php $this->do_settings_errors(); ?>
-            <?php settings_errors('wp_csa_notice'); ?>
-            <?php $this->settings_page_tab(); ?>
-            <?php do_action('wp_cspa_after_settings_tab', $this->option_name); ?>
-            <div id="poststuff" class="wp_csa_view">
-                <?php do_action('wp_cspa_before_metabox_holder_column'); ?>
-                <div id="post-body" class="metabox-holder<?php echo $columns2_class; ?>">
-                    <div id="post-body-content">
-                        <?php do_action('wp_cspa_before_post_body_content', $this->option_name, $this->db_options); ?>
-                        <div class="meta-box-sortables ui-sortable">
-                            <form method="post" <?php echo do_action('wp_cspa_form_tag', $this->option_name); ?>>
-                                <?php $this->nonce_field(); ?>
-                                <?php ob_start(); ?>
-                                <?php $this->_settings_page_main_content_area(); ?>
-                                <?php echo apply_filters('wp_cspa_main_content_area', ob_get_clean(), $this->option_name); ?>
-                            </form>
-                        </div>
-                    </div>
-                    <?php $this->setting_page_sidebar(); ?>
-                </div>
-            </div>
-        </div>
-
-        <?php $this->metabox_toggle_script(); ?>
-        <?php
     }
 
 
@@ -969,6 +925,7 @@ public function _header($section_title, $args = array())
 
             echo '<div class="wrap moview">';
             $this->settings_page_heading();
+            do_action('mailoptin_after_settings_page_heading', $option_name);
             $this->do_settings_errors();
             settings_errors('wp_csa_notice');
             $this->settings_page_tab();
@@ -980,6 +937,7 @@ public function _header($section_title, $args = array())
             echo '<form method="post">';
             $this->nonce_field();
             echo $tab_content_area;
+            echo apply_filters('wp_cspa_main_content_area', ob_get_clean(), $this->option_name);
             echo '</form>';
             echo '</div>';
             echo '</div>';
@@ -987,6 +945,48 @@ public function _header($section_title, $args = array())
 
             do_action('mailoptin_after_settings_page', $option_name);
         }
+    }
+
+    /**
+     * Build the settings page.
+     *
+     * @param bool $exclude_sidebar set to true to remove sidebar markup (.column-2)
+     */
+    public function build($exclude_sidebar = false, $exclude_top_tav_nav = false)
+    {
+        $this->persist_plugin_settings();
+
+        $this->exclude_top_tav_nav = $exclude_top_tav_nav;
+
+        $columns2_class = ! $exclude_sidebar ? ' columns-2' : null;
+        ?>
+        <div class="wrap">
+            <?php $this->settings_page_heading(); ?>
+            <?php $this->do_settings_errors(); ?>
+            <?php settings_errors('wp_csa_notice'); ?>
+            <?php $this->settings_page_tab(); ?>
+            <?php do_action('wp_cspa_after_settings_tab', $this->option_name); ?>
+            <div id="poststuff" class="wp_csa_view">
+                <?php do_action('wp_cspa_before_metabox_holder_column'); ?>
+                <div id="post-body" class="metabox-holder<?php echo $columns2_class; ?>">
+                    <div id="post-body-content">
+                        <?php do_action('wp_cspa_before_post_body_content', $this->option_name, $this->db_options); ?>
+                        <div class="meta-box-sortables ui-sortable">
+                            <form method="post" <?php echo do_action('wp_cspa_form_tag', $this->option_name); ?>>
+                                <?php $this->nonce_field(); ?>
+                                <?php ob_start(); ?>
+                                <?php $this->_settings_page_main_content_area(); ?>
+                                <?php echo apply_filters('wp_cspa_main_content_area', ob_get_clean(), $this->option_name); ?>
+                            </form>
+                        </div>
+                    </div>
+                    <?php $this->setting_page_sidebar(); ?>
+                </div>
+            </div>
+        </div>
+
+        <?php $this->metabox_toggle_script(); ?>
+        <?php
     }
 
     /**
