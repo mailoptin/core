@@ -27,10 +27,13 @@ class Base
      * Run plugin install / activation action when new blog is created in multisite setup.
      *
      * @param int $blog_id
-     * @param int $user_id
      */
-    public static function multisite_new_blog_install($blog_id, $user_id)
+    public static function multisite_new_blog_install($blog_id)
     {
+        if ( ! function_exists('is_plugin_active_for_network')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
         if (is_plugin_active_for_network('mailoptin/mailoptin.php')) {
             switch_to_blog($blog_id);
             self::mo_install();
@@ -43,7 +46,7 @@ class Base
      */
     public static function mo_install()
     {
-        if (!current_user_can('activate_plugins') || get_option('mo_plugin_activated') == 'true') {
+        if ( ! current_user_can('activate_plugins') || get_option('mo_plugin_activated') == 'true') {
             return;
         }
 
@@ -60,9 +63,9 @@ class Base
     public static function setting_settings()
     {
         add_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, array(
-                'from_name' => get_bloginfo(),
+                'from_name'  => get_bloginfo(),
                 'from_email' => get_bloginfo('admin_email'),
-                'reply_to' => get_bloginfo('admin_email')
+                'reply_to'   => get_bloginfo('admin_email')
             )
         );
     }

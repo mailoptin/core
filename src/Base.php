@@ -75,13 +75,20 @@ class Base
 {
     public function __construct()
     {
-        // Install plugin.
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array('MailOptin\Core\RegisterActivation\Base', 'run_install'));
-        /**
-         *@todo check what happens if a new website is created on multisite to see if DB tables will be created by MO
-         * note MailOptin\Core\RegisterActivation should be MailOptin\Core\RegisterActivation\Base
-         */
-        add_action('wpmu_new_blog', ['MailOptin\Core\RegisterActivation', 'multisite_new_blog_install']);
+
+        add_action('wp_insert_site', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
+
+        global $wp_version;
+        if (version_compare($wp_version, '5.1', '<')) {
+            add_action('wpmu_new_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
+        } else {
+            add_action('wp_insert_site', function (\WP_Site $new_site) {
+                RegisterActivation\Base::multisite_new_blog_install($new_site->blog_id);
+            });
+        }
+
+        add_action('activate_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
 
         RegisterScripts::get_instance();
         AjaxHandler::get_instance();
