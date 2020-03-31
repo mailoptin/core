@@ -107,7 +107,6 @@ class Customizer
             add_action('template_redirect', array($this, 'include_optin_form_customizer_template'), 1);
 
             add_filter('gettext', array($this, 'rewrite_customizer_panel_description'), 10, 3);
-            add_filter('gettext', array($this, 'rewrite_customizer_save_publish_label'), 10, 3);
 
             // remove all sections other han that of template customizer.
             add_action('customize_section_active', array($this, 'remove_sections'), 10, 2);
@@ -476,24 +475,6 @@ class Customizer
                 'The customizer allows you to make and preview changes to MailOptin powered optin forms.',
                 'mailoptin'
             );
-        }
-
-        return $translations;
-    }
-
-    /**
-     * Rewrite "save & publish" to "save changes"
-     *
-     * @param string $translations
-     * @param string $text
-     * @param string $domain
-     *
-     * @return mixed
-     */
-    public function rewrite_customizer_save_publish_label($translations, $text, $domain)
-    {
-        if ($text == 'Save &amp; Publish') {
-            $translations = __('Save Changes', 'mailoptin');
         }
 
         return $translations;
