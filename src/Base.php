@@ -77,8 +77,6 @@ class Base
     {
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array('MailOptin\Core\RegisterActivation\Base', 'run_install'));
 
-        add_action('wp_insert_site', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
-
         global $wp_version;
         if (version_compare($wp_version, '5.1', '<')) {
             add_action('wpmu_new_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
