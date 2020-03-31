@@ -75,7 +75,7 @@ class Base
 {
     public function __construct()
     {
-        register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array('MailOptin\Core\RegisterActivation\Base', 'run_install'));
+        register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, ['MailOptin\Core\RegisterActivation\Base', 'run_install']);
 
         global $wp_version;
         if (version_compare($wp_version, '5.1', '<')) {

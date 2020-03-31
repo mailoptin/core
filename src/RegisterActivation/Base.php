@@ -6,18 +6,15 @@ class Base
 {
     public static function run_install()
     {
-        global $wpdb;
-
         if (is_multisite()) {
-            /**
-             * @todo consider changing to get_sites()
-             */
-            foreach ($wpdb->get_col("SELECT blog_id FROM $wpdb->blogs LIMIT 100") as $blog_id) {
-                switch_to_blog($blog_id);
+
+            $site_ids = get_sites(['fields' => 'ids', 'number' => 0]);
+
+            foreach ($site_ids as $site_id) {
+                switch_to_blog($site_id);
                 self::mo_install();
                 restore_current_blog();
             }
-
         } else {
             self::mo_install();
         }
