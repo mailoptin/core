@@ -626,13 +626,12 @@ class Customizer
         $instance->content_settings();
         $instance->footer_settings();
 
-        $wp_customize->add_setting($this->option_prefix . '[send_test_email]', array(
+        $wp_customize->add_setting($option_prefix . '[send_test_email]', array(
                 'type'      => 'option',
                 'transport' => 'postMessage',
             )
         );
     }
-
 
     /**
      * Add customizer controls.
@@ -654,12 +653,12 @@ class Customizer
         $admin_email = apply_filters('mailoptin_email_campaign_test_admin_email', get_option('admin_email'));
         $wp_customize->add_control(new WP_Customize_Submit_Button_Control(
                 $wp_customize,
-                $this->option_prefix . '[send_test_email]',
+                $option_prefix . '[send_test_email]',
                 array(
                     'label'       => __('Background Color', 'mailoptin'),
                     'description' => __("Save any changes first and then click the button to send a test email to $admin_email", 'mailoptin'),
                     'section'     => $this->campaign_send_email_section_id,
-                    'settings'    => $this->option_prefix . '[send_test_email]',
+                    'settings'    => $option_prefix . '[send_test_email]',
                 )
             )
         );
