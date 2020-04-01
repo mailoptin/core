@@ -483,7 +483,6 @@ class Customizer
 
         do_action('mailoptin_register_campaign_customizer', $email_campaign_id);
 
-
         $template_class = ER::get_template_class($email_campaign_id);
 
         if ($template_class !== ER::CODE_YOUR_OWN_TEMPLATE) {

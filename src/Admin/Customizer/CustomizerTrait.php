@@ -225,7 +225,6 @@ trait CustomizerTrait
         $fbca_label    = __('Custom Audience', 'mailoptin');
         $default_label = __('Select Email List', 'mailoptin');
         ?>
-
         <script type="text/javascript">
             (function ($) {
                     function logic(connection_service) {
