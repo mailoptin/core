@@ -15,7 +15,7 @@ class NewPublishPost extends AbstractTriggers
     {
         parent::__construct();
 
-        add_action('transition_post_status', array($this, 'new_publish_post'), 10, 3);
+        add_action('transition_post_status', array($this, 'new_publish_post'), 1, 3);
 
         add_action('mailoptin_send_scheduled_email_campaign', array($this, 'send_scheduled_email_campaign'), 10, 2);
     }

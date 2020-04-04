@@ -972,7 +972,7 @@ public function _header($section_title, $args = array())
                     <div id="post-body-content">
                         <?php do_action('wp_cspa_before_post_body_content', $this->option_name, $this->db_options); ?>
                         <div class="meta-box-sortables ui-sortable">
-                            <form method="post" <?php echo do_action('wp_cspa_form_tag', $this->option_name); ?>>
+                            <form method="post" <?php do_action('wp_cspa_form_tag', $this->option_name); ?>>
                                 <?php $this->nonce_field(); ?>
                                 <?php ob_start(); ?>
                                 <?php $this->_settings_page_main_content_area(); ?>
