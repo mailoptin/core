@@ -74,7 +74,7 @@ class Templatify implements TemplatifyInterface
             $content              = ER::get_customizer_value($this->email_campaign_id, 'code_your_own');
             $templatified_content = (new Shortcodes($this->email_campaign_id))->from($this->post)->parse($content);
         } else {
-            $templatified_content = $this->post_content_forge();
+            $templatified_content = do_shortcode($this->post_content_forge());
         }
 
         $templatified_content = apply_filters('mo_new_publish_post_post_templatify_forge', $templatified_content, $this->post, $this);

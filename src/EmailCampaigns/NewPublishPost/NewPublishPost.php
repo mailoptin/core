@@ -209,7 +209,7 @@ class NewPublishPost extends AbstractTriggers
         $search  = ['{{title}}'];
         $replace = [$data_source->post_title];
 
-        return str_replace($search, $replace, $email_subject);
+        return do_shortcode(str_replace($search, $replace, $email_subject));
     }
 
     /**

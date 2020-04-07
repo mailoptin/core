@@ -68,7 +68,7 @@ class Templatify implements TemplatifyInterface
             $content              = ER::get_customizer_value($this->email_campaign_id, 'code_your_own');
             $templatified_content = (new Shortcodes($this->email_campaign_id))->define_general_shortcodes()->parse($content);
         } else {
-            $templatified_content = $this->newsletter_content();
+            $templatified_content = do_shortcode($this->newsletter_content());
         }
 
         $content = (new VideoToImageLink($templatified_content))->forge();
