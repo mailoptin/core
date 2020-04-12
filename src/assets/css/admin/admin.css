@@ -577,12 +577,14 @@ form.mo-inline {
     color: #1d0005;
     max-width: 500px;
     max-height: 500px;
-    border: 1px solid #098fe2;
     margin: 10px 0;
     padding: 100px 10px;
     background-color: #FFF;
     text-align: center;
-    font-size: 25px;
+    font-size: 20px;
+    border: 1px solid #dedede;
+    -webkit-box-shadow: 0 1px 1px -1px rgba(0, 0, 0, .1);
+    box-shadow: 0 1px 1px -1px rgba(0, 0, 0, .1);
 }
 
 /* button style. inspired by https://codepen.io/Angelfire/pen/opdDt. fork @ https://codepen.io/collizo4sky/pen/RgGpqK*/

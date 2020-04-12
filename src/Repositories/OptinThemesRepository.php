@@ -425,7 +425,7 @@ class OptinThemesRepository extends AbstractRepository
             if ($optin_type == 'bar') $optin_type = 'notification bar';
             echo '<div class="mo-error-box" style="padding: 87px 10px;margin:0;">';
             printf(
-                __('Upgrade to %s for %s support', 'mailoptin'),
+                __('Upgrade to %s for %s support.', 'mailoptin'),
                 '<a href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=optin_themes_not_found" target="_blank">MailOptin Premium</a>',
                 $optin_type
             );

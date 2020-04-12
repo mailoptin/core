@@ -99,7 +99,7 @@ class AddEmailCampaign extends AbstractSettingsPage
         if ($campaign_type == EmailCampaignRepository::POSTS_EMAIL_DIGEST && ! apply_filters('mailoptin_enable_post_email_digest', false)) {
             echo '<div class="mo-error-box" style="padding: 87px 10px;margin:0;">';
             printf(
-                __('Posts email digest automatically send daily, weekly or monthly round-up of published posts to your users or email list. Upgrade to %s or higher to get this cool feature.', 'mailoptin'),
+                __('Posts email digest automatically sends daily, weekly or monthly round-up of published posts to your users or email list. Upgrade to %s or higher to get this cool feature.', 'mailoptin'),
                 '<a href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=posts_email_digest" target="_blank">MailOptin Pro plan</a>'
             );
             echo '</div>';
