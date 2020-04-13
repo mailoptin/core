@@ -791,7 +791,7 @@ class AjaxHandler
 
         if ( ! empty($connection_service)) {
 
-            // for Elementor integration that has leadbank among the list of email service.
+            // for Elementor, WPForms integration that has leadbank among the list of email service.
             if ($connection_service == 'leadbank') {
                 return AbstractConnect::ajax_success();
             }
