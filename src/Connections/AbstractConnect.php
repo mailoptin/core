@@ -64,7 +64,7 @@ abstract class AbstractConnect
 
     public function form_custom_field_mappings()
     {
-        // used by our elementor field mapping
+        // used by our elementor and others for field mapping
         if (isset($this->extras['form_custom_field_mappings'])) {
             return $this->extras['form_custom_field_mappings'];
         }
