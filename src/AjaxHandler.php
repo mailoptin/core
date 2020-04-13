@@ -885,6 +885,10 @@ class AjaxHandler
         $extras['optin_campaign_id']     = $optin_campaign_id;
         $extras['connection_service']    = $connection_service;
         $extras['connection_email_list'] = $connection_email_list;
+        // useful for third party integration to specify custom fields.
+        if ( ! empty($conversion_data->form_custom_field_mappings)) {
+            $extras['form_custom_field_mappings'] = $conversion_data->form_custom_field_mappings;
+        }
         // useful for third party integration to specify subscribers tags.
         if ( ! empty($conversion_data->form_tags)) {
             $extras['form_tags'] = $conversion_data->form_tags;
