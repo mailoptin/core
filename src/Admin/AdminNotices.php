@@ -24,6 +24,8 @@ class AdminNotices
             add_action('admin_notices', array($this, 'optin_branding_added_by_default'));
             add_action('admin_notices', array($this, 'review_plugin_notice'));
 
+            add_action('admin_notices', array($this, 'show_woocommerce_features'));
+
             add_filter('removable_query_args', array($this, 'removable_query_args'));
         });
 
@@ -203,6 +205,26 @@ class AdminNotices
             '<a href="' . $upgrade_url . '" target="_blank">' . __('MailOptin premium', 'mailoptin') . '</a>'
         );
         echo '<div data-dismissible="email-campaign-count-limit-exceeded-3" class="updated notice notice-success is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    /**
+     * Display notice when limit of created email campaign is exceeded
+     */
+    public function show_woocommerce_features()
+    {
+        if ( ! PAnD::is_admin_notice_active('show_woocommerce_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('WooCommerce')) return;
+
+        $upgrade_url = 'https://mailoptin.io/integrations/woocommerce/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=woo_admin_notice';
+        $notice      = sprintf(__('Did you know you can display targeted messages and optin forms across your WooCommerce store and also automatically send email alert of new products to your subscribers and customers? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_woocommerce_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
