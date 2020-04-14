@@ -339,3 +339,12 @@ function strtotime_utc($time, $now = null)
 
     return $val;
 }
+
+function moVar($bucket, $key, $default = false, $empty = false)
+{
+    if ($empty) {
+        return ! empty($bucket[$key]) ? $bucket[$key] : $default;
+    }
+
+    return isset($bucket[$key]) ? $bucket[$key] : $default;
+}

@@ -872,9 +872,7 @@ class AjaxHandler
 
         $connection_fqn_class = ConnectionFactory::get_fqn_class($connection_service);
 
-        if (empty($connection_service) ||
-            // useful for service such as convertfox and in future customer.io that doesnt require an email list to be specified.
-            ( ! in_array(AbstractConnect::NON_EMAIL_LIST_SUPPORT, $connection_fqn_class::features_support($connection_service)) && empty($connection_email_list))
+        if (empty($connection_service) || empty($connection_email_list)
         ) {
             AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error);
 

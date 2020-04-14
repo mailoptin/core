@@ -8,14 +8,11 @@ interface ConnectionInterface
     const connectionName = '';
 
     /**
-     * Connections must return array of features (e.g optin_campaign, email_campaign, non_email_list_support) they support.
-     * non_email_list_support indicate the connection work without having to specify an email list during optin
-     *
-     * @param string $connection_service useful for conditional feature support declaration. See convertfox for demo.
+     * Connections must return array of features (e.g optin_campaign, email_campaign) they support.
      *
      * @return array
      */
-    public static function features_support($connection_service = '');
+    public static function features_support();
 
     /**
      * Replace placeholder tags in content_html and content_text with connect/email service replacement.
