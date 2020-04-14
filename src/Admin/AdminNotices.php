@@ -23,8 +23,8 @@ class AdminNotices
             add_action('admin_notices', array($this, 'email_campaign_count_limit_exceeded'));
             add_action('admin_notices', array($this, 'optin_branding_added_by_default'));
             add_action('admin_notices', array($this, 'review_plugin_notice'));
-
             add_action('admin_notices', array($this, 'show_woocommerce_features'));
+            add_action('admin_notices', array($this, 'show_wpforms_features'));
 
             add_filter('removable_query_args', array($this, 'removable_query_args'));
         });
@@ -209,9 +209,6 @@ class AdminNotices
         echo '</div>';
     }
 
-    /**
-     * Display notice when limit of created email campaign is exceeded
-     */
     public function show_woocommerce_features()
     {
         if ( ! PAnD::is_admin_notice_active('show_woocommerce_features-forever')) {
@@ -225,6 +222,23 @@ class AdminNotices
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_woocommerce_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_wpforms_features()
+    {
+        if ( ! PAnD::is_admin_notice_active('show_wpforms_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('WPForms\WPForms')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/wpforms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=wpforms_admin_notice';
+        $notice      = sprintf(__('Did you know you can connect WPForms to major email marketing software and CRMs including Facebook custom audience using MailOptin? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_wpforms_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
