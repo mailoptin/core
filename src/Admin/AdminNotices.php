@@ -25,6 +25,7 @@ class AdminNotices
             add_action('admin_notices', array($this, 'review_plugin_notice'));
             add_action('admin_notices', array($this, 'show_woocommerce_features'));
             add_action('admin_notices', array($this, 'show_wpforms_features'));
+            add_action('admin_notices', array($this, 'show_cf7_features'));
 
             add_filter('removable_query_args', array($this, 'removable_query_args'));
         });
@@ -226,6 +227,23 @@ class AdminNotices
         echo '</div>';
     }
 
+    public function show_cf7_features()
+    {
+        if ( ! PAnD::is_admin_notice_active('show_cf7_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('WPCF7')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/contact-form-7-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=cf7_admin_notice';
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect Contact Form 7 to major email marketing software such as Mailchimp, AWeber, Campaign Monitor, MailerLite, ActiveCampaign? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_cf7_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
     public function show_wpforms_features()
     {
         if ( ! PAnD::is_admin_notice_active('show_wpforms_features-forever')) {
@@ -235,7 +253,7 @@ class AdminNotices
         if ( ! class_exists('WPForms\WPForms')) return;
 
         $upgrade_url = 'https://mailoptin.io/article/wpforms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=wpforms_admin_notice';
-        $notice      = sprintf(__('Did you know you can connect WPForms to major email marketing software and CRMs including Facebook custom audience using MailOptin? %sLearn more%s', 'mailoptin'),
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect WPForms to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Sendinblue? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_wpforms_features-forever" class="notice notice-info is-dismissible">';
