@@ -445,7 +445,7 @@ class AjaxHandler
                 </div>
 
                 <div class="mo-end-test-cancel-button mo-end-test-centered">
-                    <a href="javascript:window.jQuery.fancybox.close();" class="mo-end-test-btn-converted">
+                    <a href="javascript:window.jQuery.fancybox.getInstance().close();" class="mo-end-test-btn-converted">
                         <?php _e('Cancel', 'mailoptin'); ?>
                     </a>
                 </div>

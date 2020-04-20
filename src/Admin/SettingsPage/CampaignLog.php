@@ -22,10 +22,6 @@ class CampaignLog extends AbstractSettingsPage
     public function init($hook)
     {
         add_action("load-$hook", array($this, 'screen_option'));
-
-        add_action("load-$hook", function () {
-            add_action('admin_enqueue_scripts', array('MailOptin\Core\RegisterScripts', 'fancybox_scripts'));
-        });
     }
 
     /**

@@ -3,9 +3,8 @@
         $(".mo-open-link-fancybox").click(function (e) {
             e.preventDefault();
             $.fancybox.open({
-                href: $(this).attr("href"),
-                type: 'iframe',
-                padding: 0
+                src: $(this).attr("href"),
+                type: 'iframe'
             });
         });
     });

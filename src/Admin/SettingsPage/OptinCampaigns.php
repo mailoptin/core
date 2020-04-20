@@ -38,10 +38,6 @@ class OptinCampaigns extends AbstractSettingsPage
         do_action("mailoptin_register_optin_campaign_settings_page", $hook);
 
         add_action("load-$hook", array($this, 'screen_option'));
-
-        add_action("load-$hook", function () {
-            add_action('admin_enqueue_scripts', array('MailOptin\Core\RegisterScripts', 'fancybox_scripts'));
-        });
     }
 
     /**

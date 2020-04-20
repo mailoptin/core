@@ -4,10 +4,10 @@
         e.preventDefault();
         // remove active popover
         $('.mo-ellipsis-tooltipster').tooltipster('close');
+
         $.fancybox.open({
-            href: '#mo-optin-add-split',
+            src: '#mo-optin-add-split',
             type: 'inline',
-            padding: 0
         });
 
         $('#mo-split-parent-id').val(parent_optin_id);
@@ -39,15 +39,13 @@
 
         if (isEmpty(variant_name)) {
             variant_name_obj.addClass('mailoptin-input-error');
-        }
-        else {
+        } else {
             variant_name_obj.removeClass('mailoptin-input-error');
         }
 
         if (isEmpty(split_note)) {
             split_note_obj.addClass('mailoptin-input-error');
-        }
-        else {
+        } else {
             split_note_obj.removeClass('mailoptin-input-error');
         }
 
@@ -66,8 +64,7 @@
         }, function (response) {
             if ('success' in response && response.success === true && typeof response.data.redirect !== 'undefined') {
                 window.location.assign(response.data.redirect);
-            }
-            else {
+            } else {
                 $(_this).prop("disabled", false);
                 $('#mo-split-submit-error').show().html(response.data);
                 $('#mo-split-submit-spinner').hide();
@@ -123,7 +120,7 @@
             nonce: mailoptin_globals.nonce
         }, function (response) {
             if ('success' in response && response.success === true && typeof response.data !== 'undefined') {
-                $.fancybox(response.data, {type: 'inline', padding: 0});
+                $.fancybox.open(response.data);
             }
 
             spinner_obj.hide();
@@ -133,29 +130,27 @@
     // handle click of A/B test ultimate winner selection
     $(document.body).on('click', '.mo-end-test-tbody', function (e) {
         e.preventDefault();
-        var parent_optin_id = $(this).data('parent-id'),
-            winner_optin_id = $(this).data('optin-id'),
-            preloader_obj = $('.mo-end-test-preloader');
+        if (confirm(mailoptin_globals.js_confirm_text)) {
+            var parent_optin_id = $(this).data('parent-id'),
+                winner_optin_id = $(this).data('optin-id'),
+                preloader_obj = $('.mo-end-test-preloader');
 
-        preloader_obj.show();
+            preloader_obj.show();
 
-        $.post(ajaxurl, {
-            action: 'mailoptin_split_test_select_winner',
-            parent_optin_id: parent_optin_id,
-            winner_optin_id: winner_optin_id,
-            nonce: mailoptin_globals.nonce
-        }, function (response) {
-            if ('success' in response && response.success === true && typeof response.data.redirect !== 'undefined') {
-                window.location.assign(response.data.redirect);
-            }
-            else {
-                preloader_obj.hide();
-                $('#mo-select-winner-error').show();
-            }
-        });
+            $.post(ajaxurl, {
+                action: 'mailoptin_split_test_select_winner',
+                parent_optin_id: parent_optin_id,
+                winner_optin_id: winner_optin_id,
+                nonce: mailoptin_globals.nonce
+            }, function (response) {
+                if ('success' in response && response.success === true && typeof response.data.redirect !== 'undefined') {
+                    window.location.assign(response.data.redirect);
+                } else {
+                    preloader_obj.hide();
+                    $('#mo-select-winner-error').show();
+                }
+            });
+        }
     });
-
-
-    // handle click of A/B flag
 
 }(jQuery));

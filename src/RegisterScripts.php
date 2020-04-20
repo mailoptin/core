@@ -16,28 +16,16 @@ class RegisterScripts
         add_action('admin_enqueue_scripts', [$this, 'fancybox_assets']);
         add_action('wp_enqueue_scripts', array($this, 'public_css'));
         add_action('wp_enqueue_scripts', array($this, 'public_js'));
+
         add_action('init', [$this, 'gutenberg_js']);
     }
 
     public function fancybox_assets()
     {
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM'))
-            return;
-
-        wp_register_script('mailoptin-fancybox', MAILOPTIN_LIBSODIUM_ASSETS_URL . 'fancybox/jquery.fancybox.min.js', ['jquery'], false, true);
-        wp_register_script('mailoptin-init-fancybox', MAILOPTIN_ASSETS_URL . 'js/admin/fancybox-init.js', ['jquery'], false, true);
-        wp_register_style('mailoptin-fancybox', MAILOPTIN_LIBSODIUM_ASSETS_URL . 'fancybox/jquery.fancybox.min.css', false, true);
-        wp_register_style('mailoptin-activate-fancybox', MAILOPTIN_ASSETS_URL . 'css/admin/fancybox.css', false, true);
-    }
-
-    public static function fancybox_scripts()
-    {
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
-
-        wp_enqueue_script('mailoptin-fancybox');
-        wp_enqueue_script('mailoptin-init-fancybox');
-        wp_enqueue_style('mailoptin-fancybox');
-        wp_enqueue_style('mailoptin-activate-fancybox');
+        wp_enqueue_script('mailoptin-fancybox', MAILOPTIN_ASSETS_URL . 'fancybox/jquery.fancybox.min.js', ['jquery'], false, true);
+        wp_enqueue_script('mailoptin-init-fancybox', MAILOPTIN_ASSETS_URL . 'js/admin/fancybox-init.js', ['jquery'], false, true);
+        wp_enqueue_style('mailoptin-fancybox', MAILOPTIN_ASSETS_URL . 'fancybox/jquery.fancybox.min.css', false, true);
+        wp_enqueue_style('mailoptin-activate-fancybox', MAILOPTIN_ASSETS_URL . 'css/admin/fancybox.css', false, true);
     }
 
     /**
@@ -257,7 +245,7 @@ class RegisterScripts
             'split_test_start_label'      => __('Start Test', 'mailoptin'),
             'split_test_pause_label'      => __('Pause Test', 'mailoptin'),
             'chosen_search_placeholder'   => __('Type to search', 'mailoptin'),
-            'js_confirm_text'             => __('Are you sure you want to do this?', 'mailoptin'),
+            'js_confirm_text'             => __('Are you sure you?', 'mailoptin'),
             'js_clear_stat_text'          => __('Are you sure you want to do this? Clicking OK will delete all your optin analytics records.', 'mailoptin'),
             'custom_field_label'          => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                     => 0,
