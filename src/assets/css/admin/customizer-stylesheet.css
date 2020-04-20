@@ -1,3 +1,39 @@
+#customize-controls .customize-info .customize-help-toggle {
+    display:none !important;
+}
+
+.wp-customizer .fancybox-container {
+    z-index: 999999999;
+}
+
+.wp-customizer input#motitleinput {
+    padding: 5px;
+    min-width: 300px;
+}
+
+.wp-customizer input#mosavetitle {
+    padding: 4px 10px;
+    min-width: 80px;
+    font-size: 14px;
+}
+
+/* hack to hide "you are customizing..."*/
+span.preview-notice {
+    font-size: 0 !important;
+}
+
+strong.panel-title.site-title {
+    width: calc(100% - 110px);
+}
+
+strong.panel-title.site-title:hover {
+    border: 1px solid #007cba;
+}
+
+.panel-title.site-title {
+    cursor:pointer;
+}
+
 .customize-control + .customize-control {
     border-top: 1px solid #ddd;
     padding-top: 10px;
@@ -618,7 +654,7 @@ li[id*="code_your_own"] + .customize-control {
 .mo-change-theme-button {
     position: absolute;
     right: 6px;
-    top: 40px;
+    top: 10px;
 }
 
 .mo-change-theme-popup {

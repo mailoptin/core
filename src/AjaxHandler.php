@@ -45,6 +45,7 @@ class AjaxHandler
             'create_optin_campaign'                    => false,
             'create_email_campaign'                    => false,
             'customizer_fetch_email_list'              => false,
+            'customizer_rename_optin'                  => false,
             'optin_toggle_active'                      => false,
             'automation_toggle_active'                 => false,
             'toggle_optin_activated'                   => false,
@@ -582,6 +583,24 @@ class AjaxHandler
         $email_list = ConnectionsRepository::connection_email_list($connect);
 
         wp_send_json_success($email_list);
+
+        wp_die();
+    }
+
+    public function customizer_rename_optin()
+    {
+        check_ajax_referer('customizer-fetch-email-list', 'security');
+
+        if ( ! current_user_has_privilege()) {
+            exit;
+        }
+
+        OptinCampaignsRepository::updateCampaignName(
+            sanitize_text_field($_REQUEST['title']),
+            absint($_REQUEST['optin_campaign_id'])
+        );
+
+        wp_send_json_success();
 
         wp_die();
     }

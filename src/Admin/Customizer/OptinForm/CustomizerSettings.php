@@ -465,11 +465,6 @@ class CustomizerSettings extends AbstractCustomizer
     {
         $configuration_settings_args = apply_filters("mo_optin_form_customizer_configuration_settings",
             array(
-                'campaign_title'             => array(
-                    'default'   => $this->customizer_defaults['campaign_title'],
-                    'type'      => 'option',
-                    'transport' => 'postMessage',
-                ),
                 'split_test_note'            => array(
                     'default'   => $this->customizer_defaults['split_test_note'],
                     'type'      => 'option',

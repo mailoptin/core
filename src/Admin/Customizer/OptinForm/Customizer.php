@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\Customizer\OptinForm;
 use MailOptin\Core\Admin\Customizer\CustomizerTrait;
 use MailOptin\Core\Admin\Customizer\UpsellCustomizerSection;
 use MailOptin\Core\OptinForms\AbstractOptinForm;
+use MailOptin\Core\RegisterScripts;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use MailOptin\Core\Repositories\StateRepository;
 
@@ -80,9 +81,6 @@ class Customizer
     /** @var string ID of "user targeting" customizer section. */
     public $user_targeting_display_rule_section_id = 'mo_wp_user_filter_display_rule_section';
 
-    /**
-     * Customizer constructor.
-     */
     public function __construct()
     {
         if ( ! empty($_REQUEST['mailoptin_optin_campaign_id'])) {
@@ -106,8 +104,6 @@ class Customizer
             // do not use template_include because it doesnt work in some instances eg when membermouse plugin is installed.
             add_action('template_redirect', array($this, 'include_optin_form_customizer_template'), 1);
 
-            add_filter('gettext', array($this, 'rewrite_customizer_panel_description'), 10, 3);
-
             // remove all sections other han that of template customizer.
             add_action('customize_section_active', array($this, 'remove_sections'), 10, 2);
 
@@ -115,9 +111,6 @@ class Customizer
             add_action('customize_panel_active', array($this, 'remove_panels'), 10, 2);
 
             add_action('customize_register', array($this, 'register_optin_form_customizer'));
-
-            // save edited optin campaign title
-            add_action('customize_save', array($this, 'save_optin_campaign_title'));
 
             // save edited optin campaign title
             add_action('customize_save_after', array($this, 'burst_cache_after_customizer_save'));
@@ -184,7 +177,19 @@ class Customizer
     public function customizer_footer_scripts()
     {
         $this->add_activate_switch();
+        $this->change_title_html();
         do_action('mo_optin_customizer_footer_scripts', $this);
+    }
+
+    public function change_title_html()
+    {
+        $title = OptinCampaignsRepository::get_optin_campaign_name($this->optin_campaign_id);
+        ?>
+        <div id="mo-change-optin-name-html" style="display: none">
+            <input id="motitleinput" type="text" value="<?=$title?>">
+            <input type="submit" id="mosavetitle" class="button button-primary" data-processing-label="<?=esc_html__('Updating...', 'mailoptin')?>" value="<?=esc_html__('Update', 'mailoptin');?>">
+        </div>
+        <?php
     }
 
     public function selector_mapping_scripts_styles()
@@ -428,10 +433,10 @@ class Customizer
         );
 
         wp_enqueue_style(
-            'mailoptin-customizer', 
+            'mailoptin-customizer',
             MAILOPTIN_ASSETS_URL . 'css/admin/customizer-stylesheet.css',
             array(),
-            filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/customizer-stylesheet.css')    
+            filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/customizer-stylesheet.css')
         );
 
         do_action('mo_optin_customizer_css_js_enqueue', $this);
@@ -452,32 +457,6 @@ class Customizer
         $optin_form_name = OptinCampaignsRepository::get_optin_campaign_name($this->optin_campaign_id);
 
         return $optin_form_name ?: __('Optin Form', 'mailoptin');
-    }
-
-    /**
-     * By default, customizer has the below as its panel description
-     *
-     * The Customizer allows you to preview changes to your site before publishing them.
-     * You can also navigate to different pages on your site to preview them.
-     *
-     * This class method rewrite this.
-     *
-     * @param string $translations
-     * @param string $text
-     * @param string $domain
-     *
-     * @return string
-     */
-    public function rewrite_customizer_panel_description($translations, $text, $domain)
-    {
-        if (strpos($text, 'Customizer allows you to preview changes to your site')) {
-            $translations = __(
-                'The customizer allows you to make and preview changes to MailOptin powered optin forms.',
-                'mailoptin'
-            );
-        }
-
-        return $translations;
     }
 
     /**
@@ -663,23 +642,6 @@ class Customizer
 
         // rewrite panel name from blog name to template name.
         add_filter('pre_option_blogname', [$this, 'rewrite_customizer_panel_title']);
-    }
-
-    /**
-     * @param \WP_Customize_Manager $wp_customize_manager
-     */
-    public function save_optin_campaign_title($wp_customize_manager)
-    {
-        $optin_campaign_id = absint($_POST['mailoptin_optin_campaign_id']);
-        $option_name       = "mo_optin_campaign[$optin_campaign_id][campaign_title]";
-        $posted_values     = $wp_customize_manager->unsanitized_post_values();
-
-        if (array_key_exists($option_name, $posted_values)) {
-            OptinCampaignsRepository::updateCampaignName(
-                sanitize_text_field($posted_values[$option_name]),
-                $optin_campaign_id
-            );
-        }
     }
 
     /**

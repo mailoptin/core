@@ -862,14 +862,6 @@ class CustomizerControls
         $content_control_args = apply_filters(
             "mo_optin_form_customizer_configuration_controls",
             array(
-                'campaign_title'             => apply_filters('mo_optin_form_customizer_campaign_title_args', array(
-                        'type'     => 'text',
-                        'label'    => __('Optin Campaign Name', 'mailoptin'),
-                        'section'  => $this->customizerClassInstance->configuration_section_id,
-                        'settings' => $this->option_prefix . '[campaign_title]',
-                        'priority' => 10,
-                    )
-                ),
                 'split_test_note'            => apply_filters('mo_optin_form_customizer_split_test_note_args', array(
                         'type'        => 'textarea',
                         'label'       => __('Split Test Note', 'mailoptin'),
