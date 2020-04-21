@@ -118,7 +118,7 @@ abstract class AbstractSettingsPage
         $content .= '<li>' . __('Ton of premium optin and email templates.', 'mailoptin') . '</li> ';
         $content .= '<li>' . __('Optin triggers e.g Exit Intent, Scroll etc.', 'mailoptin') . '</li>';
         $content .= '<li>' . __('Actionable reporting & insights.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('Lead Bank - conversion backup.', 'mailoptin') . '</li>';
+        $content .= '<li>' . __('Leads - conversion backup.', 'mailoptin') . '</li>';
         $content .= '<li>' . __('Wow your visitors with DisplayEffects.', 'mailoptin') . '</li>';
         $content .= '<li>' . __('Page level targeting.', 'mailoptin') . '</li>';
         $content .= '<li>' . __('And lots more.', 'mailoptin') . '</li>';

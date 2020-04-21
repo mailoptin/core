@@ -16,8 +16,8 @@ class LeadBank extends AbstractSettingsPage
 
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            __('Lead Bank (Submissions) - MailOptin', 'mailoptin'),
-            __('Lead Bank', 'mailoptin'),
+            __('Leads (Submissions) - MailOptin', 'mailoptin'),
+            __('Leads', 'mailoptin'),
             \MailOptin\Core\get_capability(),
             MAILOPTIN_LEAD_BANK_SETTINGS_SLUG,
             array($this, 'settings_admin_page')
@@ -53,7 +53,7 @@ class LeadBank extends AbstractSettingsPage
 
         $instance = Custom_Settings_Page_Api::instance();
         $instance->option_name('mo_leads');
-        $instance->page_header(__('Lead Bank (Submissions)', 'mailoptin'));
+        $instance->page_header(__('Leads (Submissions)', 'mailoptin'));
         $this->register_core_settings($instance);
         $instance->build(true);
     }
@@ -72,10 +72,10 @@ class LeadBank extends AbstractSettingsPage
             <div class="mo-upgrade-plan">
                 <div class="mo-text-center">
                     <div class="mo-lock-icon"></div>
-                    <h1><?php _e('Lead Bank Locked', 'mailoptin'); ?></h1>
+                    <h1><?php _e('Leads are Locked', 'mailoptin'); ?></h1>
                     <p>
                         <?php printf(
-                            __('LeadBank saves a backup of all leads, subscribers or conversions that happen on your site.', 'mailoptin'),
+                            __('Leads are all subscribers that sign up on your site.', 'mailoptin'),
                             '<strong>',
                             '</strong>');
                         ?>
