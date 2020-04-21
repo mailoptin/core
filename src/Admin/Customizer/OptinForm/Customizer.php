@@ -5,7 +5,6 @@ namespace MailOptin\Core\Admin\Customizer\OptinForm;
 use MailOptin\Core\Admin\Customizer\CustomizerTrait;
 use MailOptin\Core\Admin\Customizer\UpsellCustomizerSection;
 use MailOptin\Core\OptinForms\AbstractOptinForm;
-use MailOptin\Core\RegisterScripts;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use MailOptin\Core\Repositories\StateRepository;
 
@@ -185,9 +184,9 @@ class Customizer
     {
         $title = OptinCampaignsRepository::get_optin_campaign_name($this->optin_campaign_id);
         ?>
-        <div id="mo-change-optin-name-html" style="display: none">
-            <input id="motitleinput" type="text" value="<?=$title?>">
-            <input type="submit" id="mosavetitle" class="button button-primary" data-processing-label="<?=esc_html__('Updating...', 'mailoptin')?>" value="<?=esc_html__('Update', 'mailoptin');?>">
+        <div id="mo-change-name-html" style="display: none">
+            <input id="motitleinput" type="text" value="<?= $title ?>">
+            <input type="submit" id="mosavetitle" class="button button-primary" data-processing-label="<?= esc_html__('Updating...', 'mailoptin') ?>" value="<?= esc_html__('Update', 'mailoptin'); ?>">
         </div>
         <?php
     }
@@ -389,6 +388,8 @@ class Customizer
                   });
               })( wp.customize );'
         );
+
+        wp_add_inline_style('customize-controls', 'strong.panel-title.site-title {width: calc(100% - 110px);}');
 
         wp_enqueue_script(
             'mailoptin-optin-form-contextual-customizer-controls',

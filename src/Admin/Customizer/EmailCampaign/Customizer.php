@@ -6,7 +6,9 @@ use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Submit_Button_Co
 use MailOptin\Core\Admin\Customizer\CustomizerTrait;
 use MailOptin\Core\Admin\Customizer\UpsellCustomizerSection;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
+use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
+use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 class Customizer
 {
@@ -64,6 +66,7 @@ class Customizer
 
             add_action('customize_controls_print_footer_scripts', [$this, 'add_send_newsletter_button']);
             add_action('customize_controls_print_footer_scripts', [$this, 'add_activate_switch']);
+            add_action('customize_controls_print_footer_scripts', [$this, 'change_title_html']);
 
             $this->email_campaign_id = absint($_REQUEST['mailoptin_email_campaign_id']);
 
@@ -198,6 +201,17 @@ class Customizer
                 jQuery('#customize-header-actions').prepend(jQuery('<?php echo $switch; ?>'));
             });
         </script>
+        <?php
+    }
+
+    public function change_title_html()
+    {
+        $title = EmailCampaignRepository::get_email_campaign_name($this->email_campaign_id);
+        ?>
+        <div id="mo-change-name-html" style="display: none">
+            <input id="motitleinput" type="text" value="<?=$title?>">
+            <input type="submit" id="mosavetitle" class="button button-primary" data-processing-label="<?=esc_html__('Updating...', 'mailoptin')?>" value="<?=esc_html__('Update', 'mailoptin');?>">
+        </div>
         <?php
     }
 

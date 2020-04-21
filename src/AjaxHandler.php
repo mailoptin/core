@@ -595,10 +595,19 @@ class AjaxHandler
             exit;
         }
 
-        OptinCampaignsRepository::updateCampaignName(
-            sanitize_text_field($_REQUEST['title']),
-            absint($_REQUEST['optin_campaign_id'])
-        );
+        if (moVar($_POST, 'optin_campaign_id', false, true)) {
+            OptinCampaignsRepository::updateCampaignName(
+                sanitize_text_field($_REQUEST['title']),
+                absint($_REQUEST['optin_campaign_id'])
+            );
+        }
+
+        if (moVar($_POST, 'email_campaign_id', false, true)) {
+            EmailCampaignRepository::update_campaign_name(
+                sanitize_text_field($_REQUEST['title']),
+                absint($_REQUEST['email_campaign_id'])
+            );
+        }
 
         wp_send_json_success();
 

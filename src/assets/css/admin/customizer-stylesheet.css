@@ -22,10 +22,6 @@ span.preview-notice {
     font-size: 0 !important;
 }
 
-strong.panel-title.site-title {
-    width: calc(100% - 110px);
-}
-
 strong.panel-title.site-title:hover {
     border: 1px solid #007cba;
 }

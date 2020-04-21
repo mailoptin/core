@@ -198,6 +198,13 @@ trait CustomizerTrait
     public function mo_customizer_js()
     {
         wp_enqueue_script(
+            'mailoptin-rename-customizer-title',
+            MAILOPTIN_ASSETS_URL . 'js/customizer-controls/rename-customizer-title.js',
+            array('customize-controls'),
+            MAILOPTIN_VERSION_NUMBER
+        );
+
+        wp_enqueue_script(
             'mailoptin-wp-editor',
             MAILOPTIN_ASSETS_URL . 'js/customizer-controls/mo-wp-editor.js',
             array('customize-controls'),

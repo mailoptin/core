@@ -435,42 +435,6 @@
             });
         });
 
-        // --------------------- Rename optin theme ----------------------------- //
-
-        $('body').on('click', '.panel-title.site-title', function () {
-            jQuery.fancybox.open({
-                src: '#mo-change-optin-name-html',
-                type: 'inline'
-            });
-        })
-            .on('click', '#mosavetitle', function () {
-                var inputField = $('#motitleinput');
-                var title = inputField.val().trim();
-
-                var _this = this;
-
-                if (title === '') {
-                    inputField.css("-webkit-box-shadow", "inset 0px 0px 0px 2px #f45a4a");
-                    inputField.css("-moz-box-shadow", "inset 0px 0px 0px 2px #f45a4a");
-                    inputField.css("box-shadow", "inset 0px 0px 0px 2px #f45a4a");
-                } else {
-                    var old_btn_value = $(this).attr('value');
-
-                    $(this).attr('value', $(this).data('processing-label'));
-
-                    $.post(ajaxurl, {
-                        action: 'mailoptin_customizer_rename_optin',
-                        optin_campaign_id: mailoptin_optin_campaign_id,
-                        title: title,
-                        security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
-                    }, function () {
-                        $(_this).attr('value', old_btn_value);
-                        $('.panel-title.site-title').text(title);
-                        $.fancybox.getInstance().close();
-                    });
-                }
-            });
-
         // --------------------- Switch themes ----------------------------- //
 
         //Close button div html
