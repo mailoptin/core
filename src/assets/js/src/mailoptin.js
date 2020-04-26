@@ -129,6 +129,13 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                         self.process_optin_form_display.call(this, optin_js_config, 'inpost', skip_display_checks);
                     }
 
+                    // custom html conversion tracker
+                    $(document).on('click', '.mo-trigger-conversion', function () {
+                        // set cookie for this option conversion when button is clicked.
+                        self.set_cookie('success', $optin_uuid, optin_js_config);
+                        self.ga_event_tracking('conversion', optin_js_config);
+                    });
+
                     // handle CTA button click if activated
                     if (self.is_defined_not_empty(optin_js_config.cta_display) && optin_js_config.cta_display === true && self.is_defined_not_empty(optin_js_config.cta_action)) {
                         // if cta action is to navigate
@@ -919,7 +926,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                         if (!$.isEmptyObject(response) && 'success' in response) {
                             if (response.success === true) {
 
-                                jQuery(document.body).trigger('moOptinConversion', [optin_container, optin_js_config, optin_data]);
+                                $(document.body).trigger('moOptinConversion', [optin_container, optin_js_config, optin_data]);
 
                                 // set cookie for this option conversion
                                 self.set_cookie('success', optin_data.optin_uuid, optin_js_config);
@@ -1146,8 +1153,6 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
                         if (success_action === 'close_optin_reload_page') {
                             return window.location.reload();
-                        } else {
-                            window.location.reload();
                         }
 
                         if (success_action === 'redirect_url' && typeof redirect_url_val !== 'undefined' && redirect_url_val !== '') {

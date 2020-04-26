@@ -33,13 +33,13 @@ class ConnectionsRepository
 
             if (class_exists($connection_class) && method_exists($connection_class, 'features_support')) {
                 if ($customizer_type == 'optin_campaign') {
-                    if (!in_array('optin_campaign', $connection_class::features_support())) {
+                    if ( ! in_array('optin_campaign', $connection_class::features_support())) {
                         unset($connections[$className]);
                     }
                 }
 
                 if ($customizer_type == 'email_campaign') {
-                    if (!in_array('email_campaign', $connection_class::features_support())) {
+                    if ( ! in_array('email_campaign', $connection_class::features_support())) {
                         unset($connections[$className]);
                     }
                 }
@@ -47,7 +47,7 @@ class ConnectionsRepository
         }
 
         // Remove all ESP in email campaign customizer in lite.
-        if (!apply_filters('mailoptin_enable_email_customizer_connections', false) && $customizer_type == 'email_campaign') {
+        if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false) && $customizer_type == 'email_campaign') {
             foreach ($connections as $key => $value) {
                 if ($key == '') {
                     continue;
