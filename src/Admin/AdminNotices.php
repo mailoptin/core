@@ -26,6 +26,7 @@ class AdminNotices
             add_action('admin_notices', array($this, 'show_woocommerce_features'));
             add_action('admin_notices', array($this, 'show_wpforms_features'));
             add_action('admin_notices', array($this, 'show_cf7_features'));
+            add_action('admin_notices', array($this, 'show_ninja_forms_features'));
 
             add_filter('removable_query_args', array($this, 'removable_query_args'));
         });
@@ -240,6 +241,23 @@ class AdminNotices
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_cf7_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_ninja_forms_features()
+    {
+        if ( ! PAnD::is_admin_notice_active('show_ninja_forms_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('Ninja_Forms')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/ninja-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=ninja_forms_admin_notice';
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect Ninja Forms to major email marketing software such as Mailchimp, AWeber, Campaign Monitor, MailerLite, ActiveCampaign? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_ninja_forms_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
