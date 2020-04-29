@@ -42,7 +42,6 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function register_settings_page()
     {
-
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Emails - MailOptin', 'mailoptin'),
@@ -55,7 +54,6 @@ class EmailCampaigns extends AbstractSettingsPage
         add_action("load-$hook", array($this, 'screen_option'));
 
         do_action("mailoptin_register_email_campaign_settings_page", $hook);
-
     }
 
     /**
@@ -165,7 +163,6 @@ class EmailCampaigns extends AbstractSettingsPage
     {
         //Maybe abort early
         if ( ! Core\post_can_new_post_notification($post)) return;
-
         ?>
         <div style="text-align: left;margin: 10px;">
             <?php

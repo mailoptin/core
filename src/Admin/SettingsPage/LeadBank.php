@@ -13,7 +13,6 @@ class LeadBank extends AbstractSettingsPage
 
     public function register_settings_page()
     {
-
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Leads (Submissions) - MailOptin', 'mailoptin'),

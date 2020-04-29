@@ -59,6 +59,7 @@ define('MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG', 'mailoptin-emails');
 define('MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG', 'campaign-log');
 define('MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_SLUG', 'newsletters');
 define('MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG', 'mailoptin-optin-campaigns');
+define('MAILOPTIN_FLOWS_SETTINGS_SLUG', 'mailoptin-flows');
 define('MAILOPTIN_LEAD_BANK_SETTINGS_SLUG', 'mailoptin-lead-bank');
 define('MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG', 'mailoptin-statistics');
 
@@ -138,6 +139,7 @@ class Base
         Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
+        Admin\SettingsPage\Flows\Flows::get_instance();
         Admin\SettingsPage\OptinCampaigns::get_instance();
         Admin\SettingsPage\LeadBank::get_instance();
         Admin\SettingsPage\AdvanceAnalytics::get_instance();
