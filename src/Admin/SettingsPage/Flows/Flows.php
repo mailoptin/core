@@ -65,11 +65,12 @@ class Flows extends AbstractSettingsPage
             $option = 'per_page';
             $args   = array(
                 'label'   => __('Flows', 'mailoptin'),
-                'default' => 8,
+                'default' => 10,
                 'option'  => 'flows_per_page',
             );
 
             add_screen_option($option, $args);
+
             $this->flows_list_instance = Flows_List::get_instance();
         }
     }
@@ -79,27 +80,27 @@ class Flows extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
-        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new-optin') {
-//            AddOptinCampaign::get_instance()->settings_admin_page();
+        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new') {
+            AddFlow::get_instance()->settings_admin_page();
         } else {
             // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
             add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
-            add_action('wp_cspa_before_closing_header', [$this, 'add_new_optin_form_button']);
+            add_action('wp_cspa_before_closing_header', [$this, 'add_new_button']);
 
             $instance = Custom_Settings_Page_Api::instance();
 
             $instance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
             $instance->page_header(__('Flows', 'mailoptin'));
             $this->register_core_settings($instance);
-            echo '<div class="mailoptin-data-listing">';
+            echo '<div class="mailoptin-data-listing mailoptin-flows">';
             $instance->build(true);
             echo '</div>';
         }
     }
 
-    public function add_new_optin_form_button()
+    public function add_new_button()
     {
-        $url = add_query_arg('view', 'add-new-optin', MAILOPTIN_FLOWS_SETTINGS_SLUG);
+        $url = add_query_arg('view', 'add-new', MAILOPTIN_FLOWS_SETTINGS_PAGE);
         echo "<a class=\"add-new-h2\" href=\"$url\">" . __('Add New', 'mailoptin') . '</a>';
     }
 
@@ -126,7 +127,7 @@ class Flows extends AbstractSettingsPage
     }
 
     /**
-     * @return OptinCampaigns
+     * @return self
      */
     public static function get_instance()
     {

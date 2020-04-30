@@ -1173,3 +1173,29 @@ form.mo-inline {
 .mo-builder-create-btn:focus {
     border-bottom: 2px solid #2980b9;
 }
+
+.mailoptin-data-listing.mailoptin-flows input[type=checkbox].tgl-flat:checked + .tgl-btn {
+    border: 2px solid #0085ba;
+    padding: 1px;
+}
+
+.mailoptin-data-listing.mailoptin-flows input[type=checkbox].tgl + .tgl-btn {
+    width: 3em;
+    height: 1.5em;
+}
+
+.mailoptin-data-listing.mailoptin-flows .column-status {
+    width: 50px;
+}
+
+.mailoptin-data-listing.mailoptin-flows .column-title {
+    text-align: left;
+}
+
+.mailoptin-data-listing.mailoptin-flows td.column-title {
+    text-align: left;
+}
+
+.mailoptin-data-listing.mailoptin-flows .column-created_at {
+    width: 15%;
+}

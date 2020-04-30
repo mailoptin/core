@@ -10,6 +10,7 @@ final class Core
     const campaign_log_meta_table_name = 'mo_campaign_logmeta';
     const conversions_table_name = 'mo_conversions';
     const email_campaigns_table_name = 'mo_email_campaigns';
+    const flows_table_name = 'mo_automate_flows';
     const email_campaign_meta_table_name = 'mo_email_campaignmeta';
 
     public function __construct()
