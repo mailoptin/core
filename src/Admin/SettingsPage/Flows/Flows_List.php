@@ -167,7 +167,7 @@ class Flows_List extends \WP_List_Table
     {
         printf(
             __('No flows is currently available. %sConsider creating one%s', 'mailoptin'),
-            '<a href="' . add_query_arg('view', 'add-new', MAILOPTIN_FLOWS_SETTINGS_PAGE) . '">',
+            '<a href="' . add_query_arg('view', 'add', MAILOPTIN_FLOWS_SETTINGS_PAGE) . '">',
             '</a>'
         );
     }

@@ -28,10 +28,10 @@ class Flows extends AbstractSettingsPage
     public function register_settings_page()
     {
         $title = __('Flows', 'mailoptin');
-        if(isset($_GET['view']) && $_GET['view'] == 'add-new') {
+        if (isset($_GET['view']) && $_GET['view'] == 'add') {
             $title = esc_html__('Add New Flow', 'mailoptin');
         }
-        $hook  = add_submenu_page(
+        $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             $title . ' - MailOptin',
             __('Flows', 'mailoptin'),
@@ -91,7 +91,7 @@ class Flows extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
-        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new') {
+        if ( ! empty($_GET['view']) && in_array($_GET['view'], ['add', 'edit'])) {
             AddFlow::get_instance()->settings_admin_page();
         } else {
             // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
@@ -111,7 +111,7 @@ class Flows extends AbstractSettingsPage
 
     public function add_new_button()
     {
-        $url = add_query_arg('view', 'add-new', MAILOPTIN_FLOWS_SETTINGS_PAGE);
+        $url = add_query_arg('view', 'add', MAILOPTIN_FLOWS_SETTINGS_PAGE);
         echo "<a class=\"add-new-h2\" href=\"$url\">" . __('Add New', 'mailoptin') . '</a>';
     }
 

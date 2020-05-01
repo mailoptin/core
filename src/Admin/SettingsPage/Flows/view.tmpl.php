@@ -12,6 +12,7 @@ $registered_categories = Flows::registered_categories();
             <input type="text" name="flow_title" size="30" value="" id="title" spellcheck="true" autocomplete="off">
         </div>
     </div>
+    <?php wp_nonce_field('mo_save_automate_flows', 'security'); ?>
     <div id="normal-sortables" class="">
         <div id="aw_trigger_box" class="postbox  automatewoo-metabox no-drag">
             <button type="button" class="handlediv" aria-expanded="true">
@@ -29,7 +30,7 @@ $registered_categories = Flows::registered_categories();
                                 <span class="required">*</span></label>
                         </td>
                         <td class="automatewoo-table__col automatewoo-table__col--field">
-                            <select id="mo-flow-trigger" name="aw_workflow_data[trigger_name]" class="automatewoo-field js-trigger-select">
+                            <select id="mo-flow-trigger" name="mo_flow_data[trigger_name]" class="automatewoo-field js-trigger-select">
                                 <option value=""><?= esc_html__('Select...', 'mailoptin'); ?></option>
                                 <?php if (is_array($triggers) && ! empty($triggers)) : ?>
                                     <?php foreach ($triggers as $categoryKey => $catTrigger) : ?>
@@ -46,8 +47,6 @@ $registered_categories = Flows::registered_categories();
                             </div>
                         </td>
                     </tr>
-
-
                     </tbody>
                 </table>
             </div>
@@ -56,11 +55,9 @@ $registered_categories = Flows::registered_categories();
             <button type="button" class="handlediv" aria-expanded="true"><span class="screen-reader-text">Toggle panel: Rules <small>(optional)</small></span><span class="toggle-indicator" aria-hidden="true"></span>
             </button>
             <h2 class="hndle">
-                <span>Rules <small>(optional)</small></span><a href="https://automatewoo.com/docs/rules/?utm_source=workflow-edit&amp;utm_medium=plugin&amp;utm_campaign=plugin-links" class="automatewoo-help-link automatewoo-help-link--right" target="_blank"></a>
+                <span>Rules <small>(optional)</small></span><a href="#" class="automatewoo-help-link automatewoo-help-link--right" target="_blank"></a>
             </h2>
             <div class="inside">
-
-
                 <div id="aw-rules-container">
 
                     <div class="aw-rules-container">
@@ -83,7 +80,7 @@ $registered_categories = Flows::registered_categories();
                 <span class="screen-reader-text">Toggle panel: Actions</span><span class="toggle-indicator" aria-hidden="true"></span>
             </button>
             <h2 class="hndle">
-                <span>Actions</span><a href="https://automatewoo.com/docs/actions/?utm_source=workflow-edit&amp;utm_medium=plugin&amp;utm_campaign=plugin-links" class="automatewoo-help-link automatewoo-help-link--right" target="_blank"></a>
+                <span>Actions</span><a href="#" class="automatewoo-help-link automatewoo-help-link--right" target="_blank"></a>
             </h2>
             <div class="inside">
 
@@ -139,46 +136,13 @@ $registered_categories = Flows::registered_categories();
                                             <optgroup label="Order Item">
                                                 <option value="order_item_update_meta" disabled="disabled">Update Custom Field</option>
                                             </optgroup>
-                                            <optgroup label="Subscription">
-                                                <option value="change_subscription_status" disabled="disabled">Change Status</option>
-                                                <option value="subscription_update_meta" disabled="disabled">Update Custom Field</option>
-                                                <option value="subscription_send_invoice" disabled="disabled">Send Invoice</option>
-                                                <option value="subscription_add_product" disabled="disabled">Add Product</option>
-                                                <option value="subscription_remove_product" disabled="disabled">Remove Product</option>
-                                                <option value="subscription_add_note" disabled="disabled">Add Note</option>
-                                                <option value="subscription_add_coupon" disabled="disabled">Add Coupon</option>
-                                                <option value="subscription_remove_coupon" disabled="disabled">Remove Coupon</option>
-                                            </optgroup>
-                                            <optgroup label="Memberships">
-                                                <option value="memberships_change_plan">Create / Change Membership Plan For User</option>
-                                                <option value="memberships_delete_user_membership">Delete Membership For User</option>
-                                            </optgroup>
-                                            <optgroup label="AutomateWoo">
-                                                <option value="clear_queued_events">Clear Queued Events</option>
-                                                <option value="change_workflow_status" disabled="disabled">Change Workflow Status</option>
-                                            </optgroup>
-                                            <optgroup label="Other">
-                                                <option value="custom_function">Custom Function</option>
-                                                <option value="change_post_status" disabled="disabled">Change Post Status</option>
-                                            </optgroup>
-                                            <optgroup label="Product">
-                                                <option value="update_product_meta" disabled="disabled">Update Custom Field</option>
-                                            </optgroup>
-                                            <optgroup label="Mad Mimi">
-                                                <option value="add_to_mad_mimi_list">Add Customer to List</option>
-                                            </optgroup>
-                                            <optgroup label="DEPRECATED">
-                                                <option value="add_to_campaign_monitor">Campaign Monitor Add Customer to List [DEPRECATED]</option>
-                                            </optgroup>
-
                                         </select>
 
 
                                         <div class="js-action-description">
                                             <p class="aw-field-description">This action sends an HTML email using a template. The default template matches the style of your WooCommerce transactional emails.
-                                                <a href="https://automatewoo.com/docs/email/templates/?utm_source=action-description&amp;utm_medium=plugin&amp;utm_campaign=plugin-links" target="_blank">View email templates documentation</a>.
+                                                <a href="#" target="_blank">View email templates documentation</a>.
                                             </p></div>
-
                                     </td>
                                 </tr>
 
