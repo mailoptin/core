@@ -8,8 +8,7 @@ $registered_categories = Flows::registered_categories();
 <div id="postbox-container-2" class="postbox-container">
     <div id="titlediv" style="margin-bottom: 20px;">
         <div id="titlewrap">
-            <label id="title-prompt-text" for="title"><?= esc_html__('Add title', 'mailoptin') ?></label>
-            <input type="text" name="flow_title" size="30" value="" id="title" spellcheck="true" autocomplete="off">
+            <input type="text" name="flow_title" value="" id="title" spellcheck="true" placeholder="<?= esc_html__('Add title', 'mailoptin') ?>">
         </div>
     </div>
     <?php wp_nonce_field('mo_save_automate_flows', 'security'); ?>
@@ -110,7 +109,7 @@ $registered_categories = Flows::registered_categories();
                                     <td class="automatewoo-table__col automatewoo-table__col--field">
 
 
-                                        <select name="aw_workflow_data[actions][1][action_name]" data-name="action_name" class="automatewoo-field automatewoo-field--type-select js-action-select">
+                                        <select name="mo_flow_data[actions][1][action_name]" data-name="action_name" class="automatewoo-field automatewoo-field--type-select js-action-select">
 
                                             <option value="">[Select]</option>
 
@@ -159,7 +158,7 @@ $registered_categories = Flows::registered_categories();
                                     </td>
 
                                     <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="aw_workflow_data[actions][1][to]" value="hello" class="automatewoo-field automatewoo-field--type-text" placeholder="E.g. {{ customer.email }}, admin@example.org --notracking" data-automatewoo-validate="variables " required="">
+                                        <input type="text" name="mo_flow_data[actions][1][to]" value="hello" class="automatewoo-field automatewoo-field--type-text" placeholder="E.g. {{ customer.email }}, admin@example.org --notracking" data-automatewoo-validate="variables " required="">
                                     </td>
                                 </tr>
 
@@ -175,7 +174,7 @@ $registered_categories = Flows::registered_categories();
                                     </td>
 
                                     <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="aw_workflow_data[actions][1][subject]" value="hi" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables " required="">
+                                        <input type="text" name="mo_flow_data[actions][1][subject]" value="hi" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables " required="">
                                     </td>
                                 </tr>
 
@@ -191,7 +190,7 @@ $registered_categories = Flows::registered_categories();
                                     </td>
 
                                     <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="aw_workflow_data[actions][1][email_heading]" value="" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables ">
+                                        <input type="text" name="mo_flow_data[actions][1][email_heading]" value="" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables ">
                                     </td>
                                 </tr>
 
@@ -207,7 +206,7 @@ $registered_categories = Flows::registered_categories();
                                     </td>
 
                                     <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="aw_workflow_data[actions][1][preheader]" value="" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables ">
+                                        <input type="text" name="mo_flow_data[actions][1][preheader]" value="" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables ">
                                     </td>
                                 </tr>
 
@@ -224,7 +223,7 @@ $registered_categories = Flows::registered_categories();
 
                                     <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
 
-                                        <select name="aw_workflow_data[actions][1][template]" data-name="template" class="automatewoo-field automatewoo-field--type-select">
+                                        <select name="mo_flow_data[actions][1][template]" data-name="template" class="automatewoo-field automatewoo-field--type-select">
 
 
                                             <option value="default" selected="selected">WooCommerce Default</option>

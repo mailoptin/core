@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core\Repositories;
 
+use MailOptin\Core\Core;
+
 class FlowsRepository extends AbstractRepository
 {
     /**
@@ -31,23 +33,30 @@ class FlowsRepository extends AbstractRepository
      *
      * @return false|int
      */
-    public static function add_flow($name, $campaign_type, $class)
+    public static function add_flow($name, $status, $flow_data)
     {
         $response = parent::wpdb()->insert(
             parent::flows_table(),
             array(
-                'name'           => stripslashes($name),
-                'campaign_type'  => $campaign_type,
-                'template_class' => $class
+                'title'  => $name,
+                'status' => $status,
             ),
             array(
-                '%s',
                 '%s',
                 '%s'
             )
         );
 
-        return ! $response ? $response : parent::wpdb()->insert_id;
+        if ( ! $response) {
+
+            $flow_id = parent::wpdb()->insert_id;
+
+            self::add_meta_data($flow_id, 'flow_data', $flow_data);
+
+            return $flow_id;
+        }
+
+        return $response;
     }
 
     /**
@@ -152,5 +161,84 @@ class FlowsRepository extends AbstractRepository
         $all_settings                            = self::get_settings();
         $all_settings[$flow_id]['activate_flow'] = false;
         self::updateSettings($all_settings);
+    }
+
+    /**
+     * Add meta data field to flow.
+     *
+     * @param int $flow_id
+     * @param string $meta_key
+     * @param string $meta_value
+     * @param bool $unique
+     *
+     * @return int|false Meta ID on success, false on failure.
+     */
+    public static function add_meta_data($flow_id, $meta_key, $meta_value, $unique = false)
+    {
+        return add_metadata('automate_flow', $flow_id, $meta_key, $meta_value, $unique);
+    }
+
+    /**
+     * Update flow meta field based on campaign ID.
+     *
+     * @param int $flow_id
+     * @param string $meta_key
+     * @param string $meta_value
+     * @param string $prev_value
+     *
+     * @return int|bool Meta ID if the key didn't exist, true on successful update, false on failure.
+     */
+    public static function update_meta_data($flow_id, $meta_key, $meta_value, $prev_value = '')
+    {
+        return update_metadata('automate_flow', $flow_id, $meta_key, $meta_value, $prev_value);
+    }
+
+    /**
+     * Remove metadata matching criteria from a flow.
+     *
+     * @param int $flow_id
+     * @param string $meta_key
+     * @param string $meta_value
+     * @param bool $delete_all
+     *
+     * @return bool True on success, false on failure.
+     */
+    public static function delete_meta_data($flow_id, $meta_key, $meta_value = '', $delete_all = false)
+    {
+        return delete_metadata('automate_flow', $flow_id, $meta_key, $meta_value, $delete_all);
+    }
+
+
+    /**
+     * Delete all meta data belonging to an flow.
+     *
+     * @param $flow_id
+     *
+     * @return bool
+     */
+    public static function delete_all_meta_data($flow_id)
+    {
+        if ( ! isset($flow_id)) return false;
+
+        global $wpdb;
+
+        return $wpdb->delete(
+            $wpdb->prefix . Core::flows_meta_table_name,
+            array('flow_id' => $flow_id)
+        );
+    }
+
+    /**
+     * Retrieve post meta field for a flow.
+     *
+     * @param int $flow_id
+     * @param string $meta_key
+     * @param bool $single
+     *
+     * @return mixed
+     */
+    public static function get_meta_data($flow_id, $meta_key = '', $single = true)
+    {
+        return get_metadata('automate_flow', $flow_id, $meta_key, $single);
     }
 }

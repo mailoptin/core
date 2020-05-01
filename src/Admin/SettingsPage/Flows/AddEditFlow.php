@@ -8,9 +8,10 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage;
+use MailOptin\Core\Repositories\FlowsRepository;
 use W3Guy\Custom_Settings_Page_Api;
 
-class AddFlow extends AbstractSettingsPage
+class AddEditFlow extends AbstractSettingsPage
 {
     /**
      * Back to campaign overview button.
@@ -47,6 +48,27 @@ class AddFlow extends AbstractSettingsPage
         require dirname(__FILE__) . '/sidebar-view.tmpl.php';
 
         return ob_get_clean();
+    }
+
+    public function save_flow()
+    {
+        if (isset($_GET['view'], $_GET['flowid']) && $_GET['view'] = 'edit') {
+            // update
+        }
+
+        if (isset($_GET['view']) && $_GET['view'] == 'add') {
+
+            check_admin_referer('mo_save_automate_flows', 'security');
+
+            $response = FlowsRepository::add_flow(
+                sanitize_text_field($_POST['flow_title']),
+                sanitize_text_field($_POST['flow_status']),
+                $_POST['aw_workflow_data']
+            );
+
+            var_dump($response);
+            exit;
+        }
     }
 
     /**

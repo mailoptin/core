@@ -183,6 +183,7 @@ class Base
         $wpdb->optin_campaignmeta = $wpdb->prefix . Core::optin_campaign_meta_table_name;
         $wpdb->email_campaignmeta = $wpdb->prefix . Core::email_campaign_meta_table_name;
         $wpdb->campaign_logmeta   = $wpdb->prefix . Core::campaign_log_meta_table_name;
+        $wpdb->automate_flowmeta   = $wpdb->prefix . Core::flows_meta_table_name;
     }
 
     /**

@@ -31,6 +31,7 @@ class Flows extends AbstractSettingsPage
         if (isset($_GET['view']) && $_GET['view'] == 'add') {
             $title = esc_html__('Add New Flow', 'mailoptin');
         }
+
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             $title . ' - MailOptin',
@@ -40,9 +41,11 @@ class Flows extends AbstractSettingsPage
             array($this, 'settings_admin_page_callback')
         );
 
-        do_action("mailoptin_register_optin_campaign_settings_page", $hook);
+        do_action("mailoptin_register_flows_settings_page", $hook);
 
         add_action("load-$hook", array($this, 'screen_option'));
+
+        AddEditFlow::get_instance()->save_flow();
     }
 
     /**
@@ -92,7 +95,7 @@ class Flows extends AbstractSettingsPage
     public function settings_admin_page_callback()
     {
         if ( ! empty($_GET['view']) && in_array($_GET['view'], ['add', 'edit'])) {
-            AddFlow::get_instance()->settings_admin_page();
+            AddEditFlow::get_instance()->settings_admin_page();
         } else {
             // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
             add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);

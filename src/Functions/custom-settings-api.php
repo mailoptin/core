@@ -970,20 +970,21 @@ public function _header($section_title, $args = array())
             <?php do_action('wp_cspa_after_settings_tab', $this->option_name); ?>
             <div id="poststuff" class="wp_csa_view">
                 <?php do_action('wp_cspa_before_metabox_holder_column'); ?>
-                <div id="post-body" class="metabox-holder<?php echo $columns2_class; ?>">
-                    <div id="post-body-content">
-                        <?php do_action('wp_cspa_before_post_body_content', $this->option_name, $this->db_options); ?>
-                        <div class="meta-box-sortables ui-sortable">
-                            <form method="post" <?php do_action('wp_cspa_form_tag', $this->option_name); ?>>
-                                <?php $this->nonce_field(); ?>
-                                <?php ob_start(); ?>
-                                <?php $this->_settings_page_main_content_area(); ?>
-                                <?php echo apply_filters('wp_cspa_main_content_area', ob_get_clean(), $this->option_name); ?>
-                            </form>
+                <form method="post" <?php do_action('wp_cspa_form_tag', $this->option_name); ?>>
+                    <div id="post-body" class="metabox-holder<?php echo $columns2_class; ?>">
+                        <div id="post-body-content">
+                            <?php do_action('wp_cspa_before_post_body_content', $this->option_name, $this->db_options); ?>
+                            <div class="meta-box-sortables ui-sortable">
+                                    <?php $this->nonce_field(); ?>
+                                    <?php ob_start(); ?>
+                                    <?php $this->_settings_page_main_content_area(); ?>
+                                    <?php echo apply_filters('wp_cspa_main_content_area', ob_get_clean(), $this->option_name); ?>
+
+                            </div>
                         </div>
+                        <?php $this->setting_page_sidebar(); ?>
                     </div>
-                    <?php $this->setting_page_sidebar(); ?>
-                </div>
+                </form>
             </div>
         </div>
 
