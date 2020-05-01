@@ -111,6 +111,8 @@ class Base
         Shortcodes::get_instance();
         Recaptcha::get_instance();
 
+        Flows\Triggers\Init::get_instance();
+
         add_action('widgets_init', ['MailOptin\Core\OptinForms\SidebarWidgets', 'widget_registration']);
 
         add_action('plugins_loaded', [$this, 'register_metadata_table']);

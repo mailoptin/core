@@ -27,14 +27,26 @@ class AddFlow extends AbstractSettingsPage
     public function settings_admin_page()
     {
         add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
-        add_filter('wp_cspa_main_content_area', function () {
-            echo 'hello';
-        });
+        add_filter('wp_cspa_main_content_area', [$this, 'flow_builder_page']);
+        add_filter('wp_cspa_setting_page_sidebar', [$this, 'flow_builder_page_sidebar']);
 
         $instance = Custom_Settings_Page_Api::instance();
         $instance->page_header(__('Add New Flow', 'mailoptin'));
         $this->register_core_settings($instance);
-        $instance->build(true, true);
+        $instance->build();
+    }
+
+    public function flow_builder_page()
+    {
+        require dirname(__FILE__) . '/view.tmpl.php';
+    }
+
+    public function flow_builder_page_sidebar()
+    {
+        ob_start();
+        require dirname(__FILE__) . '/sidebar-view.tmpl.php';
+
+        return ob_get_clean();
     }
 
     /**

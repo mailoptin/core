@@ -8,6 +8,7 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage;
+use MailOptin\Core\Flows\Triggers\AbstractTrigger;
 use W3Guy\Custom_Settings_Page_Api;
 
 class Flows extends AbstractSettingsPage
@@ -26,10 +27,13 @@ class Flows extends AbstractSettingsPage
 
     public function register_settings_page()
     {
-
-        $hook = add_submenu_page(
+        $title = __('Flows', 'mailoptin');
+        if(isset($_GET['view']) && $_GET['view'] == 'add-new') {
+            $title = esc_html__('Add New Flow', 'mailoptin');
+        }
+        $hook  = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            __('Flows - MailOptin', 'mailoptin'),
+            $title . ' - MailOptin',
             __('Flows', 'mailoptin'),
             \MailOptin\Core\get_capability(),
             MAILOPTIN_FLOWS_SETTINGS_SLUG,
@@ -73,6 +77,13 @@ class Flows extends AbstractSettingsPage
 
             $this->flows_list_instance = Flows_List::get_instance();
         }
+    }
+
+    public static function registered_categories()
+    {
+        return apply_filters('mo_automate_flows_categories', [
+            AbstractTrigger::WOOCOMERCE_CATEGORY => 'WooCommerce'
+        ]);
     }
 
     /**

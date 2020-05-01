@@ -46,4 +46,15 @@ abstract class AbstractRepository
     {
         return self::wpdb()->prefix . Core::email_campaigns_table_name;
     }
+
+
+    /**
+     * Database table for flows.
+     *
+     * @return string
+     */
+    public static function flows_table()
+    {
+        return self::wpdb()->prefix . Core::flows_table_name;
+    }
 }

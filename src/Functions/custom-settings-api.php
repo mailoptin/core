@@ -134,8 +134,10 @@ class Custom_Settings_Page_Api
     {
         $custom = apply_filters('wp_cspa_setting_page_sidebar', '', $this->option_name);
 
-        if ( ! empty($custom))
-            return $custom;
+        if ( ! empty($custom)) {
+            echo $custom;
+            return;
+        }
         ?>
         <div id="postbox-container-1" class="postbox-container">
             <div class="meta-box-sortables" style="text-align: center; margin: auto">
