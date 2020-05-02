@@ -31,10 +31,27 @@ class AddEditFlow extends AbstractSettingsPage
         add_filter('wp_cspa_main_content_area', [$this, 'flow_builder_page']);
         add_filter('wp_cspa_setting_page_sidebar', [$this, 'flow_builder_page_sidebar']);
 
+        add_action('admin_footer', [$this, 'flow_builder_globals']);
+
         $instance = Custom_Settings_Page_Api::instance();
         $instance->page_header(Flows::page_title());
         $this->register_core_settings($instance);
         $instance->build();
+    }
+
+    public static function registered_triggers()
+    {
+        return apply_filters('mo_automate_flows_triggers', []);
+    }
+
+    public function flow_builder_globals()
+    {
+        printf(
+            '<script type="text/javascript">
+                    var mo_automate_flows_triggers = %s;
+                    </script>',
+            json_encode(self::registered_triggers())
+        );
     }
 
     public function flow_builder_page()

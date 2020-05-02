@@ -1,9 +1,10 @@
 <?php
 
+use MailOptin\Core\Admin\SettingsPage\Flows\AddEditFlow;
 use MailOptin\Core\Admin\SettingsPage\Flows\Flows;
 use MailOptin\Core\Repositories\FlowsRepository;
 
-$triggers              = apply_filters('mo_automate_flows_triggers', []);
+$triggers              = AddEditFlow::registered_triggers();
 $registered_categories = Flows::registered_categories();
 
 $saved_title = '';
@@ -20,11 +21,11 @@ if (isset($_GET['flowid'])) {
     </div>
     <?php wp_nonce_field('mo_save_automate_flows', 'security'); ?>
     <div id="normal-sortables" class="">
-        <div id="aw_trigger_box" class="postbox  automatewoo-metabox no-drag">
+        <div id="mo_trigger_box" class="postbox  automatewoo-metabox no-drag">
             <button type="button" class="handlediv" aria-expanded="true">
-                <span class="screen-reader-text"><?= esc_html__('Toggle panel: Trigger', 'mailoptin'); ?></span>
                 <span class="toggle-indicator" aria-hidden="true"></span>
             </button>
+
             <h2 class="hndle"><span><?= esc_html__('Trigger', 'mailoptin'); ?></span></h2>
 
             <div class="inside">
@@ -41,15 +42,15 @@ if (isset($_GET['flowid'])) {
                                 <?php if (is_array($triggers) && ! empty($triggers)) : ?>
                                     <?php foreach ($triggers as $categoryKey => $catTrigger) : ?>
                                         <optgroup label="<?= $registered_categories[$categoryKey]; ?>">
-                                            <?php foreach ($catTrigger as $trigger) : ?>
-                                                <option value="<?= $trigger['id'] ?>"><?= $trigger['title'] ?></option>
+                                            <?php foreach ($catTrigger as $triggerId => $trigger) : ?>
+                                                <option data-flow-category="<?= $categoryKey ?>" value="<?= $triggerId ?>"><?= $trigger['title'] ?></option>
                                             <?php endforeach; ?>
                                         </optgroup>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </select>
                             <div class="js-trigger-description">
-                                <p class="aw-field-description">This trigger fires after an order is created in the database. At checkout this happens before payment is confirmed.</p>
+                                <p id="mo-flow-trigger-description" class="aw-field-description"></p>
                             </div>
                         </td>
                     </tr>

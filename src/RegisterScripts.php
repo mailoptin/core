@@ -35,6 +35,7 @@ class RegisterScripts
     {
         wp_enqueue_script('jquery');
         wp_enqueue_script('underscore');
+        wp_enqueue_script('backbone');
         wp_enqueue_script('mailoptin-admin-tooltipster', MAILOPTIN_ASSETS_URL . 'tooltipster/bundle.min.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
         wp_enqueue_script('mailoptin-admin-tooltipster-init', MAILOPTIN_ASSETS_URL . 'tooltipster/init.js', array('jquery', 'mailoptin-admin-tooltipster'), MAILOPTIN_VERSION_NUMBER, true);
         wp_enqueue_script('mailoptin-admin-script', MAILOPTIN_ASSETS_URL . 'js/admin/admin-script.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
@@ -50,10 +51,10 @@ class RegisterScripts
         $this->global_js_variables('mailoptin-add-optin-campaign');
 
         if (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) {
-            wp_enqueue_script('mo-requirejs', MAILOPTIN_ASSETS_URL . 'js/src/require.js', [], MAILOPTIN_VERSION_NUMBER, true);
-            wp_enqueue_script('mo-flow-builder', MAILOPTIN_ASSETS_URL . 'js/admin/flowbuilder/main.js', ['jquery', 'mo-requirejs'], MAILOPTIN_VERSION_NUMBER, true);
+            wp_enqueue_script('mo-requirejs', MAILOPTIN_ASSETS_URL . 'js/src/require.js', ['jquery', 'backbone'], MAILOPTIN_VERSION_NUMBER, true);
+            wp_enqueue_script('mo-flow-builder', MAILOPTIN_ASSETS_URL . 'js/admin/flowbuilder/main.js', ['jquery', 'backbone', 'mo-requirejs'], MAILOPTIN_VERSION_NUMBER, true);
         } else {
-            wp_enqueue_script('mo-flow-builder', MAILOPTIN_ASSETS_URL . 'js/flowbuilder.min.js', ['jquery'], MAILOPTIN_VERSION_NUMBER, true);
+            wp_enqueue_script('mo-flow-builder', MAILOPTIN_ASSETS_URL . 'js/admin/flowbuilder.min.js', ['jquery', 'backbone'], MAILOPTIN_VERSION_NUMBER, true);
         }
 
         do_action('mo_admin_js_enqueue');
@@ -247,7 +248,7 @@ class RegisterScripts
         $localize_strings = array(
             'admin_url'                   => admin_url(),
             'public_js'                   => MAILOPTIN_ASSETS_URL . 'js/src',
-            'flow_builder_js_folder'                   => MAILOPTIN_ASSETS_URL . 'js/admin/flowbuilder',
+            'flow_builder_js_folder'      => MAILOPTIN_ASSETS_URL . 'js/admin/flowbuilder',
             'nonce'                       => wp_create_nonce('mailoptin-admin-nonce'),
             'mailoptin_ajaxurl'           => AjaxHandler::get_endpoint(),
             'is_customize_preview'        => is_customize_preview() ? 'true' : 'false',

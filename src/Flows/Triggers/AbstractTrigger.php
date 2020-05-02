@@ -14,7 +14,7 @@ abstract class AbstractTrigger implements TriggerInterface
 
     public function add_flow($triggers)
     {
-        $triggers[$this->category()][] = [
+        $triggers[$this->category()][$this->id()] = [
             'id'          => $this->id(),
             'title'       => $this->title(),
             'description' => $this->description()

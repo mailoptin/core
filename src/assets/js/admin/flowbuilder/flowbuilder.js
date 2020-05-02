@@ -1,7 +1,13 @@
 /**
  * @var {object} mailoptin_globals
  */
-define(['jquery', 'mailoptin_globals'], function ($, mailoptin_globals) {
-    "use strict";
-    console.log('hello');
+var includes = [
+    'jquery',
+    'trigger.view'
+];
+
+define(includes, function ($, TriggerView) {
+    $(window).on('load', function () {
+        new TriggerView();
+    });
 });

@@ -17,21 +17,21 @@ gulp.task('optinrjs', function () {
         .pipe(gulp.dest('src/assets/js'));
 });
 
-gulp.task('flowBuilderrjs', function () {
+gulp.task('flowBuilderRjs', function () {
     var requirejsOptimize = require('gulp-requirejs-optimize');
-    return gulp.src('src/assets/js/src/main.js')
+    return gulp.src('src/assets/js/admin/flowbuilder/main.js')
         .pipe(requirejsOptimize(function (file) {
             return {
                 preserveLicenseComments: false,
                 optimize: 'uglify',
                 wrap: true,
-                baseUrl: './src/assets/js/src',
-                name: "almond",
+                baseUrl: './src/assets/js/admin/flowbuilder',
+                name: "../../src/almond",
                 include: "main",
-                out: "mailoptin.min.js"
+                out: "admin/flowbuilder.min.js"
             };
         }))
         .pipe(gulp.dest('src/assets/js'));
 });
 
-gulp.task('default', ['optinrjs']);
+gulp.task('default', ['optinrjs', 'flowBuilderRjs']);
