@@ -52,13 +52,30 @@ class AddEditFlow extends AbstractSettingsPage
 
     public function save_flow()
     {
-        if (isset($_GET['view'], $_GET['flowid']) && $_GET['view'] = 'edit') {
-            // update
+        if ( ! isset($_POST['save_flow'])) return;
+
+        if (isset($_GET['view']) && in_array($_GET['view'], ['add', 'edit'])) {
+            check_admin_referer('mo_save_automate_flows', 'security');
         }
 
-        if (isset($_GET['view']) && $_GET['view'] == 'add') {
+        $view = $_GET['view'];
 
-            check_admin_referer('mo_save_automate_flows', 'security');
+        if ($view == 'edit') {
+            $flow_id  = absint($_GET['flowid']);
+            $response = FlowsRepository::update_flow(
+                $flow_id,
+                sanitize_text_field($_POST['flow_title']),
+                sanitize_text_field($_POST['flow_status']),
+                $_POST['mo_flow_data']
+            );
+
+            if ($response) {
+                wp_safe_redirect(add_query_arg(['view' => $view, 'flowid' => $flow_id], MAILOPTIN_FLOWS_SETTINGS_PAGE));
+                exit;
+            }
+        }
+
+        if ($view == 'add') {
 
             $response = FlowsRepository::add_flow(
                 sanitize_text_field($_POST['flow_title']),
@@ -67,7 +84,7 @@ class AddEditFlow extends AbstractSettingsPage
             );
 
             if (is_int($response)) {
-                wp_safe_redirect(add_query_arg(['view' => 'edit', 'flowid' => $response], MAILOPTIN_FLOWS_SETTINGS_PAGE));
+                wp_safe_redirect(add_query_arg(['view' => $view, 'flowid' => $response], MAILOPTIN_FLOWS_SETTINGS_PAGE));
                 exit;
             }
         }

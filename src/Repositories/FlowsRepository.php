@@ -7,24 +7,6 @@ use MailOptin\Core\Core;
 class FlowsRepository extends AbstractRepository
 {
     /**
-     * Check if an flow name already exist.
-     *
-     * @param string $name
-     *
-     * @return bool
-     */
-    public static function name_exist($name)
-    {
-        $campaign_name = sanitize_text_field($name);
-        $table         = parent::flows_table();
-        $result        = parent::wpdb()->get_var(
-            parent::wpdb()->prepare("SELECT name FROM $table WHERE name = '%s'", $campaign_name)
-        );
-
-        return ! empty($result);
-    }
-
-    /**
      * Add new flow to database.
      *
      * @param string $name
@@ -60,6 +42,36 @@ class FlowsRepository extends AbstractRepository
     }
 
     /**
+     * Update flow
+     *
+     * @param int $flow_id
+     * @param string $name
+     * @param string $campaign_type
+     * @param string $class
+     *
+     * @return false|int
+     */
+    public static function update_flow($flow_id, $name, $status, $flow_data)
+    {
+        $response = parent::wpdb()->update(
+            parent::flows_table(),
+            ['title' => $name, 'status' => $status],
+            ['id' => $flow_id],
+            ['%s', '%s'],
+            ['%d']
+        );
+
+        if ($response) {
+
+            self::update_meta_data($flow_id, 'flow_data', $flow_data);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get name or title of flow.
      *
      * @param int $flow_id
@@ -71,6 +83,18 @@ class FlowsRepository extends AbstractRepository
         $table = parent::flows_table();
 
         return parent::wpdb()->get_var("SELECT title FROM $table WHERE id = '$flow_id'");
+    }
+
+    /**
+     * @param int $flow_id
+     *
+     * @return string
+     */
+    public static function get_flow_status($flow_id)
+    {
+        $table = parent::flows_table();
+
+        return parent::wpdb()->get_var("SELECT status FROM $table WHERE id = '$flow_id'");
     }
 
     /**

@@ -1,3 +1,15 @@
+<?php
+
+use MailOptin\Core\Repositories\FlowsRepository;
+
+$status = $created_at = '';
+
+if (isset($_GET['flowid'])) {
+    $flow_id = absint($_GET['flowid']);
+    $status  = FlowsRepository::get_flow_status($flow_id);
+}
+
+?>
 <div id="postbox-container-1" class="postbox-container">
     <div id="side-sortables" class="">
         <div id="aw_save_box" class="postbox  automatewoo-metabox no-drag">
@@ -19,8 +31,8 @@
 
                                     <div class="automatewoo-input-group__input">
                                         <select name="flow_status" data-name="flow_status" class="automatewoo-field automatewoo-field--type-select">
-                                            <option value="active"><?= esc_html__('Active', 'mailoptin') ?></option>
-                                            <option value="disabled"><?= esc_html__('Disabled', 'mailoptin') ?></option>
+                                            <option value="active" <?= selected($status, 'active', false) ?>><?= esc_html__('Active', 'mailoptin') ?></option>
+                                            <option value="disabled" <?= selected($status, 'disabled', false) ?>><?= esc_html__('Disabled', 'mailoptin') ?></option>
                                         </select>
                                     </div>
                                 </div>
@@ -37,7 +49,7 @@
                             </div>
                         <?php endif; ?>
                         <div id="publishing-action">
-                            <input name="save" type="submit" class="button button-primary button-large" value="<?= esc_html__('Save', 'mailoptin'); ?>">
+                            <input name="save_flow" type="submit" class="button button-primary button-large" value="<?= esc_html__('Save', 'mailoptin'); ?>">
                         </div>
                         <div class="clear"></div>
                     </div>
