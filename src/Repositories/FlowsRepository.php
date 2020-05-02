@@ -47,7 +47,7 @@ class FlowsRepository extends AbstractRepository
             )
         );
 
-        if ( ! $response) {
+        if ($response && is_int(parent::wpdb()->insert_id)) {
 
             $flow_id = parent::wpdb()->insert_id;
 
@@ -56,7 +56,7 @@ class FlowsRepository extends AbstractRepository
             return $flow_id;
         }
 
-        return $response;
+        return false;
     }
 
     /**
@@ -66,11 +66,11 @@ class FlowsRepository extends AbstractRepository
      *
      * @return string
      */
-    public static function get_flow_name($flow_id)
+    public static function get_flow_title($flow_id)
     {
         $table = parent::flows_table();
 
-        return parent::wpdb()->get_var("SELECT name FROM $table WHERE id = '$flow_id'");
+        return parent::wpdb()->get_var("SELECT title FROM $table WHERE id = '$flow_id'");
     }
 
     /**

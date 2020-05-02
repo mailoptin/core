@@ -25,16 +25,25 @@ class Flows extends AbstractSettingsPage
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
     }
 
-    public function register_settings_page()
+    public static function page_title()
     {
         $title = __('Flows', 'mailoptin');
         if (isset($_GET['view']) && $_GET['view'] == 'add') {
             $title = esc_html__('Add New Flow', 'mailoptin');
         }
 
+        if (isset($_GET['view']) && $_GET['view'] == 'edit') {
+            $title = esc_html__('Edit Flow', 'mailoptin');
+        }
+
+        return $title;
+    }
+
+    public function register_settings_page()
+    {
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            $title . ' - MailOptin',
+            self::page_title() . ' - MailOptin',
             __('Flows', 'mailoptin'),
             \MailOptin\Core\get_capability(),
             MAILOPTIN_FLOWS_SETTINGS_SLUG,

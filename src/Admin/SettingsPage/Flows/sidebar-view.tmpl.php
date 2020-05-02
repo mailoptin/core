@@ -31,10 +31,11 @@
                     </table>
 
                     <div id="major-publishing-actions">
-                        <div id="delete-action">
-                            <a class="submitdelete deletion" href="#"><?= esc_html__('Delete', 'mailoptin'); ?></a>
-                        </div>
-
+                        <?php if (isset($_GET['flowid'])) : ?>
+                            <div id="delete-action">
+                                <a class="submitdelete deletion" href="#"><?= esc_html__('Delete', 'mailoptin'); ?></a>
+                            </div>
+                        <?php endif; ?>
                         <div id="publishing-action">
                             <input name="save" type="submit" class="button button-primary button-large" value="<?= esc_html__('Save', 'mailoptin'); ?>">
                         </div>

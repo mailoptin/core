@@ -32,7 +32,7 @@ class AddEditFlow extends AbstractSettingsPage
         add_filter('wp_cspa_setting_page_sidebar', [$this, 'flow_builder_page_sidebar']);
 
         $instance = Custom_Settings_Page_Api::instance();
-        $instance->page_header(__('Add New Flow', 'mailoptin'));
+        $instance->page_header(Flows::page_title());
         $this->register_core_settings($instance);
         $instance->build();
     }
@@ -63,11 +63,13 @@ class AddEditFlow extends AbstractSettingsPage
             $response = FlowsRepository::add_flow(
                 sanitize_text_field($_POST['flow_title']),
                 sanitize_text_field($_POST['flow_status']),
-                $_POST['aw_workflow_data']
+                $_POST['mo_flow_data']
             );
 
-            var_dump($response);
-            exit;
+            if (is_int($response)) {
+                wp_safe_redirect(add_query_arg(['view' => 'edit', 'flowid' => $response], MAILOPTIN_FLOWS_SETTINGS_PAGE));
+                exit;
+            }
         }
     }
 

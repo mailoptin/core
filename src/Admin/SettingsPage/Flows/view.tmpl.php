@@ -1,14 +1,21 @@
 <?php
 
 use MailOptin\Core\Admin\SettingsPage\Flows\Flows;
+use MailOptin\Core\Repositories\FlowsRepository;
 
 $triggers              = apply_filters('mo_automate_flows_triggers', []);
 $registered_categories = Flows::registered_categories();
+
+$saved_title = '';
+if (isset($_GET['flowid'])) {
+    $flow_id     = absint($_GET['flowid']);
+    $saved_title = FlowsRepository::get_flow_title($flow_id);
+}
 ?>
 <div id="postbox-container-2" class="postbox-container">
     <div id="titlediv" style="margin-bottom: 20px;">
         <div id="titlewrap">
-            <input type="text" name="flow_title" value="" id="title" spellcheck="true" placeholder="<?= esc_html__('Add title', 'mailoptin') ?>">
+            <input type="text" name="flow_title" value="<?= $saved_title ?>" id="title" spellcheck="true" placeholder="<?= esc_html__('Add title', 'mailoptin') ?>">
         </div>
     </div>
     <?php wp_nonce_field('mo_save_automate_flows', 'security'); ?>
@@ -342,8 +349,6 @@ $registered_categories = Flows::registered_categories();
                 <div class="automatewoo-metabox-footer">
                     <a href="#" class="js-aw-add-action button button-primary button-large">+ Add Action</a>
                 </div>
-
-
             </div>
         </div>
     </div>
