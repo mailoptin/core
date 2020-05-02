@@ -26,4 +26,22 @@ class OrderCreated extends AbstractTrigger
     {
         return esc_html__('This trigger fires after a new orders is created with selected statuses.', 'mailoptin');
     }
+
+    public function settings()
+    {
+        $settings = [
+            'order_status' => [
+                'field'       => 'select2',
+                'label'       => esc_html__('Select Order Status'),
+                'description' => esc_html__('Select order statuses that will trigger this flow', 'mailoptin'),
+                'options'     => [
+                    'processing' => esc_html__('Processing', 'mailoptin'),
+                    'completed'  => esc_html__('Completed', 'mailoptin'),
+                    'onhold'     => esc_html__('On hold', 'mailoptin')
+                ]
+            ]
+        ];
+
+        return $settings;
+    }
 }

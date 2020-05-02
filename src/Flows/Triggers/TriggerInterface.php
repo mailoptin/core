@@ -12,4 +12,6 @@ interface TriggerInterface
     public function title();
 
     public function description();
+
+    public function settings();
 }

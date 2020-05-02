@@ -54,6 +54,23 @@ if (isset($_GET['flowid'])) {
                             </div>
                         </td>
                     </tr>
+                    <tr class="automatewoo-table__row aw-trigger-option" data-name="name" data-type="select" data-required="0 ">
+
+                        <td class="automatewoo-table__col automatewoo-table__col--label">
+                            Status changes from
+                            <span title="tool tip here" class="mo-tooltipster dashicons dashicons-editor-help" style="font-size: 16px;cursor: help;"></span>
+                        </td>
+
+                        <td class="automatewoo-table__col automatewoo-table__col--field">
+                            <select name="aw_workflow_data[trigger_options][order_status_from][]" data-name="order_status_from" class="automatewoo-field automatewoo-field--type-select wc-enhanced-select select2-hidden-accessible enhanced" multiple="" data-placeholder="[Any]" tabindex="-1" aria-hidden="true">
+
+                                <option value="wc-pending">Pending payment</option>
+                                <option value="wc-processing">Processing</option>
+
+                            </select>
+
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
