@@ -8,12 +8,25 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage;
+use MailOptin\Core\Flows\Triggers\AbstractTrigger;
 use MailOptin\Core\Repositories\FlowsRepository;
 use W3Guy\Custom_Settings_Page_Api;
 
 class AddEditFlow extends AbstractSettingsPage
 {
     public $flow_id;
+
+    public function __construct()
+    {
+        add_action('admin_enqueue_scripts', [$this, 'select2_enqueue']);
+    }
+
+    public static function registered_categories()
+    {
+        return apply_filters('mo_automate_flows_categories', [
+            AbstractTrigger::WOOCOMMERCE_CATEGORY => 'WooCommerce'
+        ]);
+    }
 
     /**
      * Back to campaign overview button.
@@ -29,6 +42,8 @@ class AddEditFlow extends AbstractSettingsPage
      */
     public function settings_admin_page()
     {
+        $this->save_flow();
+
         if (isset($_GET['flowid'])) {
             $this->flow_id = absint($_GET['flowid']);
         }
@@ -68,6 +83,13 @@ class AddEditFlow extends AbstractSettingsPage
         );
     }
 
+    public function get_triggers_by_category($category)
+    {
+        return array_filter(self::registered_triggers(), function ($item) use ($category) {
+            return $item['category'] == $category;
+        });
+    }
+
     public function flow_builder_page()
     {
         $flow_id = $this->flow_id;
@@ -96,6 +118,7 @@ class AddEditFlow extends AbstractSettingsPage
 
         if ($view == 'edit') {
             $flow_id  = absint($_GET['flowid']);
+
             $response = FlowsRepository::update_flow(
                 $flow_id,
                 sanitize_text_field($_POST['flow_title']),

@@ -1,22 +1,23 @@
 <?php
 
 use MailOptin\Core\Admin\SettingsPage\Flows\AddEditFlow;
-use MailOptin\Core\Admin\SettingsPage\Flows\Flows;
 use MailOptin\Core\Repositories\FlowsRepository;
 
 $triggers              = AddEditFlow::registered_triggers();
-$registered_categories = Flows::registered_categories();
+$registered_categories = AddEditFlow::registered_categories();
 
 $saved_title = '';
 // $flow_id is from function that calls this template.
 if (isset($flow_id)) {
-    $saved_title = FlowsRepository::get_flow_title($flow_id);
+    $db_data      = FlowsRepository::get_flow_by_id($flow_id);
+    $flow_title   = $db_data['title'];
+    $trigger_name = $db_data['trigger_name'];
 }
 ?>
 <div id="postbox-container-2" class="postbox-container">
     <div id="titlediv" style="margin-bottom: 20px;">
         <div id="titlewrap">
-            <input type="text" name="flow_title" value="<?= $saved_title ?>" id="title" spellcheck="true" placeholder="<?= esc_html__('Add title', 'mailoptin') ?>">
+            <input type="text" name="flow_title" value="<?= $flow_title ?>" id="title" spellcheck="true" placeholder="<?= esc_html__('Add title', 'mailoptin') ?>">
         </div>
     </div>
     <?php wp_nonce_field('mo_save_automate_flows', 'security'); ?>
@@ -38,16 +39,23 @@ if (isset($flow_id)) {
                         </td>
                         <td class="automatewoo-table__col automatewoo-table__col--field">
                             <select id="mo-flow-trigger" name="mo_flow_data[trigger_name]" class="automatewoo-field js-trigger-select">
+
                                 <option value=""><?= esc_html__('Select...', 'mailoptin'); ?></option>
+
                                 <?php if (is_array($triggers) && ! empty($triggers)) : ?>
-                                    <?php foreach ($triggers as $categoryKey => $catTrigger) : ?>
-                                        <optgroup label="<?= $registered_categories[$categoryKey]; ?>">
-                                            <?php foreach ($catTrigger as $triggerId => $trigger) : ?>
-                                                <option data-flow-category="<?= $categoryKey ?>" value="<?= $triggerId ?>"><?= $trigger['title'] ?></option>
+
+                                    <?php foreach ($registered_categories as $categoryKey => $catLabel) : ?>
+
+                                        <optgroup label="<?= $catLabel ?>">
+                                            <?php foreach ($this->get_triggers_by_category($categoryKey) as $trigger) : ?>
+                                                <option value="<?= $trigger['id'] ?>" <?= selected($trigger_name, $trigger['id'], false); ?>><?= $trigger['title'] ?></option>
                                             <?php endforeach; ?>
                                         </optgroup>
+
                                     <?php endforeach; ?>
+
                                 <?php endif; ?>
+
                             </select>
                             <div class="js-trigger-description">
                                 <p id="mo-flow-trigger-description" class="aw-field-description"></p>

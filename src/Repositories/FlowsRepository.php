@@ -31,7 +31,7 @@ class FlowsRepository extends AbstractRepository
             )
         );
 
-        if ($response && is_int(parent::wpdb()->insert_id)) {
+        if ($response !== false && is_int(parent::wpdb()->insert_id)) {
 
             $flow_id = parent::wpdb()->insert_id;
 
@@ -63,7 +63,7 @@ class FlowsRepository extends AbstractRepository
             ['%d']
         );
 
-        if ($response) {
+        if ($response !== false) {
 
             self::update_meta_data($flow_id, self::FLOW_META_KEY, $flow_data);
 
@@ -142,12 +142,11 @@ class FlowsRepository extends AbstractRepository
         );
 
         if ($flows) {
-            $flows['meta_data'] = self::get_meta_data($flow_id, self::FLOW_META_KEY);
-            $data               = $flows;
+            $meta_data = self::get_meta_data($flow_id, self::FLOW_META_KEY);
+            $data      = array_merge($flows, $meta_data);
         }
 
         return $data;
-
     }
 
     /**

@@ -14,7 +14,7 @@ class OrderCreated extends AbstractTrigger
 
     public function category()
     {
-        return self::WOOCOMERCE_CATEGORY;
+        return self::WOOCOMMERCE_CATEGORY;
     }
 
     public function title()

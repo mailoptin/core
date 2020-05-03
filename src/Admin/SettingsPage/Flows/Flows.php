@@ -8,7 +8,6 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage;
-use MailOptin\Core\Flows\Triggers\AbstractTrigger;
 use W3Guy\Custom_Settings_Page_Api;
 
 class Flows extends AbstractSettingsPage
@@ -18,12 +17,15 @@ class Flows extends AbstractSettingsPage
      */
     protected $flows_list_instance;
 
+    protected $addEditFlowInstance;
+
     public function __construct()
     {
         add_action('admin_menu', array($this, 'register_settings_page'));
-        add_action('admin_enqueue_scripts', [AddEditFlow::get_instance(), 'select2_enqueue']);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
+
+        $this->addEditFlowInstance = AddEditFlow::get_instance();
     }
 
     public static function page_title()
@@ -54,8 +56,6 @@ class Flows extends AbstractSettingsPage
         do_action("mailoptin_register_flows_settings_page", $hook);
 
         add_action("load-$hook", array($this, 'screen_option'));
-
-        AddEditFlow::get_instance()->save_flow();
     }
 
     /**
@@ -92,20 +92,13 @@ class Flows extends AbstractSettingsPage
         }
     }
 
-    public static function registered_categories()
-    {
-        return apply_filters('mo_automate_flows_categories', [
-            AbstractTrigger::WOOCOMERCE_CATEGORY => 'WooCommerce'
-        ]);
-    }
-
     /**
      * Build the settings page structure. I.e tab, sidebar.
      */
     public function settings_admin_page_callback()
     {
         if ( ! empty($_GET['view']) && in_array($_GET['view'], ['add', 'edit'])) {
-            AddEditFlow::get_instance()->settings_admin_page();
+            $this->addEditFlowInstance->settings_admin_page();
         } else {
             // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
             add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);

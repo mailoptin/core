@@ -7,6 +7,7 @@ class Init
     public function __construct()
     {
         new WooCommerce\OrderCreated();
+        new WooCommerce\OrderRefunded();
 
         do_action('mo_automate_trigger_init');
     }
