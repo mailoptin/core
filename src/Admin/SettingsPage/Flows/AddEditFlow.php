@@ -48,6 +48,10 @@ class AddEditFlow extends AbstractSettingsPage
             $this->flow_id = absint($_GET['flowid']);
         }
 
+        add_action('mailoptin_admin_notices', function () {
+        add_action('admin_notices', array($this, 'admin_notice'));
+        });
+
         add_action('admin_footer', [$this, 'flow_builder_globals']);
 
         add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
@@ -58,6 +62,15 @@ class AddEditFlow extends AbstractSettingsPage
         $instance->page_header(Flows::page_title());
         $this->register_core_settings($instance);
         $instance->build();
+    }
+
+    public function admin_notice()
+    {
+        if (isset($_GET['settings-updated']) && $_GET['settings-updated'] == 'true') {
+            echo '<div id="message" class="updated notice is-dismissible">';
+            echo '<p>' . esc_html__('Flow Updated', 'mailoptin') . '</p>';
+            echo '</div>';
+        }
     }
 
     public function select2_enqueue()
@@ -117,7 +130,7 @@ class AddEditFlow extends AbstractSettingsPage
         $view = $_GET['view'];
 
         if ($view == 'edit') {
-            $flow_id  = absint($_GET['flowid']);
+            $flow_id = absint($_GET['flowid']);
 
             $response = FlowsRepository::update_flow(
                 $flow_id,
@@ -127,7 +140,12 @@ class AddEditFlow extends AbstractSettingsPage
             );
 
             if ($response) {
-                wp_safe_redirect(add_query_arg(['view' => $view, 'flowid' => $flow_id], MAILOPTIN_FLOWS_SETTINGS_PAGE));
+                wp_safe_redirect(
+                    add_query_arg(
+                        ['view' => $view, 'flowid' => $flow_id, 'settings-updated' => 'true'],
+                        MAILOPTIN_FLOWS_SETTINGS_PAGE
+                    )
+                );
                 exit;
             }
         }
