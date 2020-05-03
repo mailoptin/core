@@ -4,11 +4,9 @@ use MailOptin\Core\Repositories\FlowsRepository;
 
 $status = $created_at = '';
 
-if (isset($_GET['flowid'])) {
-    $flow_id = absint($_GET['flowid']);
-    $status  = FlowsRepository::get_flow_status($flow_id);
+if (isset($flow_id)) {
+    $status = FlowsRepository::get_flow_status($flow_id);
 }
-
 ?>
 <div id="postbox-container-1" class="postbox-container">
     <div id="side-sortables" class="">

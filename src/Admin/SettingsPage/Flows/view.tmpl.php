@@ -8,8 +8,8 @@ $triggers              = AddEditFlow::registered_triggers();
 $registered_categories = Flows::registered_categories();
 
 $saved_title = '';
-if (isset($_GET['flowid'])) {
-    $flow_id     = absint($_GET['flowid']);
+// $flow_id is from function that calls this template.
+if (isset($flow_id)) {
     $saved_title = FlowsRepository::get_flow_title($flow_id);
 }
 ?>
@@ -21,7 +21,7 @@ if (isset($_GET['flowid'])) {
     </div>
     <?php wp_nonce_field('mo_save_automate_flows', 'security'); ?>
     <div id="normal-sortables" class="">
-        <div id="mo_trigger_box" class="postbox  automatewoo-metabox no-drag">
+        <div id="mo-flow-trigger-meta-box" class="postbox  automatewoo-metabox no-drag">
             <button type="button" class="handlediv" aria-expanded="true">
                 <span class="toggle-indicator" aria-hidden="true"></span>
             </button>
@@ -31,7 +31,7 @@ if (isset($_GET['flowid'])) {
             <div class="inside">
                 <table class="automatewoo-table">
                     <tbody>
-                    <tr class="automatewoo-table__row" data-name="trigger_name" data-type="select" data-required="1">
+                    <tr class="automatewoo-table__row" id="mo-flow-trigger-select-row">
                         <td class="automatewoo-table__col automatewoo-table__col--label">
                             <label for="mo-flow-trigger"><?= esc_html__('Trigger', 'mailoptin') ?>
                                 <span class="required">*</span></label>
@@ -52,23 +52,6 @@ if (isset($_GET['flowid'])) {
                             <div class="js-trigger-description">
                                 <p id="mo-flow-trigger-description" class="aw-field-description"></p>
                             </div>
-                        </td>
-                    </tr>
-                    <tr class="automatewoo-table__row aw-trigger-option" data-name="name" data-type="select" data-required="0 ">
-
-                        <td class="automatewoo-table__col automatewoo-table__col--label">
-                            Status changes from
-                            <span title="tool tip here" class="mo-tooltipster dashicons dashicons-editor-help" style="font-size: 16px;cursor: help;"></span>
-                        </td>
-
-                        <td class="automatewoo-table__col automatewoo-table__col--field">
-                            <select name="aw_workflow_data[trigger_options][order_status_from][]" data-name="order_status_from" class="automatewoo-field automatewoo-field--type-select wc-enhanced-select select2-hidden-accessible enhanced" multiple="" data-placeholder="[Any]" tabindex="-1" aria-hidden="true">
-
-                                <option value="wc-pending">Pending payment</option>
-                                <option value="wc-processing">Processing</option>
-
-                            </select>
-
                         </td>
                     </tr>
                     </tbody>

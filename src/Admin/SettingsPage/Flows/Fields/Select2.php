@@ -18,7 +18,7 @@ class Select2 implements FieldInterface
 
     public function render()
     {
-        printf('<select name="%s">', $this->name);
+        printf('<select name="%s[]" class="mo-flow-field-select2" multiple>', $this->name);
         if (isset($this->args['options']) && is_array($this->args['options'])) {
             foreach ($this->args['options'] as $key => $label) {
                 printf('<option value="%s">%s</option>', $key, $label);

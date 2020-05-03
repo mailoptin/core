@@ -31,7 +31,7 @@ class OrderCreated extends AbstractTrigger
     {
         $settings = [
             'order_status' => [
-                'field'       => 'select2',
+                'field'       => self::SELECT2_FIELD,
                 'label'       => esc_html__('Select Order Status'),
                 'description' => esc_html__('Select order statuses that will trigger this flow', 'mailoptin'),
                 'options'     => [

@@ -6,6 +6,8 @@ use MailOptin\Core\Core;
 
 class FlowsRepository extends AbstractRepository
 {
+    const FLOW_META_KEY = 'flow_data';
+
     /**
      * Add new flow to database.
      *
@@ -33,7 +35,7 @@ class FlowsRepository extends AbstractRepository
 
             $flow_id = parent::wpdb()->insert_id;
 
-            self::add_meta_data($flow_id, 'flow_data', $flow_data);
+            self::add_meta_data($flow_id, self::FLOW_META_KEY, $flow_data);
 
             return $flow_id;
         }
@@ -63,7 +65,7 @@ class FlowsRepository extends AbstractRepository
 
         if ($response) {
 
-            self::update_meta_data($flow_id, 'flow_data', $flow_data);
+            self::update_meta_data($flow_id, self::FLOW_META_KEY, $flow_data);
 
             return true;
         }
@@ -132,10 +134,20 @@ class FlowsRepository extends AbstractRepository
     {
         $table = parent::flows_table();
 
-        return parent::wpdb()->get_row(
+        $data = [];
+
+        $flows = parent::wpdb()->get_row(
             parent::wpdb()->prepare("SELECT * FROM $table WHERE id = %d", $flow_id),
             'ARRAY_A'
         );
+
+        if ($flows) {
+            $flows['meta_data'] = self::get_meta_data($flow_id, self::FLOW_META_KEY);
+            $data               = $flows;
+        }
+
+        return $data;
+
     }
 
     /**

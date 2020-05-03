@@ -8,6 +8,6 @@ var includes = [
 
 define(includes, function ($, TriggerView) {
     $(window).on('load', function () {
-        new TriggerView();
+        (new TriggerView()).render();
     });
 });

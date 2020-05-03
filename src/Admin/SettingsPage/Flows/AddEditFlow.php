@@ -13,6 +13,8 @@ use W3Guy\Custom_Settings_Page_Api;
 
 class AddEditFlow extends AbstractSettingsPage
 {
+    public $flow_id;
+
     /**
      * Back to campaign overview button.
      */
@@ -27,16 +29,26 @@ class AddEditFlow extends AbstractSettingsPage
      */
     public function settings_admin_page()
     {
+        if (isset($_GET['flowid'])) {
+            $this->flow_id = absint($_GET['flowid']);
+        }
+
+        add_action('admin_footer', [$this, 'flow_builder_globals']);
+
         add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
         add_filter('wp_cspa_main_content_area', [$this, 'flow_builder_page']);
         add_filter('wp_cspa_setting_page_sidebar', [$this, 'flow_builder_page_sidebar']);
-
-        add_action('admin_footer', [$this, 'flow_builder_globals']);
 
         $instance = Custom_Settings_Page_Api::instance();
         $instance->page_header(Flows::page_title());
         $this->register_core_settings($instance);
         $instance->build();
+    }
+
+    public function select2_enqueue()
+    {
+        wp_enqueue_script('mailoptin-select2', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/select2/select2.min.js', array('jquery'), false, false);
+        wp_enqueue_style('mailoptin-select2', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/select2/select2.min.css', null);
     }
 
     public static function registered_triggers()
@@ -49,18 +61,23 @@ class AddEditFlow extends AbstractSettingsPage
         printf(
             '<script type="text/javascript">
                     var mo_automate_flows_triggers = %s;
+                    var mo_automate_flows_db_data = %s;
                     </script>',
-            json_encode(self::registered_triggers())
+            json_encode(self::registered_triggers()),
+            json_encode(FlowsRepository::get_flow_by_id($this->flow_id))
         );
     }
 
     public function flow_builder_page()
     {
+        $flow_id = $this->flow_id;
+
         require dirname(__FILE__) . '/view.tmpl.php';
     }
 
     public function flow_builder_page_sidebar()
     {
+        $flow_id = $this->flow_id;
         ob_start();
         require dirname(__FILE__) . '/sidebar-view.tmpl.php';
 
