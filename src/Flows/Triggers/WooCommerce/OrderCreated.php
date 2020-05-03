@@ -29,7 +29,7 @@ class OrderCreated extends AbstractTrigger
 
     public function settings()
     {
-        $settings = [
+        return [
             'order_status' => [
                 'field'       => self::SELECT2_FIELD,
                 'label'       => esc_html__('Select Order Status'),
@@ -41,7 +41,12 @@ class OrderCreated extends AbstractTrigger
                 ]
             ]
         ];
+    }
 
-        return $settings;
+    public function rules()
+    {
+        return [
+          'order'
+        ];
     }
 }
