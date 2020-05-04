@@ -11,6 +11,7 @@ abstract class AbstractTrigger extends AbstractTriggerRules implements TriggerIn
     public function __construct()
     {
         add_filter('mo_automate_flows_triggers', [$this, 'add_flow']);
+        add_filter('mo_automate_flows_rules', [$this, 'add_rules']);
         add_action('admin_footer', [$this, 'settings_template']);
     }
 
@@ -24,6 +25,15 @@ abstract class AbstractTrigger extends AbstractTriggerRules implements TriggerIn
         ];
 
         return $triggers;
+    }
+
+    public function add_rules($rules)
+    {
+        if ( ! empty($this->rules())) {
+            $rules = array_merge($rules, $this->rules());
+        }
+
+        return $rules;
     }
 
     public function settings_template()

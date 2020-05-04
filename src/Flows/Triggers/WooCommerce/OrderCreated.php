@@ -48,6 +48,7 @@ class OrderCreated extends AbstractTrigger
     {
         return [
             'order_item_categories' => [
+                'label' => esc_html__('Order Item Categories'),
                 'category' => self::WOOCOMMERCE_CATEGORY,
                 'compare'  => self::multi_select_compare(),
                 'value'    => Helpers::get_wc_categories()

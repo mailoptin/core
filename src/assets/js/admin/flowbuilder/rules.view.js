@@ -5,7 +5,7 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         default_msg_tmpl: wp.template('mo-flows-rules-default'),
 
-        rule_group_tmpl: wp.template('mo-flows-rules-default'),
+        rules_group_tmpl: wp.template('mo-flows-rules-grouping'),
 
         events: {
             'click #mo-flows-rule-add-btn': 'add_rule_group'
@@ -16,7 +16,13 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         add_rule_group: function () {
+            var cache;
 
+            if ((cache = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
+                cache.last().after(this.rules_group_tmpl())
+            } else {
+                this.$el.find('.aw-rules-container .aw-rule-groups').html(this.rules_group_tmpl())
+            }
         },
 
         render: function () {

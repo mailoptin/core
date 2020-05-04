@@ -27,6 +27,11 @@ class OrderRefunded extends AbstractTrigger
         return esc_html__('This trigger fires after an orders has been refunded.', 'mailoptin');
     }
 
+    public function rules()
+    {
+        return [];
+    }
+
     public function settings()
     {
         return [];

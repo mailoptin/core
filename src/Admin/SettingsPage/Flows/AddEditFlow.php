@@ -21,13 +21,6 @@ class AddEditFlow extends AbstractSettingsPage
         add_action('admin_enqueue_scripts', [$this, 'select2_enqueue']);
     }
 
-    public static function registered_categories()
-    {
-        return apply_filters('mo_automate_flows_categories', [
-            AbstractTrigger::WOOCOMMERCE_CATEGORY => 'WooCommerce'
-        ]);
-    }
-
     /**
      * Back to campaign overview button.
      */
@@ -80,9 +73,22 @@ class AddEditFlow extends AbstractSettingsPage
         wp_enqueue_style('mailoptin-select2', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/select2/select2.min.css', null);
     }
 
+
+    public static function registered_categories()
+    {
+        return apply_filters('mo_automate_flows_categories', [
+            AbstractTrigger::WOOCOMMERCE_CATEGORY => 'WooCommerce'
+        ]);
+    }
+
     public static function registered_triggers()
     {
         return apply_filters('mo_automate_flows_triggers', []);
+    }
+
+    public static function registered_rules()
+    {
+        return apply_filters('mo_automate_flows_rules', []);
     }
 
     public function flow_builder_globals()
@@ -101,6 +107,13 @@ class AddEditFlow extends AbstractSettingsPage
     {
         return array_filter(self::registered_triggers(), function ($item) use ($category) {
             return $item['category'] == $category;
+        });
+    }
+
+    public function get_rules_by_category($category)
+    {
+        return array_filter(self::registered_rules(), function ($value) use ($category) {
+            return $value['category'] == $category;
         });
     }
 
@@ -177,7 +190,8 @@ class AddEditFlow extends AbstractSettingsPage
                 ); ?>
             </p>
         </script>
-        <script type="text/html" id="tmpl-mo-flows-rules_default">
+
+        <script type="text/html" id="tmpl-mo-flows-rules-grouping">
             <div class="aw-rule-group">
                 <div class="rules">
                     <div class="automatewoo-rule-container">
@@ -187,29 +201,27 @@ class AddEditFlow extends AbstractSettingsPage
                             <div class="automatewoo-rule__fields">
 
                                 <div class="aw-rule-select-container automatewoo-rule__field-container">
-                                    <select name="aw_workflow_data[rule_options][rule_group_94][rule_96][name]" class="js-rule-select automatewoo-field" required="">
+                                    <select name="mo_flow_data[rule_options][rule_group_94][rule_96][name]" class="js-rule-select automatewoo-field" required="">
 
-                                        <option value="">[Select Rule]</option>
+                                        <option value=""><?= esc_html__('Select rule', 'mailoptin') ?></option>
 
-                                        <optgroup label="Order">
+                                        <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
 
-                                            <option value="order_status">Order - Status</option>
+                                            <optgroup label="<?= $categoryLabel ?>">
 
-                                            <option value="order_total">Order - Total</option>
+                                                <?php foreach ($this->get_rules_by_category($categoryId) as $ruleId => $rule) : ?>
+                                                    <option value="<?= $ruleId ?>"><?= $rule['label'] ?></option>
+                                                <?php endforeach; ?>
 
-                                            <option value="order_items">Order - Items</option>
+                                            </optgroup>
 
-                                            <option value="order_item_categories">Order - Item Categories</option>
-
-                                            <option value="order_item_tags">Order - Item Tags</option>
-
-                                        </optgroup>
+                                        <?php endforeach; ?>
 
                                     </select>
                                 </div>
 
                                 <div class="aw-rule-field-compare automatewoo-rule__field-container">
-                                    <select name="aw_workflow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field" disabled="">
+                                    <select name="mo_flow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field" disabled="">
                                     </select>
                                 </div>
 
@@ -219,13 +231,13 @@ class AddEditFlow extends AbstractSettingsPage
                             </div>
 
                             <div class="automatewoo-rule__buttons">
-                                <button type="button" class="js-add-rule automatewoo-rule__add button">and</button>
+                                <button type="button" class="js-add-rule automatewoo-rule__add button"><?= esc_html__('and', 'mailoptin') ?></button>
                                 <button type="button" class="js-remove-rule automatewoo-rule__remove"></button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="aw-rule-group__or"><span>or</span></div>
+                <div class="aw-rule-group__or"><span><?= esc_html__('or', 'mailoptin') ?></span></div>
             </div>
         </script>
         <?php
