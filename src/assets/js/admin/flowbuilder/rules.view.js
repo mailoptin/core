@@ -3,15 +3,19 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         el: "#mo-flow-rule-meta-box",
 
-        default_msg_tmpl: wp.template('mo-flows-rules_default'),
+        default_msg_tmpl: wp.template('mo-flows-rules-default'),
 
-        events: {},
+        rule_group_tmpl: wp.template('mo-flows-rules-default'),
 
-        initialize: function () {
-
+        events: {
+            'click #mo-flows-rule-add-btn': 'add_rule_group'
         },
 
         display_default_message: function () {
+            this.$el.find('.aw-rules-container .aw-rule-groups').html(this.default_msg_tmpl())
+        },
+
+        add_rule_group: function () {
 
         },
 
@@ -19,7 +23,7 @@ define(["jquery", "backbone"], function ($, Backbone) {
             var no_rules_found = true;
 
             if (no_rules_found) {
-                this.$el.find('.aw-rules-container .aw-rule-groups').html(this.default_msg_tmpl())
+                this.display_default_message()
             }
         }
     });

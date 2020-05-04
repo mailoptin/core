@@ -169,13 +169,64 @@ class AddEditFlow extends AbstractSettingsPage
     public function js_templates()
     {
         ?>
-        <script type="text/html" id="tmpl-mo-flows-rules_default">
+        <script type="text/html" id="tmpl-mo-flows-rules-default">
             <p class="aw-rules-empty-message">
                 <?= sprintf(
                     esc_html__('Rules can be used to add conditional logic to flows. Click the %s+ Add Rule Group%s button to create a rule.', 'mailoptin'),
                     '<strong>', '</strong>'
                 ); ?>
             </p>
+        </script>
+        <script type="text/html" id="tmpl-mo-flows-rules_default">
+            <div class="aw-rule-group">
+                <div class="rules">
+                    <div class="automatewoo-rule-container">
+
+                        <div class="automatewoo-rule automatewoo-rule--type-new automatewoo-rule--compare-false">
+
+                            <div class="automatewoo-rule__fields">
+
+                                <div class="aw-rule-select-container automatewoo-rule__field-container">
+                                    <select name="aw_workflow_data[rule_options][rule_group_94][rule_96][name]" class="js-rule-select automatewoo-field" required="">
+
+                                        <option value="">[Select Rule]</option>
+
+                                        <optgroup label="Order">
+
+                                            <option value="order_status">Order - Status</option>
+
+                                            <option value="order_total">Order - Total</option>
+
+                                            <option value="order_items">Order - Items</option>
+
+                                            <option value="order_item_categories">Order - Item Categories</option>
+
+                                            <option value="order_item_tags">Order - Item Tags</option>
+
+                                        </optgroup>
+
+                                    </select>
+                                </div>
+
+                                <div class="aw-rule-field-compare automatewoo-rule__field-container">
+                                    <select name="aw_workflow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field" disabled="">
+                                    </select>
+                                </div>
+
+                                <div class="aw-rule-field-value automatewoo-rule__field-container ">
+                                    <input class="automatewoo-field" type="text" disabled="">
+                                </div>
+                            </div>
+
+                            <div class="automatewoo-rule__buttons">
+                                <button type="button" class="js-add-rule automatewoo-rule__add button">and</button>
+                                <button type="button" class="js-remove-rule automatewoo-rule__remove"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="aw-rule-group__or"><span>or</span></div>
+            </div>
         </script>
         <?php
     }

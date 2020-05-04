@@ -83,7 +83,7 @@ if (isset($flow_id)) {
                     </div>
 
                     <div class="automatewoo-metabox-footer">
-                        <button type="button" class="js-add-rule-group button button-primary button-large">+ Add Rule Group</button>
+                        <button id="mo-flows-rule-add-btn" type="button" class="button button-primary button-large"><?= esc_html__('+ Add Rule Group', 'mailoptin'); ?></button>
                     </div>
 
                 </div>
