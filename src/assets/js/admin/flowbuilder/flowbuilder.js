@@ -9,7 +9,9 @@ var includes = [
 
 define(includes, function ($, TriggerView, RulesView) {
     $(window).on('load', function () {
-        (new TriggerView()).render();
-        (new RulesView()).render();
+        if (typeof mo_automate_flows_db_data != 'undefined') {
+            (new TriggerView()).render();
+            (new RulesView()).render();
+        }
     });
 });

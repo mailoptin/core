@@ -96,9 +96,11 @@ class AddEditFlow extends AbstractSettingsPage
         printf(
             '<script type="text/javascript">
                     var mo_automate_flows_triggers = %s;
+                    var mo_automate_flows_rules = %s;
                     var mo_automate_flows_db_data = %s;
                     </script>',
             json_encode(self::registered_triggers()),
+            json_encode(self::registered_rules()),
             json_encode(FlowsRepository::get_flow_by_id($this->flow_id))
         );
     }
@@ -201,7 +203,7 @@ class AddEditFlow extends AbstractSettingsPage
                             <div class="automatewoo-rule__fields">
 
                                 <div class="aw-rule-select-container automatewoo-rule__field-container">
-                                    <select name="mo_flow_data[rule_options][rule_group_94][rule_96][name]" class="js-rule-select automatewoo-field" required="">
+                                    <select name="mo_flow_data[rule_options][rule_group_94][rule_96][name]" class="mo-flow-rule-select automatewoo-field" required="">
 
                                         <option value=""><?= esc_html__('Select rule', 'mailoptin') ?></option>
 

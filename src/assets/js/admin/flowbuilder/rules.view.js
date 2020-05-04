@@ -8,7 +8,8 @@ define(["jquery", "backbone"], function ($, Backbone) {
         rules_group_tmpl: wp.template('mo-flows-rules-grouping'),
 
         events: {
-            'click #mo-flows-rule-add-btn': 'add_rule_group'
+            'click #mo-flows-rule-add-btn': 'add_rule_group',
+            'change .mo-flow-rule-select': 'add_rule_compare_values'
         },
 
         display_default_message: function () {
@@ -23,6 +24,10 @@ define(["jquery", "backbone"], function ($, Backbone) {
             } else {
                 this.$el.find('.aw-rules-container .aw-rule-groups').html(this.rules_group_tmpl())
             }
+        },
+
+        add_rule_compare_values: function () {
+
         },
 
         render: function () {
