@@ -49,10 +49,11 @@ class AddEditFlow extends AbstractSettingsPage
         }
 
         add_action('mailoptin_admin_notices', function () {
-        add_action('admin_notices', array($this, 'admin_notice'));
+            add_action('admin_notices', array($this, 'admin_notice'));
         });
 
         add_action('admin_footer', [$this, 'flow_builder_globals']);
+        add_action('admin_footer', [$this, 'js_templates']);
 
         add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
         add_filter('wp_cspa_main_content_area', [$this, 'flow_builder_page']);
@@ -163,6 +164,20 @@ class AddEditFlow extends AbstractSettingsPage
                 exit;
             }
         }
+    }
+
+    public function js_templates()
+    {
+        ?>
+        <script type="text/html" id="tmpl-mo-flows-rules_default">
+            <p class="aw-rules-empty-message">
+                <?= sprintf(
+                    esc_html__('Rules can be used to add conditional logic to flows. Click the %s+ Add Rule Group%s button to create a rule.', 'mailoptin'),
+                    '<strong>', '</strong>'
+                ); ?>
+            </p>
+        </script>
+        <?php
     }
 
     /**

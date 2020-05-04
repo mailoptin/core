@@ -66,19 +66,19 @@ if (isset($flow_id)) {
                 </table>
             </div>
         </div>
-        <div id="aw_rules_box" class="postbox  automatewoo-metabox no-drag">
-            <button type="button" class="handlediv" aria-expanded="true"><span class="screen-reader-text">Toggle panel: Rules <small>(optional)</small></span><span class="toggle-indicator" aria-hidden="true"></span>
+        <div id="mo-flow-rule-meta-box" class="postbox  automatewoo-metabox no-drag">
+            <button type="button" class="handlediv" aria-expanded="true">
+                <span class="toggle-indicator" aria-hidden="true"></span>
             </button>
             <h2 class="hndle">
-                <span>Rules <small>(optional)</small></span><a href="#" class="automatewoo-help-link automatewoo-help-link--right" target="_blank"></a>
+                <span><?= sprintf(esc_html__('Rules %s(optional)%s', 'mailoptin'), '<small>', '</small>'); ?></span>
             </h2>
             <div class="inside">
                 <div id="aw-rules-container">
 
                     <div class="aw-rules-container">
                         <div class="aw-rule-groups">
-                            <p class="aw-rules-empty-message">Rules can be used to add conditional logic to workflows. Click the
-                                <strong>+ Add Rule Group</strong> button to create a rule.</p>
+                            <!-- rules go here -->
                         </div>
                     </div>
 

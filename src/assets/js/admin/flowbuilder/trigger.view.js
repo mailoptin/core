@@ -28,13 +28,14 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         show_trigger_settings: function (trigger_id) {
-            var trigger_settings_tmpl = wp.template('mo-flows-trigger-' + trigger_id);
+            var bucket,
+                trigger_settings_tmpl = wp.template('mo-flows-trigger-' + trigger_id);
             this.$el.find('#mo-flow-trigger-select-row').after(trigger_settings_tmpl({
                 flows_db_data: mo_automate_flows_db_data
             }));
 
             if (typeof trigger_id != 'undefined') {
-                var bucket = _.findWhere(mo_automate_flows_triggers, {id: trigger_id});
+                bucket = _.findWhere(mo_automate_flows_triggers, {id: trigger_id});
                 if (typeof bucket != 'undefined') {
                     this.$el.find('#mo-flow-trigger-description').text(bucket.description);
                 }

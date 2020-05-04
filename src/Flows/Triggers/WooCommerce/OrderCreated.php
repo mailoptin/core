@@ -3,6 +3,7 @@
 namespace MailOptin\Core\Flows\Triggers\WooCommerce;
 
 
+use MailOptin\Core\Flows\Helpers;
 use MailOptin\Core\Flows\Triggers\AbstractTrigger;
 
 class OrderCreated extends AbstractTrigger
@@ -46,7 +47,11 @@ class OrderCreated extends AbstractTrigger
     public function rules()
     {
         return [
-          'order'
+            'order_item_categories' => [
+                'category' => self::WOOCOMMERCE_CATEGORY,
+                'compare'  => self::multi_select_compare(),
+                'value'    => Helpers::get_wc_categories()
+            ]
         ];
     }
 }

@@ -3,11 +3,13 @@
  */
 var includes = [
     'jquery',
-    'trigger.view'
+    'trigger.view',
+    'rules.view'
 ];
 
-define(includes, function ($, TriggerView) {
+define(includes, function ($, TriggerView, RulesView) {
     $(window).on('load', function () {
         (new TriggerView()).render();
+        (new RulesView()).render();
     });
 });

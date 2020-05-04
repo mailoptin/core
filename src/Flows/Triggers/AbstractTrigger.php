@@ -2,7 +2,7 @@
 
 namespace MailOptin\Core\Flows\Triggers;
 
-abstract class AbstractTrigger implements TriggerInterface
+abstract class AbstractTrigger extends AbstractTriggerRules implements TriggerInterface
 {
     const WOOCOMMERCE_CATEGORY = 'woocommerce';
 
