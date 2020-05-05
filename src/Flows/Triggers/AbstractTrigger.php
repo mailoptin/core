@@ -7,6 +7,7 @@ abstract class AbstractTrigger extends AbstractTriggerRules implements TriggerIn
     const WOOCOMMERCE_CATEGORY = 'woocommerce';
 
     const SELECT2_FIELD = 'select2';
+    const TEXT_FIELD = 'text';
 
     public function __construct()
     {
@@ -17,11 +18,12 @@ abstract class AbstractTrigger extends AbstractTriggerRules implements TriggerIn
 
     public function add_flow($triggers)
     {
-        $triggers[] = [
+        $triggers[$this->id()] = [
             'id'          => $this->id(),
             'title'       => $this->title(),
             'description' => $this->description(),
-            'category'    => $this->category()
+            'category'    => $this->category(),
+            'trigger_settings'    => $this->settings()
         ];
 
         return $triggers;
@@ -63,5 +65,7 @@ abstract class AbstractTrigger extends AbstractTriggerRules implements TriggerIn
         endforeach;
 
         echo '</script>';
+        ?>
+        <?php
     }
 }

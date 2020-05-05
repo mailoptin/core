@@ -315,27 +315,6 @@ if (isset($flow_id)) {
                                                 <option value="subscription_add_coupon" disabled="disabled">Add Coupon</option>
                                                 <option value="subscription_remove_coupon" disabled="disabled">Remove Coupon</option>
                                             </optgroup>
-                                            <optgroup label="Memberships">
-                                                <option value="memberships_change_plan">Create / Change Membership Plan For User</option>
-                                                <option value="memberships_delete_user_membership">Delete Membership For User</option>
-                                            </optgroup>
-                                            <optgroup label="AutomateWoo">
-                                                <option value="clear_queued_events">Clear Queued Events</option>
-                                                <option value="change_workflow_status" disabled="disabled">Change Workflow Status</option>
-                                            </optgroup>
-                                            <optgroup label="Other">
-                                                <option value="custom_function">Custom Function</option>
-                                                <option value="change_post_status" disabled="disabled">Change Post Status</option>
-                                            </optgroup>
-                                            <optgroup label="Product">
-                                                <option value="update_product_meta" disabled="disabled">Update Custom Field</option>
-                                            </optgroup>
-                                            <optgroup label="Mad Mimi">
-                                                <option value="add_to_mad_mimi_list">Add Customer to List</option>
-                                            </optgroup>
-                                            <optgroup label="DEPRECATED">
-                                                <option value="add_to_campaign_monitor">Campaign Monitor Add Customer to List [DEPRECATED]</option>
-                                            </optgroup>
 
                                         </select>
 

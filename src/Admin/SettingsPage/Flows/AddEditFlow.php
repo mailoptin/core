@@ -8,6 +8,8 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage;
+use MailOptin\Core\Admin\SettingsPage\Flows\Fields\Select2;
+use MailOptin\Core\Admin\SettingsPage\Flows\Fields\Text;
 use MailOptin\Core\Flows\Triggers\AbstractTrigger;
 use MailOptin\Core\Repositories\FlowsRepository;
 use W3Guy\Custom_Settings_Page_Api;
@@ -184,6 +186,38 @@ class AddEditFlow extends AbstractSettingsPage
     public function js_templates()
     {
         ?>
+        <script type="text/html" id="tmpl-mo-flows-field-select2">
+            <select name="mo_flow_data{{data.fieldName}}[]" class="mo-flow-field-select2" multiple>
+                <# if (typeof data.fieldOptions != "undefined" && !_.isEmpty(data.fieldOptions)) { #>
+                <# _.each(data.fieldOptions, function(label, key) { #>
+                <option value="{{key}}">{{label}}</option>
+                <# }); #>
+                <# } #>
+            </select>
+        </script>
+
+        <script type="text/html" id="tmpl-mo-flows-trigger-settings">
+            <# if(typeof data.triggerSettings !== "undefined") { #>
+            <# _.each(data.triggerSettings, function(args, key) { #>
+            <tr class="automatewoo-table__row mo-trigger-settings">
+                <td class="automatewoo-table__col automatewoo-table__col--label">
+                    {{args.label}}
+                    <span title="{{args.description}}" class="mo-tooltipster dashicons dashicons-editor-help" style="font-size: 16px;cursor:help"></span>
+                </td>
+
+                <td class="automatewoo-table__col automatewoo-table__col--field">
+
+                    <# field_tmpl = wp.template('mo-flows-field-' + args.field); #>
+                    <# fieldOptions = typeof args.options != "undefined" ? args.options : []; #>
+                    <# field = field_tmpl({fieldName:"[trigger_settings][order_status]", fieldOptions: fieldOptions }); #>
+                    {{{field}}}
+
+                </td>
+            </tr>
+            <# }); #>
+            <# } #>
+        </script>
+
         <script type="text/html" id="tmpl-mo-flows-rules-default">
             <p class="aw-rules-empty-message">
                 <?= sprintf(
@@ -224,14 +258,14 @@ class AddEditFlow extends AbstractSettingsPage
                                     <!--  compare select goes here    -->
                                 </div>
 
-                                <div class="aw-rule-field-value automatewoo-rule__field-container ">
-                                    <input class="automatewoo-field" type="text" disabled="">
+                                <div class="aw-rule-field-value automatewoo-rule__field-container">
+                                    <!--  value field goes here    -->
                                 </div>
                             </div>
 
                             <div class="automatewoo-rule__buttons">
                                 <button type="button" class="js-add-rule automatewoo-rule__add button"><?= esc_html__('and', 'mailoptin') ?></button>
-                                <button type="button" class="js-remove-rule automatewoo-rule__remove"></button>
+                                <button type="button" class="mo-flow-remove-rule automatewoo-rule__remove"></button>
                             </div>
                         </div>
                     </div>
@@ -240,9 +274,8 @@ class AddEditFlow extends AbstractSettingsPage
             </div>
         </script>
 
-
-        <script type="text/html" id="tmpl-mo-flows-rule-comapare">
-            <# console.log(data.compareOptions, typeof data.compareOptions !== "undefined" && _.isEmpty(data.compareOptions) === false); if (typeof data.compareOptions !== "undefined" && _.isEmpty(data.compareOptions) === false) { #>
+        <script type="text/html" id="tmpl-mo-flows-rule-compare">
+            <# if (typeof data.compareOptions !== "undefined" && _.isEmpty(data.compareOptions) === false) { #>
 
             <select name="mo_flow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field">
                 <# _.each(data.compareOptions, function(label, key) { #>
@@ -254,6 +287,17 @@ class AddEditFlow extends AbstractSettingsPage
 
             <select name="mo_flow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field" disabled></select>
 
+            <# } #>
+        </script>
+
+        <script type="text/html" id="tmpl-mo-flows-rule-value">
+
+            <# if (typeof data.valueField == "undefined") { data.valueField = "<?= AbstractTrigger::TEXT_FIELD ?>"; } #>
+            <# if (data.valueField == "<?= AbstractTrigger::TEXT_FIELD ?>") { #>
+            <?php (new Text('[rule_options][rule_group_94][rule_96][value]'))->render(); ?>
+            <# } #>
+            <# if (data.valueField == "<?= AbstractTrigger::SELECT2_FIELD ?>") { #>
+            <?php (new Select2('[rule_options][rule_group_94][rule_96][value]'))->render(); ?>
             <# } #>
         </script>
         <?php

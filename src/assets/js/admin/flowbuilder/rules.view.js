@@ -7,7 +7,9 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         rules_group_tmpl: wp.template('mo-flows-rules-grouping'),
 
-        rules_group_compare_tmpl: wp.template('mo-flows-rule-comapare'),
+        rules_group_compare_tmpl: wp.template('mo-flows-rule-compare'),
+
+        rules_group_value_tmpl: wp.template('mo-flows-rule-value'),
 
         events: {
             'click #mo-flows-rule-add-btn': 'add_rule_group',
@@ -19,14 +21,18 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         add_rule_group: function () {
-            var cache;
+            var cache, cache2;
 
             if ((cache = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
-                $(this.rules_group_tmpl({})).insertAfter(cache.last())
-                    .find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}));
+
+                cache2 = $(this.rules_group_tmpl({})).insertAfter(cache.last());
+                cache2.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}))
+                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisable: true}));
+
             } else {
-                this.$el.find('.aw-rules-container .aw-rule-groups').html(this.rules_group_tmpl({}))
-                    .find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}));
+                cache2 = this.$el.find('.aw-rules-container .aw-rule-groups').html(this.rules_group_tmpl({}));
+                cache2.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}));
+                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisable: true}));
             }
         },
 

@@ -3,8 +3,10 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         el: "#mo-flow-trigger-meta-box",
 
+        trigger_settings_tmpl: wp.template('mo-flows-trigger-settings'),
+
         events: {
-            "change #mo-flow-trigger": "change_trigger_description",
+            "change #mo-flow-trigger": "trigger_selection_changed",
             "mo-flows-field-change": "re_init_js_scripts"
         },
 
@@ -12,7 +14,7 @@ define(["jquery", "backbone"], function ($, Backbone) {
             this.$el.find('#mo-flow-trigger').change();
         },
 
-        change_trigger_description: function (e) {
+        trigger_selection_changed: function (e) {
             var cache = $(e.target),
                 trigger_id = cache.val();
 
@@ -29,16 +31,22 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         show_trigger_settings: function (trigger_id) {
             var bucket,
-                trigger_settings_tmpl = wp.template('mo-flows-trigger-' + trigger_id);
-            this.$el.find('#mo-flow-trigger-select-row').after(trigger_settings_tmpl({
-                flows_db_data: mo_automate_flows_db_data
+                triggerSettings = [];
+
+            if (typeof trigger_id == 'undefined') return;
+
+            try {
+                triggerSettings = mo_automate_flows_triggers[trigger_id]['trigger_settings'];
+            } catch (e) {
+            }
+
+            this.$el.find('#mo-flow-trigger-select-row').after(this.trigger_settings_tmpl({
+                triggerSettings: triggerSettings
             }));
 
-            if (typeof trigger_id != 'undefined') {
-                bucket = _.findWhere(mo_automate_flows_triggers, {id: trigger_id});
-                if (typeof bucket != 'undefined') {
-                    this.$el.find('#mo-flow-trigger-description').text(bucket.description);
-                }
+            bucket = _.findWhere(mo_automate_flows_triggers, {id: trigger_id});
+            if (typeof bucket != 'undefined') {
+                this.$el.find('#mo-flow-trigger-description').text(bucket.description);
             }
         },
 

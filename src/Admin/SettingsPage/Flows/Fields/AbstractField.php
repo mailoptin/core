@@ -9,7 +9,7 @@ abstract class AbstractField implements FieldInterface
 
     protected $args;
 
-    public function __construct($name, $args)
+    public function __construct($name, $args = [])
     {
         $this->name = $name;
 
