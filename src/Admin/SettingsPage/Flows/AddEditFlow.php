@@ -210,11 +210,9 @@ class AddEditFlow extends AbstractSettingsPage
                                         <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
 
                                             <optgroup label="<?= $categoryLabel ?>">
-
                                                 <?php foreach ($this->get_rules_by_category($categoryId) as $ruleId => $rule) : ?>
                                                     <option value="<?= $ruleId ?>"><?= $rule['label'] ?></option>
                                                 <?php endforeach; ?>
-
                                             </optgroup>
 
                                         <?php endforeach; ?>
@@ -223,8 +221,7 @@ class AddEditFlow extends AbstractSettingsPage
                                 </div>
 
                                 <div class="aw-rule-field-compare automatewoo-rule__field-container">
-                                    <select name="mo_flow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field" disabled="">
-                                    </select>
+                                    <!--  compare select goes here    -->
                                 </div>
 
                                 <div class="aw-rule-field-value automatewoo-rule__field-container ">
@@ -241,6 +238,23 @@ class AddEditFlow extends AbstractSettingsPage
                 </div>
                 <div class="aw-rule-group__or"><span><?= esc_html__('or', 'mailoptin') ?></span></div>
             </div>
+        </script>
+
+
+        <script type="text/html" id="tmpl-mo-flows-rule-comapare">
+            <# console.log(data.compareOptions, typeof data.compareOptions !== "undefined" && _.isEmpty(data.compareOptions) === false); if (typeof data.compareOptions !== "undefined" && _.isEmpty(data.compareOptions) === false) { #>
+
+            <select name="mo_flow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field">
+                <# _.each(data.compareOptions, function(label, key) { #>
+                <option value="{{key}}">{{label}}</option>
+                <# }); #>
+            </select>
+
+            <# } else { #>
+
+            <select name="mo_flow_data[rule_options][rule_group_94][rule_96][compare]" class="automatewoo-field js-rule-compare-field" disabled></select>
+
+            <# } #>
         </script>
         <?php
     }
