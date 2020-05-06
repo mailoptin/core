@@ -20,19 +20,23 @@ define(["jquery", "backbone"], function ($, Backbone) {
             this.$el.find('.aw-rules-container .aw-rule-groups').html(this.default_msg_tmpl({}))
         },
 
+        default_rule_row_state: function (container) {
+
+            $('.aw-rule-field-compare', container).html(this.rules_group_compare_tmpl({}));
+            $('.aw-rule-field-value', container).html(this.rules_group_value_tmpl({isDisabled: true}));
+        },
+
         add_rule_group: function () {
             var cache, cache2;
 
             if ((cache = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
 
                 cache2 = $(this.rules_group_tmpl({})).insertAfter(cache.last());
-                cache2.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}));
-                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisabled: true}));
+                this.default_rule_row_state(cache2);
 
             } else {
                 cache2 = this.$el.find('.aw-rules-container .aw-rule-groups').html(this.rules_group_tmpl({}));
-                cache2.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}));
-                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisabled: true}));
+                this.default_rule_row_state(cache2);
             }
         },
 
@@ -40,9 +44,10 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
             var compareOptions = [],
                 fieldOptions = [],
-                selected_rule = $(e.target).val();
+                selected_rule = $(e.target).val(),
+                selected_rule_row = $(e.target).parents('.automatewoo-rule-container');
 
-            if (selected_rule === "") return;
+            if (selected_rule === "") this.default_rule_row_state(selected_rule_row);
 
             if (typeof mo_automate_flows_rules[selected_rule] == "undefined") return;
 
@@ -54,17 +59,17 @@ define(["jquery", "backbone"], function ($, Backbone) {
                 fieldOptions = mo_automate_flows_rules[selected_rule]['value'];
             }
 
-            this.$el.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({
+            selected_rule_row.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({
                 compareOptions: compareOptions
             }));
 
-            this.$el.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
+            selected_rule_row.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
                 valueField: mo_automate_flows_rules[selected_rule]['value_field'],
                 fieldName: '[rule_options][rule_group_94][rule_96][value]', // @todo set the accessor field
                 fieldOptions: fieldOptions
             }));
-            
-            this.$el.trigger('mo-flows-field-change', [this.$el]);
+
+            selected_rule_row.trigger('mo-flows-field-change', [this.$el]);
         },
 
         render: function () {
