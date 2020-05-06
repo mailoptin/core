@@ -188,9 +188,11 @@ class AddEditFlow extends AbstractSettingsPage
         ?>
         <script type="text/html" id="tmpl-mo-flows-field-select2">
             <select name="mo_flow_data{{data.fieldName}}[]" class="mo-flow-field-select2" multiple>
+                <# console.log(data) #>
                 <# if (typeof data.fieldOptions != "undefined" && !_.isEmpty(data.fieldOptions)) { #>
                 <# _.each(data.fieldOptions, function(label, key) { #>
-                <option value="{{key}}">{{label}}</option>
+                <# selected = _.contains(data.dbValue, key) ? 'selected': '';#>
+                <option value="{{key}}" {{selected}}>{{label}}</option>
                 <# }); #>
                 <# } #>
             </select>
@@ -209,7 +211,9 @@ class AddEditFlow extends AbstractSettingsPage
 
                     <# field_tmpl = wp.template('mo-flows-field-' + args.field); #>
                     <# fieldOptions = typeof args.options != "undefined" ? args.options : []; #>
-                    <# field = field_tmpl({fieldName:"[trigger_settings][order_status]", fieldOptions: fieldOptions }); #>
+                    <# fieldName = "[trigger_settings]["+key+"]"; #>
+                    <# dbValue = mo_automate_flows_db_data.trigger_settings[key]; #>
+                    <# field = field_tmpl({fieldName:fieldName, fieldOptions: fieldOptions, dbValue: dbValue}); #>
                     {{{field}}}
 
                 </td>
