@@ -8,8 +8,6 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage;
-use MailOptin\Core\Admin\SettingsPage\Flows\Fields\Select2;
-use MailOptin\Core\Admin\SettingsPage\Flows\Fields\Text;
 use MailOptin\Core\Flows\Triggers\AbstractTrigger;
 use MailOptin\Core\Repositories\FlowsRepository;
 use W3Guy\Custom_Settings_Page_Api;
@@ -187,15 +185,20 @@ class AddEditFlow extends AbstractSettingsPage
     {
         ?>
         <script type="text/html" id="tmpl-mo-flows-field-select2">
-            <select name="mo_flow_data{{data.fieldName}}[]" class="mo-flow-field-select2" multiple>
-                <# console.log(data) #>
+            <# isDisabled = typeof data.isDisabled != "undefined" && data.isDisabled == true ? "disabled" : ''; #>
+            <select name="mo_flow_data{{data.fieldName}}[]" class="mo-flow-field-select2" multiple {{isDisabled}}>
                 <# if (typeof data.fieldOptions != "undefined" && !_.isEmpty(data.fieldOptions)) { #>
                 <# _.each(data.fieldOptions, function(label, key) { #>
-                <# selected = _.contains(data.dbValue, key) ? 'selected': '';#>
+                <# selected = typeof data.dbValue != "undefined" && _.contains(data.dbValue, key) ? 'selected': ''; #>
                 <option value="{{key}}" {{selected}}>{{label}}</option>
                 <# }); #>
                 <# } #>
             </select>
+        </script>
+
+        <script type="text/html" id="tmpl-mo-flows-field-text">
+            <# isDisabled = typeof data.isDisabled != "undefined" && data.isDisabled == true ? "disabled" : ''; #>
+            <input class="automatewoo-field" type="text" name="mo_flow_data{{data.fieldName}}" {{isDisabled}}>
         </script>
 
         <script type="text/html" id="tmpl-mo-flows-trigger-settings">
@@ -297,12 +300,19 @@ class AddEditFlow extends AbstractSettingsPage
         <script type="text/html" id="tmpl-mo-flows-rule-value">
 
             <# if (typeof data.valueField == "undefined") { data.valueField = "<?= AbstractTrigger::TEXT_FIELD ?>"; } #>
-            <# if (data.valueField == "<?= AbstractTrigger::TEXT_FIELD ?>") { #>
-            <?php (new Text('[rule_options][rule_group_94][rule_96][value]'))->render(); ?>
-            <# } #>
-            <# if (data.valueField == "<?= AbstractTrigger::SELECT2_FIELD ?>") { #>
-            <?php (new Select2('[rule_options][rule_group_94][rule_96][value]'))->render(); ?>
-            <# } #>
+            <# field_tmpl = wp.template('mo-flows-field-' + data.valueField); #>
+            <# isDisabled = typeof data.isDisabled != "undefined" ? data.isDisabled : false; #>
+            <# fieldOptions = typeof data.fieldOptions != "undefined" ? data.fieldOptions : []; #>
+            <# fieldName = "[rule_options][rule_group_94][rule_96][value]"; #>
+
+            <# dbValue = []; #>
+            <# try { dbValue = mo_automate_flows_db_data.trigger_rules[key]; #>
+            <# } catch (e) {} #>
+
+            <# field = field_tmpl({fieldName:fieldName, fieldOptions: fieldOptions, dbValue: dbValue, isDisabled: isDisabled}); #>
+
+            {{{field}}}
+
         </script>
         <?php
     }

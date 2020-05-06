@@ -57,10 +57,10 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         render: function () {
 
-            if (typeof mo_automate_flows_db_data.trigger_name !== 'undefined') {
-                var trigger_id = mo_automate_flows_db_data.trigger_name;
-                console.log(trigger_id)
-            }
+            // if (typeof mo_automate_flows_db_data.trigger_name !== 'undefined') {
+            //     var trigger_id = mo_automate_flows_db_data.trigger_name;
+            //     console.log(trigger_id)
+            // }
         }
     });
 });

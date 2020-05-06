@@ -26,21 +26,31 @@ define(["jquery", "backbone"], function ($, Backbone) {
             if ((cache = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
 
                 cache2 = $(this.rules_group_tmpl({})).insertAfter(cache.last());
-                cache2.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}))
-                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisable: true}));
+                cache2.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}));
+                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisabled: true}));
 
             } else {
                 cache2 = this.$el.find('.aw-rules-container .aw-rule-groups').html(this.rules_group_tmpl({}));
                 cache2.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({}));
-                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisable: true}));
+                cache2.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({isDisabled: true}));
             }
         },
 
         add_rule_compare_values: function (e) {
             var selected_rule = $(e.target).val();
+
+            console.log('add_rule_compare_values')
+            if (selected_rule === "") return;
+
             try {
                 this.$el.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({
                     compareOptions: mo_automate_flows_rules[selected_rule]['compare']
+                }));
+
+                this.$el.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
+                    isDisabled: false,
+                    fieldName: '[rule_options][rule_group_94][rule_96][value]', // @todo set the accessor field
+                    fieldOptions: mo_automate_flows_rules[selected_rule]
                 }));
             } catch (e) {
             }
