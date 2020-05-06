@@ -37,23 +37,34 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         add_rule_compare_values: function (e) {
-            var selected_rule = $(e.target).val();
 
-            console.log('add_rule_compare_values')
+            var compareOptions = [],
+                fieldOptions = [],
+                selected_rule = $(e.target).val();
+
             if (selected_rule === "") return;
 
-            try {
-                this.$el.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({
-                    compareOptions: mo_automate_flows_rules[selected_rule]['compare']
-                }));
+            if (typeof mo_automate_flows_rules[selected_rule] == "undefined") return;
 
-                this.$el.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
-                    isDisabled: false,
-                    fieldName: '[rule_options][rule_group_94][rule_96][value]', // @todo set the accessor field
-                    fieldOptions: mo_automate_flows_rules[selected_rule]
-                }));
-            } catch (e) {
+            if (typeof mo_automate_flows_rules[selected_rule]['compare'] != "undefined") {
+                compareOptions = mo_automate_flows_rules[selected_rule]['compare'];
             }
+
+            if (typeof mo_automate_flows_rules[selected_rule]['value'] != "undefined") {
+                fieldOptions = mo_automate_flows_rules[selected_rule]['value'];
+            }
+
+            this.$el.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({
+                compareOptions: compareOptions
+            }));
+
+            this.$el.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
+                valueField: mo_automate_flows_rules[selected_rule]['value_field'],
+                fieldName: '[rule_options][rule_group_94][rule_96][value]', // @todo set the accessor field
+                fieldOptions: fieldOptions
+            }));
+            
+            this.$el.trigger('mo-flows-field-change', [this.$el]);
         },
 
         render: function () {

@@ -6,12 +6,7 @@ define(["jquery", "backbone"], function ($, Backbone) {
         trigger_settings_tmpl: wp.template('mo-flows-trigger-settings'),
 
         events: {
-            "change #mo-flow-trigger": "trigger_selection_changed",
-            "mo-flows-field-change": "re_init_js_scripts"
-        },
-
-        initialize: function () {
-            this.$el.find('#mo-flow-trigger').change();
+            "change #mo-flow-trigger": "trigger_selection_changed"
         },
 
         trigger_selection_changed: function (e) {
@@ -50,12 +45,9 @@ define(["jquery", "backbone"], function ($, Backbone) {
             }
         },
 
-        re_init_js_scripts: function () {
-            $('.mo-tooltipster', this.$el).tooltipster({theme: 'tooltipster-borderless'});
-            $('.mo-flow-field-select2', this.$el).select2();
-        },
-
         render: function () {
+
+            this.$el.find('#mo-flow-trigger').change();
 
             // if (typeof mo_automate_flows_db_data.trigger_name !== 'undefined') {
             //     var trigger_id = mo_automate_flows_db_data.trigger_name;
