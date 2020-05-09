@@ -340,6 +340,14 @@ function strtotime_utc($time, $now = null)
     return $val;
 }
 
+/**
+ * @param $bucket
+ * @param $key
+ * @param bool $default
+ * @param bool $empty
+ *
+ * @return bool|mixed
+ */
 function moVar($bucket, $key, $default = false, $empty = false)
 {
     if ($empty) {

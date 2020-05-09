@@ -609,7 +609,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_before', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                     <?php $this->repeater_text_field($index, 'placeholder', '', __('Title', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
-                    <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma separated list of options', 'mailoptin')); ?>
+                    <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'color', '', __('Color', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'background', '', __('Background', 'mailoptin')); ?>
                     <?php $this->repeater_font_field($index, 'font', '', __('Font', 'mailoptin')); ?>

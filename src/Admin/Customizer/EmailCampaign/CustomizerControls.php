@@ -600,7 +600,7 @@ HTML;
                         'section'     => $this->customizerClassInstance->campaign_view_tags_section_id,
                         'content'     => '<input type="text" value="[post-categories link=' . esc_attr('"true"') . ']" style="background-color:#fff;" readonly>',
                         'settings'    => $this->option_prefix . '[post_categories_shortcode]',
-                        'description' => __('Comma separated list of post categories. Set "link" attribute to false to remove the link.', 'mailoptin'),
+                        'description' => __('Comma-separated list of post categories. Set "link" attribute to false to remove the link.', 'mailoptin'),
                         'priority'    => 70
                     )
                 ),
@@ -612,7 +612,7 @@ HTML;
                         'section'     => $this->customizerClassInstance->campaign_view_tags_section_id,
                         'content'     => '<input type="text" value="[post-terms tax=' . esc_attr('"taxonomy_name"') . ' link=' . esc_attr('"true"') . ']" style="background-color:#fff;" readonly>',
                         'settings'    => $this->option_prefix . '[post_terms_shortcode]',
-                        'description' => __('Comma separated list of post terms of a taxonomy. Set "tax" attribute to the taxonomy name. Set "link" attribute to false to remove the link.', 'mailoptin'),
+                        'description' => __('Comma-separated list of post terms of a taxonomy. Set "tax" attribute to the taxonomy name. Set "link" attribute to false to remove the link.', 'mailoptin'),
                         'priority'    => 75
                     )
                 ),
