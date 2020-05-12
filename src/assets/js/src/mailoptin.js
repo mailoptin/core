@@ -1059,7 +1059,9 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
                 var mo_optin_error_text = $('div#' + $optin_css_id + ' .mo-optin-error', optin_container);
                 if (typeof error !== 'undefined' && typeof mo_optin_error_text !== 'undefined' && mo_optin_error_text.length > 0) {
-                    mo_optin_error_text.text(error).show();
+                    if (typeof error == "string") {
+                        mo_optin_error_text.text(error).show();
+                    }
                 }
             },
 
@@ -1070,8 +1072,8 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
              * @param {object} optin_container
              */
             hide_optin_error: function ($optin_css_id, optin_container) {
-                var input_fields = $('div#' + $optin_css_id + ' .mo-optin-field', optin_container);
-                $('div#' + $optin_css_id + ' .mo-optin-error', optin_container).hide();
+                var input_fields = $('.mo-optin-field', optin_container);
+                $('.mo-optin-error', optin_container).hide();
                 input_fields.css('-webkit-box-shadow', '');
                 input_fields.css('-moz-box-shadow', '');
                 input_fields.css('box-shadow', '');
