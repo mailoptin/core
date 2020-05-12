@@ -433,7 +433,10 @@ class OptinCampaignsRepository extends AbstractRepository
 
         $table = parent::campaigns_table();
 
-        return self::$cache[$cache_key] = parent::wpdb()->get_row("SELECT * FROM $table WHERE uuid = '$optin_uuid'", 'ARRAY_A');
+        return self::$cache[$cache_key] = parent::wpdb()->get_row(
+            parent::wpdb()->prepare("SELECT * FROM $table WHERE uuid = %s", $optin_uuid),
+            'ARRAY_A'
+        );
     }
 
     /**
@@ -453,7 +456,9 @@ class OptinCampaignsRepository extends AbstractRepository
 
         $table = parent::campaigns_table();
 
-        return self::$cache[$cache_key] = parent::wpdb()->get_var("SELECT id FROM $table WHERE uuid = '$optin_uuid'");
+        return self::$cache[$cache_key] = parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT id FROM $table WHERE uuid = %s", $optin_uuid)
+        );
     }
 
     /**

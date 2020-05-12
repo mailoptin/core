@@ -110,7 +110,9 @@ class EmailCampaignRepository extends AbstractRepository
     {
         $table = parent::email_campaigns_table();
 
-        return parent::wpdb()->get_var("SELECT name FROM $table WHERE id = '$email_campaign_id'");
+        return parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT name FROM $table WHERE id = %d", $email_campaign_id)
+        );
     }
 
     /**
@@ -140,7 +142,9 @@ class EmailCampaignRepository extends AbstractRepository
     {
         $table = parent::email_campaigns_table();
 
-        return parent::wpdb()->get_var("SELECT id FROM $table WHERE template_class = '$email_campaign_class_name'");
+        return parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT id FROM $table WHERE template_class = %s", $email_campaign_class_name)
+        );
     }
 
     /**
@@ -154,7 +158,9 @@ class EmailCampaignRepository extends AbstractRepository
     {
         $table = parent::email_campaigns_table();
 
-        return parent::wpdb()->get_var("SELECT campaign_type FROM $table WHERE id = '$email_campaign_id'");
+        return parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT campaign_type FROM $table WHERE id = %d", $email_campaign_id)
+        );
     }
 
     /**

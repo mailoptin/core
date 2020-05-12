@@ -146,7 +146,8 @@ class OptinCampaign_List extends \WP_List_Table
         $sql = "SELECT COUNT(*) FROM $this->table";
         if ( ! empty($optin_type)) {
             $optin_type = esc_sql($optin_type);
-            $sql        .= "  WHERE optin_type = '$optin_type'";
+            $sql        .= "  WHERE optin_type = %s";
+            $sql = $wpdb->prepare($sql, $optin_type);
         }
 
         return $wpdb->get_var($sql);
