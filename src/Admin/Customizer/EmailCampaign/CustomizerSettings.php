@@ -168,129 +168,134 @@ class CustomizerSettings extends AbstractCustomizer
      */
     public function campaign_settings()
     {
-        $email_campaign_settings_args = apply_filters("mailoptin_email_campaign_customizer_page_settings", array(
-                'settings_controls_tab_toggle'    => array(
+        $email_campaign_settings_args = apply_filters("mailoptin_email_campaign_customizer_page_settings", [
+                'settings_controls_tab_toggle'    => [
                     'default'   => 'general',
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'email_campaign_title'            => array(
+                ],
+                'email_campaign_title'            => [
                     'default'   => $this->customizer_defaults['email_campaign_title'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'email_campaign_subject'          => array(
+                ],
+                'email_campaign_subject'          => [
                     'default'   => $this->customizer_defaults['email_campaign_subject'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'item_number'                     => array(
+                ],
+                'item_number'                     => [
                     'default'           => $this->customizer_defaults['item_number'],
                     'type'              => 'option',
                     'transport'         => 'refresh',
                     'sanitize_callback' => 'absint',
-                ),
-                'post_content_length'             => array(
+                ],
+                'post_content_type'             => [
+                    'default'           => $this->customizer_defaults['post_content_type'],
+                    'type'              => 'option',
+                    'transport'         => 'refresh'
+                ],
+                'post_content_length'             => [
                     'default'           => $this->customizer_defaults['post_content_length'],
                     'type'              => 'option',
                     'transport'         => 'refresh',
                     'sanitize_callback' => 'absint',
-                ),
-                'custom_post_type'                => array(
+                ],
+                'custom_post_type'                => [
                     'default'   => $this->customizer_defaults['custom_post_type'],
                     'type'      => 'option',
                     'transport' => 'postMessage'
-                ),
-                'custom_post_type_settings'       => array(
+                ],
+                'custom_post_type_settings'       => [
                     'default'   => $this->customizer_defaults['custom_post_type_settings'],
                     'type'      => 'option',
                     'transport' => 'postMessage'
-                ),
-                'post_categories'                 => array(
+                ],
+                'post_categories'                 => [
                     'default'   => $this->customizer_defaults['post_categories'],
                     'type'      => 'option',
                     'transport' => 'postMessage'
-                ),
-                'post_tags'                       => array(
+                ],
+                'post_tags'                       => [
                     'default'   => $this->customizer_defaults['post_tags'],
                     'type'      => 'option',
                     'transport' => 'postMessage'
-                ),
-                'post_authors'                    => array(
+                ],
+                'post_authors'                    => [
                     'default'   => $this->customizer_defaults['post_authors'],
                     'type'      => 'option',
                     'transport' => 'postMessage'
-                ),
-                'recipient_header'                => array(
+                ],
+                'recipient_header'                => [
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'connection_service'              => array(
+                ],
+                'connection_service'              => [
                     'default'   => $this->customizer_defaults['connection_service'],
                     'type'      => 'option',
                     'transport' => 'refresh',
-                ),
-                'connection_email_list'           => array(
+                ],
+                'connection_email_list'           => [
                     'default'   => $this->customizer_defaults['connection_email_list'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'schedule_header'                 => array(
+                ],
+                'schedule_header'                 => [
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'send_immediately'                => array(
+                ],
+                'send_immediately'                => [
                     'default'   => $this->customizer_defaults['send_immediately'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'schedule_type'                   => array(
+                ],
+                'schedule_type'                   => [
                     'default'   => $this->customizer_defaults['schedule_type'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'schedule_digit'                  => array(
+                ],
+                'schedule_digit'                  => [
                     'default'           => $this->customizer_defaults['schedule_digit'],
                     'type'              => 'option',
                     'transport'         => 'postMessage',
                     'sanitize_callback' => 'absint',
-                ),
-                'schedule_interval'               => array(
+                ],
+                'schedule_interval'               => [
                     'default'   => $this->customizer_defaults['schedule_interval'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'schedule_time'                   => array(
+                ],
+                'schedule_time'                   => [
                     'default'   => $this->customizer_defaults['schedule_time'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'schedule_day'                    => array(
+                ],
+                'schedule_day'                    => [
                     'default'   => $this->customizer_defaults['schedule_day'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'schedule_month_date'             => array(
+                ],
+                'schedule_month_date'             => [
                     'default'   => $this->customizer_defaults['schedule_month_date'],
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'email_campaign_settings_notice'  => array(
+                ],
+                'email_campaign_settings_notice'  => [
                     'default'   => false,
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'email_campaign_settings_notice2' => array(
+                ],
+                'email_campaign_settings_notice2' => [
                     'default'   => false,
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'ajax_nonce'                      => array(
+                ],
+                'ajax_nonce'                      => [
                     'default'   => wp_create_nonce('customizer-fetch-email-list'),
                     'type'      => 'option',
                     'transport' => 'postMessage',
-                ),
-                'code_your_own'                   => array(
+                ],
+                'code_your_own'                   => [
                     'default'           => $this->customizer_defaults['code_your_own'],
                     'type'              => 'option',
                     'transport'         => 'postMessage',
@@ -303,8 +308,8 @@ class CustomizerSettings extends AbstractCustomizer
 
                         return $validity;
                     }
-                ),
-            )
+                ],
+            ]
         );
 
         if ($this->email_campaign_type == ER::POSTS_EMAIL_DIGEST) {

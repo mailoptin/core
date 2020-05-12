@@ -112,8 +112,16 @@ trait TemplateTrait
             $post->post_content = apply_filters('the_content', $post->post_content);
         }
 
+        $post_content = $post->post_content;
+
+        if (ER::get_merged_customizer_value($this->email_campaign_id, 'post_content_type') == 'post_excerpt') {
+            if ( ! empty($post->post_excerpt)) {
+                $post_content = $post->post_excerpt;
+            }
+        }
+
         $post_content = do_shortcode(
-            apply_filters('mo_email_automation_post_content', $post->post_content, $post, $this->email_campaign_id)
+            apply_filters('mo_email_automation_post_content', $post_content, $post, $this->email_campaign_id)
         );
 
         $post_content_length = is_null($post_content_length) ? ER::get_merged_customizer_value($this->email_campaign_id, 'post_content_length') : absint($post_content_length);

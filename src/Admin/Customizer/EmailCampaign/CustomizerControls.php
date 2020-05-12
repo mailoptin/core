@@ -140,8 +140,8 @@ class CustomizerControls
             $custom_post_type_options = ControlsHelpers::custom_post_types();
         }
 
-        $campaign_settings_controls = array(
-            'code_your_own'             => apply_filters('mailoptin_customizer_settings_campaign_code_your_own_args', array(
+        $campaign_settings_controls = [
+            'code_your_own'             => apply_filters('mailoptin_customizer_settings_campaign_code_your_own_args', [
                     'type'     => 'hidden',
                     // simple hack because control won't render if label is empty.
                     'label'    => '&nbsp;',
@@ -149,47 +149,58 @@ class CustomizerControls
                     'settings' => $this->option_prefix . '[code_your_own]',
                     // 999 cos we want it to be bottom.
                     'priority' => 5,
-                )
+                ]
             ),
-            'email_campaign_title'      => apply_filters('mo_optin_form_customizer_email_campaign_title_args', array(
+            'email_campaign_title'      => apply_filters('mo_optin_form_customizer_email_campaign_title_args', [
                     'type'     => 'text',
                     'label'    => __('Automation Title', 'mailoptin'),
                     'section'  => $this->customizerClassInstance->campaign_settings_section_id,
                     'settings' => $this->option_prefix . '[email_campaign_title]',
                     'priority' => 10,
-                )
+                ]
             ),
             'email_campaign_subject'    => new WP_Customize_Custom_Input_Control(
                 $this->wp_customize,
                 'email_campaign_subject',
-                apply_filters('mailoptin_customizer_settings_campaign_subject_args', array(
+                apply_filters('mailoptin_customizer_settings_campaign_subject_args', [
                         'label'           => __('Email Subject', 'mailoptin'),
                         'section'         => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'        => $this->option_prefix . '[email_campaign_subject]',
                         'description'     => __('Enter a subject for the email.', 'mailoptin'),
                         'sub_description' => apply_filters('mailoptin_customizer_settings_email_campaign_subject_description', '', $campaign_type),
                         'priority'        => 20
-                    )
+                    ]
                 )
             ),
             'item_number'               => new WP_Customize_Range_Value_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[item_number]',
-                apply_filters('mailoptin_customizer_settings_campaign_item_number_args', array(
+                apply_filters('mailoptin_customizer_settings_campaign_item_number_args', [
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[item_number]',
                         'label'       => __('Maximum Number of Posts', 'mailoptin'),
-                        'input_attrs' => array(
+                        'input_attrs' => [
                             'min'  => 1,
                             'max'  => 1000,
                             'step' => 1
-                        ),
+                        ],
                         'priority'    => 25
-                    )
+                    ]
                 )
             ),
+            'post_content_type'         => [
+                'label'    => __('Content Type', 'mailoptin'),
+                'section'  => $this->customizerClassInstance->campaign_settings_section_id,
+                'settings' => $this->option_prefix . '[post_content_type]',
+                'type'     => 'select',
+                'choices'  => [
+                    'post_content' => __('Post Content', 'mailoptin'),
+                    'post_excerpt' => __('Post Excerpt', 'mailoptin')
+                ],
+                'priority' => 28
+            ],
             'post_content_length'       => apply_filters('mailoptin_customizer_settings_campaign_post_content_length_args',
-                array(
+                [
                     'type'        => 'number',
                     'input_attrs' => [
                         'min' => 1,
@@ -199,10 +210,10 @@ class CustomizerControls
                     'settings'    => $this->option_prefix . '[post_content_length]',
                     'description' => __('Number of words to limit the post content to. Set to "0" for full post content.', 'mailoptin'),
                     'priority'    => 30
-                )
+                ]
             ),
             'custom_post_type'          => apply_filters('mo_optin_form_customizer_custom_post_type_args',
-                array(
+                [
                     'type'        => 'select',
                     'label'       => __('Select Post Type', 'mailoptin'),
                     'section'     => $this->customizerClassInstance->campaign_settings_section_id,
@@ -210,71 +221,71 @@ class CustomizerControls
                     'choices'     => ['post' => __('WordPress Posts', 'mailoptin')] + $custom_post_type_options,
                     'description' => __('By default, automation works with WordPress posts. To make it work with a custom post type instead? Select one.', 'mailoptin'),
                     'priority'    => 32
-                )
+                ]
             ),
             'custom_post_type_settings' => new WP_Customize_EA_CPT_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[custom_post_type_settings]',
-                apply_filters('mo_optin_form_customizer_custom_post_type_settings_args', array(
+                apply_filters('mo_optin_form_customizer_custom_post_type_settings_args', [
                         'section'  => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings' => $this->option_prefix . '[custom_post_type_settings]',
                         'priority' => 33
-                    )
+                    ]
                 )
             ),
             'post_categories'           => new WP_Customize_Chosen_Select_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[post_categories]',
-                apply_filters('mo_optin_form_customizer_post_categories_args', array(
+                apply_filters('mo_optin_form_customizer_post_categories_args', [
                         'label'       => __('Restrict to Post Categories', 'mailoptin'),
                         'description' => __('Only include posts that has either of the selected categories.', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[post_categories]',
                         'choices'     => ControlsHelpers::get_categories(),
                         'priority'    => 45
-                    )
+                    ]
                 )
             ),
             'post_tags'                 => new WP_Customize_Chosen_Select_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[post_tags]',
-                apply_filters('mo_optin_form_customizer_post_tags_args', array(
+                apply_filters('mo_optin_form_customizer_post_tags_args', [
                         'label'       => __('Restrict to Post Tags', 'mailoptin'),
                         'description' => __('Only include posts that has either of the selected tags.', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[post_tags]',
                         'choices'     => ControlsHelpers::get_tags(),
                         'priority'    => 46
-                    )
+                    ]
                 )
             ),
             'post_authors'              => new WP_Customize_Chosen_Select_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[post_authors]',
-                apply_filters('mo_optin_form_customizer_post_tags_args', array(
+                apply_filters('mo_optin_form_customizer_post_tags_args', [
                         'label'       => __('Restrict to Post Authors', 'mailoptin'),
                         'description' => __('Only include posts that are published by selected authors.', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[post_authors]',
                         'choices'     => ControlsHelpers::get_authors(),
                         'priority'    => 47
-                    )
+                    ]
                 )
             ),
             'recipient_header'          => new WP_Customize_Custom_Content(
                 $this->wp_customize,
                 $this->option_prefix . '[recipient_header]',
-                apply_filters('mo_optin_form_customizer_recipient_header_args', array(
+                apply_filters('mo_optin_form_customizer_recipient_header_args', [
                         'content'     => '<div class="mo-field-header">' . __("Recipient", 'mailoptin') . '</div>',
                         'block_class' => 'mo-field-header-wrapper',
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[recipient_header]',
                         'priority'    => 49,
-                    )
+                    ]
                 )
             ),
             'connection_service'        => apply_filters('mailoptin_customizer_settings_campaign_connection_service_args',
-                array(
+                [
                     'type'        => 'select',
                     'label'       => __('Select Connection', 'mailoptin'),
                     'section'     => $this->customizerClassInstance->campaign_settings_section_id,
@@ -282,10 +293,10 @@ class CustomizerControls
                     'choices'     => ConnectionsRepository::get_connections(ConnectionsRepository::EMAIL_CAMPAIGN_TYPE),
                     'description' => __('Choose the email service or connection that newsletter will be sent to.', 'mailoptin'),
                     'priority'    => 50
-                )
+                ]
             ),
             'connection_email_list'     => apply_filters('mailoptin_customizer_settings_campaign_connection_email_list_args',
-                array(
+                [
                     'type'        => 'select',
                     'label'       => __('Select Email List', 'mailoptin'),
                     'section'     => $this->customizerClassInstance->campaign_settings_section_id,
@@ -293,36 +304,36 @@ class CustomizerControls
                     'choices'     => $connection_email_list,
                     'description' => __('Email list that newsletter will be sent to.', 'mailoptin'),
                     'priority'    => 60
-                )
+                ]
             ),
             'schedule_header'           => new WP_Customize_Custom_Content(
                 $this->wp_customize,
                 $this->option_prefix . '[schedule_header]',
-                apply_filters('mo_optin_form_customizer_schedule_header_args', array(
+                apply_filters('mo_optin_form_customizer_schedule_header_args', [
                         'content'     => '<div class="mo-field-header">' . __("Schedule", 'mailoptin') . '</div>',
                         'block_class' => 'mo-field-header-wrapper',
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[schedule_header]',
                         'priority'    => 200,
-                    )
+                    ]
                 )
             ),
             'send_immediately'          => new WP_Customize_Toggle_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[send_immediately]',
-                apply_filters('mailoptin_customizer_settings_campaign_send_immediately_args', array(
+                apply_filters('mailoptin_customizer_settings_campaign_send_immediately_args', [
                         'label'       => __('Send Immediately', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings'    => $this->option_prefix . '[send_immediately]',
                         'description' => __('Enable to send newsletter immediately after a post is published.', 'mailoptin'),
                         'priority'    => 300,
-                    )
+                    ]
                 )
             ),
             'email_campaign_schedule'   => new WP_Customize_Email_Schedule_Time_Fields_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[email_campaign_schedule]',
-                apply_filters('mailoptin_customizer_settings_campaign_schedule_args', array(
+                apply_filters('mailoptin_customizer_settings_campaign_schedule_args', [
                         'label'    => __('Send Email', 'mailoptin'),
                         'section'  => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings' => [
@@ -330,13 +341,13 @@ class CustomizerControls
                             'schedule_type'  => $this->option_prefix . '[schedule_type]'
                         ],
                         'priority' => 310
-                    )
+                    ]
                 )
             ),
             'email_digest_schedule'     => new WP_Customize_Email_Schedule_Time_Fields_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[email_digest_schedule]',
-                apply_filters('mailoptin_customizer_settings_email_digest_schedule_args', array(
+                apply_filters('mailoptin_customizer_settings_email_digest_schedule_args', [
                         'label'    => __('When should we send?', 'mailoptin'),
                         'section'  => $this->customizerClassInstance->campaign_settings_section_id,
                         'settings' => [
@@ -347,10 +358,10 @@ class CustomizerControls
                         ],
                         'format'   => ER::POSTS_EMAIL_DIGEST,
                         'priority' => 310
-                    )
+                    ]
                 )
             ),
-            'ajax_nonce'                => apply_filters('mailoptin_customizer_settings_campaign_ajax_nonce_args', array(
+            'ajax_nonce'                => apply_filters('mailoptin_customizer_settings_campaign_ajax_nonce_args', [
                     'type'     => 'hidden',
                     // simple hack because control won't render if label is empty.
                     'label'    => '&nbsp;',
@@ -358,9 +369,9 @@ class CustomizerControls
                     'settings' => $this->option_prefix . '[ajax_nonce]',
                     // 999 cos we want it to be bottom.
                     'priority' => 999,
-                )
+                ]
             )
-        );
+        ];
 
         if (apply_filters('mailoptin_enable_email_automation_cpt', false)) {
             unset($campaign_settings_controls['custom_post_type']);
@@ -431,8 +442,13 @@ class CustomizerControls
             );
         }
 
+        if(ER::is_code_your_own_template($this->customizerClassInstance->email_campaign_id)) {
+            unset($campaign_settings_controls['post_content_type']);
+        }
+
         if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
             unset($campaign_settings_controls['email_campaign_subject']);
+            unset($campaign_settings_controls['post_content_type']);
             unset($campaign_settings_controls['post_content_length']);
             unset($campaign_settings_controls['custom_post_type']);
             unset($campaign_settings_controls['custom_post_type_settings']);
@@ -575,8 +591,8 @@ HTML;
                         'section'     => $this->customizerClassInstance->campaign_view_tags_section_id,
                         'content'     => '<input type="text" value="[post-feature-image-url]" style="background-color:#fff;" readonly>',
                         'description' => sprintf(
-                                esc_html__('URL of post\'s featured image. You can specify a default image if a post doesn\'t have feature image like so %s', 'mailoptin'),
-                                '<strong>[post-feature-image-url default="https://site.com/image.png"]</strong>'),
+                            esc_html__('URL of post\'s featured image. You can specify a default image if a post doesn\'t have feature image like so %s', 'mailoptin'),
+                            '<strong>[post-feature-image-url default="https://site.com/image.png"]</strong>'),
                         'settings'    => $this->option_prefix . '[post_feature_image_url_shortcode]',
                         'priority'    => 55
                     )

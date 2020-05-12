@@ -431,6 +431,7 @@ HTML;
         $defaults['email_campaign_subject'] = apply_filters('mailoptin_email_campaign_subject_default', $this->campaign_title_default(), $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
 
         $defaults['default_image_url']         = apply_filters('mailoptin_customizer_email_campaign_default_image_url', MAILOPTIN_ASSETS_URL . 'images/email-templates/default-feature-img.jpg', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
+        $defaults['post_content_type']         = apply_filters('mailoptin_customizer_email_campaign_post_content_type', 'post_content', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['post_content_length']       = apply_filters('mailoptin_customizer_email_campaign_post_content_length', 150, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['custom_post_type']          = apply_filters('mailoptin_customizer_email_campaign_custom_post_type', 'post', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['custom_post_type_settings'] = apply_filters('mailoptin_customizer_email_campaign_custom_post_type_settings', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
