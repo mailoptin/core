@@ -44,15 +44,19 @@ class Campaign_Log_List extends \WP_List_Table
      */
     public function get_campaign_log($per_page, $current_page = 1)
     {
-        $offset = ($current_page - 1) * $per_page;
-        $sql    = "SELECT * FROM {$this->table}";
-        $sql    .= " ORDER BY id DESC";
-        $sql    .= " LIMIT $per_page";
+        $replacement = [$per_page];
+        $offset      = ($current_page - 1) * $per_page;
+        $sql         = "SELECT * FROM {$this->table}";
+        $sql         .= " ORDER BY id DESC";
+        $sql         .= " LIMIT %d";
         if ($current_page > 1) {
-            $sql .= "  OFFSET $offset";
+            $sql           .= "  OFFSET %d";
+            $replacement[] = $offset;
         }
 
-        $result = $this->wpdb->get_results($sql, 'ARRAY_A');
+        $result = $this->wpdb->get_results(
+            $this->wpdb->prepare($sql, $replacement), 'ARRAY_A'
+        );
 
         return $result;
     }
@@ -181,8 +185,8 @@ class Campaign_Log_List extends \WP_List_Table
      */
     function column_subject($item)
     {
-        $name              = '<strong>' . $item['title'] . '</strong>';
-        $campaign_log_id   = absint($item['id']);
+        $name            = '<strong>' . $item['title'] . '</strong>';
+        $campaign_log_id = absint($item['id']);
 
         $delete_href = add_query_arg(
             [
