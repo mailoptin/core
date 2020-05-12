@@ -25,7 +25,9 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $campaign_name = sanitize_text_field($name);
         $table         = parent::campaigns_table();
-        $result        = parent::wpdb()->get_var(parent::wpdb()->prepare("SELECT name FROM $table WHERE name = '%s'", $campaign_name));
+        $result        = parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT name FROM $table WHERE name = %s", $campaign_name)
+        );
 
         return ! empty($result);
     }
@@ -45,6 +47,7 @@ class OptinCampaignsRepository extends AbstractRepository
     public static function has_device_targeting_active($optin_campaign_id)
     {
         if (self::is_activated($optin_campaign_id)) {
+
             if (self::get_customizer_value($optin_campaign_id, 'device_targeting_hide_desktop', false)) {
                 return true;
             }
@@ -239,7 +242,9 @@ class OptinCampaignsRepository extends AbstractRepository
             return wp_cache_get($cache_key);
         }
 
-        $result = parent::wpdb()->get_var("SELECT uuid FROM $table WHERE id = '$optin_campaign_id'");
+        $result = parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT uuid FROM $table WHERE id = %d", $optin_campaign_id)
+        );
         // expiration is not set thus making it not expire-able because uuid never changes. take note.
         wp_cache_set($cache_key, $result);
 
@@ -257,7 +262,9 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $table = parent::campaigns_table();
 
-        return parent::wpdb()->get_var("SELECT name FROM $table WHERE id = '$optin_campaign_id'");
+        return parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT name FROM $table WHERE id = %d", $optin_campaign_id)
+        );
     }
 
     /**
@@ -277,7 +284,9 @@ class OptinCampaignsRepository extends AbstractRepository
 
         $table = parent::campaigns_table();
 
-        return self::$cache[$cache_key] = parent::wpdb()->get_var("SELECT optin_class FROM $table WHERE id = '$optin_campaign_id'");
+        return self::$cache[$cache_key] = parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT optin_class FROM $table WHERE id =  %d", $optin_campaign_id)
+        );
     }
 
     /**
@@ -294,27 +303,13 @@ class OptinCampaignsRepository extends AbstractRepository
 
         return parent::wpdb()->update(
             parent::campaigns_table(),
-            array(
+            [
                 'optin_class' => $class
-            ),
-            array('id' => $optin_campaign_id),
+            ],
+            ['id' => $optin_campaign_id],
             '%s',
             '%d'
         );
-    }
-
-    /**
-     * The optin campaign ID from class name.
-     *
-     * @param string $optin_campaign_class_name
-     *
-     * @return string
-     */
-    public static function get_optin_campaign_id_from_class_name($optin_campaign_class_name)
-    {
-        $table = parent::campaigns_table();
-
-        return parent::wpdb()->get_var("SELECT id FROM $table WHERE optin_campaign_class = '$optin_campaign_class_name'");
     }
 
     /**
@@ -334,7 +329,9 @@ class OptinCampaignsRepository extends AbstractRepository
 
         $table = parent::campaigns_table();
 
-        return self::$cache[$cache_key] = parent::wpdb()->get_var("SELECT optin_type FROM $table WHERE id = '$optin_campaign_id'");
+        return self::$cache[$cache_key] = parent::wpdb()->get_var(
+            parent::wpdb()->prepare("SELECT optin_type FROM $table WHERE id = %d", $optin_campaign_id)
+        );
     }
 
     /**
@@ -344,7 +341,7 @@ class OptinCampaignsRepository extends AbstractRepository
      *
      * @return array
      */
-    public static function get_optin_campaign_ids($optin_types_exclude = null)
+    public static function get_optin_campaign_ids($optin_types_exclude = [])
     {
         $table = parent::campaigns_table();
 
@@ -352,10 +349,9 @@ class OptinCampaignsRepository extends AbstractRepository
 
         if ( ! empty($optin_types_exclude)) {
 
-            // add single quote to the imploded optin types to exclude so that SQL is correct.
-            $excludes = "'" . implode("', '", $optin_types_exclude) . "'";
+            $sql .= " WHERE NOT optin_type IN(" . implode(', ', array_fill(0, count($optin_types_exclude), '%s')) . ")";
 
-            $sql .= " WHERE NOT optin_type IN ($excludes)";
+            $sql = call_user_func_array([self::wpdb(), 'prepare'], array_merge([$sql], $optin_types_exclude));
         }
 
         return parent::wpdb()->get_col($sql);
@@ -414,7 +410,10 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $table = parent::campaigns_table();
 
-        return parent::wpdb()->get_row("SELECT * FROM $table WHERE id = '$optin_campaign_id'", 'ARRAY_A');
+        return parent::wpdb()->get_row(
+            parent::wpdb()->prepare("SELECT * FROM $table WHERE id = %d", $optin_campaign_id),
+            'ARRAY_A'
+        );
     }
 
     /**

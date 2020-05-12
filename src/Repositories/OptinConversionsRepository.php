@@ -1,7 +1,4 @@
 <?php
-/**
- * Copyright (C) 2016  Agbonghama Collins <me@w3guy.com>
- */
 
 namespace MailOptin\Core\Repositories;
 
@@ -112,7 +109,8 @@ class OptinConversionsRepository extends AbstractRepository
     {
         $table = parent::conversions_table();
 
-        return self::wpdb()->get_row("SELECT * FROM $table WHERE id = '$conversion_id'", 'ARRAY_A');
+        return self::wpdb()->get_row(
+            self::wpdb()->prepare("SELECT * FROM $table WHERE id = %d", $conversion_id), 'ARRAY_A');
     }
 
     /**
