@@ -145,23 +145,40 @@ class OptinConversionsRepository extends AbstractRepository
         }
 
         $table = parent::conversions_table();
-        $sql   = "SELECT * FROM {$table}";
+
+        $sql = "SELECT * FROM {$table}";
+
+        $replacements = [];
 
         if ( ! empty($search)) {
-            $search = esc_sql(sanitize_text_field($search));
-            $sql    .= " WHERE name LIKE '%$search%'";
-            $sql    .= " OR email LIKE '%$search%'";
+            $sql .= " WHERE name LIKE %s";
+            $sql .= " OR email LIKE %s";
+
+            $search = '%' . parent::wpdb()->esc_like(sanitize_text_field($_POST['s'])) . '%';
+
+            $replacements[] = $search;
+            $replacements[] = $search;
         }
 
         $sql .= " ORDER BY id DESC";
         if ( ! is_null($limit)) {
-            $sql .= " LIMIT $limit";
+            $sql .= ' LIMIT %d';
+
+            $replacements[] = $limit;
         }
+
         if ( ! is_null($limit)) {
             $offset = ($offset - 1) * $limit;
             if ($offset > 1) {
-                $sql .= "  OFFSET $offset";
+                $sql .= "  OFFSET %s";
+
+                $replacements[] = $offset;
             }
+        }
+
+        if ( ! empty($replacements)) {
+            array_unshift($replacements, $sql);
+            $sql = call_user_func_array([parent::wpdb(), 'prepare'], $replacements);
         }
 
         $result = parent::wpdb()->get_results($sql, 'ARRAY_A');
