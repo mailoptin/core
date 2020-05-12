@@ -22,6 +22,8 @@ class ConversionExport
 
     public function selected_ids($conversions_ids)
     {
+        var_dump(OptinConversionsRepository::get_conversions_by_ids($conversions_ids));
+        exit;
         $this->do_export(
             OptinConversionsRepository::get_conversions_by_ids($conversions_ids)
         );

@@ -125,9 +125,31 @@ class OptinConversionsRepository extends AbstractRepository
     public static function get_conversions_by_ids($conversion_ids)
     {
         $table          = parent::conversions_table();
-        $conversion_ids = implode(',', $conversion_ids);
+        $conversion_ids = array_map('absint', $conversion_ids);
 
-        return self::wpdb()->get_results("SELECT * FROM $table WHERE id IN ($conversion_ids)", 'ARRAY_A');
+        $sql = "SELECT * FROM $table WHERE id IN(" . implode(', ', array_fill(0, count($conversion_ids), '%s')) . ")";
+
+        return self::wpdb()->get_results(
+            call_user_func_array([self::wpdb(), 'prepare'], array_merge([$sql], $conversion_ids)),
+            'ARRAY_A'
+        );
+    }
+
+    /**
+     * Get conversions data by email.
+     *
+     * @param string $email
+     *
+     * @return string
+     */
+    public static function get_conversions_by_email($email)
+    {
+        $table = parent::conversions_table();
+
+        return self::wpdb()->get_results(
+            self::wpdb()->prepare("SELECT * FROM $table WHERE email = %s", $email),
+            'ARRAY_A'
+        );
     }
 
     /**
