@@ -3,14 +3,13 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         template: wp.template('mo-flows-rule-row'),
 
+        rules_group_tmpl: wp.template('mo-flows-rules-grouping'),
+
         rules_group_compare_tmpl: wp.template('mo-flows-rule-compare'),
 
         rules_group_value_tmpl: wp.template('mo-flows-rule-value'),
 
         events: {
-            'click': function () {
-                alert('hellp')
-            },
             'change .mo-flow-rule-select': 'add_rule_compare_values'
         },
 

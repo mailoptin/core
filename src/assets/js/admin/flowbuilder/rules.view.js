@@ -8,27 +8,44 @@ define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
         rules_group_tmpl: wp.template('mo-flows-rules-grouping'),
 
         events: {
-            'click #mo-flows-rule-add-btn': 'add_new_rule_group'
+            'click #mo-flows-rule-add-btn': 'add_new_rule_group',
+            'click .mo-flow-add-rule': 'add_AND_rule'
+        },
+
+        initialize: function () {
+            this.ruleViewInstance = new RuleView();
+        },
+
+        add_AND_rule: function (e) {
+            var instance = new RuleView();
+            instance.render();
+            $(e.target).parents('.automatewoo-rule-container').after(instance.$el)
         },
 
         display_default_message: function () {
             this.$el.find('.aw-rules-container .aw-rule-groups').html(this.default_msg_tmpl())
         },
 
-        add_new_rule_group: function () {
-            var cache, rule_row_html, ruleViewInstance;
+        insert_rule_child: function (parent) {
+            var instance = new RuleView();
+            instance.setElement($('.mo-flows-rules-group', parent));
+            instance.render();
+        },
 
-            (ruleViewInstance = new RuleView()).render();
+        add_new_rule_group: function () {
+            var cache, rule_row_html, parent;
 
             rule_row_html = this.rules_group_tmpl();
 
-            ruleViewInstance.delegateEvents();
-
             if ((cache = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
-                $(rule_row_html).insertAfter(cache.last());
+                parent = $(rule_row_html).insertAfter(cache.last());
+                this.insert_rule_child(parent);
+
 
             } else {
                 this.$el.find('.aw-rules-container .aw-rule-groups').html(rule_row_html);
+                parent = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group');
+                this.insert_rule_child(parent);
             }
         },
 

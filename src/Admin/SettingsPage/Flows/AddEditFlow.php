@@ -269,7 +269,7 @@ class AddEditFlow extends AbstractSettingsPage
                     </div>
 
                     <div class="automatewoo-rule__buttons">
-                        <button type="button" class="js-add-rule automatewoo-rule__add button"><?= esc_html__('and', 'mailoptin') ?></button>
+                        <button type="button" class="mo-flow-add-rule automatewoo-rule__add button"><?= esc_html__('and', 'mailoptin') ?></button>
                         <button type="button" class="mo-flow-remove-rule automatewoo-rule__remove"></button>
                     </div>
                 </div>
@@ -279,7 +279,7 @@ class AddEditFlow extends AbstractSettingsPage
         <script type="text/html" id="tmpl-mo-flows-rules-grouping">
             <div class="aw-rule-group">
                 <div class="rules mo-flows-rules-group">
-                    <# if(typeof data != "undefined" && typeof data.child != "undefined") { #> {{{data.child}}} <# } #>
+                    <!--      child view goe here               -->
                 </div>
                 <div class="aw-rule-group__or"><span><?= esc_html__('or', 'mailoptin') ?></span></div>
             </div>
