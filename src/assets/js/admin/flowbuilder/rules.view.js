@@ -12,7 +12,8 @@ define(["jquery", "backbone"], function ($, Backbone) {
         rules_group_value_tmpl: wp.template('mo-flows-rule-value'),
 
         events: {
-            'click #mo-flows-rule-add-btn': 'add_rule_group',
+            'click #mo-flows-rule-add-btn': 'add_new_rule_group',
+            'click #mo-flows-rule-add-btn': 'add_AND_rule',
             'change .mo-flow-rule-select': 'add_rule_compare_values'
         },
 
@@ -26,7 +27,11 @@ define(["jquery", "backbone"], function ($, Backbone) {
             $('.aw-rule-field-value', container).html(this.rules_group_value_tmpl({isDisabled: true}));
         },
 
-        add_rule_group: function () {
+        add_AND_rule: function () {
+
+        },
+
+        add_new_rule_group: function () {
             var cache, cache2;
 
             if ((cache = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
