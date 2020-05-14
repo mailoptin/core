@@ -234,48 +234,52 @@ class AddEditFlow extends AbstractSettingsPage
             </p>
         </script>
 
-        <script type="text/html" id="tmpl-mo-flows-rules-grouping">
-            <div class="aw-rule-group">
-                <div class="rules">
-                    <div class="automatewoo-rule-container">
+        <script type="text/html" id="tmpl-mo-flows-rule-row">
+            <div class="automatewoo-rule-container">
 
-                        <div class="automatewoo-rule automatewoo-rule--type-new automatewoo-rule--compare-false">
+                <div class="automatewoo-rule automatewoo-rule--type-new automatewoo-rule--compare-false">
 
-                            <div class="automatewoo-rule__fields">
+                    <div class="automatewoo-rule__fields">
 
-                                <div class="aw-rule-select-container automatewoo-rule__field-container">
-                                    <select name="mo_flow_data[rule_options][rule_group_94][rule_96][name]" class="mo-flow-rule-select automatewoo-field" required="">
+                        <div class="aw-rule-select-container automatewoo-rule__field-container">
+                            <select name="mo_flow_data[rule_options][rule_group_94][rule_96][name]" class="mo-flow-rule-select automatewoo-field" required="">
 
-                                        <option value=""><?= esc_html__('Select rule', 'mailoptin') ?></option>
+                                <option value=""><?= esc_html__('Select rule', 'mailoptin') ?></option>
 
-                                        <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
+                                <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
 
-                                            <optgroup label="<?= $categoryLabel ?>">
-                                                <?php foreach ($this->get_rules_by_category($categoryId) as $ruleId => $rule) : ?>
-                                                    <option value="<?= $ruleId ?>"><?= $rule['label'] ?></option>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-
+                                    <optgroup label="<?= $categoryLabel ?>">
+                                        <?php foreach ($this->get_rules_by_category($categoryId) as $ruleId => $rule) : ?>
+                                            <option value="<?= $ruleId ?>"><?= $rule['label'] ?></option>
                                         <?php endforeach; ?>
+                                    </optgroup>
 
-                                    </select>
-                                </div>
+                                <?php endforeach; ?>
 
-                                <div class="aw-rule-field-compare automatewoo-rule__field-container">
-                                    <!--  compare select goes here    -->
-                                </div>
+                            </select>
+                        </div>
 
-                                <div class="aw-rule-field-value automatewoo-rule__field-container">
-                                    <!--  value field goes here    -->
-                                </div>
-                            </div>
+                        <div class="aw-rule-field-compare automatewoo-rule__field-container">
+                            <!--  compare select goes here    -->
+                        </div>
 
-                            <div class="automatewoo-rule__buttons">
-                                <button type="button" class="js-add-rule automatewoo-rule__add button"><?= esc_html__('and', 'mailoptin') ?></button>
-                                <button type="button" class="mo-flow-remove-rule automatewoo-rule__remove"></button>
-                            </div>
+                        <div class="aw-rule-field-value automatewoo-rule__field-container">
+                            <!--  value field goes here    -->
                         </div>
                     </div>
+
+                    <div class="automatewoo-rule__buttons">
+                        <button type="button" class="js-add-rule automatewoo-rule__add button"><?= esc_html__('and', 'mailoptin') ?></button>
+                        <button type="button" class="mo-flow-remove-rule automatewoo-rule__remove"></button>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/html" id="tmpl-mo-flows-rules-grouping">
+            <div class="aw-rule-group">
+                <div class="rules mo-flows-rules-group">
+                    <# if(typeof data != "undefined" && typeof data.child != "undefined") { #> {{{data.child}}} <# } #>
                 </div>
                 <div class="aw-rule-group__or"><span><?= esc_html__('or', 'mailoptin') ?></span></div>
             </div>
