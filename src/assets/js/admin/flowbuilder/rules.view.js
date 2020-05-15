@@ -12,10 +12,6 @@ define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
             'click .mo-flow-add-rule': 'add_AND_rule'
         },
 
-        initialize: function () {
-            this.ruleViewInstance = new RuleView();
-        },
-
         add_AND_rule: function (e) {
             var instance = new RuleView();
             instance.render();
@@ -28,8 +24,8 @@ define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
 
         insert_rule_child: function (parent) {
             var instance = new RuleView();
-            instance.setElement($('.mo-flows-rules-group', parent));
             instance.render();
+            $('.mo-flows-rules-group', parent).html(instance.$el)
         },
 
         add_new_rule_group: function () {

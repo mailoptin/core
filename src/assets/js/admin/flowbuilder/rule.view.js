@@ -1,6 +1,8 @@
 define(["jquery", "backbone"], function ($, Backbone) {
     return Backbone.View.extend({
 
+        className: 'automatewoo-rule-container',
+
         template: wp.template('mo-flows-rule-row'),
 
         rules_group_tmpl: wp.template('mo-flows-rules-grouping'),
@@ -10,12 +12,22 @@ define(["jquery", "backbone"], function ($, Backbone) {
         rules_group_value_tmpl: wp.template('mo-flows-rule-value'),
 
         events: {
-            'change .mo-flow-rule-select': 'add_rule_compare_values'
+            'change .mo-flow-rule-select': 'add_rule_compare_values',
+            'click .mo-flow-remove-rule': 'remove_rule'
+        },
+
+        remove_rule: function (e) {
+            var rules_in_group_count = $(e.target).parents('.mo-flows-rules-group').find('.automatewoo-rule-container').length,
+                group_container = $(e.target).parents('.aw-rule-group');
+
+            this.remove();
+
+            if (rules_in_group_count === 1) {
+                group_container.remove();
+            }
         },
 
         add_rule_compare_values: function (e) {
-
-            console.log('changed')
 
             var compareOptions = [],
                 fieldOptions = [],
