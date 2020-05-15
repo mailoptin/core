@@ -17,13 +17,18 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         remove_rule: function (e) {
-            var rules_in_group_count = $(e.target).parents('.mo-flows-rules-group').find('.automatewoo-rule-container').length,
+            var groups_count = $(e.target).parents('.mo-flows-rules-group').find('.aw-rule-group').length,
+                rules_in_group_count = $(e.target).parents('.mo-flows-rules-group').find('.automatewoo-rule-container').length,
                 group_container = $(e.target).parents('.aw-rule-group');
 
             this.remove();
 
             if (rules_in_group_count === 1) {
                 group_container.remove();
+            }
+
+            if (groups_count === 0) {
+                $('body').trigger('mo-flows-empty-rules');
             }
         },
 

@@ -12,6 +12,13 @@ define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
             'click .mo-flow-add-rule': 'add_AND_rule'
         },
 
+        initialize: function () {
+            _.bindAll(this, 'display_default_message');
+            $('body').on('mo-flows-empty-rules', function () {
+                this.display_default_message();
+            });
+        },
+
         add_AND_rule: function (e) {
             var instance = new RuleView();
             instance.render();
