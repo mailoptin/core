@@ -6,6 +6,9 @@ define(["jquery"], function ($) {
     }
 
     return {
-        re_init_js_scripts: re_init_js_scripts
+        re_init_js_scripts: re_init_js_scripts,
+        generateUniqueID: function () {
+            return Math.random().toString(36).substring(2) + Date.now().toString(36);
+        }
     }
 });

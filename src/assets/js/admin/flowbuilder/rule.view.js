@@ -16,6 +16,14 @@ define(["jquery", "backbone"], function ($, Backbone) {
             'click .mo-flow-remove-rule': 'remove_rule'
         },
 
+        initialize(options) {
+            this.options = options;
+        },
+
+        getFieldName: function (type) {
+            return 'mo_flow_data[rule_options][rule_group_' + this.options.groupId + '][rule_' + this.options.ruleId + '][' + type + ']';
+        },
+
         remove_rule: function (e) {
             var rules_in_group_count = $(e.target).parents('.mo-flows-rules-group').find('.automatewoo-rule-container').length,
                 group_container = $(e.target).parents('.aw-rule-group');
@@ -49,12 +57,13 @@ define(["jquery", "backbone"], function ($, Backbone) {
             }
 
             selected_rule_row.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({
-                compareOptions: compareOptions
+                compareOptions: compareOptions,
+                fieldName: this.getFieldName('compare')
             }));
 
             selected_rule_row.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
                 valueField: mo_automate_flows_rules[selected_rule]['value_field'],
-                fieldName: '[rule_options][rule_group_94][rule_96][value]', // @todo set the accessor field
+                fieldName: this.getFieldName('value'),
                 fieldOptions: fieldOptions
             }));
 
@@ -62,9 +71,18 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         render: function () {
-            this.$el.html(this.template());
-            $('.aw-rule-field-compare', this.$el).html(this.rules_group_compare_tmpl({}));
-            $('.aw-rule-field-value', this.$el).html(this.rules_group_value_tmpl({isDisabled: true}));
+            this.$el.html(this.template({
+                fieldName: this.getFieldName('name')
+            }));
+
+            $('.aw-rule-field-compare', this.$el).html(this.rules_group_compare_tmpl({
+                fieldName: this.getFieldName('compare')
+            }));
+
+            $('.aw-rule-field-value', this.$el).html(this.rules_group_value_tmpl({
+                isDisabled: true,
+                fieldName: this.getFieldName('value')
+            }));
         }
     });
 });

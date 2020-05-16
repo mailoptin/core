@@ -1,4 +1,4 @@
-define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
+define(["jquery", "backbone", "rule.view", "util"], function ($, Backbone, RuleView, Util) {
     return Backbone.View.extend({
 
         el: "#mo-flow-rule-meta-box",
@@ -13,23 +13,26 @@ define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
         },
 
         initialize: function () {
-            // _.bindAll(this, 'display_default_message');
             var _this = this;
             $('body').on('mo-flows-rule-removed', function () {
 
                 var groups_count = _this.$el.find('.aw-rule-groups .aw-rule-group').length;
 
-                console.log('called ', groups_count)
-
-                if(groups_count === 0) {
+                if (groups_count === 0) {
                     _this.display_default_message();
                 }
             });
         },
 
         add_AND_rule: function (e) {
-            var instance = new RuleView();
+
+            var instance = new RuleView({
+                groupId: $(e.target).parents('.aw-rule-group').data('group-id'),
+                ruleId: Util.generateUniqueID()
+            });
+
             instance.render();
+
             $(e.target).parents('.automatewoo-rule-container').after(instance.$el)
         },
 
@@ -37,26 +40,30 @@ define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
             this.$el.find('.aw-rules-container .aw-rule-groups').html(this.default_msg_tmpl())
         },
 
-        insert_rule_child: function (parent) {
-            var instance = new RuleView();
+        insert_rule_child: function (parent, groupId) {
+            var ruleId = Util.generateUniqueID(),
+                instance = new RuleView({groupId: groupId, ruleId: ruleId});
+
             instance.render();
+
             $('.mo-flows-rules-group', parent).html(instance.$el)
         },
 
         add_new_rule_group: function () {
-            var cache, rule_row_html, parent;
+            var cache, rule_row_html, parent,
+                groupId = Util.generateUniqueID();
 
-            rule_row_html = this.rules_group_tmpl();
+            rule_row_html = this.rules_group_tmpl({groupId: groupId});
 
             if ((cache = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
                 parent = $(rule_row_html).insertAfter(cache.last());
-                this.insert_rule_child(parent);
+                this.insert_rule_child(parent, groupId);
 
 
             } else {
                 this.$el.find('.aw-rules-container .aw-rule-groups').html(rule_row_html);
                 parent = this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group');
-                this.insert_rule_child(parent);
+                this.insert_rule_child(parent, groupId);
             }
         },
 

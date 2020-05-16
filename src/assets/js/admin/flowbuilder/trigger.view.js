@@ -25,8 +25,7 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         show_trigger_settings: function (trigger_id) {
-            var bucket,
-                triggerSettings = [];
+            var bucket, triggerSettings = [];
 
             if (typeof trigger_id == 'undefined') return;
 
