@@ -21,7 +21,7 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         getFieldName: function (type) {
-            return 'mo_flow_data[rule_options][rule_group_' + this.options.groupId + '][rule_' + this.options.ruleId + '][' + type + ']';
+            return 'mo_flow_data[rule_options][' + this.options.groupId + '][' + this.options.ruleId + '][' + type + ']';
         },
 
         remove_rule: function (e) {
@@ -63,6 +63,34 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
             selected_rule_row.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
                 valueField: mo_automate_flows_rules[selected_rule]['value_field'],
+                fieldName: this.getFieldName('value'),
+                fieldOptions: fieldOptions
+            }));
+
+            selected_rule_row.trigger('mo-flows-field-change', [this.$el]);
+        },
+
+        set_compare_values_fields: function (ruleName) {
+
+            var compareOptions = [],
+                fieldOptions = [],
+                selected_rule_row = $(e.target).parents('.automatewoo-rule-container');
+
+            if (typeof mo_automate_flows_rules[ruleName]['compare'] != "undefined") {
+                compareOptions = mo_automate_flows_rules[ruleName]['compare'];
+            }
+
+            if (typeof mo_automate_flows_rules[ruleName]['value'] != "undefined") {
+                fieldOptions = mo_automate_flows_rules[ruleName]['value'];
+            }
+
+            selected_rule_row.find('.aw-rule-field-compare').html(this.rules_group_compare_tmpl({
+                compareOptions: compareOptions,
+                fieldName: this.getFieldName('compare')
+            }));
+
+            selected_rule_row.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
+                valueField: mo_automate_flows_rules[ruleName]['value_field'],
                 fieldName: this.getFieldName('value'),
                 fieldOptions: fieldOptions
             }));

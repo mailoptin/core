@@ -186,7 +186,7 @@ class AddEditFlow extends AbstractSettingsPage
         ?>
         <script type="text/html" id="tmpl-mo-flows-field-select2">
             <# isDisabled = typeof data.isDisabled != "undefined" && data.isDisabled == true ? "disabled" : ''; #>
-            <select name="mo_flow_data{{data.fieldName}}[]" class="mo-flow-field-select2" multiple {{isDisabled}}>
+            <select name="{{data.fieldName}}[]" class="mo-flow-field-select2" multiple {{isDisabled}}>
                 <# if (typeof data.fieldOptions != "undefined" && !_.isEmpty(data.fieldOptions)) { #>
                 <# _.each(data.fieldOptions, function(label, key) { #>
                 <# selected = typeof data.dbValue != "undefined" && _.contains(data.dbValue, key) ? 'selected': ''; #>
@@ -198,7 +198,7 @@ class AddEditFlow extends AbstractSettingsPage
 
         <script type="text/html" id="tmpl-mo-flows-field-text">
             <# isDisabled = typeof data.isDisabled != "undefined" && data.isDisabled == true ? "disabled" : ''; #>
-            <input class="automatewoo-field" type="text" name="mo_flow_data{{data.fieldName}}" {{isDisabled}}>
+            <input class="automatewoo-field" type="text" name="{{data.fieldName}}" {{isDisabled}}>
         </script>
 
         <script type="text/html" id="tmpl-mo-flows-trigger-settings">
