@@ -40,13 +40,13 @@ define(["jquery", "backbone", "rule.view", "util"], function ($, Backbone, RuleV
             this.$el.find('.aw-rules-container .aw-rule-groups').html(this.default_msg_tmpl())
         },
 
-        insert_rule_child: function (parent, groupId) {
-            var ruleId = Util.generateUniqueID(),
+        insert_rule_child: function (parent, groupId, ruleId) {
+            var ruleId = ruleId || Util.generateUniqueID(),
                 instance = new RuleView({groupId: groupId, ruleId: ruleId});
 
             instance.render();
 
-            $('.mo-flows-rules-group', parent).html(instance.$el)
+            $('.mo-flows-rules-group', parent).append(instance.$el);
         },
 
         add_new_rule_group: function () {
@@ -68,9 +68,29 @@ define(["jquery", "backbone", "rule.view", "util"], function ($, Backbone, RuleV
         },
 
         render: function () {
-            var no_rules_found = true;
 
-            if (no_rules_found) {
+            var rule_row_html, _this = this;
+
+            if (typeof mo_automate_flows_db_data.rule_options != "undefined" && _.size(mo_automate_flows_db_data.rule_options) > 0) {
+                _.each(mo_automate_flows_db_data.rule_options, function (groupRules, groupId) {
+                    rule_row_html = _this.rules_group_tmpl({groupId: groupId});
+
+                    if ((cache = _this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
+                        parent = $(rule_row_html).insertAfter(cache.last());
+                        _.each(groupRules, function (ruleValues, ruleId) {
+                            _this.insert_rule_child(parent, groupId, ruleId);
+                        });
+
+                    } else {
+                        _this.$el.find('.aw-rules-container .aw-rule-groups').html(rule_row_html);
+                        parent = _this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group');
+
+                        _.each(groupRules, function (ruleValues, ruleId) {
+                            _this.insert_rule_child(parent, groupId, ruleId);
+                        });
+                    }
+                });
+            } else {
                 this.display_default_message()
             }
         }
