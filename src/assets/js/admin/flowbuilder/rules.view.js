@@ -13,9 +13,17 @@ define(["jquery", "backbone", "rule.view"], function ($, Backbone, RuleView) {
         },
 
         initialize: function () {
-            _.bindAll(this, 'display_default_message');
-            $('body').on('mo-flows-empty-rules', function () {
-                this.display_default_message();
+            // _.bindAll(this, 'display_default_message');
+            var _this = this;
+            $('body').on('mo-flows-rule-removed', function () {
+
+                var groups_count = _this.$el.find('.aw-rule-groups .aw-rule-group').length;
+
+                console.log('called ', groups_count)
+
+                if(groups_count === 0) {
+                    _this.display_default_message();
+                }
             });
         },
 
