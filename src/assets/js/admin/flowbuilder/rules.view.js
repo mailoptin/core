@@ -40,9 +40,12 @@ define(["jquery", "backbone", "rule.view", "util"], function ($, Backbone, RuleV
             this.$el.find('.aw-rules-container .aw-rule-groups').html(this.default_msg_tmpl())
         },
 
-        insert_rule_child: function (parent, groupId, ruleId) {
-            var ruleId = ruleId || Util.generateUniqueID(),
-                instance = new RuleView({groupId: groupId, ruleId: ruleId});
+        insert_rule_child: function (parent, groupId, ruleId, ruleValues) {
+
+            ruleId = ruleId || Util.generateUniqueID();
+            ruleValues = ruleValues || {};
+
+            var instance = new RuleView({groupId: groupId, ruleId: ruleId, ruleValues: ruleValues});
 
             instance.render();
 
@@ -78,7 +81,7 @@ define(["jquery", "backbone", "rule.view", "util"], function ($, Backbone, RuleV
                     if ((cache = _this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group')).length > 0) {
                         parent = $(rule_row_html).insertAfter(cache.last());
                         _.each(groupRules, function (ruleValues, ruleId) {
-                            _this.insert_rule_child(parent, groupId, ruleId);
+                            _this.insert_rule_child(parent, groupId, ruleId, ruleValues);
                         });
 
                     } else {
@@ -86,7 +89,7 @@ define(["jquery", "backbone", "rule.view", "util"], function ($, Backbone, RuleV
                         parent = _this.$el.find('.aw-rules-container .aw-rule-groups .aw-rule-group');
 
                         _.each(groupRules, function (ruleValues, ruleId) {
-                            _this.insert_rule_child(parent, groupId, ruleId);
+                            _this.insert_rule_child(parent, groupId, ruleId, ruleValues);
                         });
                     }
                 });
