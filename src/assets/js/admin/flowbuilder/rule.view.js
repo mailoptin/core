@@ -58,9 +58,9 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
             if (typeof mo_automate_flows_rules[selected_rule] == "undefined") return;
 
-            this.set_compare_values_fields(selected_rule, selected_rule_row);
+            this.set_compare_values_fields(selected_rule, this.$el);
 
-            selected_rule_row.trigger('mo-flows-field-change', [this.$el]);
+            this.$el.trigger('mo-flows-field-change', [this.$el]);
         },
 
         set_compare_values_fields: function (ruleName, parent) {
@@ -89,12 +89,20 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         render: function () {
+            var _this = this;
+
             this.$el.html(this.template({
                 fieldName: this.getFieldName('name')
             }));
 
             if (typeof this.options.ruleValues != 'undefined' && !_.isEmpty(this.options.ruleValues)) {
+
                 this.set_compare_values_fields(this.options.ruleValues.name, this.$el);
+                // using setTimeout so we wait for template to form html.
+                setTimeout(function () {
+                    _this.$el.trigger('mo-flows-field-change', [_this.$el]);
+                }, 300);
+
             } else {
                 this.default_rule_row_state();
             }
