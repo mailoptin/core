@@ -66,7 +66,7 @@ if (isset($flow_id)) {
                 </table>
             </div>
         </div>
-        <div id="mo-flow-rule-meta-box" class="postbox  automatewoo-metabox no-drag">
+        <div id="mo-flow-rule-meta-box" class="postbox automatewoo-metabox no-drag">
             <button type="button" class="handlediv" aria-expanded="true">
                 <span class="toggle-indicator" aria-hidden="true"></span>
             </button>
@@ -92,7 +92,7 @@ if (isset($flow_id)) {
         </div>
         <div id="aw_actions_box" class="postbox  automatewoo-metabox no-drag">
             <button type="button" class="handlediv" aria-expanded="true">
-                <span class="screen-reader-text">Toggle panel: Actions</span><span class="toggle-indicator" aria-hidden="true"></span>
+                <span class="toggle-indicator" aria-hidden="true"></span>
             </button>
             <h2 class="hndle">
                 <span>Actions</span><a href="#" class="automatewoo-help-link automatewoo-help-link--right" target="_blank"></a>

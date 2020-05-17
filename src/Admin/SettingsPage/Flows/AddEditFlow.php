@@ -313,6 +313,111 @@ class AddEditFlow extends AbstractSettingsPage
             {{{field}}}
 
         </script>
+
+
+        <script type="text/html" id="tmpl-mo-flows-trigger-settings">
+            <div class="automatewoo-action js-open" data-action-number="2" data-automatewoo-action-name="customer_add_tags" data-automatewoo-action-group="customer" data-automatewoo-action-can-be-previewed="false">
+
+                <div class="automatewoo-action__header">
+                    <div class="row-options">
+                        <a href="#" data-automatewoo-preview="">Preview</a>
+                        <a class="js-edit-action" href="#">Edit</a>
+                        <a class="js-delete-action" href="#">Delete</a>
+                    </div>
+
+                    <h4 class="action-title">Customer - Add Tags</h4>
+                </div>
+
+                <div class="automatewoo-action__fields" style="display: block;">
+                    <table class="automatewoo-table">
+
+                        <tbody>
+                        <tr class="automatewoo-table__row" data-name="action_name" data-type="select" data-required="1">
+                            <td class="automatewoo-table__col automatewoo-table__col--label">
+                                <label>Action <span class="required">*</span></label>
+                            </td>
+                            <td class="automatewoo-table__col automatewoo-table__col--field">
+
+
+                                <select name="aw_workflow_data[actions][2][action_name]" data-name="" class="automatewoo-field automatewoo-field--type-select js-action-select">
+
+                                    <option value="">[Select]</option>
+
+                                    <optgroup label="Email">
+                                        <option value="send_email">Send Email</option>
+                                        <option value="send_email_plain">Send Email - Plain Text</option>
+                                        <option value="send_email_raw">Send Email - Raw HTML [BETA]</option>
+                                    </optgroup>
+                                    <optgroup label="Customer">
+                                        <option value="customer_change_role">Change Role</option>
+                                        <option value="customer_update_meta">Update Custom Field</option>
+                                        <option value="customer_add_tags">Add Tags</option>
+                                        <option value="customer_remove_tags">Remove Tags</option>
+                                    </optgroup>
+                                    <optgroup label="Order">
+                                        <option value="change_order_status">Change Status</option>
+                                        <option value="update_order_meta">Update Custom Field</option>
+                                        <option value="resend_order_email">Resend Order Email</option>
+                                        <option value="trigger_order_action">Trigger Order Action</option>
+                                        <option value="order_update_customer_shipping_note">Update Customer Provided Note</option>
+                                        <option value="order_add_note">Add Note</option>
+                                    </optgroup>
+                                    <optgroup label="Order Item">
+                                        <option value="order_item_update_meta" disabled="disabled">Update Custom Field</option>
+                                    </optgroup>
+                                    <optgroup label="AutomateWoo">
+                                        <option value="clear_queued_events">Clear Queued Events</option>
+                                        <option value="change_workflow_status" disabled="disabled">Change Workflow Status</option>
+                                    </optgroup>
+                                    <optgroup label="Other">
+                                        <option value="custom_function">Custom Function</option>
+                                        <option value="change_post_status" disabled="disabled">Change Post Status</option>
+                                    </optgroup>
+                                    <optgroup label="Product">
+                                        <option value="update_product_meta" disabled="disabled">Update Custom Field</option>
+                                    </optgroup>
+                                    <optgroup label="Mad Mimi">
+                                        <option value="add_to_mad_mimi_list">Add Customer to List</option>
+                                    </optgroup>
+                                    <optgroup label="DEPRECATED">
+                                        <option value="add_to_campaign_monitor">Campaign Monitor Add Customer to List [DEPRECATED]</option>
+                                    </optgroup>
+
+                                </select>
+
+
+                                <div class="js-action-description">
+                                    <p class="aw-field-description">Please note that tags are not supported on guest customers.</p>
+                                </div>
+
+                            </td>
+                        </tr>
+
+
+                        <tr class="automatewoo-table__row" data-name="user_tags" data-type="select" data-required="0 ">
+
+                            <td class="automatewoo-table__col automatewoo-table__col--label">
+
+
+                                <label>Tags </label>
+
+                            </td>
+
+                            <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
+                                <select name="aw_workflow_data[actions][2][user_tags][]" data-name="user_tags" class="automatewoo-field automatewoo-field--type-select wc-enhanced-select select2-hidden-accessible enhanced" multiple="" data-placeholder="[Select]" tabindex="-1" aria-hidden="true">
+
+
+                                </select><span class="select2 select2-container select2-container--default" dir="ltr" style="width: 552px;"><span class="selection"><span class="select2-selection select2-selection--multiple" aria-haspopup="true" aria-expanded="false" tabindex="-1"><ul class="select2-selection__rendered" aria-live="polite" aria-relevant="additions removals" aria-atomic="true"><li class="select2-search select2-search--inline"><input class="select2-search__field" type="text" tabindex="0" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="textbox" aria-autocomplete="list" placeholder="[Select]" style="width: 550px;"></li></ul></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+
+
+
+        </td>
+        </tr>
+
+        </tbody></table>
+        </div>
+        </div>
+        </script>
         <?php
     }
 
