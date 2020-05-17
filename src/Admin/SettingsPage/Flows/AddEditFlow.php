@@ -214,8 +214,8 @@ class AddEditFlow extends AbstractSettingsPage
 
                     <# field_tmpl = wp.template('mo-flows-field-' + args.field); #>
                     <# fieldOptions = typeof args.options != "undefined" ? args.options : []; #>
-                    <# fieldName = "[trigger_settings]["+key+"]"; #>
-                    <# dbValue = mo_automate_flows_db_data.trigger_settings[key]; #>
+                    <# fieldName = "mo_flow_data[trigger_settings]["+key+"]"; #>
+                    <# dbValue = typeof mo_automate_flows_db_data.trigger_settings != 'undefined' ? mo_automate_flows_db_data.trigger_settings[key] : ''; #>
                     <# field = field_tmpl({fieldName:fieldName, fieldOptions: fieldOptions, dbValue: dbValue}); #>
                     {{{field}}}
 
@@ -236,7 +236,7 @@ class AddEditFlow extends AbstractSettingsPage
 
         <script type="text/html" id="tmpl-mo-flows-rule-row">
 
-            <div class="automatewoo-rule automatewoo-rule--type-new automatewoo-rule--compare-false">
+            <div class="automatewoo-rule">
 
                 <div class="automatewoo-rule__fields">
 
@@ -306,10 +306,7 @@ class AddEditFlow extends AbstractSettingsPage
             <# field_tmpl = wp.template('mo-flows-field-' + data.valueField); #>
             <# isDisabled = typeof data.isDisabled != "undefined" ? data.isDisabled : false; #>
             <# fieldOptions = typeof data.fieldOptions != "undefined" ? data.fieldOptions : []; #>
-
-            <# dbValue = []; #>
-            <# try { dbValue = mo_automate_flows_db_data.trigger_rules[key]; #>
-            <# } catch (e) {} #>
+            <# dbValue = typeof data.dbValue != "undefined" ? data.dbValue : []; #>
 
             <# field = field_tmpl({fieldName:data.fieldName, fieldOptions: fieldOptions, dbValue: dbValue, isDisabled: isDisabled}); #>
 

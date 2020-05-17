@@ -260,7 +260,6 @@ if (isset($flow_id)) {
 
                         <div class="automatewoo-action__header">
                             <div class="row-options">
-                                <a href="#" data-automatewoo-preview="">Preview</a>
                                 <a class="js-edit-action" href="#">Edit</a>
                                 <a class="js-delete-action" href="#">Delete</a>
                             </div>
@@ -335,7 +334,7 @@ if (isset($flow_id)) {
 
 
                 <div class="automatewoo-metabox-footer">
-                    <a href="#" class="js-aw-add-action button button-primary button-large">+ Add Action</a>
+                    <a href="#" class="js-aw-add-action button button-primary button-large"><?= esc_html__('+ Add Action', 'mailoptin'); ?></a>
                 </div>
             </div>
         </div>

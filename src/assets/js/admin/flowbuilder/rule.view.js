@@ -89,7 +89,8 @@ define(["jquery", "backbone"], function ($, Backbone) {
             this.$el.find('.aw-rule-field-value').html(this.rules_group_value_tmpl({
                 valueField: mo_automate_flows_rules[ruleName]['value_field'],
                 fieldName: this.getFieldName('value'),
-                fieldOptions: fieldOptions
+                fieldOptions: fieldOptions,
+                dbValue: this.getSavedValue('value')
             }));
         },
 
