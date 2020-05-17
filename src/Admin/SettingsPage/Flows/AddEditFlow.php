@@ -249,7 +249,8 @@ class AddEditFlow extends AbstractSettingsPage
 
                                 <optgroup label="<?= $categoryLabel ?>">
                                     <?php foreach ($this->get_rules_by_category($categoryId) as $ruleId => $rule) : ?>
-                                        <option value="<?= $ruleId ?>"><?= $rule['label'] ?></option>
+                                        <# selected = typeof data.dbValue != "undefined" && "<?= $ruleId ?>" == data.dbValue ? 'selected' : ''; #>
+                                        <option value="<?= $ruleId ?>" {{selected}}><?= $rule['label'] ?></option>
                                     <?php endforeach; ?>
                                 </optgroup>
 
@@ -289,14 +290,13 @@ class AddEditFlow extends AbstractSettingsPage
 
             <select name="{{data.fieldName}}" class="automatewoo-field js-rule-compare-field">
                 <# _.each(data.compareOptions, function(label, key) { #>
-                <option value="{{key}}">{{label}}</option>
+                <# selected = typeof data.dbValue != "undefined" && key == data.dbValue ? 'selected' : ''; #>
+                <option value="{{key}}" {{selected}}>{{label}}</option>
                 <# }); #>
             </select>
 
             <# } else { #>
-
             <select name="{{data.fieldName}}" class="automatewoo-field js-rule-compare-field" disabled></select>
-
             <# } #>
         </script>
 
