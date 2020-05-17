@@ -10,22 +10,20 @@ define(["jquery", "backbone"], function ($, Backbone) {
         },
 
         trigger_selection_changed: function (e) {
-            var cache = $(e.target),
-                trigger_id = cache.val();
+
+            this.show_trigger_settings(
+                $(e.target).val()
+            );
+        },
+
+        show_trigger_settings: function (trigger_id) {
+
+            var bucket, triggerSettings = [];
 
             $('.mo-trigger-settings', this.$el).remove();
             this.$el.find('#mo-flow-trigger-description').text('');
 
-
             if (trigger_id === "") return;
-
-            this.show_trigger_settings(trigger_id);
-
-            this.$el.trigger('mo-flows-field-change', [this.$el]);
-        },
-
-        show_trigger_settings: function (trigger_id) {
-            var bucket, triggerSettings = [];
 
             if (typeof trigger_id == 'undefined') return;
 
@@ -42,16 +40,15 @@ define(["jquery", "backbone"], function ($, Backbone) {
             if (typeof bucket != 'undefined') {
                 this.$el.find('#mo-flow-trigger-description').text(bucket.description);
             }
+
+            this.$el.trigger('mo-flows-field-change', [this.$el]);
         },
 
         render: function () {
 
-            this.$el.find('#mo-flow-trigger').change();
-
-            // if (typeof mo_automate_flows_db_data.trigger_name !== 'undefined') {
-            //     var trigger_id = mo_automate_flows_db_data.trigger_name;
-            //     console.log(trigger_id)
-            // }
+            if (typeof mo_automate_flows_db_data.trigger_name !== 'undefined') {
+                this.show_trigger_settings(mo_automate_flows_db_data.trigger_name);
+            }
         }
     });
 });

@@ -105,6 +105,7 @@ define(["jquery", "backbone"], function ($, Backbone) {
             if (typeof this.options.ruleValues != 'undefined' && !_.isEmpty(this.options.ruleValues)) {
 
                 this.set_compare_values_fields(this.options.ruleValues.name);
+
                 // using setTimeout so we wait for template to form html.
                 setTimeout(function () {
                     _this.$el.trigger('mo-flows-field-change', [_this.$el]);
