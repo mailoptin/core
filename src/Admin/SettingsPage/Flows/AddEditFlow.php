@@ -8,6 +8,7 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage;
+use MailOptin\Core\Flows\AbstractTriggerAction;
 use MailOptin\Core\Flows\Triggers\AbstractTrigger;
 use MailOptin\Core\Repositories\FlowsRepository;
 use W3Guy\Custom_Settings_Page_Api;
@@ -77,7 +78,7 @@ class AddEditFlow extends AbstractSettingsPage
     public static function registered_categories()
     {
         return apply_filters('mo_automate_flows_categories', [
-            AbstractTrigger::WOOCOMMERCE_CATEGORY => 'WooCommerce'
+            AbstractTriggerAction::WOOCOMMERCE_CATEGORY => 'WooCommerce'
         ]);
     }
 
@@ -320,7 +321,6 @@ class AddEditFlow extends AbstractSettingsPage
 
                 <div class="automatewoo-action__header">
                     <div class="row-options">
-                        <a href="#" data-automatewoo-preview="">Preview</a>
                         <a class="js-edit-action" href="#">Edit</a>
                         <a class="js-delete-action" href="#">Delete</a>
                     </div>
@@ -410,13 +410,13 @@ class AddEditFlow extends AbstractSettingsPage
                                 </select><span class="select2 select2-container select2-container--default" dir="ltr" style="width: 552px;"><span class="selection"><span class="select2-selection select2-selection--multiple" aria-haspopup="true" aria-expanded="false" tabindex="-1"><ul class="select2-selection__rendered" aria-live="polite" aria-relevant="additions removals" aria-atomic="true"><li class="select2-search select2-search--inline"><input class="select2-search__field" type="text" tabindex="0" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="textbox" aria-autocomplete="list" placeholder="[Select]" style="width: 550px;"></li></ul></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
 
 
+                            </td>
+                        </tr>
 
-        </td>
-        </tr>
-
-        </tbody></table>
-        </div>
-        </div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </script>
         <?php
     }

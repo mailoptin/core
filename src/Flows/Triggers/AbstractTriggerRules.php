@@ -3,7 +3,9 @@
 namespace MailOptin\Core\Flows\Triggers;
 
 
-abstract class AbstractTriggerRules
+use MailOptin\Core\Flows\AbstractTriggerAction;
+
+abstract class AbstractTriggerRules extends AbstractTriggerAction
 {
     public function multi_select_compare()
     {
