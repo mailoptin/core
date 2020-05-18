@@ -5,7 +5,7 @@ namespace MailOptin\Core\Flows\Actions\Mailchimp;
 
 use MailOptin\Core\Flows\Actions\AbstractAction;
 
-class AddToList extends AbstractAction
+class AddUpdateSubscriber extends AbstractAction
 {
     public function id()
     {
@@ -19,7 +19,7 @@ class AddToList extends AbstractAction
 
     public function title()
     {
-        return esc_html__('Add Contact to List', 'mailoptin');
+        return esc_html__('Add/Update Subscriber', 'mailoptin');
     }
 
     public function description()
