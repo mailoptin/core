@@ -1,14 +1,22 @@
-define(["jquery", "backbone"], function ($, Backbone) {
+define(["jquery", "backbone", "action.view"], function ($, Backbone, ActionView) {
     return Backbone.View.extend({
 
         el: "#mo-flow-action-meta-box",
 
         default_msg_tmpl: wp.template('mo-flows-actions-default'),
 
-        events: {},
+        events: {
+            'click #mo-flows-add-action': 'add_new_action'
+        },
+
+        add_new_action: function () {
+            var instance = new ActionView();
+            instance.render();
+            this.$el.find('.aw-actions-container').append(instance.$el);
+        },
 
         display_default_message: function () {
-            this.$el.html(this.default_msg_tmpl());
+            this.$el.find('.aw-actions-container').html(this.default_msg_tmpl());
         },
 
         render: function () {

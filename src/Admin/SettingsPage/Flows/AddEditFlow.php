@@ -241,7 +241,7 @@ class AddEditFlow extends AbstractSettingsPage
         </script>
 
         <script type="text/html" id="tmpl-mo-flows-rules-default">
-            <p>
+            <p class="mo-flows-rules-default-msg">
                 <?= sprintf(
                     esc_html__('Rules can be used to add conditional logic to flows. Click the %s+ Add Rule Group%s button to create a rule.', 'mailoptin'),
                     '<strong>', '</strong>'
@@ -250,7 +250,7 @@ class AddEditFlow extends AbstractSettingsPage
         </script>
 
         <script type="text/html" id="tmpl-mo-flows-actions-default">
-            <p>
+            <p class="mo-flows-actions-default-msg">
                 <?= sprintf(
                     esc_html__('No actions. Click the %s+ Add Action%s button to create an action.', 'mailoptin'),
                     '<strong>', '</strong>'
@@ -344,76 +344,73 @@ class AddEditFlow extends AbstractSettingsPage
         </script>
 
         <script type="text/html" id="tmpl-mo-flows-action-settings">
-            <div class="automatewoo-action js-open">
-
-                <div class="automatewoo-action__header">
-                    <div class="row-options">
-                        <a class="js-edit-action" href="#"><?= esc_html__('Edit', 'mailoptin') ?></a>
-                        <a class="js-delete-action" href="#"><?= esc_html__('Delete', 'mailoptin') ?></a>
-                    </div>
-
-                    <# title = typeof data.title != 'undefined' && data.title != '' ? data.title : '<?= esc_html__('New Action', 'mailoptin') ?>'; #>
-
-                    <h4 class="action-title">{{title}}</h4>
+            <div class="automatewoo-action__header">
+                <div class="row-options">
+                    <a class="js-edit-action" href="#"><?= esc_html__('Edit', 'mailoptin') ?></a>
+                    <a class="js-delete-action" href="#"><?= esc_html__('Delete', 'mailoptin') ?></a>
                 </div>
 
-                <div class="automatewoo-action__fields" style="display: none;">
-                    <table class="automatewoo-table">
+                <# title = typeof data.title != 'undefined' && data.title != '' ? data.title : '<?= esc_html__('New Action', 'mailoptin') ?>'; #>
 
-                        <tbody>
-                        <tr class="automatewoo-table__row">
-                            <td class="automatewoo-table__col automatewoo-table__col--label">
-                                <label><?= esc_html__('Action', 'mailoptin'); ?> <span class="required">*</span></label>
-                            </td>
-                            <td class="automatewoo-table__col automatewoo-table__col--field">
+                <h4 class="action-title">{{title}}</h4>
+            </div>
 
-                                <select name="{{data.fieldName}}" class="mo-flow-action-select automatewoo-field" required="">
+            <div class="automatewoo-action__fields" style="display: none;">
+                <table class="automatewoo-table">
 
-                                    <option value=""><?= esc_html__('Select...', 'mailoptin') ?></option>
+                    <tbody>
+                    <tr class="automatewoo-table__row">
+                        <td class="automatewoo-table__col automatewoo-table__col--label">
+                            <label><?= esc_html__('Action', 'mailoptin'); ?> <span class="required">*</span></label>
+                        </td>
+                        <td class="automatewoo-table__col automatewoo-table__col--field">
 
-                                    <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
+                            <select name="{{data.fieldName}}" class="mo-flow-action-select automatewoo-field" required="">
 
-                                        <?php $category_actions = $this->get_actions_by_category($categoryId); ?>
+                                <option value=""><?= esc_html__('Select...', 'mailoptin') ?></option>
 
-                                        <?php if ( ! empty($category_actions)) : ?>
-                                            <optgroup label="<?= $categoryLabel ?>">
+                                <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
 
-                                                <?php foreach ($category_actions as $actionId => $action) : ?>
-                                                    <# selected = typeof data.dbValue != "undefined" && "<?= $actionId ?>" == data.dbValue ? 'selected' : ''; #>
-                                                    <option value="<?= $actionId ?>" {{selected}}><?= $action['title'] ?></option>
-                                                <?php endforeach; ?>
+                                    <?php $category_actions = $this->get_actions_by_category($categoryId); ?>
 
-                                            </optgroup>
+                                    <?php if ( ! empty($category_actions)) : ?>
+                                        <optgroup label="<?= $categoryLabel ?>">
 
-                                        <?php endif; ?>
+                                            <?php foreach ($category_actions as $actionId => $action) : ?>
+                                                <# selected = typeof data.dbValue != "undefined" && "<?= $actionId ?>" == data.dbValue ? 'selected' : ''; #>
+                                                <option value="<?= $actionId ?>" {{selected}}><?= $action['title'] ?></option>
+                                            <?php endforeach; ?>
 
-                                    <?php endforeach; ?>
+                                        </optgroup>
 
-                                </select>
+                                    <?php endif; ?>
+
+                                <?php endforeach; ?>
+
+                            </select>
 
 
-                                <p class="aw-field-description">
-                                    <!--     description goes here            -->
-                                </p>
-                            </td>
-                        </tr>
+                            <p class="aw-field-description">
+                                <!--     description goes here            -->
+                            </p>
+                        </td>
+                    </tr>
 
-                        <tr class="automatewoo-table__row" data-name="user_tags" data-type="select" data-required="0 ">
+                    <tr class="automatewoo-table__row" data-name="user_tags" data-type="select" data-required="0 ">
 
-                            <td class="automatewoo-table__col automatewoo-table__col--label">
-                                <label>Tags </label>
-                            </td>
+                        <td class="automatewoo-table__col automatewoo-table__col--label">
+                            <label>Tags </label>
+                        </td>
 
-                            <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                <select name="aw_workflow_data[actions][2][user_tags][]">
+                        <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
+                            <select name="aw_workflow_data[actions][2][user_tags][]">
 
-                                </select>
-                            </td>
-                        </tr>
+                            </select>
+                        </td>
+                    </tr>
 
-                        </tbody>
-                    </table>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </script>
         <?php
