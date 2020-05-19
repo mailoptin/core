@@ -11,9 +11,12 @@ define(["jquery", "backbone", "action.view"], function ($, Backbone, ActionView)
 
         add_new_action: function (e) {
             e.preventDefault();
+
             this.$el.find('.mo-flows-actions-default-msg').remove();
+
             var instance = new ActionView();
             instance.render();
+
             this.$el.find('.aw-actions-container').append(instance.$el);
         },
 
