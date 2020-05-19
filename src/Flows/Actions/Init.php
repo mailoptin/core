@@ -1,15 +1,14 @@
 <?php
 
-namespace MailOptin\Core\Flows\Triggers;
+namespace MailOptin\Core\Flows\Actions;
 
 class Init
 {
     public function __construct()
     {
-        new WooCommerce\OrderCreated();
-        new WooCommerce\OrderRefunded();
+        new Mailchimp\AddUpdateSubscriber();
 
-        do_action('mo_automate_triggers_init');
+        do_action('mo_automate_actions_init');
     }
 
     public static function get_instance()

@@ -112,6 +112,7 @@ class Base
         Recaptcha::get_instance();
 
         Flows\Triggers\Init::get_instance();
+        Flows\Actions\Init::get_instance();
 
         add_action('widgets_init', ['MailOptin\Core\OptinForms\SidebarWidgets', 'widget_registration']);
 
@@ -183,7 +184,7 @@ class Base
         $wpdb->optin_campaignmeta = $wpdb->prefix . Core::optin_campaign_meta_table_name;
         $wpdb->email_campaignmeta = $wpdb->prefix . Core::email_campaign_meta_table_name;
         $wpdb->campaign_logmeta   = $wpdb->prefix . Core::campaign_log_meta_table_name;
-        $wpdb->automate_flowmeta   = $wpdb->prefix . Core::flows_meta_table_name;
+        $wpdb->automate_flowmeta  = $wpdb->prefix . Core::flows_meta_table_name;
     }
 
     /**

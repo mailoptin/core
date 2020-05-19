@@ -315,9 +315,8 @@ class AddEditFlow extends AbstractSettingsPage
 
         </script>
 
-
         <script type="text/html" id="tmpl-mo-flows-trigger-settings">
-            <div class="automatewoo-action js-open" data-action-number="2" data-automatewoo-action-name="customer_add_tags" data-automatewoo-action-group="customer" data-automatewoo-action-can-be-previewed="false">
+            <div class="automatewoo-action js-open">
 
                 <div class="automatewoo-action__header">
                     <div class="row-options">
@@ -328,7 +327,7 @@ class AddEditFlow extends AbstractSettingsPage
                     <h4 class="action-title">Customer - Add Tags</h4>
                 </div>
 
-                <div class="automatewoo-action__fields" style="display: block;">
+                <div class="automatewoo-action__fields" style="display: none;">
                     <table class="automatewoo-table">
 
                         <tbody>

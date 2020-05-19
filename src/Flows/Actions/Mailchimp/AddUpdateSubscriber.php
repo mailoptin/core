@@ -4,6 +4,7 @@ namespace MailOptin\Core\Flows\Actions\Mailchimp;
 
 
 use MailOptin\Core\Flows\Actions\AbstractAction;
+use MailOptin\MailChimpConnect\Connect;
 
 class AddUpdateSubscriber extends AbstractAction
 {
@@ -30,28 +31,27 @@ class AddUpdateSubscriber extends AbstractAction
     public function settings()
     {
         return [
-            'order_status' => [
-                'field'       => self::SELECT2_FIELD,
-                'label'       => esc_html__('Select Order Status'),
-                'description' => esc_html__('Select order statuses that will trigger this flow', 'mailoptin'),
-                'options'     => [
-                    'processing' => esc_html__('Processing', 'mailoptin'),
-                    'completed'  => esc_html__('Completed', 'mailoptin'),
-                    'onhold'     => esc_html__('On hold', 'mailoptin')
-                ]
-            ]
-        ];
-    }
-
-    public function rules()
-    {
-        return [
-            'order_item_categories' => [
-                'label'       => esc_html__('Order Item Categories'),
-                'category'    => self::WOOCOMMERCE_CATEGORY,
-                'compare'     => self::multi_select_compare(),
-                'value_field' => self::SELECT2_FIELD,
-                'value'       => Helpers::get_wc_categories()
+            'mailchimp_adl_list'             => [
+                'field'   => parent::SELECT_FIELD,
+                'label'   => esc_html__('Audience / List', 'mailoptin'),
+                'options' => Connect::get_instance()->get_email_list()
+            ],
+            'mailchimp_adl_subscriber_email' => [
+                'field' => parent::TEXT_FIELD,
+                'label' => esc_html__('Email Address', 'mailoptin')
+            ],
+            'mailchimp_adl_first_name'       => [
+                'field' => parent::TEXT_FIELD,
+                'label' => esc_html__('First Name', 'mailoptin')
+            ],
+            'mailchimp_adl_last_name'        => [
+                'field' => parent::TEXT_FIELD,
+                'label' => esc_html__('Last Name', 'mailoptin')
+            ],
+            'mailchimp_adl_custom_fields'    => [
+                'field' => parent::FIELD_MAP,
+                'label' => esc_html__('Map Fields', 'mailoptin'),
+                'fields' => []
             ]
         ];
     }

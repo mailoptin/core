@@ -4,9 +4,6 @@ namespace MailOptin\Core\Flows\Triggers;
 
 abstract class AbstractTrigger extends AbstractTriggerRules implements TriggerInterface
 {
-    const SELECT2_FIELD = 'select2';
-    const TEXT_FIELD = 'text';
-
     public function __construct()
     {
         add_filter('mo_automate_flows_triggers', [$this, 'add_flow']);

@@ -33,7 +33,7 @@ class OrderCreated extends AbstractTrigger
         return [
             'order_status' => [
                 'field'       => self::SELECT2_FIELD,
-                'label'       => esc_html__('Select Order Status'),
+                'label'       => esc_html__('Select Order Status', 'mailoptin'),
                 'description' => esc_html__('Select order statuses that will trigger this flow', 'mailoptin'),
                 'options'     => [
                     'processing' => esc_html__('Processing', 'mailoptin'),
@@ -48,11 +48,11 @@ class OrderCreated extends AbstractTrigger
     {
         return [
             'order_item_categories' => [
-                'label' => esc_html__('Order Item Categories'),
-                'category' => self::WOOCOMMERCE_CATEGORY,
-                'compare'  => self::multi_select_compare(),
+                'label'       => esc_html__('Order Item Categories', 'mailoptin'),
+                'category'    => self::WOOCOMMERCE_CATEGORY,
+                'compare'     => self::multi_select_compare(),
                 'value_field' => self::SELECT2_FIELD,
-                'value'    => Helpers::get_wc_categories()
+                'value'       => Helpers::get_wc_categories()
             ]
         ];
     }
