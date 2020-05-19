@@ -92,15 +92,22 @@ class AddEditFlow extends AbstractSettingsPage
         return apply_filters('mo_automate_flows_rules', []);
     }
 
+    public static function registered_actions()
+    {
+        return apply_filters('mo_automate_flows_actions', []);
+    }
+
     public function flow_builder_globals()
     {
         printf(
             '<script type="text/javascript">
                     var mo_automate_flows_triggers = %s;
+                    var mo_automate_flows_actions = %s;
                     var mo_automate_flows_rules = %s;
                     var mo_automate_flows_db_data = %s;
                     </script>',
             json_encode(self::registered_triggers()),
+            json_encode(self::registered_actions()),
             json_encode(self::registered_rules()),
             json_encode(FlowsRepository::get_flow_by_id($this->flow_id))
         );
@@ -116,6 +123,13 @@ class AddEditFlow extends AbstractSettingsPage
     public function get_rules_by_category($category)
     {
         return array_filter(self::registered_rules(), function ($value) use ($category) {
+            return $value['category'] == $category;
+        });
+    }
+
+    public function get_actions_by_category($category)
+    {
+        return array_filter(self::registered_actions(), function ($value) use ($category) {
             return $value['category'] == $category;
         });
     }
@@ -227,9 +241,18 @@ class AddEditFlow extends AbstractSettingsPage
         </script>
 
         <script type="text/html" id="tmpl-mo-flows-rules-default">
-            <p class="aw-rules-empty-message">
+            <p>
                 <?= sprintf(
                     esc_html__('Rules can be used to add conditional logic to flows. Click the %s+ Add Rule Group%s button to create a rule.', 'mailoptin'),
+                    '<strong>', '</strong>'
+                ); ?>
+            </p>
+        </script>
+
+        <script type="text/html" id="tmpl-mo-flows-actions-default">
+            <p>
+                <?= sprintf(
+                    esc_html__('No actions. Click the %s+ Add Action%s button to create an action.', 'mailoptin'),
                     '<strong>', '</strong>'
                 ); ?>
             </p>
@@ -244,16 +267,21 @@ class AddEditFlow extends AbstractSettingsPage
                     <div class="aw-rule-select-container automatewoo-rule__field-container">
                         <select name="{{data.fieldName}}" class="mo-flow-rule-select automatewoo-field" required="">
 
-                            <option value=""><?= esc_html__('Select rule', 'mailoptin') ?></option>
+                            <option value=""><?= esc_html__('Select...', 'mailoptin') ?></option>
 
                             <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
 
-                                <optgroup label="<?= $categoryLabel ?>">
-                                    <?php foreach ($this->get_rules_by_category($categoryId) as $ruleId => $rule) : ?>
-                                        <# selected = typeof data.dbValue != "undefined" && "<?= $ruleId ?>" == data.dbValue ? 'selected' : ''; #>
-                                        <option value="<?= $ruleId ?>" {{selected}}><?= $rule['label'] ?></option>
-                                    <?php endforeach; ?>
-                                </optgroup>
+                                <?php $category_rules = $this->get_rules_by_category($categoryId); ?>
+
+                                <?php if ( ! empty($category_rules)) : ?>
+                                    <optgroup label="<?= $categoryLabel ?>">
+                                        <?php foreach ($category_rules as $ruleId => $rule) : ?>
+                                            <# selected = typeof data.dbValue != "undefined" && "<?= $ruleId ?>" == data.dbValue ? 'selected' : ''; #>
+                                            <option value="<?= $ruleId ?>" {{selected}}><?= $rule['label'] ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
+
+                                <?php endif; ?>
 
                             <?php endforeach; ?>
 
@@ -315,100 +343,71 @@ class AddEditFlow extends AbstractSettingsPage
 
         </script>
 
-        <script type="text/html" id="tmpl-mo-flows-trigger-settings">
+        <script type="text/html" id="tmpl-mo-flows-action-settings">
             <div class="automatewoo-action js-open">
 
                 <div class="automatewoo-action__header">
                     <div class="row-options">
-                        <a class="js-edit-action" href="#">Edit</a>
-                        <a class="js-delete-action" href="#">Delete</a>
+                        <a class="js-edit-action" href="#"><?= esc_html__('Edit', 'mailoptin') ?></a>
+                        <a class="js-delete-action" href="#"><?= esc_html__('Delete', 'mailoptin') ?></a>
                     </div>
 
-                    <h4 class="action-title">Customer - Add Tags</h4>
+                    <# title = typeof data.title != 'undefined' && data.title != '' ? data.title : '<?= esc_html__('New Action', 'mailoptin') ?>'; #>
+
+                    <h4 class="action-title">{{title}}</h4>
                 </div>
 
                 <div class="automatewoo-action__fields" style="display: none;">
                     <table class="automatewoo-table">
 
                         <tbody>
-                        <tr class="automatewoo-table__row" data-name="action_name" data-type="select" data-required="1">
+                        <tr class="automatewoo-table__row">
                             <td class="automatewoo-table__col automatewoo-table__col--label">
-                                <label>Action <span class="required">*</span></label>
+                                <label><?= esc_html__('Action', 'mailoptin'); ?> <span class="required">*</span></label>
                             </td>
                             <td class="automatewoo-table__col automatewoo-table__col--field">
 
+                                <select name="{{data.fieldName}}" class="mo-flow-action-select automatewoo-field" required="">
 
-                                <select name="aw_workflow_data[actions][2][action_name]" data-name="" class="automatewoo-field automatewoo-field--type-select js-action-select">
+                                    <option value=""><?= esc_html__('Select...', 'mailoptin') ?></option>
 
-                                    <option value="">[Select]</option>
+                                    <?php foreach (self::registered_categories() as $categoryId => $categoryLabel) : ?>
 
-                                    <optgroup label="Email">
-                                        <option value="send_email">Send Email</option>
-                                        <option value="send_email_plain">Send Email - Plain Text</option>
-                                        <option value="send_email_raw">Send Email - Raw HTML [BETA]</option>
-                                    </optgroup>
-                                    <optgroup label="Customer">
-                                        <option value="customer_change_role">Change Role</option>
-                                        <option value="customer_update_meta">Update Custom Field</option>
-                                        <option value="customer_add_tags">Add Tags</option>
-                                        <option value="customer_remove_tags">Remove Tags</option>
-                                    </optgroup>
-                                    <optgroup label="Order">
-                                        <option value="change_order_status">Change Status</option>
-                                        <option value="update_order_meta">Update Custom Field</option>
-                                        <option value="resend_order_email">Resend Order Email</option>
-                                        <option value="trigger_order_action">Trigger Order Action</option>
-                                        <option value="order_update_customer_shipping_note">Update Customer Provided Note</option>
-                                        <option value="order_add_note">Add Note</option>
-                                    </optgroup>
-                                    <optgroup label="Order Item">
-                                        <option value="order_item_update_meta" disabled="disabled">Update Custom Field</option>
-                                    </optgroup>
-                                    <optgroup label="AutomateWoo">
-                                        <option value="clear_queued_events">Clear Queued Events</option>
-                                        <option value="change_workflow_status" disabled="disabled">Change Workflow Status</option>
-                                    </optgroup>
-                                    <optgroup label="Other">
-                                        <option value="custom_function">Custom Function</option>
-                                        <option value="change_post_status" disabled="disabled">Change Post Status</option>
-                                    </optgroup>
-                                    <optgroup label="Product">
-                                        <option value="update_product_meta" disabled="disabled">Update Custom Field</option>
-                                    </optgroup>
-                                    <optgroup label="Mad Mimi">
-                                        <option value="add_to_mad_mimi_list">Add Customer to List</option>
-                                    </optgroup>
-                                    <optgroup label="DEPRECATED">
-                                        <option value="add_to_campaign_monitor">Campaign Monitor Add Customer to List [DEPRECATED]</option>
-                                    </optgroup>
+                                        <?php $category_actions = $this->get_actions_by_category($categoryId); ?>
+
+                                        <?php if ( ! empty($category_actions)) : ?>
+                                            <optgroup label="<?= $categoryLabel ?>">
+
+                                                <?php foreach ($category_actions as $actionId => $action) : ?>
+                                                    <# selected = typeof data.dbValue != "undefined" && "<?= $actionId ?>" == data.dbValue ? 'selected' : ''; #>
+                                                    <option value="<?= $actionId ?>" {{selected}}><?= $action['title'] ?></option>
+                                                <?php endforeach; ?>
+
+                                            </optgroup>
+
+                                        <?php endif; ?>
+
+                                    <?php endforeach; ?>
 
                                 </select>
 
 
-                                <div class="js-action-description">
-                                    <p class="aw-field-description">Please note that tags are not supported on guest customers.</p>
-                                </div>
-
+                                <p class="aw-field-description">
+                                    <!--     description goes here            -->
+                                </p>
                             </td>
                         </tr>
-
 
                         <tr class="automatewoo-table__row" data-name="user_tags" data-type="select" data-required="0 ">
 
                             <td class="automatewoo-table__col automatewoo-table__col--label">
-
-
                                 <label>Tags </label>
-
                             </td>
 
                             <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                <select name="aw_workflow_data[actions][2][user_tags][]" data-name="user_tags" class="automatewoo-field automatewoo-field--type-select wc-enhanced-select select2-hidden-accessible enhanced" multiple="" data-placeholder="[Select]" tabindex="-1" aria-hidden="true">
+                                <select name="aw_workflow_data[actions][2][user_tags][]">
 
-
-                                </select><span class="select2 select2-container select2-container--default" dir="ltr" style="width: 552px;"><span class="selection"><span class="select2-selection select2-selection--multiple" aria-haspopup="true" aria-expanded="false" tabindex="-1"><ul class="select2-selection__rendered" aria-live="polite" aria-relevant="additions removals" aria-atomic="true"><li class="select2-search select2-search--inline"><input class="select2-search__field" type="text" tabindex="0" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="textbox" aria-autocomplete="list" placeholder="[Select]" style="width: 550px;"></li></ul></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
-
-
+                                </select>
                             </td>
                         </tr>
 

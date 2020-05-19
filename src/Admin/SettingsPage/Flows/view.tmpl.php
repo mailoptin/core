@@ -46,11 +46,16 @@ if (isset($flow_id)) {
 
                                     <?php foreach ($registered_categories as $categoryKey => $catLabel) : ?>
 
-                                        <optgroup label="<?= $catLabel ?>">
-                                            <?php foreach ($this->get_triggers_by_category($categoryKey) as $trigger) : ?>
-                                                <option value="<?= $trigger['id'] ?>" <?= selected($trigger_name, $trigger['id'], false); ?>><?= $trigger['title'] ?></option>
-                                            <?php endforeach; ?>
-                                        </optgroup>
+                                        <?php $category_trigger = $this->get_triggers_by_category($categoryKey); ?>
+
+                                        <?php if ( ! empty($category_trigger)) : ?>
+                                            <optgroup label="<?= $catLabel ?>">
+                                                <?php foreach ($category_trigger as $trigger) : ?>
+                                                    <option value="<?= $trigger['id'] ?>" <?= selected($trigger_name, $trigger['id'], false); ?>><?= $trigger['title'] ?></option>
+                                                <?php endforeach; ?>
+                                            </optgroup>
+
+                                        <?php endif; ?>
 
                                     <?php endforeach; ?>
 
@@ -95,246 +100,16 @@ if (isset($flow_id)) {
                 <span class="toggle-indicator" aria-hidden="true"></span>
             </button>
             <h2 class="hndle">
-                <span>Actions</span><a href="#" class="automatewoo-help-link automatewoo-help-link--right" target="_blank"></a>
+                <span><?= esc_html__('Actions', 'mailoptin'); ?></span>
             </h2>
             <div class="inside">
 
-                <div class="aw-actions-container">
-
-
-                    <div class="automatewoo-action js-open" data-action-number="1" data-automatewoo-action-name="send_email" data-automatewoo-action-group="email" data-automatewoo-action-can-be-previewed="true">
-
-                        <div class="automatewoo-action__header">
-                            <div class="row-options">
-                                <a href="#" data-automatewoo-preview="">Preview</a>
-                                <a class="js-edit-action" href="#">Edit</a>
-                                <a class="js-delete-action" href="#">Delete</a>
-                            </div>
-
-                            <h4 class="action-title">Email - Send Email</h4>
-                        </div>
-
-                        <div class="automatewoo-action__fields" style="display: block;">
-                            <table class="automatewoo-table">
-
-                                <tbody>
-                                <tr class="automatewoo-table__row" data-name="action_name" data-type="select" data-required="1">
-                                    <td class="automatewoo-table__col automatewoo-table__col--label">
-                                        <label>Action <span class="required">*</span></label>
-                                    </td>
-                                    <td class="automatewoo-table__col automatewoo-table__col--field">
-
-
-                                        <select name="mo_flow_data[actions][1][action_name]" data-name="action_name" class="automatewoo-field automatewoo-field--type-select js-action-select">
-
-                                            <option value="">[Select]</option>
-
-                                            <optgroup label="Email">
-                                                <option value="send_email" selected="selected">Send Email</option>
-                                                <option value="send_email_plain">Send Email - Plain Text</option>
-                                                <option value="send_email_raw">Send Email - Raw HTML [BETA]</option>
-                                            </optgroup>
-                                            <optgroup label="Customer">
-                                                <option value="customer_change_role">Change Role</option>
-                                                <option value="customer_update_meta">Update Custom Field</option>
-                                                <option value="customer_add_tags">Add Tags</option>
-                                                <option value="customer_remove_tags">Remove Tags</option>
-                                            </optgroup>
-                                            <optgroup label="Order">
-                                                <option value="change_order_status">Change Status</option>
-                                                <option value="update_order_meta">Update Custom Field</option>
-                                                <option value="resend_order_email">Resend Order Email</option>
-                                                <option value="trigger_order_action">Trigger Order Action</option>
-                                                <option value="order_update_customer_shipping_note">Update Customer Provided Note</option>
-                                                <option value="order_add_note">Add Note</option>
-                                            </optgroup>
-                                            <optgroup label="Order Item">
-                                                <option value="order_item_update_meta" disabled="disabled">Update Custom Field</option>
-                                            </optgroup>
-                                        </select>
-
-
-                                        <div class="js-action-description">
-                                            <p class="aw-field-description">This action sends an HTML email using a template. The default template matches the style of your WooCommerce transactional emails.
-                                                <a href="#" target="_blank">View email templates documentation</a>.
-                                            </p></div>
-                                    </td>
-                                </tr>
-
-
-                                <tr class="automatewoo-table__row" data-name="to" data-type="text" data-required="1 ">
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--label">
-
-
-                                        <span class="automatewoo-help-tip automatewoo-help-tip--right woocommerce-help-tip"></span>
-                                        <label>To <span class="required">*</span>
-                                        </label>
-
-                                    </td>
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="mo_flow_data[actions][1][to]" value="hello" class="automatewoo-field automatewoo-field--type-text" placeholder="E.g. {{ customer.email }}, admin@example.org --notracking" data-automatewoo-validate="variables " required="">
-                                    </td>
-                                </tr>
-
-
-                                <tr class="automatewoo-table__row" data-name="subject" data-type="text" data-required="1 ">
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--label">
-
-
-                                        <label>Email subject <span class="required">*</span>
-                                        </label>
-
-                                    </td>
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="mo_flow_data[actions][1][subject]" value="hi" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables " required="">
-                                    </td>
-                                </tr>
-
-
-                                <tr class="automatewoo-table__row" data-name="email_heading" data-type="text" data-required="0 ">
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--label">
-
-
-                                        <span class="automatewoo-help-tip automatewoo-help-tip--right woocommerce-help-tip"></span>
-                                        <label>Email heading </label>
-
-                                    </td>
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="mo_flow_data[actions][1][email_heading]" value="" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables ">
-                                    </td>
-                                </tr>
-
-
-                                <tr class="automatewoo-table__row" data-name="preheader" data-type="text" data-required="0 ">
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--label">
-
-
-                                        <span class="automatewoo-help-tip automatewoo-help-tip--right woocommerce-help-tip"></span>
-                                        <label>Email preheader </label>
-
-                                    </td>
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-                                        <input type="text" name="mo_flow_data[actions][1][preheader]" value="" class="automatewoo-field automatewoo-field--type-text" placeholder="" data-automatewoo-validate="variables ">
-                                    </td>
-                                </tr>
-
-
-                                <tr class="automatewoo-table__row" data-name="template" data-type="select" data-required="0 ">
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--label">
-
-
-                                        <span class="automatewoo-help-tip automatewoo-help-tip--right woocommerce-help-tip"></span>
-                                        <label>Template </label>
-
-                                    </td>
-
-                                    <td class="automatewoo-table__col automatewoo-table__col--field automatewoo-field-wrap">
-
-                                        <select name="mo_flow_data[actions][1][template]" data-name="template" class="automatewoo-field automatewoo-field--type-select">
-
-
-                                            <option value="default" selected="selected">WooCommerce Default</option>
-                                            <option value="plain">None</option>
-
-                                        </select>
-
-                                    </td>
-                                </tr>
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-
-                    <div class="aw-action-template " data-action-number="">
-
-                        <div class="automatewoo-action__header">
-                            <div class="row-options">
-                                <a class="js-edit-action" href="#">Edit</a>
-                                <a class="js-delete-action" href="#">Delete</a>
-                            </div>
-
-                            <h4 class="action-title">New Action</h4>
-                        </div>
-
-                        <div class="automatewoo-action__fields">
-                            <table class="automatewoo-table">
-
-                                <tbody>
-                                <tr class="automatewoo-table__row" data-name="action_name" data-type="select" data-required="1">
-                                    <td class="automatewoo-table__col automatewoo-table__col--label">
-                                        <label>Action <span class="required">*</span></label>
-                                    </td>
-                                    <td class="automatewoo-table__col automatewoo-table__col--field">
-
-
-                                        <select name="" data-name="" class="automatewoo-field automatewoo-field--type-select js-action-select">
-
-                                            <option value="">[Select]</option>
-
-                                            <optgroup label="Email">
-                                                <option value="send_email">Send Email</option>
-                                                <option value="send_email_plain">Send Email - Plain Text</option>
-                                                <option value="send_email_raw">Send Email - Raw HTML [BETA]</option>
-                                            </optgroup>
-                                            <optgroup label="Customer">
-                                                <option value="customer_change_role">Change Role</option>
-                                                <option value="customer_update_meta">Update Custom Field</option>
-                                                <option value="customer_add_tags">Add Tags</option>
-                                                <option value="customer_remove_tags">Remove Tags</option>
-                                            </optgroup>
-                                            <optgroup label="Order">
-                                                <option value="change_order_status">Change Status</option>
-                                                <option value="update_order_meta">Update Custom Field</option>
-                                                <option value="resend_order_email">Resend Order Email</option>
-                                                <option value="trigger_order_action">Trigger Order Action</option>
-                                                <option value="order_update_customer_shipping_note">Update Customer Provided Note</option>
-                                                <option value="order_add_note">Add Note</option>
-                                            </optgroup>
-                                            <optgroup label="Order Item">
-                                                <option value="order_item_update_meta" disabled="disabled">Update Custom Field</option>
-                                            </optgroup>
-                                            <optgroup label="Subscription">
-                                                <option value="change_subscription_status" disabled="disabled">Change Status</option>
-                                                <option value="subscription_update_meta" disabled="disabled">Update Custom Field</option>
-                                                <option value="subscription_send_invoice" disabled="disabled">Send Invoice</option>
-                                                <option value="subscription_add_product" disabled="disabled">Add Product</option>
-                                                <option value="subscription_remove_product" disabled="disabled">Remove Product</option>
-                                                <option value="subscription_add_note" disabled="disabled">Add Note</option>
-                                                <option value="subscription_add_coupon" disabled="disabled">Add Coupon</option>
-                                                <option value="subscription_remove_coupon" disabled="disabled">Remove Coupon</option>
-                                            </optgroup>
-
-                                        </select>
-
-
-                                        <div class="js-action-description"></div>
-
-                                    </td>
-                                </tr>
-
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-
+                <div id="mo-flow-action-meta-box" class="aw-actions-container">
+                    <!-- actions goes here-->
                 </div>
 
-
                 <div class="automatewoo-metabox-footer">
-                    <a href="#" class="js-aw-add-action button button-primary button-large"><?= esc_html__('+ Add Action', 'mailoptin'); ?></a>
+                    <a href="#" class="mo-flows-add-action button button-primary button-large"><?= esc_html__('+ Add Action', 'mailoptin'); ?></a>
                 </div>
             </div>
         </div>
