@@ -109,7 +109,7 @@ if (isset($flow_id)) {
                 </div>
 
                 <div class="automatewoo-metabox-footer">
-                    <a href="#" class="mo-flows-add-action button button-primary button-large"><?= esc_html__('+ Add Action', 'mailoptin'); ?></a>
+                    <a href="#" id="mo-flows-add-action" class="button button-primary button-large"><?= esc_html__('+ Add Action', 'mailoptin'); ?></a>
                 </div>
             </div>
         </div>
