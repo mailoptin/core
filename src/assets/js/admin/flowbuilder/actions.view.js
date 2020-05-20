@@ -6,7 +6,8 @@ define(["jquery", "backbone", "action.view"], function ($, Backbone, ActionView)
         default_msg_tmpl: wp.template('mo-flows-actions-default'),
 
         events: {
-            'click #mo-flows-add-action': 'add_new_action'
+            'click #mo-flows-add-action': 'add_new_action',
+            'click #mo-flows-edit-action': 'edit_action'
         },
 
         initialize: function () {
@@ -26,6 +27,10 @@ define(["jquery", "backbone", "action.view"], function ($, Backbone, ActionView)
             this.$el.find('.aw-actions-container').html(this.default_msg_tmpl());
         },
 
+        edit_action: function () {
+
+        },
+        
         add_new_action: function (e) {
             e.preventDefault();
 
