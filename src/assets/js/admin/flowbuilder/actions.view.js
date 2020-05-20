@@ -30,7 +30,7 @@ define(["jquery", "backbone", "action.view"], function ($, Backbone, ActionView)
         edit_action: function () {
 
         },
-        
+
         add_new_action: function (e) {
             e.preventDefault();
 
