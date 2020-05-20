@@ -5,10 +5,20 @@ define(["jquery", "backbone"], function ($, Backbone) {
 
         template: wp.template('mo-flows-action-settings'),
 
-        events: {},
+        events: {
+            'click .mo-flows-action-delete': 'delete_action'
+        },
 
         initialize(options) {
             this.options = options;
+        },
+
+        delete_action: function (e) {
+            e.preventDefault();
+
+            this.remove();
+
+            $('body').trigger('mo-flows-action-removed');
         },
 
         render: function () {

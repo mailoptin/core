@@ -346,8 +346,8 @@ class AddEditFlow extends AbstractSettingsPage
         <script type="text/html" id="tmpl-mo-flows-action-settings">
             <div class="automatewoo-action__header">
                 <div class="row-options">
-                    <a class="js-edit-action" href="#"><?= esc_html__('Edit', 'mailoptin') ?></a>
-                    <a class="js-delete-action" href="#"><?= esc_html__('Delete', 'mailoptin') ?></a>
+                    <a class="mo-flows-action-edit" href="#"><?= esc_html__('Edit', 'mailoptin') ?></a>
+                    <a class="mo-flows-action-delete" href="#"><?= esc_html__('Delete', 'mailoptin') ?></a>
                 </div>
 
                 <# title = typeof data.title != 'undefined' && data.title != '' ? data.title : '<?= esc_html__('New Action', 'mailoptin') ?>'; #>
