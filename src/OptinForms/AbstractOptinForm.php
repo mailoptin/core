@@ -375,6 +375,9 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $global_css .= "div#{$optin_campaign_uuid} .mo-optin-form-wrapper label {color:inherit;font-weight: normal;margin: 0;padding:0;}";
         // remove default ios button styling
         $global_css .= "div#{$optin_campaign_uuid} div#{$optin_css_id}_container div#{$optin_css_id} input[type=submit] {-webkit-appearance: none;}";
+
+        $global_css .= "div#{$optin_campaign_uuid} div#{$optin_css_id}_container div#{$optin_css_id} input {z-index: auto;}";
+
         $global_css .= "div#{$optin_campaign_uuid}.mo-cta-button-flag .mo-optin-form-note .mo-acceptance-label {display:none;}";
 
         $optin_effect = $this->get_customizer_value('modal_effects');
