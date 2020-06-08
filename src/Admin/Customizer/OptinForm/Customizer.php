@@ -109,7 +109,7 @@ class Customizer
             // Remove all customizer panels.
             add_action('customize_panel_active', array($this, 'remove_panels'), 10, 2);
 
-            add_action('customize_register', array($this, 'register_optin_form_customizer'));
+            add_action('customize_register', array($this, 'register_optin_form_customizer'), 1);
 
             // save edited optin campaign title
             add_action('customize_save_after', array($this, 'burst_cache_after_customizer_save'));
@@ -615,6 +615,8 @@ class Customizer
      */
     public function register_optin_form_customizer($wp_customize)
     {
+        remove_all_actions('customize_register'); // improve compatibility with hestia, generatepress themes etc
+
         $optin_campaign_id = absint($_REQUEST['mailoptin_optin_campaign_id']);
 
         $option_prefix = $this->optin_form_settings . '[' . $optin_campaign_id . ']';
