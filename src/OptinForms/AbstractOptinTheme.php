@@ -6,6 +6,7 @@ namespace MailOptin\Core\OptinForms;
 use MailOptin\Core\Admin\Customizer\CustomControls\ControlsHelpers;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
+use function MailOptin\Core\moVar;
 
 abstract class AbstractOptinTheme extends AbstractOptinForm
 {
@@ -1058,6 +1059,12 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html .= $atts['tag_start'];
                             $html .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"$style\" type=\"text\" placeholder=\"$placeholder\" name=\"$field_id\">";
                             $html .= $atts['tag_end'];
+                            break;
+                        case 'hidden':
+                            $value = moVar($field, 'hidden_value', true);
+                            $html  .= $atts['tag_start'];
+                            $html  .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"display:none\" type=\"hidden\" value=\"$value\" name=\"$field_id\">";
+                            $html  .= $atts['tag_end'];
                             break;
                         case 'textarea':
                             $html .= $atts['tag_start'];

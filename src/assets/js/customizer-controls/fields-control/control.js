@@ -25,6 +25,23 @@
                         }
                     };
 
+                    var maybeHideHiddenValueField = function () {
+                        var field_type = $(field).find('.mo-optin-fields-field').val();
+                        if (field_type === 'hidden') {
+                            $(field).find(".hidden_value.mo-fields-block").show();
+                            $(field).find(".color.mo-fields-block").hide();
+                            $(field).find(".background.mo-fields-block").hide();
+                            $(field).find(".font.mo-fields-block").hide();
+                            $(field).find(".field_required.mo-fields-block").hide();
+                        } else {
+                            $(field).find(".hidden_value.mo-fields-block").hide();
+                            $(field).find(".color.mo-fields-block").show();
+                            $(field).find(".background.mo-fields-block").show();
+                            $(field).find(".font.mo-fields-block").show();
+                            $(field).find(".field_required.mo-fields-block").show();
+                        }
+                    };
+
                     var maybeHideRecaptchaField = function () {
 
                         var field_type = $(field).find('.mo-optin-fields-field').val();
@@ -66,6 +83,7 @@
 
                     maybeHideOptionsField();
                     maybeHideRecaptchaField();
+                    maybeHideHiddenValueField();
 
                     $(this)
                         .find('.mo-optin-fields-field')
@@ -73,6 +91,7 @@
                         .on('change.mo_field', function () {
                             maybeHideOptionsField();
                             maybeHideRecaptchaField();
+                            maybeHideHiddenValueField();
                         });
 
                     var widget_title_obj = $(this).find('.mo-fields-widget-title h3');

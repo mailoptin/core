@@ -582,6 +582,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'select'       => __('Select', 'mailoptin'),
             'radio'        => __('Radio', 'mailoptin'),
             'date'         => __('Date', 'mailoptin'),
+            'hidden'         => __('Hidden', 'mailoptin'),
             'recaptcha_v2' => __('reCAPTCHA v2', 'mailoptin'),
             'recaptcha_v3' => __('reCAPTCHA v3', 'mailoptin'),
         ];
@@ -610,6 +611,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_text_field($index, 'placeholder', '', __('Title', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
                     <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
+                    <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'color', '', __('Color', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'background', '', __('Background', 'mailoptin')); ?>
                     <?php $this->repeater_font_field($index, 'font', '', __('Font', 'mailoptin')); ?>
