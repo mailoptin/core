@@ -9,6 +9,7 @@ use MailOptin\Core\Admin\Customizer\OptinForm\CustomizerSettings;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\RegisterScripts;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
+use function MailOptin\Core\moVar;
 
 abstract class AbstractOptinForm extends AbstractCustomizer implements OptinFormInterface
 {
@@ -351,6 +352,48 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         return $global_css;
     }
 
+    public function placeholders_input_css()
+    {
+        ob_start();
+
+        $fields = OptinCampaignsRepository::form_custom_fields($this->optin_campaign_id);
+
+        if (is_array($fields) && ! empty($fields)) {
+
+            foreach ($fields as $field) {
+                $custom_field_id = $field['cid'];
+                $color           = moVar($field, 'color', '', true);
+                $uuid            = $this->optin_campaign_uuid;
+                $optin_css_id    = $this->optin_css_id;
+
+                if (empty($color)) continue;
+                ?>
+
+                #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-form-custom-field.field-<?= $custom_field_id ?>::-webkit-input-placeholder { color: <?= $color ?> !important; }
+                #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-form-custom-field.field-<?= $custom_field_id ?>:-ms-input-placeholder { color: <?= $color ?> !important; }
+                #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-form-custom-field.field-<?= $custom_field_id ?>::placeholder { color: <?= $color ?> !important; }
+
+                <?php
+            }
+        }
+        //  name and email placeholder code
+        $name_field_color  = $this->get_customizer_value('name_field_color');
+        $email_field_color = $this->get_customizer_value('email_field_color');
+        ?>
+
+        #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-field.mo-optin-form-name-field::-webkit-input-placeholder { color: <?= $name_field_color ?> !important; }
+        #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-field.mo-optin-form-name-field:-ms-input-placeholder { color: <?= $name_field_color ?> !important; }
+        #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-field.mo-optin-form-name-field::placeholder { color: <?= $name_field_color ?> !important; }
+
+        #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-field.mo-optin-form-email-field::-webkit-input-placeholder { color: <?= $email_field_color ?> !important; }
+        #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-field.mo-optin-form-email-field:-ms-input-placeholder { color: <?= $email_field_color ?> !important; }
+        #<?= $uuid ?> #<?= $optin_css_id ?> .mo-optin-field.mo-optin-form-email-field::placeholder { color: <?= $email_field_color ?> !important; }
+
+        <?php
+
+        return ob_get_clean();
+    }
+
 
     /**
      * Global optin CSS.
@@ -575,6 +618,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         ";
 
         $global_css .= $this->font_size_css();
+
+        $global_css .= $this->placeholders_input_css();
 
         return apply_filters('mo_optin_form_global_css', $global_css, $optin_campaign_uuid, $optin_css_id);
     }

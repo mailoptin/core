@@ -1061,7 +1061,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html .= $atts['tag_end'];
                             break;
                         case 'hidden':
-                            $value = moVar($field, 'hidden_value', true);
+                            $value = moVar($field, 'hidden_value', '', true);
                             $html  .= $atts['tag_start'];
                             $html  .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"display:none\" type=\"hidden\" value=\"$value\" name=\"$field_id\">";
                             $html  .= $atts['tag_end'];
