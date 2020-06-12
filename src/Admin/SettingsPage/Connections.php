@@ -84,6 +84,11 @@ class Connections extends AbstractSettingsPage
                         </a>
                     </li>
                     <li>
+                        <a href="<?php echo $crm_url; ?>" class="<?php echo $crm_menu_active; ?>">
+                            <?php _e('CRM', 'mailoptin'); ?>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?php echo $social_url; ?>" class="<?php echo $social_menu_active; ?>">
                             <?php _e('Social', 'mailoptin'); ?>
                         </a>
@@ -93,11 +98,6 @@ class Connections extends AbstractSettingsPage
                         <a href="<?php echo $analytics_url; ?>" class="<?php echo $analytics_menu_active; ?>">
                             <?php _e('Analytics', 'mailoptin'); ?>
                         </a></li>
-                    <li>
-                        <a href="<?php echo $crm_url; ?>" class="<?php echo $crm_menu_active; ?>">
-                            <?php _e('CRM', 'mailoptin'); ?>
-                        </a>
-                    </li>
                 </ul>
             </div>
         </div>
