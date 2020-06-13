@@ -113,6 +113,11 @@ trait CustomizerTrait
                     $child_theme  = $wp_get_theme->get_stylesheet();
                     $parent_theme = $wp_get_theme->get_template();
 
+
+                    // important in fixing: Uncaught TypeError: Cannot set property '_value' of undefined
+                    // from /wp-admin/js/customize-nav-menus.min.js
+                    unset($wp_scripts->registered['customize-nav-menus']);
+
                     foreach ($wp_scripts->registered as $key => $value) {
                         $src = $value->src;
                         if (strpos($src, "themes/$child_theme/") !== false || strpos($src, "themes/$parent_theme/") !== false) {
