@@ -576,15 +576,16 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
     public function template($index = 9999999999999)
     {
         $field_types = [
-            'text'         => __('Text', 'mailoptin'),
-            'textarea'     => __('Textarea', 'mailoptin'),
-            'checkbox'     => __('Checkbox', 'mailoptin'),
-            'select'       => __('Select', 'mailoptin'),
-            'radio'        => __('Radio', 'mailoptin'),
-            'date'         => __('Date', 'mailoptin'),
-            'hidden'         => __('Hidden', 'mailoptin'),
-            'recaptcha_v2' => __('reCAPTCHA v2', 'mailoptin'),
-            'recaptcha_v3' => __('reCAPTCHA v3', 'mailoptin'),
+            'text'              => __('Text', 'mailoptin'),
+            'textarea'          => __('Textarea', 'mailoptin'),
+            'checkbox'          => __('Checkbox', 'mailoptin'),
+            'select'            => __('Select', 'mailoptin'),
+            'radio'             => __('Radio', 'mailoptin'),
+            'date'              => __('Date', 'mailoptin'),
+            'hidden'            => __('Hidden', 'mailoptin'),
+            'list_subscription' => __('List Subscription', 'mailoptin'),
+            'recaptcha_v2'      => __('reCAPTCHA v2', 'mailoptin'),
+            'recaptcha_v3'      => __('reCAPTCHA v3', 'mailoptin'),
         ];
 
         $widget_title = sprintf(__('Field %s', 'mailoptin'), '#' . ($index + 1));
