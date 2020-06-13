@@ -736,6 +736,10 @@ form.mo-inline {
     padding: 0;
 }
 
+.sendy_email_list_fields_row .all-options {
+    width: 200px;
+}
+
 /* optin popover action block */
 .mo-popover-content ul, .mo-popover-content li {
     margin: 0;
