@@ -132,6 +132,8 @@
                         $el.append($("<option></option>")
                             .attr("value", key).text(value));
                     });
+
+                    $el.trigger('chosen:updated');
                 };
 
                 $(document).on('change', '[name=list_subscription_integration]', function () {

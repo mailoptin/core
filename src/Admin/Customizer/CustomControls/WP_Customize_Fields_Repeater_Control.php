@@ -7,6 +7,7 @@ use MailOptin\Core\OptinForms\AbstractOptinForm;
 use MailOptin\Core\Repositories\ConnectionsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use WP_Customize_Control;
+use function MailOptin\Core\moVar;
 
 class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
 {
@@ -609,6 +610,12 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'right'  => esc_html__('Right', 'mailoptin'),
         ];
 
+        $list_subscription_saved_integration = moVar($this->saved_values[$index], 'list_subscription_integration', '', true);
+        $list_subscription_lists             = [];
+        if ( ! empty($list_subscription_saved_integration)) {
+            $list_subscription_lists = ConnectionsRepository::connection_email_list($list_subscription_saved_integration);
+        }
+
         // added .mo-custom-field below to differentiate custom field from name and email fields above.
         ?>
         <div class="mo-fields-widget mo-fields-part-widget mo-custom-field" data-field-index="<?= $index; ?>">
@@ -631,7 +638,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
 
                     <?php $this->repeater_select_field($index, 'list_subscription_integration', $integrations, '', __('Select Integration', 'mailoptin'), '<span class="spinner mo-list-subscription-spinner"></span>'); ?>
-                    <?php $this->repeater_chosen_select_field($index, 'list_subscription_lists', [], '', __('Options', 'mailoptin')); ?>
+                    <?php $this->repeater_chosen_select_field($index, 'list_subscription_lists', $list_subscription_lists, '', __('Options', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_field_type', $list_subscription_field_type, '', __('Field Type', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_alignment', $list_subscription_alignment, '', __('Aligment', 'mailoptin')); ?>
 
