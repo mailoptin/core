@@ -612,8 +612,26 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             vertical-align: middle;
         }
 
-        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .select-field select{
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .select-field select {
             width: 100%;
+        }
+
+        html div#$optin_campaign_uuid  div#$optin_css_id .mo-optin-fields-wrapper .list_subscription-field {
+            padding: 0 !important;
+        }
+
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .list_subscription-field label {
+            display: block;
+            text-align: left;
+            margin: 5px 0;
+        }
+
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .list_subscription-field label:last-child {
+            margin: 0;
+        }
+
+        html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .list_subscription-field input[type=checkbox] {
+            cursor: pointer;
         }
         ";
 
