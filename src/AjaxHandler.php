@@ -63,6 +63,7 @@ class AjaxHandler
             'customizer_get_templates'                 => false,
             'customizer_set_template'                  => false,
             'ecb_fetch_post_type_posts'                => false,
+            'list_subscription_integration_lists'      => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -1170,6 +1171,23 @@ class AjaxHandler
         $optin_campaign_id = sanitize_text_field($_POST['optin_id']);
         $notification      = sanitize_text_field($_POST['notification']);
         (new StateRepository())->set($notification, absint($optin_campaign_id));
+    }
+
+    public function list_subscription_integration_lists()
+    {
+        check_ajax_referer('customizer-fetch-email-list', 'security');
+
+        if ( ! current_user_has_privilege()) {
+            exit;
+        }
+
+        $integration = sanitize_text_field($_POST['integration']);
+
+        $email_list = ConnectionsRepository::connection_email_list($integration);
+
+        wp_send_json_success($email_list);
+
+        wp_die();
     }
 
     /**

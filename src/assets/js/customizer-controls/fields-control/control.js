@@ -122,6 +122,53 @@
                 });
             };
 
+            var fetch_list_subscription_integration_lists = function () {
+
+                var update_options_select = function (newOptions, $el) {
+                    if (_.isEmpty(newOptions)) newOptions = {}; // in case it's an empty array
+
+                    $el.empty(); // remove old options
+                    $.each(newOptions, function (key, value) {
+                        $el.append($("<option></option>")
+                            .attr("value", key).text(value));
+                    });
+                };
+
+                $(document).on('change', '[name=list_subscription_integration]', function () {
+
+                    var list_options = {},
+                        selected_integration = this.value,
+                        obj = $(this).parents('.mo-fields-widget-form'),
+                        $el = obj.find('select[name=list_subscription_lists]');
+
+                    if (selected_integration !== '') {
+
+                        $('.mo-list-subscription-spinner', obj).css('visibility', 'visible');
+
+                        $.post(ajaxurl, {
+                            action: 'mailoptin_list_subscription_integration_lists',
+                            integration: selected_integration,
+                            security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
+                        }, function (response) {
+                            console.log(response);
+                            if ('success' in response && response.success === true) {
+                                list_options = response.data;
+                            }
+
+
+                            update_options_select(list_options, $el);
+
+                            $('.mo-list-subscription-spinner', obj).css('visibility', 'hidden');
+
+                        });
+
+                        return;
+                    }
+
+                    update_options_select(list_options, $el);
+                });
+            };
+
             var unique_id = function () {
                 return Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
             };
@@ -269,6 +316,8 @@
                     }
                 });
             };
+
+            fetch_list_subscription_integration_lists();
 
             contextual_display_init();
             sortable_init();

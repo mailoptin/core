@@ -630,7 +630,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
 
-                    <?php $this->repeater_select_field($index, 'list_subscription_integration', $integrations, '', __('Select Integration', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'list_subscription_integration', $integrations, '', __('Select Integration', 'mailoptin'), '<span class="spinner mo-list-subscription-spinner"></span>'); ?>
                     <?php $this->repeater_chosen_select_field($index, 'list_subscription_lists', [], '', __('Options', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_field_type', $list_subscription_field_type, '', __('Field Type', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_alignment', $list_subscription_alignment, '', __('Aligment', 'mailoptin')); ?>
