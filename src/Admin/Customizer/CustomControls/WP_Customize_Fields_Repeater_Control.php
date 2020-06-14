@@ -4,6 +4,7 @@ namespace MailOptin\Core\Admin\Customizer\CustomControls;
 
 use MailOptin\Core\Admin\Customizer\OptinForm\AbstractCustomizer;
 use MailOptin\Core\OptinForms\AbstractOptinForm;
+use MailOptin\Core\Repositories\ConnectionsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use WP_Customize_Control;
 
@@ -593,6 +594,21 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             $widget_title = $this->saved_values[$index]['placeholder'];
         }
 
+
+        $integrations = ConnectionsRepository::get_connections();
+
+        $list_subscription_field_type = [
+            'select'   => esc_html__('Dropdown (Single Select)', 'mailoptin'),
+            'radio'    => esc_html__('Radio Buttons (Multiple Select)', 'mailoptin'),
+            'checkbox' => esc_html__('Checkboxes (Multiple Select)', 'mailoptin'),
+        ];
+
+        $list_subscription_alignment = [
+            'left'   => esc_html__('Left', 'mailoptin'),
+            'center' => esc_html__('Center', 'mailoptin'),
+            'right'  => esc_html__('Right', 'mailoptin'),
+        ];
+
         // added .mo-custom-field below to differentiate custom field from name and email fields above.
         ?>
         <div class="mo-fields-widget mo-fields-part-widget mo-custom-field" data-field-index="<?= $index; ?>">
@@ -613,10 +629,17 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_select_field($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
                     <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
+
+                    <?php $this->repeater_select_field($index, 'list_subscription_integration', $integrations, '', __('Select Integration', 'mailoptin')); ?>
+                    <?php $this->repeater_chosen_select_field($index, 'list_subscription_lists', [], '', __('Options', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'list_subscription_field_type', $list_subscription_field_type, '', __('Field Type', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'list_subscription_alignment', $list_subscription_alignment, '', __('Aligment', 'mailoptin')); ?>
+
                     <?php $this->repeater_color_field($index, 'color', '', __('Color', 'mailoptin')); ?>
                     <?php $this->repeater_color_field($index, 'background', '', __('Background', 'mailoptin')); ?>
                     <?php $this->repeater_font_field($index, 'font', '', __('Font', 'mailoptin')); ?>
                     <?php $this->repeater_toggle_field($index, 'field_required', '', __('Make Field Required', 'mailoptin')); ?>
+
                     <?php $this->repeater_select_field($index, 'recaptcha_v2_size', ['normal' => __('Normal', 'mailoptin'), 'compact' => __('Compact', 'mailoptin')], '', __('Size', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'recaptcha_v2_style', ['light' => __('Light', 'mailoptin'), 'dark' => __('Dark', 'mailoptin')], '', __('Style', 'mailoptin')); ?>
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_after', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>

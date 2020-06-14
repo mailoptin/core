@@ -15,6 +15,7 @@
 
                     //Remove any previous click event handlers on the field type select field and reattach
                     var field = this;
+
                     var maybeHideOptionsField = function () {
                         var field_type = $(field).find('.mo-optin-fields-field').val();
                         var with_options = ["checkbox", "select", "radio"];
@@ -22,6 +23,21 @@
                             $(field).find(".field_options.mo-fields-block").hide();
                         } else {
                             $(field).find(".field_options.mo-fields-block").show();
+                        }
+                    };
+
+                    var maybeHideListSubscriptionFields = function () {
+                        var field_type = $(field).find('.mo-optin-fields-field').val();
+                        if (field_type === 'list_subscription') {
+                            $(field).find(".list_subscription_integration.mo-fields-block").show();
+                            $(field).find(".list_subscription_lists.mo-fields-block").show();
+                            $(field).find(".list_subscription_field_type.mo-fields-block").show();
+                            $(field).find(".list_subscription_alignment.mo-fields-block").show();
+                        } else {
+                            $(field).find(".list_subscription_integration.mo-fields-block").hide();
+                            $(field).find(".list_subscription_lists.mo-fields-block").hide();
+                            $(field).find(".list_subscription_field_type.mo-fields-block").hide();
+                            $(field).find(".list_subscription_alignment.mo-fields-block").hide();
                         }
                     };
 
@@ -84,6 +100,7 @@
                     maybeHideOptionsField();
                     maybeHideRecaptchaField();
                     maybeHideHiddenValueField();
+                    maybeHideListSubscriptionFields();
 
                     $(this)
                         .find('.mo-optin-fields-field')
@@ -92,6 +109,7 @@
                             maybeHideOptionsField();
                             maybeHideRecaptchaField();
                             maybeHideHiddenValueField();
+                            maybeHideListSubscriptionFields();
                         });
 
                     var widget_title_obj = $(this).find('.mo-fields-widget-title h3');
