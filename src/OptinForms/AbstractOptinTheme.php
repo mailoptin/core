@@ -5,6 +5,7 @@ namespace MailOptin\Core\OptinForms;
 
 use MailOptin\Core\Admin\Customizer\CustomControls\ControlsHelpers;
 use MailOptin\Core\PluginSettings\Settings;
+use MailOptin\Core\Repositories\ConnectionsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use function MailOptin\Core\moVar;
 
@@ -1114,6 +1115,33 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 $html .= "<option value=\"$option\" >$option</option>";
                             }
                             $html .= "</select>" . $atts['tag_end'];
+                            break;
+                        case 'list_subscription':
+                            $display_type = moVar($field, 'list_subscription_display_type', 'checkbox', true);
+                            $integration  = moVar($field, 'list_subscription_integration');
+
+                            $integration_email_list = ConnectionsRepository::connection_email_list($integration);
+
+                            if (empty($integration) || empty($integration_email_list)) return '';
+
+                            $options = moVar($field, 'list_subscription_lists', [], true);
+
+                            $html .= $atts['tag_start'];
+                            $html .= sprintf('<div %s class="%s" style="%s" id="%s">', $data_attr, $class, $style, $id);
+
+                            switch ($display_type) {
+                                case 'checkbox':
+                                    if (is_array($options) && ! empty($options)) {
+                                        foreach ($options as $option) {
+                                            $html .= '<label class="mo-list-subscription-checkbox">';
+                                            $html .= sprintf('<input style="%s" type="checkbox" name="%s[]"> %s', $style, $field_id, $integration_email_list[$option]);
+                                            $html .= '</label>';
+                                        }
+                                    }
+                                    break;
+                            }
+
+                            $html .= "</select></div>" . $atts['tag_end'];
                             break;
                     }
                 }
