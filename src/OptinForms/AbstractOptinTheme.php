@@ -1132,30 +1132,41 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                             $html .= $atts['tag_start'];
 
-                            $html .= sprintf('<div %s class="%s" style="%s" id="%s">', $data_attr, $class, $style, $id);
-
                             switch ($display_type) {
                                 case 'checkbox':
                                     if (is_array($options) && ! empty($options)) {
+                                        $html .= sprintf('<div %s class="%s" style="%s" id="%s">', $data_attr, $class, $style, $id);
                                         foreach ($options as $option) {
                                             $html .= '<label class="mo-list-subscription-checkbox">';
-                                            $html .= sprintf('<input style="%s" type="checkbox" name="%s[]"> %s', $style, $name_attribute, $integration_email_list[$option]);
+                                            $html .= sprintf('<input style="%s" type="checkbox" name="%s[]" value="%s"> %s', $style, $name_attribute, $option, $integration_email_list[$option]);
                                             $html .= '</label>';
                                         }
+                                        $html .= '</div>';
                                     }
                                     break;
                                 case 'radio':
                                     if (is_array($options) && ! empty($options)) {
+                                        $html .= sprintf('<div %s class="%s" style="%s" id="%s">', $data_attr, $class, $style, $id);
                                         foreach ($options as $option) {
                                             $html .= '<label class="mo-list-subscription-checkbox">';
-                                            $html .= sprintf('<input style="%s" type="radio" name="%s"> %s', $style, $name_attribute, $integration_email_list[$option]);
+                                            $html .= sprintf('<input style="%s" type="radio" name="%s" value="%s"> %s', $style, $name_attribute, $option, $integration_email_list[$option]);
                                             $html .= '</label>';
                                         }
+                                        $html .= '</div>';
+                                    }
+                                    break;
+                                case 'select':
+                                    if (is_array($options) && ! empty($options)) {
+                                        $html .= "<select name=\"$name_attribute\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                                        foreach ($options as $option) {
+                                            $html .= sprintf('<option value="%s">%s</option>', $option, $integration_email_list[$option]);
+                                        }
+                                        $html .= '</select>';
                                     }
                                     break;
                             }
 
-                            $html .= "</select></div>" . $atts['tag_end'];
+                            $html .= $atts['tag_end'];
                             break;
                     }
                 }

@@ -1026,7 +1026,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             $webfont[] = "'$cta_button_font'";
         }
 
-        $custom_fields_fonts = array_filter(wp_list_pluck(OptinCampaignsRepository::form_custom_fields($this->optin_campaign_id), 'font'));
+        $custom_fields_fonts = array_filter(@wp_list_pluck(OptinCampaignsRepository::form_custom_fields($this->optin_campaign_id), 'font'));
 
         if (is_array($custom_fields_fonts) && ! empty($custom_fields_fonts)) {
             foreach ($custom_fields_fonts as $font) {
