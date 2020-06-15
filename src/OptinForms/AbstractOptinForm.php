@@ -618,6 +618,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         html div#$optin_campaign_uuid  div#$optin_css_id .mo-optin-fields-wrapper .list_subscription-field:not(select) {
             padding: 0 !important;
+            border: 0 !important;
         }
 
         html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .list_subscription-field label {
