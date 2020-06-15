@@ -1158,6 +1158,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 case 'select':
                                     if (is_array($options) && ! empty($options)) {
                                         $html .= "<select name=\"$name_attribute\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                                        $html .= sprintf('<option>%s</option>', esc_html__('Select...', 'mailoptin'));
                                         foreach ($options as $option) {
                                             $html .= sprintf('<option value="%s">%s</option>', $option, $integration_email_list[$option]);
                                         }

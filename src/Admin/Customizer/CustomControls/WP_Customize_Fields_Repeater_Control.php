@@ -600,7 +600,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
 
         $list_subscription_display_type = [
             'select'   => esc_html__('Dropdown (Single Select)', 'mailoptin'),
-            'radio'    => esc_html__('Radio Buttons (Multiple Select)', 'mailoptin'),
+            'radio'    => esc_html__('Radio Buttons (Single Select)', 'mailoptin'),
             'checkbox' => esc_html__('Checkboxes (Multiple Select)', 'mailoptin'),
         ];
 
