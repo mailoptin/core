@@ -622,7 +622,6 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .list_subscription-field label {
             display: block;
-            text-align: left;
             margin: 5px 0;
         }
 
@@ -1017,12 +1016,24 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         if ( ! empty($note_font) && $note_font != 'inherit') {
             $webfont[] = "'$note_font'";
         }
+
         if ( ! empty($submit_button_font) && $submit_button_font != 'inherit') {
             $webfont[] = "'$submit_button_font'";
         }
+
         if (OptinCampaignsRepository::is_cta_button_active($this->optin_campaign_id)
             && ! empty($cta_button_font) && $cta_button_font != 'inherit') {
             $webfont[] = "'$cta_button_font'";
+        }
+
+        $custom_fields_fonts = array_filter(wp_list_pluck(OptinCampaignsRepository::form_custom_fields($this->optin_campaign_id), 'font'));
+
+        if (is_array($custom_fields_fonts) && ! empty($custom_fields_fonts)) {
+            foreach ($custom_fields_fonts as $font) {
+                if ($cta_button_font != 'inherit') {
+                    $webfont[] = sprintf("'%s'", self::_remove_web_safe_font($font));
+                }
+            }
         }
 
         $webfont = apply_filters('mo_optin_form_fonts_list', $webfont, $this->optin_campaign_id);
