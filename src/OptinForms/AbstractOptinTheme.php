@@ -1131,7 +1131,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $style .= sprintf("text-align: %s;", moVar($field, 'list_subscription_alignment', 'left', true));
 
                             $html .= $atts['tag_start'];
-
+                            $html .= sprintf('<input type="hidden" name="mo-list-subscription-integration" value="%s">', $integration);
                             switch ($display_type) {
                                 case 'checkbox':
                                     if (is_array($options) && ! empty($options)) {

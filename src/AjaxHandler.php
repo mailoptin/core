@@ -714,6 +714,7 @@ class AjaxHandler
 
         $response = self::do_optin_conversion($builder);
 
+
         wp_send_json($response);
     }
 
@@ -848,14 +849,45 @@ class AjaxHandler
         }
 
         $responses = [];
+
         if (is_array($integrations) && ! empty($integrations)) {
+
             foreach ($integrations as $integration) {
+
                 $conversion_data->payload['integration_data'] = $integration;
-                $responses[]                                  = self::add_lead_to_connection(
-                    $integration['connection_service'],
-                    isset($integration['connection_email_list']) ? $integration['connection_email_list'] : '',
-                    $conversion_data
-                );
+
+                // list subscription shim starts here
+                $ls_integration = moVar($conversion_data->payload, 'mo-list-subscription-integration');
+                $ls_lists       = moVar($conversion_data->payload, 'mo-list-subscription');
+
+                if ( ! empty($ls_integration) && ! empty($ls_lists) && $ls_integration == $integration['connection_service']) {
+
+                    if (is_array($ls_lists)) {
+                        foreach ($ls_lists as $ls_list) {
+                            $responses[] = self::add_lead_to_connection(
+                                $integration['connection_service'],
+                                $ls_list,
+                                $conversion_data
+                            );
+                        }
+                    } else {
+                        $responses[] = self::add_lead_to_connection(
+                            $integration['connection_service'],
+                            $ls_lists,
+                            $conversion_data
+                        );
+                    }
+
+                    // list subscription shim ends here
+
+                } else {
+
+                    $responses[] = self::add_lead_to_connection(
+                        $integration['connection_service'],
+                        isset($integration['connection_email_list']) ? $integration['connection_email_list'] : '',
+                        $conversion_data
+                    );
+                }
             }
         }
 
