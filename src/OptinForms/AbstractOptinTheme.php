@@ -1102,9 +1102,10 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html .= "</div>" . $atts['tag_end'];
                             break;
                         case 'select':
-                            $html .= $atts['tag_start'];
-                            $html .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
-                            $html .= "<option value='' selected='selected'>$placeholder</option>";
+                            $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
+                            $html        .= $atts['tag_start'];
+                            $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                            $html        .= "<option value='' selected='selected'>$placeholder</option>";
                             //Display options
                             foreach ($options as $option) {
                                 $option = esc_attr(trim($option));
@@ -1135,7 +1136,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 case 'checkbox':
                                     if (is_array($options) && ! empty($options)) {
                                         $html .= sprintf('<div %s class="%s" style="%s" id="%s">', $data_attr, $class, $style, $id);
-                                        $html .= "<div class='mo-checkbox-title'>$placeholder</div>";
+                                        $html .= "<div class='mo-checkbox-title' style='$alignment_style'>$placeholder</div>";
 
                                         foreach ($options as $option) {
                                             $html .= sprintf('<label class="mo-list-subscription-checkbox" style="%s">', $alignment_style);
@@ -1148,7 +1149,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                 case 'radio':
                                     if (is_array($options) && ! empty($options)) {
                                         $html .= sprintf('<div %s class="%s" style="%s" id="%s">', $data_attr, $class, $style, $id);
-                                        $html .= "<div class='mo-radio-title'>$placeholder</div>";
+                                        $html .= "<div class='mo-radio-title' style='$alignment_style'>$placeholder</div>";
                                         foreach ($options as $option) {
                                             $html .= sprintf('<label class="mo-list-subscription-checkbox" style="%s">', $alignment_style);
                                             $html .= sprintf('<input style="%s" type="radio" name="%s" value="%s"> %s', $style, $name_attribute, $option, $integration_email_list[$option]);
@@ -1159,8 +1160,9 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                     break;
                                 case 'select':
                                     if (is_array($options) && ! empty($options)) {
-                                        $html .= "<select name=\"$name_attribute\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
-                                        $html .= "<option value='' selected='selected'>$placeholder</option>";
+                                        $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
+                                        $html        .= "<select name=\"$name_attribute\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                                        $html        .= "<option value='' selected='selected'>$placeholder</option>";
                                         foreach ($options as $option) {
                                             $html .= sprintf('<option value="%s">%s</option>', $option, $integration_email_list[$option]);
                                         }
