@@ -1125,9 +1125,9 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                             if (empty($integration) || empty($integration_email_list)) return '';
 
-                            $options = moVar($field, 'list_subscription_lists', [], true);
-
-                            $style .= sprintf("text-align: %s;", moVar($field, 'list_subscription_alignment', 'left', true));
+                            $options         = moVar($field, 'list_subscription_lists', [], true);
+                            $alignment_style = sprintf("text-align: %s;", moVar($field, 'list_subscription_alignment', 'left', true));
+                            $style           .= $alignment_style;
 
                             $html .= $atts['tag_start'];
                             $html .= sprintf('<input type="hidden" name="mo-list-subscription-integration" value="%s">', $integration);
@@ -1138,7 +1138,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                         $html .= "<div class='mo-checkbox-title'>$placeholder</div>";
 
                                         foreach ($options as $option) {
-                                            $html .= '<label class="mo-list-subscription-checkbox">';
+                                            $html .= sprintf('<label class="mo-list-subscription-checkbox" style="%s">', $alignment_style);
                                             $html .= sprintf('<input style="%s" type="checkbox" name="%s[]" value="%s"> %s', $style, $name_attribute, $option, $integration_email_list[$option]);
                                             $html .= '</label>';
                                         }
@@ -1150,7 +1150,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                         $html .= sprintf('<div %s class="%s" style="%s" id="%s">', $data_attr, $class, $style, $id);
                                         $html .= "<div class='mo-radio-title'>$placeholder</div>";
                                         foreach ($options as $option) {
-                                            $html .= '<label class="mo-list-subscription-checkbox">';
+                                            $html .= sprintf('<label class="mo-list-subscription-checkbox" style="%s">', $alignment_style);
                                             $html .= sprintf('<input style="%s" type="radio" name="%s" value="%s"> %s', $style, $name_attribute, $option, $integration_email_list[$option]);
                                             $html .= '</label>';
                                         }

@@ -31,12 +31,12 @@
                         if (field_type === 'list_subscription') {
                             $(field).find(".list_subscription_integration.mo-fields-block").show();
                             $(field).find(".list_subscription_lists.mo-fields-block").show();
-                            $(field).find(".list_subscription_field_type.mo-fields-block").show();
+                            $(field).find(".list_subscription_display_type.mo-fields-block").show();
                             $(field).find(".list_subscription_alignment.mo-fields-block").show();
                         } else {
                             $(field).find(".list_subscription_integration.mo-fields-block").hide();
                             $(field).find(".list_subscription_lists.mo-fields-block").hide();
-                            $(field).find(".list_subscription_field_type.mo-fields-block").hide();
+                            $(field).find(".list_subscription_display_type.mo-fields-block").hide();
                             $(field).find(".list_subscription_alignment.mo-fields-block").hide();
                         }
                     };
