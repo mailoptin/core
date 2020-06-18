@@ -568,6 +568,14 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .mo-optin-error {
          box-sizing: border-box;
          border: 1px solid #FF0000;
 }
+
+html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .mo-optin-fields-wrapper .list_subscription-field {
+   margin-top: 10px;
+}
+
+html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .mo-optin-fields-wrapper select.list_subscription-field {
+   margin-top: 5px;
+}
 CSS;
 
     }

@@ -301,7 +301,7 @@ class Gridgum extends AbstractOptinTheme
                     'settings'      => $option_prefix . '[mini_headline]',
                     'editor_id'     => 'mini_headline',
                     'editor_height' => 50,
-                    'quicktags' => true,
+                    'quicktags'     => true,
                     'priority'      => 4
                 )
             )
@@ -477,7 +477,7 @@ class Gridgum extends AbstractOptinTheme
 
     public function customizer_preview_js()
     {
-        if(!\MailOptin\Core\is_mailoptin_customizer_preview()) return;
+        if ( ! \MailOptin\Core\is_mailoptin_customizer_preview()) return;
         ?>
         <script type="text/javascript">
             (function ($) {
@@ -695,6 +695,12 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_note {
              font-size: 15px;
              text-align: center;
          }
+}
+
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-fields-wrapper .mo-optin-form-custom-field.checkbox-field,
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-fields-wrapper .mo-optin-form-custom-field.radio-field,
+html div#$optin_uuid div#$optin_css_id.gridgum_container .mo-optin-fields-wrapper .list_subscription-field {
+   margin-bottom: 20px;
 }
 CSS;
 
