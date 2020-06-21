@@ -63,9 +63,19 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             add_filter('mo_optin_form_customizer_configuration_controls', [$this, 'customizer_configuration_controls'], 10, 4);
             add_filter('mo_optin_form_customizer_output_controls', [$this, 'customizer_output_controls'], 10, 4);
 
-            add_action('customize_preview_init', array($this, 'optin_form_customizer_javascript'));
+            add_action('customize_preview_init', function () {
 
-            add_action('customize_preview_init', array(RegisterScripts::get_instance(), 'modal_scripts'));
+                if (Settings::instance()->switch_customizer_loader() != 'true') {
+                    remove_all_actions('customize_preview_init');
+                }
+
+                $this->optin_form_customizer_javascript();
+
+                RegisterScripts::get_instance()->modal_scripts();
+
+                do_action('mo_optin_customize_preview_init');
+
+            }, -1);
         }
 
         parent::__construct($optin_campaign_id);

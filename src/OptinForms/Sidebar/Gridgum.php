@@ -213,7 +213,7 @@ class Gridgum extends AbstractOptinTheme
             return '#000000';
         });
 
-        add_action('customize_preview_init', function () {
+        add_action('mo_optin_customize_preview_init', function () {
             add_action('wp_footer', [$this, 'customizer_preview_js']);
         });
 

@@ -110,7 +110,7 @@ class Customizer
             // Remove all customizer panels.
             add_action('customize_panel_active', array($this, 'remove_panels'), 10, 2);
 
-            add_action('customize_register', array($this, 'register_optin_form_customizer'), 1);
+            add_action('customize_register', array($this, 'register_optin_form_customizer'), -1);
 
             // save edited optin campaign title
             add_action('customize_save_after', array($this, 'burst_cache_after_customizer_save'));

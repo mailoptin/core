@@ -107,7 +107,7 @@ class Customizer
             // Remove all customizer panels.
             add_action('customize_panel_active', '__return_false');
 
-            add_action('customize_register', array($this, 'register_campaign_customizer'), 1);
+            add_action('customize_register', array($this, 'register_campaign_customizer'), -1);
 
             // save edited email campaign title
             add_action('customize_save', array($this, 'save_email_campaign_title'));
