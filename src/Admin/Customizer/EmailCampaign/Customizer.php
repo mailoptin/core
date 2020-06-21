@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Submit_Button_Control;
 use MailOptin\Core\Admin\Customizer\CustomizerTrait;
 use MailOptin\Core\Admin\Customizer\UpsellCustomizerSection;
+use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
@@ -491,7 +492,9 @@ class Customizer
      */
     public function register_campaign_customizer($wp_customize)
     {
-        remove_all_actions('customize_register'); // improve compatibility with hestia, generatepress themes etc
+        if (Settings::instance()->switch_customizer_loader() != 'true') {
+            remove_all_actions('customize_register'); // improve compatibility with hestia, generatepress themes etc
+        }
 
         $email_campaign_id = absint($_REQUEST['mailoptin_email_campaign_id']);
 

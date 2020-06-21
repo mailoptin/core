@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\Customizer\OptinForm;
 use MailOptin\Core\Admin\Customizer\CustomizerTrait;
 use MailOptin\Core\Admin\Customizer\UpsellCustomizerSection;
 use MailOptin\Core\OptinForms\AbstractOptinForm;
+use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use MailOptin\Core\Repositories\StateRepository;
 
@@ -615,7 +616,9 @@ class Customizer
      */
     public function register_optin_form_customizer($wp_customize)
     {
-        remove_all_actions('customize_register'); // improve compatibility with hestia, generatepress themes etc
+        if (Settings::instance()->switch_customizer_loader() != 'true') {
+            remove_all_actions('customize_register'); // improve compatibility with hestia, generatepress themes etc
+        }
 
         $optin_campaign_id = absint($_REQUEST['mailoptin_optin_campaign_id']);
 

@@ -89,9 +89,7 @@ trait CustomizerTrait
             // add core media button back.
             add_action('media_buttons', 'media_buttons');
 
-            $is_switch_loader_method = Settings::instance()->switch_customizer_loader();
-
-            if ($is_switch_loader_method == 'false' && ! $this->is_ninja_form_shortcode()) {
+            if (Settings::instance()->switch_customizer_loader() != 'true' && ! $this->is_ninja_form_shortcode()) {
 
                 $wp_get_theme = wp_get_theme();
 
