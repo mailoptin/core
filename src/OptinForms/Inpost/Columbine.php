@@ -186,7 +186,7 @@ class Columbine extends AbstractOptinTheme
             return '#555555';
         });
 
-        add_action('mo_optin_mo_optin_customize_preview_init', function () {
+        add_action('mo_optin_customize_preview_init', function () {
             add_action('wp_footer', [$this, 'customizer_preview_js']);
         });
 
