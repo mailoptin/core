@@ -22,7 +22,6 @@ class OptinCampaigns extends AbstractSettingsPage
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
-
     }
 
     public function register_settings_page()
