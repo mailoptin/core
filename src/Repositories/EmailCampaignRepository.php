@@ -384,7 +384,7 @@ class EmailCampaignRepository extends AbstractRepository
      */
     public static function updateSettings($campaignSettings)
     {
-        return update_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, $campaignSettings);
+        return update_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, $campaignSettings, false);
     }
 
     /**

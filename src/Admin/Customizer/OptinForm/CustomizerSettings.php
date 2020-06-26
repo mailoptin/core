@@ -89,6 +89,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($design_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -159,6 +160,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($headline_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -215,6 +217,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($description_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -286,6 +289,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($note_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -451,6 +455,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($fields_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -526,6 +531,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($configuration_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -572,6 +578,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($integration_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -619,6 +626,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($success_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 
@@ -772,6 +780,7 @@ class CustomizerSettings extends AbstractCustomizer
         );
 
         foreach ($output_settings_args as $id => $args) {
+            $args['autoload'] = false;
             $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
         }
 

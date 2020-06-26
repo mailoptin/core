@@ -10,6 +10,7 @@ use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
+use function MailOptin\Core\mo_test_admin_email;
 
 class Customizer
 {
@@ -647,6 +648,7 @@ class Customizer
         $wp_customize->add_setting($option_prefix . '[send_test_email]', array(
                 'type'      => 'option',
                 'transport' => 'postMessage',
+                'autoload' => false
             )
         );
     }
@@ -668,7 +670,7 @@ class Customizer
         $instance->newsletter_content_control();
         $instance->footer_controls();
 
-        $admin_email = apply_filters('mailoptin_email_campaign_test_admin_email', get_option('admin_email'));
+        $admin_email = mo_test_admin_email();
         $wp_customize->add_control(new WP_Customize_Submit_Button_Control(
                 $wp_customize,
                 $option_prefix . '[send_test_email]',
