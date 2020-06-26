@@ -356,3 +356,8 @@ function moVar($bucket, $key, $default = false, $empty = false)
 
     return isset($bucket[$key]) ? $bucket[$key] : $default;
 }
+
+function mo_test_admin_email()
+{
+    return apply_filters('mailoptin_email_campaign_test_admin_email', get_option('admin_email'));
+}
