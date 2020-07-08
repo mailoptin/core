@@ -233,9 +233,7 @@ class OptinCampaignsRepository extends AbstractRepository
     public static function get_optin_campaign_uuid($optin_campaign_id)
     {
         $table = parent::campaigns_table();
-        /**
-         * @todo consider adding wp_cache_* for unchanging values to probably all database query methods to speed things up.
-         */
+
         $cache_key = "campaign_uuid_$optin_campaign_id";
 
         if (wp_cache_get($cache_key) !== false) {
