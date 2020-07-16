@@ -94,7 +94,7 @@ class Customizer
             });
 
             add_action('customize_controls_enqueue_scripts', function () {
-                wp_enqueue_script('mailoptin-send-test-email', MAILOPTIN_ASSETS_URL . 'js/admin/send-test-email.js');
+                wp_enqueue_script('mailoptin-send-test-email', MAILOPTIN_ASSETS_URL . 'js/admin/send-test-email.js', ['jquery']);
             });
 
             // do not use template_include because it doesnt work in some instances eg when membermouse plugin is installed.

@@ -95,7 +95,7 @@ trait CustomizerTrait
 
                 $active_plugins = array_reduce(get_option('active_plugins'), function ($carry, $item) {
                     $name = dirname($item);
-                    if ($name != 'mailoptin' && $name != '.') {
+                    if ($name != 'mailoptin' && $name != 'wp-jquery-update-test' && $name != '.') {
                         $carry[] = $name;
                     }
 
@@ -105,6 +105,7 @@ trait CustomizerTrait
                 $active_plugins = ! is_array($active_plugins) ? [] : $active_plugins;
 
                 add_action('customize_controls_enqueue_scripts', function () use ($wp_get_theme, $active_plugins) {
+
                     global $wp_styles;
                     global $wp_scripts;
 
@@ -203,14 +204,14 @@ trait CustomizerTrait
         wp_enqueue_script(
             'mailoptin-rename-customizer-title',
             MAILOPTIN_ASSETS_URL . 'js/customizer-controls/rename-customizer-title.js',
-            array('customize-controls'),
+            array('jquery', 'customize-controls'),
             MAILOPTIN_VERSION_NUMBER
         );
 
         wp_enqueue_script(
             'mailoptin-wp-editor',
             MAILOPTIN_ASSETS_URL . 'js/customizer-controls/mo-wp-editor.js',
-            array('customize-controls'),
+            array('jquery', 'customize-controls'),
             MAILOPTIN_VERSION_NUMBER
         );
 
@@ -322,7 +323,7 @@ trait CustomizerTrait
                     }
 
                     // on ready event
-                    $(window).load(function () {
+                    $(window).on('load', function () {
                         logic();
                         logic_new();
                         $(document.body).on('mo_email_list_data_found', function (e, connection_service) {
@@ -335,7 +336,7 @@ trait CustomizerTrait
                             $(".connection_email_list label.customize-control-title", parent).text('<?php echo $default_label; ?>');
                             logic_new(connection_service, parent);
                         });
-                    })
+                    });
                 }
 
             )(jQuery);

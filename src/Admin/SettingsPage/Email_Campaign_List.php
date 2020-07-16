@@ -218,7 +218,7 @@ class Email_Campaign_List extends \WP_List_Table
         $name       = "<strong><a href=\"$customize_url\">" . $item['name'] . '</a></strong>';
 
         $actions = array(
-            'delete' => sprintf("<a href=\"$delete_url\">%s</a>", __('Delete', 'mailoptin')),
+            'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', $delete_url, __('Delete', 'mailoptin')),
         );
 
         return $name . $this->row_actions($actions);
