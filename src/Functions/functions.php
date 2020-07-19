@@ -212,7 +212,7 @@ function get_ip_address()
     // Fix potential CSV returned from $_SERVER variables
     $ip_array = array_map('trim', explode(',', $ip));
 
-    return $ip_array[0];
+    return $ip_array[0] != '::1' ? $ip_array[0] : '';
 }
 
 /**
