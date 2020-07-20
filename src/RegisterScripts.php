@@ -249,6 +249,7 @@ class RegisterScripts
             'js_clear_stat_text'          => __('Are you sure you want to do this? Clicking OK will delete all your optin analytics records.', 'mailoptin'),
             'custom_field_label'          => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                     => 0,
+            'js_required_title'            => __('Title is required.', 'mailoptin'),
         );
 
         if ( ! is_admin()) {

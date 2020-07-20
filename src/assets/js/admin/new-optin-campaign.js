@@ -10,7 +10,7 @@
 
             if (!optin_campaign_title_obj.val()) {
                 optin_campaign_title_obj.addClass('mailoptin-input-error');
-                alert('Title of the Optin Campaign is required');
+                alert(mailoptin_globals.js_required_title);
                 optin_campaign_title_obj.focus();
             } else {
                 optin_campaign_title_obj.removeClass('mailoptin-input-error');
