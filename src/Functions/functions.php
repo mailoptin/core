@@ -361,3 +361,34 @@ function mo_test_admin_email()
 {
     return apply_filters('mailoptin_email_campaign_test_admin_email', get_option('admin_email'));
 }
+
+function is_valid_data($value)
+{
+    return is_boolean($value) || is_int($value) || ! empty($value);
+}
+
+function is_boolean($maybe_bool)
+{
+    if (is_bool($maybe_bool)) {
+        return true;
+    }
+
+    if (is_string($maybe_bool)) {
+        $maybe_bool = strtolower($maybe_bool);
+
+        $valid_boolean_values = array(
+            'false',
+            'true',
+            '0',
+            '1',
+        );
+
+        return in_array($maybe_bool, $valid_boolean_values, true);
+    }
+
+    if (is_int($maybe_bool)) {
+        return in_array($maybe_bool, array(0, 1), true);
+    }
+
+    return false;
+}

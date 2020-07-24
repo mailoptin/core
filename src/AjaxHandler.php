@@ -931,7 +931,7 @@ class AjaxHandler
 
         $no_email_provider_or_list_error = self::no_email_provider_or_list_error();
 
-        if (empty($connection_service) || empty($connection_email_list)) {
+        if ( ! is_valid_data($connection_service) || ! is_valid_data($connection_email_list)) {
             AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error);
 
             return AbstractConnect::ajax_failure($no_email_provider_or_list_error);
