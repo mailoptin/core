@@ -521,8 +521,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         }
 
         if ($this->optin_campaign_type == 'slidein') {
-            $global_css .= "html div#$optin_campaign_uuid.moOptinForm.mo-optin-form-slidein {max-width:{$form_width}px !important}";
-            $global_css .= "html div#$optin_campaign_uuid div#$optin_css_id.mo-optin-form-wrapper {max-width:{$form_width}px !important}";
+            $global_css .= "html div#$optin_campaign_uuid.moOptinForm.mo-optin-form-slidein {max-width:{$form_width}px !important;}";
+            $global_css .= "html div#$optin_campaign_uuid div#$optin_css_id.mo-optin-form-wrapper {max-width:{$form_width}px !important;box-shadow:0 5px 35px rgba(0,0,0,.17);}";
 
             $global_css .= "div#$optin_campaign_uuid.mo-slidein-bottom_right {right: 10px;}";
             $global_css .= "div#$optin_campaign_uuid.mo-slidein-bottom_left {left: 10px;}";
