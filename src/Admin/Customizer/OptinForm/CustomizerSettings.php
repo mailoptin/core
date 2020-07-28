@@ -786,4 +786,52 @@ class CustomizerSettings extends AbstractCustomizer
 
         do_action('mo_optin_after_output_customizer_settings', $this->wp_customize, $output_settings_args);
     }
+
+    /**
+     * Customize setting for all embed controls.
+     */
+    public function embed_settings()
+    {
+        $shortcode_embed    = '[mo-optin-form id="' . $this->optin_campaign_uuid . '"]';
+        $template_tag_embed = "do_action('mo_optin_form', '$this->optin_campaign_uuid');";
+
+        $settings = [];
+
+        $settings['embed_notice'] = array(
+            'type'      => 'option',
+            'transport' => 'postMessage',
+        );
+
+        $settings['widget_embed'] = array(
+            'type'      => 'option',
+            'transport' => 'postMessage',
+        );
+
+        $settings['block_embed'] = array(
+            'type'      => 'option',
+            'transport' => 'postMessage',
+        );
+
+        $settings['shortcode_embed'] = array(
+            'default'   => apply_filters('mo_optin_form_shortcode_embed', $shortcode_embed),
+            'type'      => 'option',
+            'transport' => 'postMessage',
+        );
+
+        $settings['template_tag_embed'] = array(
+            'default'   => apply_filters('mo_optin_form_template_tag_embed', $template_tag_embed),
+            'type'      => 'option',
+            'transport' => 'postMessage',
+        );
+
+
+        $settings_args = apply_filters("mo_optin_form_customizer_embed_settings", $settings, $this);
+
+        foreach ($settings_args as $id => $args) {
+            $args['autoload'] = false;
+            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+        }
+
+        do_action('mo_optin_after_embed_customizer_settings', $this->wp_customize, $settings_args);
+    }
 }
