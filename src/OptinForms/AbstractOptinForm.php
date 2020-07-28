@@ -460,6 +460,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-top {top: 0;position: absolute;}";
             $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-bottom {bottom: 0;position: fixed;}";
             $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-sticky {position: fixed;}";
+            $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-top .mo-optin-form-wrapper {box-shadow: 0 1px 3px 2px rgba(0,0,0,.15);}";
+            $global_css .= "div#$optin_campaign_uuid.mo-optin-form-bar-bottom .mo-optin-form-wrapper {box-shadow: 0 -1px 3px 2px rgba(0,0,0,.15);}";
             $global_css .= '.admin-bar .mo-optin-form-bar-top {top: 32px !important;}';
             $global_css .= '@media screen and (max-width: 782px) { .admin-bar .mo-optin-form-bar-top { top: 46px !important; } }';
             $global_css .= '@media screen and (max-width: 600px) { .admin-bar .mo-optin-form-bar-top.mo-optin-form-bar-sticky { top: 0 !important; } }';

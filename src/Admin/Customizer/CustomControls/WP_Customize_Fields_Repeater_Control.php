@@ -610,7 +610,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'right'  => esc_html__('Right', 'mailoptin'),
         ];
 
-        $list_subscription_saved_integration = moVar($this->saved_values[$index], 'list_subscription_integration', '', true);
+        $list_subscription_saved_integration = moVar(isset($this->saved_values[$index]) ? $this->saved_values[$index] : [], 'list_subscription_integration', '', true);
         $list_subscription_lists             = [];
         if ( ! empty($list_subscription_saved_integration)) {
             $list_subscription_lists = ConnectionsRepository::connection_email_list($list_subscription_saved_integration);
