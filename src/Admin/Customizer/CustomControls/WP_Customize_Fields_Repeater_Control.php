@@ -579,6 +579,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
     {
         $field_types = [
             'text'              => __('Text', 'mailoptin'),
+            'password'            => __('Password', 'mailoptin'),
             'textarea'          => __('Textarea', 'mailoptin'),
             'checkbox'          => __('Checkbox', 'mailoptin'),
             'select'            => __('Select', 'mailoptin'),
