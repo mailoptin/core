@@ -1143,10 +1143,11 @@ class AjaxHandler
             $response .= "<select id=\"$key\" class=\"mo-optin-custom-field-select\" name=\"$key\">";
             $response .= '<option value="">' . __('Select...', 'mailoptin') . '</option>';
             foreach ($custom_fields as $custom_field) {
+                $db_val   = isset($custom_field_mappings[$integration_index][$key]) ? $custom_field_mappings[$integration_index][$key] : '';
                 $response .= sprintf(
                     '<option value="%s" %s>%s</option>',
                     $custom_field['cid'],
-                    selected($custom_field_mappings[$integration_index][$key], $custom_field['cid'], false),
+                    selected($db_val, $custom_field['cid'], false),
                     $custom_field['placeholder']
                 );
             }

@@ -366,15 +366,15 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
     {
         ob_start();
 
-        $fields = OCR::form_custom_fields($this->optin_campaign_id);
+        $fields       = OCR::form_custom_fields($this->optin_campaign_id);
+        $optin_css_id = $this->optin_css_id;
+        $uuid         = $this->optin_campaign_uuid;
 
         if (is_array($fields) && ! empty($fields)) {
 
             foreach ($fields as $field) {
                 $custom_field_id = $field['cid'];
                 $color           = moVar($field, 'color', '', true);
-                $uuid            = $this->optin_campaign_uuid;
-                $optin_css_id    = $this->optin_css_id;
 
                 if (empty($color)) continue;
                 ?>
