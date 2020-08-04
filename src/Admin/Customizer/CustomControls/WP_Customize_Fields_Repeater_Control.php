@@ -589,6 +589,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'list_subscription' => __('List Selection', 'mailoptin'),
             'recaptcha_v2'      => __('reCAPTCHA v2', 'mailoptin'),
             'recaptcha_v3'      => __('reCAPTCHA v3', 'mailoptin'),
+            'custom_select'            => __('Custom Select', 'mailoptin'),
         ];
 
         $widget_title = sprintf(__('Field %s', 'mailoptin'), '#' . ($index + 1));
