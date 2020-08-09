@@ -531,11 +531,11 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             $global_css .= "
             /* make slide-in optin form full width and full height on mobile/small screens */
             @media only screen and (max-width: 575px) {
-                html div#$optin_campaign_uuid.mo-optin-form-slidein div#$optin_css_id.mo-optin-form-wrapper {
+                html div#$optin_campaign_uuid.moOptinForm.mo-optin-form-slidein div#$optin_css_id.mo-optin-form-wrapper {
                     max-width: 100% !important;
                 }
     
-                html div#$optin_campaign_uuid.mo-optin-form-slidein {
+                html div#$optin_campaign_uuid.moOptinForm.mo-optin-form-slidein {
                     max-width: 100% !important;
                     bottom: 0 !important;
                     left: 0 !important;
