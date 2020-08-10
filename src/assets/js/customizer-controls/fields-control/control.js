@@ -26,18 +26,8 @@
                         }
                     };
 
-                    var maybeHideCustomOptionsField = function () {
-                        var field_type = $(field).find('.mo-optin-fields-field').val();
-                        if(field_type === 'custom_select') {
-                            $(field).find(".list_custom_field_options.mo-fields-block").show();
-                        } else {
-                            $(field).find(".list_custom_field_options.mo-fields-block").hide();
-                        }
-                    }
-
                     var maybeHideCountryOptionsField = function () {
-                        var field_type = $(field).find('.list_custom_field_options .mo-optin-fields-field').val();
-                        console.log(field_type);
+                        var field_type = $(field).find('.mo-optin-fields-field').val();
                         if(field_type === 'country') {
                             $(field).find(".list_country_options_field_options.mo-fields-block").show();
                         } else {
@@ -117,7 +107,6 @@
                     };
 
                     maybeHideOptionsField();
-                    maybeHideCustomOptionsField();
                     maybeHideCountryOptionsField();
                     maybeHideRecaptchaField();
                     maybeHideHiddenValueField();
@@ -128,7 +117,6 @@
                         .off('change.mo_field')
                         .on('change.mo_field', function () {
                             maybeHideOptionsField();
-                            maybeHideCustomOptionsField();
                             maybeHideCountryOptionsField();
                             maybeHideRecaptchaField();
                             maybeHideHiddenValueField();
