@@ -1147,7 +1147,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                     $countries_lists =  \MailOptin\Core\countries_array('alpha_three');
                                     if(is_array($countries_lists) && !empty($countries_lists)) {
                                         $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
-                                        $html        .= "<select name=\"$name_attribute\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                                        $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
                                         $html        .= "<option value='' selected='selected'>$placeholder</option>";
 
                                         foreach ($countries_lists as $index => $countries_list) {
