@@ -64,6 +64,7 @@ class AjaxHandler
             'customizer_set_template'                  => false,
             'ecb_fetch_post_type_posts'                => false,
             'list_subscription_integration_lists'      => false,
+            'google_fonts_enqueue'                     => true,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
