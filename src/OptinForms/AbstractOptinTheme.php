@@ -1124,38 +1124,35 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                         case 'country':
                             $display_type = moVar($field, 'country_field_options', 'alpha_two', true);
 
-                            $alignment_style = sprintf("text-align: %s;", moVar($field, 'list_contries_alignment', 'left', true));
-                            $style           .= $alignment_style;
-
                             $html .= $atts['tag_start'];
 
-                            switch($display_type) {
+                            switch ($display_type) {
                                 case 'alpha-2':
-                                    $countries_lists =  \MailOptin\Core\countries_array();
-                                    if(is_array($countries_lists) && !empty($countries_lists)) {
+                                    $countries_lists = \MailOptin\Core\countries_array();
+                                    if (is_array($countries_lists) && ! empty($countries_lists)) {
                                         $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
                                         $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
                                         $html        .= "<option value='' selected='selected'>$placeholder</option>";
 
                                         foreach ($countries_lists as $key => $countries_list) {
-                                            $html .= sprintf('<option value="%s">%s (%2s)</option>', $key, $countries_list, $key);
+                                            $html .= sprintf('<option value="%1$s">%2$s (%1$s)</option>', $key, $countries_list);
                                         }
                                         $html .= '</select>';
                                     }
-                                break;
+                                    break;
                                 case 'alpha-3':
-                                    $countries_lists =  \MailOptin\Core\countries_array('alpha-3');
-                                    if(is_array($countries_lists) && !empty($countries_lists)) {
+                                    $countries_lists = \MailOptin\Core\countries_array('alpha-3');
+                                    if (is_array($countries_lists) && ! empty($countries_lists)) {
                                         $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
                                         $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
                                         $html        .= "<option value='' selected='selected'>$placeholder</option>";
 
                                         foreach ($countries_lists as $key => $countries_list) {
-                                            $html .= sprintf('<option value="%s">%s (%2s)</option>', $key, $countries_list, $key);
+                                            $html .= sprintf('<option value="%1$s">%2$s (%1$s)</option>', $key, $countries_list);
                                         }
                                         $html .= '</select>';
                                     }
-                                break;
+                                    break;
                             }
                             $html .= $atts['tag_end'];
                             break;

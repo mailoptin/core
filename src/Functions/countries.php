@@ -9,7 +9,7 @@ if ( ! defined('ABSPATH')) {
     exit;
 }
 
-switch($country_type) {
+switch ($country_type) {
     case 'alpha-3':
         return array(
             'AFG' => __('Afghanistan', 'mailoptin'),
@@ -263,8 +263,8 @@ switch($country_type) {
             'ZMB' => __('Zambia', 'mailoptin'),
             'ZWE' => __('Zimbabwe', 'mailoptin'),
         );
-    break;
-    default: 
+        break;
+    default:
         return array(
             'AF' => __('Afghanistan', 'mailoptin'),
             'AX' => __('&#197;land Islands', 'mailoptin'),
@@ -517,5 +517,4 @@ switch($country_type) {
             'ZM' => __('Zambia', 'mailoptin'),
             'ZW' => __('Zimbabwe', 'mailoptin'),
         );
-
 }
