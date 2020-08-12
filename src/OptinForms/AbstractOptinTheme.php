@@ -1135,7 +1135,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                         $html        .= "<option value='' selected='selected'>$placeholder</option>";
 
                                         foreach ($countries_lists as $key => $countries_list) {
-                                            $html .= sprintf('<option value="%1$s">%2$s (%1$s)</option>', $key, $countries_list);
+                                            $html .= sprintf('<option value="%1$s">%2$s</option>', $key, $countries_list);
                                         }
                                         $html .= '</select>';
                                     }
@@ -1148,7 +1148,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                         $html        .= "<option value='' selected='selected'>$placeholder</option>";
 
                                         foreach ($countries_lists as $key => $countries_list) {
-                                            $html .= sprintf('<option value="%1$s">%2$s (%1$s)</option>', $key, $countries_list);
+                                            $html .= sprintf('<option value="%1$s">%2$s</option>', $key, $countries_list);
                                         }
                                         $html .= '</select>';
                                     }
