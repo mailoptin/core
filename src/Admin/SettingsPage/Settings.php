@@ -115,7 +115,7 @@ class Settings extends AbstractSettingsPage
                         'disenqueue_google_font'     => [
                             'type'        => 'checkbox',
                             'label'       => __('Disenqueue Google Fonts', 'mailoptin'),
-                            'checkbox_label' => __('Yes', 'mailoptin')
+                            'checkbox_label' => __('Disenqueue', 'mailoptin')
                         ],
                         'global_cookie'         => [
                             'type'        => 'number',

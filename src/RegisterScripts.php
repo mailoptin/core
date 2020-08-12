@@ -231,6 +231,12 @@ class RegisterScripts
             $disable_impression_status = true;
         }
 
+        $disenqueue_google_font = false;
+        $google_font_status        = apply_filters('mo_disenqueue_google_font', Settings::instance()->disenqueue_google_font());
+        if ( ! empty($google_font_status) && ($google_font_status == 'true' || $google_font_status === true)) {
+            $disenqueue_google_font = true;
+        }
+
         $localize_strings = array(
             'admin_url'                   => admin_url(),
             'public_js'                   => MAILOPTIN_ASSETS_URL . 'js/src',
@@ -247,6 +253,7 @@ class RegisterScripts
             'custom_field_label'          => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                     => 0,
             'js_required_title'           => __('Title is required.', 'mailoptin'),
+            'disenqueue_google_font' => $disenqueue_google_font === true ? 'true' : 'false',
         );
 
         if ( ! is_admin()) {

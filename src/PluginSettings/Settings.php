@@ -18,6 +18,7 @@ namespace MailOptin\Core\PluginSettings;
  * @method string recaptcha_type()
  * @method string recaptcha_site_key()
  * @method string recaptcha_site_secret()
+ * @method string disenqueue_google_font()
  */
 class Settings
 {

@@ -64,7 +64,7 @@ class AjaxHandler
             'customizer_set_template'                  => false,
             'ecb_fetch_post_type_posts'                => false,
             'list_subscription_integration_lists'      => false,
-            'google_fonts_enqueue'                     => true,
+            'google_font_status'                     => true,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -978,6 +978,24 @@ class AjaxHandler
         (new OptinCampaignStat($optin_campaign_id))->save($stat_type);
 
         do_action('mailoptin_track_impressions', $payload, $optin_campaign_id, $optin_uuid);
+    }
+
+    /**
+     * 
+     * Enqueue or Disenqueue Google Fonts
+     * 
+     */
+    public function google_font_status()
+    {
+        $disenqueue_font = apply_filters('mo_disenqueue_google_font', Settings::instance()->disenqueue_google_font());
+        if (!empty($disenqueue_font) && ($disenqueue_font == 'false' || $disenqueue_font === false)) {
+            return;
+        }
+
+        var_dump('hello');
+        return;
+        do_action('mailoptin_disenqueue_google_font');
+
     }
 
     /**
