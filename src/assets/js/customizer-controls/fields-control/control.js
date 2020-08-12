@@ -29,9 +29,9 @@
                     var maybeHideCountryOptionsField = function () {
                         var field_type = $(field).find('.mo-optin-fields-field').val();
                         if(field_type === 'country') {
-                            $(field).find(".list_country_options_field_options.mo-fields-block").show();
+                            $(field).find(".country_field_options.mo-fields-block").show();
                         } else {
-                            $(field).find(".list_country_options_field_options.mo-fields-block").hide();
+                            $(field).find(".country_field_options.mo-fields-block").hide();
                         }
                     }
 

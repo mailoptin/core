@@ -802,16 +802,21 @@ class AjaxHandler
             'referrer'            => $conversion_data->referrer,
         ];
 
+        $conversionRepoResponse = false;
+
         // lite should also store leads in leadbank albeit locked.
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') || (class_exists('MailOptin\Libsodium\LeadBank\LeadBank') && ! LeadBank::is_leadbank_disabled())) {
             // capture optin lead / conversion
-            OptinConversionsRepository::add($lead_data);
+            $conversionRepoResponse = OptinConversionsRepository::add($lead_data);
         }
 
         // kick-in if only lead bank should be used
         if ($lead_bank_only === true) {
-            // record optin campaign conversion.
-            self::track_conversion($optin_campaign_id, $lead_data);
+
+            if ($conversionRepoResponse) {
+                // record optin campaign conversion.
+                self::track_conversion($optin_campaign_id, $lead_data);
+            }
 
             return AbstractConnect::ajax_success();
         }

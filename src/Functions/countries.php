@@ -9,8 +9,8 @@ if ( ! defined('ABSPATH')) {
     exit;
 }
 
-switch($country_type) {
-    case 'alpha_three':
+switch ($country_type) {
+    case 'alpha-3':
         return array(
             'AFG' => __('Afghanistan', 'mailoptin'),
             'ALA' => __('&#197;land Islands', 'mailoptin'),
@@ -182,7 +182,7 @@ switch($country_type) {
             'PAK' => __('Pakistan', 'mailoptin'),
             'PSE' => __('Palestinian Territory', 'mailoptin'),
             'PAN' => __('Panama', 'mailoptin'),
-            'PAN' => __('Papua New Guinea', 'mailoptin'),
+            'PNG' => __('Papua New Guinea', 'mailoptin'),
             'PRY' => __('Paraguay', 'mailoptin'),
             'PER' => __('Peru', 'mailoptin'),
             'PHL' => __('Philippines', 'mailoptin'),
@@ -263,8 +263,8 @@ switch($country_type) {
             'ZMB' => __('Zambia', 'mailoptin'),
             'ZWE' => __('Zimbabwe', 'mailoptin'),
         );
-    break;
-    default: 
+        break;
+    default:
         return array(
             'AF' => __('Afghanistan', 'mailoptin'),
             'AX' => __('&#197;land Islands', 'mailoptin'),
@@ -517,5 +517,4 @@ switch($country_type) {
             'ZM' => __('Zambia', 'mailoptin'),
             'ZW' => __('Zimbabwe', 'mailoptin'),
         );
-
 }

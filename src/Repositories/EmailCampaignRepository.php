@@ -229,7 +229,7 @@ class EmailCampaignRepository extends AbstractRepository
      * @param string $settings_name
      * @param string $default
      *
-     * @return string
+     * @return mixed
      */
     public static function get_customizer_value($email_campaign_id, $settings_name, $default = '')
     {

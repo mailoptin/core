@@ -229,7 +229,7 @@ trait CustomizerTrait
      */
     public function js_script()
     {
-        $wp_user_reg_label = __('Select User Role', 'mailoptin');
+        $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
         $ck_label          = __('ConvertKit Forms', 'mailoptin');
         $drip_label        = __('Drip Campaigns', 'mailoptin');
         $gr_label          = __('GetResponse Campaigns', 'mailoptin');
