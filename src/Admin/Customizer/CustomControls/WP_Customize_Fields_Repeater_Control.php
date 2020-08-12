@@ -296,6 +296,26 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
         echo '</div>';
     }
 
+    public function repeater_country_select_field($index, $name, $choices, $class = '', $label = '', $description = '') {
+        if(!isset($index) || ! array_key_exists($index, $this->saved_values)) {
+            $index = '{mo-fields-index}';
+        }
+
+        $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
+        $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
+
+        if (empty($choices)) return;
+
+        $random_id = wp_generate_password(5, false) . '_' . $index;
+
+        if (! empty($class)) {
+            $class = " $class";
+        }
+
+
+
+    }
+
     public function repeater_select_field($index, $name, $choices, $class = '', $label = '', $description = '')
     {
         if ( ! isset($index) || ! array_key_exists($index, $this->saved_values)) {
@@ -589,12 +609,18 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'list_subscription' => __('List Selection', 'mailoptin'),
             'recaptcha_v2'      => __('reCAPTCHA v2', 'mailoptin'),
             'recaptcha_v3'      => __('reCAPTCHA v3', 'mailoptin'),
+            'country'            => __('Country', 'mailoptin'),
         ];
 
         $widget_title = sprintf(__('Field %s', 'mailoptin'), '#' . ($index + 1));
         if (isset($this->saved_values[$index]['placeholder'])) {
             $widget_title = $this->saved_values[$index]['placeholder'];
         }
+
+        $list_country_name_select_type = [
+            'alpha-2' => esc_html__('Alpha-2 Code (e.g US)', 'mailoptin'),
+            'alpha-3' => esc_html__('Alpha-3 Code (e.g USA)', 'mailoptin'),
+        ];
 
 
         $integrations = ConnectionsRepository::get_connections();
@@ -638,6 +664,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
 
+                    <?php $this->repeater_select_field($index, 'country_field_options', $list_country_name_select_type, '', __('Show Country In', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_integration', $integrations, '', __('Select Integration', 'mailoptin'), '<span class="spinner mo-list-subscription-spinner"></span>'); ?>
                     <?php $this->repeater_chosen_select_field($index, 'list_subscription_lists', $list_subscription_lists, '', __('Options', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_display_type', $list_subscription_display_type, '', __('Field Type', 'mailoptin')); ?>
