@@ -152,7 +152,7 @@ function current_url_with_query_string()
  *
  * @return array
  */
-function countries_array($type = 'alpha_two')
+function countries_array($type = 'alpha-2')
 {
     $country_type = $type;
     return apply_filters('mailoptin_countries_array', include(dirname(__FILE__) . '/countries.php'));

@@ -618,9 +618,8 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
         }
 
         $list_country_name_select_type = [
-            ''  =>   __('Select One..', 'mailoptin'),
-            'alpha_two' => esc_html__('Alpha-2 Code (e.g US)', 'mailoptin'),
-            'alpha_three' => esc_html__('Alpha-3 Code (e.g USA)', 'mailoptin'),
+            'alpha-2' => esc_html__('Alpha-2 Code (e.g US)', 'mailoptin'),
+            'alpha-3' => esc_html__('Alpha-3 Code (e.g USA)', 'mailoptin'),
         ];
 
 
@@ -665,7 +664,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
 
-                    <?php $this->repeater_select_field($index, 'list_country_options_field_options', $list_country_name_select_type, '', __('Show Country In', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'country_field_options', $list_country_name_select_type, '', __('Show Country In', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_integration', $integrations, '', __('Select Integration', 'mailoptin'), '<span class="spinner mo-list-subscription-spinner"></span>'); ?>
                     <?php $this->repeater_chosen_select_field($index, 'list_subscription_lists', $list_subscription_lists, '', __('Options', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'list_subscription_display_type', $list_subscription_display_type, '', __('Field Type', 'mailoptin')); ?>
