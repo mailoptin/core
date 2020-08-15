@@ -64,7 +64,7 @@ class AjaxHandler
             'customizer_set_template'                  => false,
             'ecb_fetch_post_type_posts'                => false,
             'list_subscription_integration_lists'      => false,
-            'google_font_status'                     => true,
+            'google_font_status'                     => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -994,6 +994,8 @@ class AjaxHandler
     {
         $disenqueue_font = apply_filters('mo_disenqueue_google_font', Settings::instance()->disenqueue_google_font());
         if (!empty($disenqueue_font) && ($disenqueue_font == 'false' || $disenqueue_font === false)) {
+            var_dump('hello');
+            return;
             return;
         }
 
