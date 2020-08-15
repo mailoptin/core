@@ -986,26 +986,6 @@ class AjaxHandler
     }
 
     /**
-     * 
-     * Enqueue or Disenqueue Google Fonts
-     * 
-     */
-    public function google_font_status()
-    {
-        $disenqueue_font = apply_filters('mo_disenqueue_google_font', Settings::instance()->disenqueue_google_font());
-        if (!empty($disenqueue_font) && ($disenqueue_font == 'false' || $disenqueue_font === false)) {
-            var_dump('hello');
-            return;
-            return;
-        }
-
-        var_dump('hello');
-        return;
-        do_action('mailoptin_disenqueue_google_font');
-
-    }
-
-    /**
      * Prints error log
      */
     public function view_error_log()

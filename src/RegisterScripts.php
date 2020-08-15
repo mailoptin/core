@@ -173,7 +173,7 @@ class RegisterScripts
     {
         wp_enqueue_script('jquery');
         // trailing "true" function argument not needed because we want it loaded before hidden optin markup display in footer.
-        wp_enqueue_script('mo-google-webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js', false, MAILOPTIN_VERSION_NUMBER, true);
+        $this->google_fonts_script();
 
         if (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) {
             wp_enqueue_style('mo-animate', MAILOPTIN_ASSETS_URL . 'css/animate.css', false, MAILOPTIN_VERSION_NUMBER);
@@ -216,6 +216,16 @@ class RegisterScripts
         $this->global_js_variables('mailoptin');
     }
 
+    public function google_fonts_script() {
+        $google_fonts_status = Settings::instance()->disenqueue_google_font();
+        
+        if(!empty($google_fonts_status) && ($google_fonts_status == 'false' || $google_fonts_status === false)) {
+            return wp_enqueue_script('mo-google-webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'.$google_fonts_status, false, MAILOPTIN_VERSION_NUMBER, true);
+        }
+
+        return wp_dequeue_script('mo-google-webfont');
+    }
+
     /**
      * Global JS variables by required by mailoptin.
      *
@@ -229,12 +239,6 @@ class RegisterScripts
         $disable_impression        = apply_filters('mo_disable_impression_tracking', Settings::instance()->disable_impression_tracking());
         if ( ! empty($disable_impression) && ($disable_impression == 'true' || $disable_impression === true)) {
             $disable_impression_status = true;
-        }
-
-        $disenqueue_google_font = false;
-        $google_font_status        = apply_filters('mo_disenqueue_google_font', Settings::instance()->disenqueue_google_font());
-        if ( ! empty($google_font_status) && ($google_font_status == 'true' || $google_font_status === true)) {
-            $disenqueue_google_font = true;
         }
 
         $localize_strings = array(
@@ -253,7 +257,6 @@ class RegisterScripts
             'custom_field_label'          => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                     => 0,
             'js_required_title'           => __('Title is required.', 'mailoptin'),
-            'disenqueue_google_font' => $disenqueue_google_font === true ? 'true' : 'false',
         );
 
         if ( ! is_admin()) {
