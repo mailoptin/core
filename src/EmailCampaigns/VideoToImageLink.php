@@ -60,7 +60,7 @@ class VideoToImageLink
 
         $image_url = MAILOPTIN_ASSETS_URL . 'images/video-placeholder.png';
 
-        if (is_wp_error($result)) {
+        if ( ! is_wp_error($result)) {
             $response = json_decode(wp_remote_retrieve_body($result), true);
 
             $thumbnail = isset($response['thumbnail_url_with_play_button']) ? $response['thumbnail_url_with_play_button'] : $response['thumbnail_url'];
