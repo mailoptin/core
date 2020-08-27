@@ -5,11 +5,11 @@ namespace MailOptin\Core\Repositories;
 
 use MailOptin\Core\Admin\Customizer\OptinForm\AbstractCustomizer;
 use MailOptin\Core\PluginSettings\Settings;
+use function MailOptin\Core\cache_transform;
 
 class OptinCampaignsRepository extends AbstractRepository
 {
     /**
-     * @todo consider using it more for queries that get called frequenly on single page request.
      * @var array
      */
     private static $cache = [];
@@ -140,16 +140,12 @@ class OptinCampaignsRepository extends AbstractRepository
      * Get all AB test variants belong to a parent optin ID.
      *
      * @param int $parent_optin_id
+     *
+     * @return array|mixed
      */
     public static function get_split_test_variant_ids($parent_optin_id)
     {
-        $cache_key = 'get_split_test_variant_ids_' . $parent_optin_id;
-
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            return self::$cache[$cache_key];
-        }
-
-        return self::$cache[$cache_key] = array_map('absint', OptinCampaignMeta::get_optin_id_by_meta_key_value('split_test_parent', $parent_optin_id));
+        return array_map('absint', OptinCampaignMeta::get_optin_id_by_meta_key_value('split_test_parent', $parent_optin_id));
     }
 
     /**
@@ -253,8 +249,8 @@ class OptinCampaignsRepository extends AbstractRepository
 
         $cache_key = "campaign_uuid_$optin_campaign_id";
 
-        if (wp_cache_get($cache_key) !== false) {
-            return wp_cache_get($cache_key);
+        if (($cache = wp_cache_get($cache_key)) !== false) {
+            return $cache;
         }
 
         $result = parent::wpdb()->get_var(
@@ -275,11 +271,21 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaign_name($optin_campaign_id)
     {
+        $cache_key = 'get_optin_campaign_name_' . $optin_campaign_id;
+
+        if (($cache = wp_cache_get($cache_key)) !== false) {
+            return $cache;
+        }
+
         $table = parent::campaigns_table();
 
-        return parent::wpdb()->get_var(
+        $result = parent::wpdb()->get_var(
             parent::wpdb()->prepare("SELECT name FROM $table WHERE id = %d", $optin_campaign_id)
         );
+
+        wp_cache_set($cache_key, $result);
+
+        return $result;
     }
 
     /**
@@ -293,15 +299,20 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $cache_key = 'get_optin_campaign_class_' . $optin_campaign_id;
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            return self::$cache[$cache_key];
+        $callback = function () use ($optin_campaign_id) {
+
+            $table = parent::campaigns_table();
+
+            return parent::wpdb()->get_var(
+                parent::wpdb()->prepare("SELECT optin_class FROM $table WHERE id =  %d", $optin_campaign_id)
+            );
+        };
+
+        if (is_customize_preview()) {
+            return $callback();
         }
 
-        $table = parent::campaigns_table();
-
-        return self::$cache[$cache_key] = parent::wpdb()->get_var(
-            parent::wpdb()->prepare("SELECT optin_class FROM $table WHERE id =  %d", $optin_campaign_id)
-        );
+        return cache_transform($cache_key, $callback);
     }
 
     /**
@@ -338,15 +349,20 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $cache_key = 'get_optin_campaign_type_' . $optin_campaign_id;
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            return self::$cache[$cache_key];
+        $callback = function () use ($optin_campaign_id) {
+
+            $table = parent::campaigns_table();
+
+            return parent::wpdb()->get_var(
+                parent::wpdb()->prepare("SELECT optin_type FROM $table WHERE id = %d", $optin_campaign_id)
+            );
+        };
+
+        if (is_customize_preview()) {
+            return $callback();
         }
 
-        $table = parent::campaigns_table();
-
-        return self::$cache[$cache_key] = parent::wpdb()->get_var(
-            parent::wpdb()->prepare("SELECT optin_type FROM $table WHERE id = %d", $optin_campaign_id)
-        );
+        return cache_transform($cache_key, $callback);
     }
 
     /**
@@ -403,19 +419,18 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaigns()
     {
-        $cache_key = 'get_optin_campaigns';
+        $callback = function () {
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            return self::$cache[$cache_key];
-        }
+            $table = parent::campaigns_table();
 
-        $table = parent::campaigns_table();
+            return parent::wpdb()->get_results("SELECT * FROM $table", 'ARRAY_A');
+        };
 
-        return self::$cache[$cache_key] = parent::wpdb()->get_results("SELECT * FROM $table", 'ARRAY_A');
+        return cache_transform('get_optin_campaigns', $callback);
     }
 
     /**
-     * Get optin camapign by campaign ID.
+     * Get optin campaign by campaign ID.
      *
      * @param int $optin_campaign_id
      *
@@ -442,16 +457,20 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $cache_key = 'get_optin_campaign_by_uuid' . $optin_uuid;
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            return self::$cache[$cache_key];
+        $callback = function () use ($optin_uuid) {
+            $table = parent::campaigns_table();
+
+            return parent::wpdb()->get_row(
+                parent::wpdb()->prepare("SELECT * FROM $table WHERE uuid = %s", $optin_uuid),
+                'ARRAY_A'
+            );
+        };
+
+        if (is_customize_preview()) {
+            return $callback();
         }
 
-        $table = parent::campaigns_table();
-
-        return self::$cache[$cache_key] = parent::wpdb()->get_row(
-            parent::wpdb()->prepare("SELECT * FROM $table WHERE uuid = %s", $optin_uuid),
-            'ARRAY_A'
-        );
+        return cache_transform($cache_key, $callback);
     }
 
     /**
@@ -465,15 +484,22 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $cache_key = 'get_optin_campaign_id_by_uuid_' . $optin_uuid;
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            return self::$cache[$cache_key];
+        $callback = function () use ($optin_uuid) {
+
+            $table = parent::campaigns_table();
+
+            $result = parent::wpdb()->get_var(
+                parent::wpdb()->prepare("SELECT id FROM $table WHERE uuid = %s", $optin_uuid)
+            );
+
+            return $result ? absint($result) : $result;
+        };
+
+        if (is_customize_preview()) {
+            return $callback();
         }
 
-        $table = parent::campaigns_table();
-
-        return self::$cache[$cache_key] = parent::wpdb()->get_var(
-            parent::wpdb()->prepare("SELECT id FROM $table WHERE uuid = %s", $optin_uuid)
-        );
+        return cache_transform($cache_key, $callback);
     }
 
     /**

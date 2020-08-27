@@ -151,6 +151,7 @@ function current_url_with_query_string()
  * Return array of countries. Typically for consumption by select dropdown.
  *
  * @param $country_type
+ *
  * @return array
  */
 function countries_array($country_type = 'alpha-2')
@@ -392,4 +393,19 @@ function is_boolean($maybe_bool)
     }
 
     return false;
+}
+
+function cache_transform($cache_key, $callback)
+{
+    $cache = wp_cache_get($cache_key);
+
+    if ($cache !== false) {
+        return $cache;
+    }
+
+    $callback = $callback();
+
+    wp_cache_set($cache_key, $callback);
+
+    return $callback;
 }
