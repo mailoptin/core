@@ -10,11 +10,6 @@ use function MailOptin\Core\cache_transform;
 class OptinCampaignsRepository extends AbstractRepository
 {
     /**
-     * @var array
-     */
-    private static $cache = [];
-
-    /**
      * Check if an optin campaign name already exist.
      *
      * @param string $name
@@ -79,14 +74,18 @@ class OptinCampaignsRepository extends AbstractRepository
         // in single request return previous value.
         $cache_key = 'is_split_test_' . $optin_campaign_id;
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            $parent_optin_id = self::$cache[$cache_key];
-        } else {
-            $parent_optin_id = self::$cache[$cache_key] = OptinCampaignMeta::get_campaign_meta(
+        $callback = function () use ($optin_campaign_id) {
+            return OptinCampaignMeta::get_campaign_meta(
                 $optin_campaign_id,
                 'split_test_parent',
                 true
             );
+        };
+
+        if (is_customize_preview()) {
+            $parent_optin_id = $callback();
+        } else {
+            $parent_optin_id = cache_transform($cache_key, $callback);
         }
 
         return ! empty($parent_optin_id);
@@ -509,14 +508,15 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_saved_customizer_data()
     {
-        $cache_key = 'get_optin_saved_customizer_data';
+        $callback = function () {
+            return get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
+        };
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            return self::$cache[$cache_key];
+        if (is_customize_preview()) {
+            return $callback();
         }
 
-        // disable cache for customizer interface
-        return self::$cache[$cache_key] = get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
+        return cache_transform('get_optin_saved_customizer_data', $callback);
     }
 
     /**
@@ -775,15 +775,18 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $cache_key = 'is_test_mode_' . $optin_campaign_id;
 
-        if ( ! is_customize_preview() && isset(self::$cache[$cache_key])) {
-            $campaign_settings = self::$cache[$cache_key];
+        $callback = function () use ($optin_campaign_id) {
+            return self::get_settings_by_id($optin_campaign_id);
+        };
+
+        if (is_customize_preview()) {
+            $campaign_settings = $callback();
         } else {
-            $campaign_settings = self::$cache[$cache_key] = self::get_settings_by_id($optin_campaign_id);
+            $campaign_settings = cache_transform($cache_key, $callback);
         }
 
         return isset($campaign_settings['test_mode']) && ($campaign_settings['test_mode'] === true);
     }
-
 
     /**
      * Enable test mode for optin campaign.
