@@ -219,12 +219,12 @@ class RegisterScripts
     public function google_fonts_script() {
         $google_fonts_status = Settings::instance()->dequeue_google_font();
         
-        if(!empty($google_fonts_status) && ($google_fonts_status == 'false' || $google_fonts_status === false || $google_fonts_status == '')) {
+        if(!empty($google_fonts_status) && ($google_fonts_status == 'true' || $google_fonts_status === true)) {
             // trailing "true" function argument not needed because we want it loaded before hidden optin markup display in footer.
-            return wp_enqueue_script('mo-google-webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js', false, MAILOPTIN_VERSION_NUMBER, true);
+            return wp_dequeue_script('mo-google-webfont');
         }
 
-        return wp_dequeue_script('mo-google-webfont');
+        return wp_enqueue_script('mo-google-webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js', false, MAILOPTIN_VERSION_NUMBER, true);
     }
 
     /**
