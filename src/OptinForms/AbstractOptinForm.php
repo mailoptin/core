@@ -255,7 +255,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $optin_form_fonts = $this->get_optin_form_fonts();
         $google_fonts_status = Settings::instance()->dequeue_google_font();
 
-        if ( ! empty($optin_form_fonts) && ($google_fonts_status == 'false' || $google_fonts_status === false)) {
+        if ( ! empty($optin_form_fonts) && ($google_fonts_status == 'false' || $google_fonts_status === false || $google_fonts_status != '')) {
             return "<script type='text/javascript'>jQuery(function(){if(typeof WebFont!=='undefined'){WebFont.load({google: {families: [$optin_form_fonts]}});}});</script>";
         }
     }
