@@ -74,19 +74,14 @@ class OptinCampaignsRepository extends AbstractRepository
         // in single request return previous value.
         $cache_key = 'is_split_test_' . $optin_campaign_id;
 
-        $callback = function () use ($optin_campaign_id) {
+        $callback        = function () use ($optin_campaign_id) {
             return OptinCampaignMeta::get_campaign_meta(
                 $optin_campaign_id,
                 'split_test_parent',
                 true
             );
         };
-
-        if (is_customize_preview()) {
-            $parent_optin_id = $callback();
-        } else {
-            $parent_optin_id = cache_transform($cache_key, $callback);
-        }
+        $parent_optin_id = cache_transform($cache_key, $callback);
 
         return ! empty($parent_optin_id);
     }
@@ -307,10 +302,6 @@ class OptinCampaignsRepository extends AbstractRepository
             );
         };
 
-        if (is_customize_preview()) {
-            return $callback();
-        }
-
         return cache_transform($cache_key, $callback);
     }
 
@@ -356,10 +347,6 @@ class OptinCampaignsRepository extends AbstractRepository
                 parent::wpdb()->prepare("SELECT optin_type FROM $table WHERE id = %d", $optin_campaign_id)
             );
         };
-
-        if (is_customize_preview()) {
-            return $callback();
-        }
 
         return cache_transform($cache_key, $callback);
     }
@@ -465,10 +452,6 @@ class OptinCampaignsRepository extends AbstractRepository
             );
         };
 
-        if (is_customize_preview()) {
-            return $callback();
-        }
-
         return cache_transform($cache_key, $callback);
     }
 
@@ -494,10 +477,6 @@ class OptinCampaignsRepository extends AbstractRepository
             return $result ? absint($result) : $result;
         };
 
-        if (is_customize_preview()) {
-            return $callback();
-        }
-
         return cache_transform($cache_key, $callback);
     }
 
@@ -511,10 +490,6 @@ class OptinCampaignsRepository extends AbstractRepository
         $callback = function () {
             return get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
         };
-
-        if (is_customize_preview()) {
-            return $callback();
-        }
 
         return cache_transform('get_optin_saved_customizer_data', $callback);
     }
@@ -779,11 +754,7 @@ class OptinCampaignsRepository extends AbstractRepository
             return self::get_settings_by_id($optin_campaign_id);
         };
 
-        if (is_customize_preview()) {
-            $campaign_settings = $callback();
-        } else {
-            $campaign_settings = cache_transform($cache_key, $callback);
-        }
+        $campaign_settings = cache_transform($cache_key, $callback);
 
         return isset($campaign_settings['test_mode']) && ($campaign_settings['test_mode'] === true);
     }
