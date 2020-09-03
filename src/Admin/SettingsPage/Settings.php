@@ -115,7 +115,8 @@ class Settings extends AbstractSettingsPage
                         'dequeue_google_font'     => [
                             'type'        => 'checkbox',
                             'label'       => __('Disable Google Fonts', 'mailoptin'),
-                            'checkbox_label' => __('Disable', 'mailoptin')
+                            'checkbox_label' => __('Disable', 'mailoptin'),
+                            'description' => esc_html__('Check to stop us from loading Google Fonts on your site.', 'mailoptin')
                         ],
                         'global_cookie'         => [
                             'type'        => 'number',
