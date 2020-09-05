@@ -216,15 +216,19 @@ class RegisterScripts
         $this->global_js_variables('mailoptin');
     }
 
-    public function google_fonts_script() {
+    /**
+     * @return void
+     */
+    public function google_fonts_script()
+    {
         $google_fonts_status = Settings::instance()->dequeue_google_font();
-        
-        if(!empty($google_fonts_status) && ($google_fonts_status == 'false' || $google_fonts_status === false)) {
-            // trailing "true" function argument not needed because we want it loaded before hidden optin markup display in footer.
-            return wp_enqueue_script('mo-google-webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js', false, MAILOPTIN_VERSION_NUMBER, true);
+
+        if ( ! empty($google_fonts_status) && in_array($google_fonts_status, ['true', true], true)) {
+            return;
         }
 
-        return wp_dequeue_script('mo-google-webfont');
+        // trailing "true" function argument not needed because we want it loaded before hidden optin markup display in footer.
+        wp_enqueue_script('mo-google-webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js', false, MAILOPTIN_VERSION_NUMBER, true);
     }
 
     /**
