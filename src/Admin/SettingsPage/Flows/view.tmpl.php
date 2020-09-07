@@ -23,11 +23,12 @@ if (isset($flow_id)) {
     <?php wp_nonce_field('mo_save_automate_flows', 'security'); ?>
     <div id="normal-sortables" class="">
         <div id="mo-flow-trigger-meta-box" class="postbox  automatewoo-metabox no-drag">
-            <button type="button" class="handlediv" aria-expanded="true">
-                <span class="toggle-indicator" aria-hidden="true"></span>
-            </button>
-
+            <div class="postbox-header">
+                <button type="button" class="handlediv" aria-expanded="true">
+                    <span class="toggle-indicator" aria-hidden="true"></span>
+                </button>
             <h2 class="hndle"><span><?= esc_html__('Trigger', 'mailoptin'); ?></span></h2>
+            </div>
 
             <div class="inside">
                 <table class="automatewoo-table">
@@ -72,12 +73,14 @@ if (isset($flow_id)) {
             </div>
         </div>
         <div id="mo-flow-rule-meta-box" class="postbox automatewoo-metabox no-drag">
-            <button type="button" class="handlediv" aria-expanded="true">
-                <span class="toggle-indicator" aria-hidden="true"></span>
-            </button>
+            <div class="postbox-header">
+                <button type="button" class="handlediv" aria-expanded="true">
+                    <span class="toggle-indicator" aria-hidden="true"></span>
+                </button>
             <h2 class="hndle">
                 <span><?= sprintf(esc_html__('Rules %s(optional)%s', 'mailoptin'), '<small>', '</small>'); ?></span>
             </h2>
+            </div>
             <div class="inside">
                 <div id="aw-rules-container">
 
@@ -96,12 +99,14 @@ if (isset($flow_id)) {
             </div>
         </div>
         <div id="mo-flow-action-meta-box" class="postbox  automatewoo-metabox no-drag">
+            <div class="postbox-header">
             <button type="button" class="handlediv" aria-expanded="true">
                 <span class="toggle-indicator" aria-hidden="true"></span>
             </button>
             <h2 class="hndle">
                 <span><?= esc_html__('Actions', 'mailoptin'); ?></span>
             </h2>
+            </div>
             <div class="inside">
 
                 <div class="aw-actions-container">

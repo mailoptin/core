@@ -11,9 +11,9 @@ if (isset($flow_id)) {
 <div id="postbox-container-1" class="postbox-container">
     <div id="side-sortables" class="">
         <div id="aw_save_box" class="postbox automatewoo-metabox no-drag">
-            <button type="button" class="handlediv" aria-expanded="true">
-                <span class="toggle-indicator" aria-hidden="true"></span>
-            </button>
+                <button type="button" class="handlediv" aria-expanded="true">
+                    <span class="toggle-indicator" aria-hidden="true"></span>
+                </button>
             <div class="inside">
                 <div class="submitbox" id="submitpost">
                     <table class="automatewoo-table">
