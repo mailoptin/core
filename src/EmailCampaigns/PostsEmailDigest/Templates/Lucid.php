@@ -358,7 +358,18 @@ HTML;
       height: auto;
       padding-bottom: 10px;
       display: block;
-      margin: auto;
+    }
+    
+    .email-body figure {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        width: 100% !important;
+        max-width: 500px !important;
+    }
+
+    .email-body figcaption {
+        max-width: 500px !important;
     }
 
     .email-body_inner {
