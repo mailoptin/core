@@ -23,7 +23,7 @@ class VideoToImageLink
         $return = preg_replace_callback(
             [
                 '/<iframe.*src="(?:.+)?youtube(?:-nocookie)?.com\/(?:embed|\?)?\/([a-z0-9-_]+).+".+<\/iframe>/i',
-                '/[^\"\']https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([a-z0-9-_]+)[^\"\']/i'
+                '/https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([a-z0-9-_]+)/i'
             ],
             function ($matches) {
                 return $this->convertYoutube($matches[1]);
@@ -41,7 +41,7 @@ class VideoToImageLink
         $return = preg_replace_callback(
             [
                 '/<iframe.*src="(?:.+)?player.vimeo.com\/video\/(\d+).+".+<\/iframe>/',
-                '/[^\"\']https:\/\/(?:www .)?vimeo.com\/([\d]+)[^\"]/'
+                '/https:\/\/(?:www .)?vimeo.com\/([\d]+)/'
             ],
             function ($matches) {
                 return $this->convertVimeo($matches[1]);
