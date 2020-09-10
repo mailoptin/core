@@ -282,6 +282,7 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
     .mo-content-remove-ellipsis-button {{$ellipsis_button_removal}}
     .mo-content-button-text-color {color: $content_ellipsis_button_text_color;}
     .mo-content-alignment {text-align: $content_alignment;}
+    .mo-after-main-content .aligncenter {margin-left: auto;margin-right: auto;display: block;}
     /* must be applied to a DIV so text-align can work for child button which follows where the text is align to */
     div.mo-content-button-alignment {text-align: $content_ellipsis_button_alignment; float: $content_ellipsis_button_alignment}
     /* two enclosing braces are used because the first is assumed to be indicating a variable name but we need {} for css.*/
