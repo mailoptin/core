@@ -348,11 +348,17 @@ HTML;
     .email-body a {
       text-decoration: none;
     }
+    
+    .email-body .mo-content-button-alignment {
+      margin-bottom: 10px;
+    }
 
     .email-body img {
       max-width:500px;
       height: auto;
       padding-bottom: 10px;
+      display: block;
+      margin: auto;
     }
 
     .email-body_inner {
