@@ -397,15 +397,16 @@ function is_boolean($maybe_bool)
 
 function cache_transform($cache_key, $callback)
 {
-    $cache = wp_cache_get($cache_key);
+    static $mo_cache_transform_bucket = [];
 
-    if ($cache !== false) {
-        return $cache;
+    $result = moVar($mo_cache_transform_bucket, $cache_key, false);
+
+    if ( ! $result) {
+
+        $result = $callback();
+
+        $mo_cache_transform_bucket[$cache_key] = $result;
     }
 
-    $callback = $callback();
-
-    wp_cache_set($cache_key, $callback);
-
-    return $callback;
+    return $result;
 }

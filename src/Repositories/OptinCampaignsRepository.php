@@ -81,6 +81,7 @@ class OptinCampaignsRepository extends AbstractRepository
                 true
             );
         };
+
         $parent_optin_id = cache_transform($cache_key, $callback);
 
         return ! empty($parent_optin_id);
