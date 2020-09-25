@@ -397,6 +397,8 @@ function is_boolean($maybe_bool)
 
 function cache_transform($cache_key, $callback)
 {
+    if (is_customize_preview()) return $callback();
+
     static $mo_cache_transform_bucket = [];
 
     $result = moVar($mo_cache_transform_bucket, $cache_key, false);
