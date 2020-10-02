@@ -229,6 +229,7 @@ trait CustomizerTrait
      */
     public function js_script()
     {
+        $fluentcrm_label = __('Select Contact List (Required)', 'mailoptin');
         $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
         $ck_label          = __('ConvertKit Forms', 'mailoptin');
         $drip_label        = __('Drip Campaigns', 'mailoptin');
@@ -274,6 +275,10 @@ trait CustomizerTrait
                         if (connection_service === 'WordPressUserRegistrationConnect') {
                             title_obj.text('<?php echo $wp_user_reg_label; ?>');
                         }
+
+                        if (connection_service === 'FluentCRMConnect') {
+                            title_obj.text('<?php echo $fluentcrm_label; ?>');
+                        }
                     }
 
                     function logic_new(connection_service, parent) {
@@ -311,6 +316,10 @@ trait CustomizerTrait
                                 if (connection_service === 'WordPressUserRegistrationConnect') {
                                     title_obj.text('<?php echo $wp_user_reg_label; ?>');
                                 }
+
+                                if (connection_service === 'FluentCRMConnect') {
+                                    title_obj.text('<?php echo $fluentcrm_label; ?>');
+                                }
                             });
                         } else {
 
@@ -344,6 +353,10 @@ trait CustomizerTrait
 
                             if (connection_service === 'WordPressUserRegistrationConnect') {
                                 title_obj.text('<?php echo $wp_user_reg_label; ?>');
+                            }
+
+                            if (connection_service === 'FluentCRMConnect') {
+                                title_obj.text('<?php echo $fluentcrm_label; ?>');
                             }
                         }
                     }
