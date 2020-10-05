@@ -57,6 +57,17 @@ abstract class AbstractConnect
         return $data;
     }
 
+    public function get_integration_tags($data_key)
+    {
+        $lead_tags = $this->get_integration_data($data_key);
+
+        if ( ! empty($this->extras['form_tags'])) {
+            $lead_tags = $this->extras['form_tags'];
+        }
+
+        return $lead_tags;
+    }
+
     public function form_custom_fields()
     {
         return OptinCampaignsRepository::form_custom_fields($this->extras['optin_campaign_id']);
