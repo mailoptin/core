@@ -1142,7 +1142,9 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
                     ga('create', trackingId, 'auto', 'moTracker');
 
-                    ga('moTracker.send', 'event', optin_js_config.optin_campaign_name, action, optin_js_config.optin_uuid);
+                    ga('moTracker.send', 'event', optin_js_config.optin_campaign_name, action, optin_js_config.optin_uuid, {
+                        nonInteraction: true
+                    });
                 });
             },
 
