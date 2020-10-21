@@ -448,7 +448,17 @@ $footer_content";
         );
     }
 
-    public function oauth_token_refresh($integration, $refresh_token, $args = [])
+    /**
+     * Created this method because a need arose where we needed to call statically a method to refresh token
+     *
+     * @param $integration
+     * @param $refresh_token
+     * @param array $args
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    public static function static_oauth_token_refresh($integration, $refresh_token, $args = [])
     {
         $url = sprintf(MAILOPTIN_OAUTH_URL . '/%s/?refresh_token=%s', $integration, $refresh_token);
 
@@ -463,7 +473,6 @@ $footer_content";
         if ( ! isset($result['success']) || $result['success'] !== true) {
 
             // try refresh twice before failing.
-
             $response = wp_remote_get($url);
             $result   = json_decode(wp_remote_retrieve_body($response), true);
 
@@ -474,6 +483,19 @@ $footer_content";
         }
 
         return $result;
+    }
+
+    /**
+     * @param $integration
+     * @param $refresh_token
+     * @param array $args
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    public function oauth_token_refresh($integration, $refresh_token, $args = [])
+    {
+        return self::static_oauth_token_refresh($integration, $refresh_token, $args);
     }
 
     /**
