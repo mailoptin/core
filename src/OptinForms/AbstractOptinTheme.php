@@ -457,7 +457,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
             $html .= "<form method=\"post\" class='mo-optin-form' id='{$optin_css_id}_form' style='margin:0;'>";
         } else {
             // remove text alignment to center set in lightbox modal div container.
-            echo "<style type=\"text/css\">#{$optin_campaign_uuid}.moOptinForm.moModal{text-align:initial !important;}</style>";
+            $html .= "<style type=\"text/css\">#{$optin_campaign_uuid}.moOptinForm.moModal{text-align:initial !important;}</style>";
         }
 
         $html .= do_shortcode($content);
