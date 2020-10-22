@@ -477,8 +477,7 @@ $footer_content";
             $result   = json_decode(wp_remote_retrieve_body($response), true);
 
             if ( ! isset($result['success']) || $result['success'] !== true) {
-                self::save_optin_error_log('Error failed to refresh ' . json_encode($result), $integration);
-                throw new \Exception(__('Error failed to refresh', 'mailoptin'), 9990009909);
+                throw new \Exception('Error failed to refresh ' . json_encode($result), 9990009909);
             }
         }
 
