@@ -5,6 +5,7 @@ namespace MailOptin\Core\EmailCampaigns\NewPublishPost;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
+use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use pb_backupbuddy;
 use WP_Post;
@@ -143,6 +144,8 @@ class NewPublishPost extends AbstractTriggers
                     self::format_campaign_subject($email_subject, $post),
                     $content_html
                 );
+
+                AbstractCampaignLogMeta::add_campaignlog_meta($campaign_id, 'new_publish_post_id', $post->ID);
 
                 if ($send_immediately_active) {
                     $this->send_campaign($email_campaign_id, $campaign_id);
