@@ -26,12 +26,7 @@ class PostsEmailDigest extends AbstractTriggers
 
     public function timezone()
     {
-        $timezone = get_option('timezone_string');
-        if (empty($timezone)) {
-            $timezone = get_option('gmt_offset');
-        }
-
-        return $timezone;
+        return wp_timezone_string();
     }
 
     public function post_collect_query($email_campaign_id)
