@@ -131,11 +131,13 @@ class PostsEmailDigest extends AbstractTriggers
     {
         $timezone   = $this->timezone();
         $carbon_now = Carbon::now($timezone);
+        $this->carbon_set_week_start_end($carbon_now);
 
         $last_processed_at = EmailCampaignMeta::get_meta_data($email_campaign_id, 'last_processed_at');
 
         if ( ! empty($last_processed_at)) {
             $last_processed_at_carbon_instance = Carbon::createFromFormat('Y-m-d H:i:s', $this->last_processed_at($email_campaign_id), $timezone);
+            $this->carbon_set_week_start_end($last_processed_at_carbon_instance);
 
             if ($digest_type == 'every_day') {
                 if ($last_processed_at_carbon_instance->isToday()) {
@@ -164,6 +166,20 @@ class PostsEmailDigest extends AbstractTriggers
         return false;
     }
 
+    /**
+     * Set start and end day of a week.
+     *
+     * @param Carbon $carbon
+     */
+    public function carbon_set_week_start_end($carbon)
+    {
+        $start_of_week = absint(get_option('start_of_week', 1));
+        $end_of_week   = $start_of_week == 0 ? 6 : $start_of_week - 1;
+
+        $carbon->setWeekStartsAt($start_of_week);
+        $carbon->setWeekEndsAt($end_of_week);
+    }
+
     public function run_job()
     {
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
@@ -171,6 +187,7 @@ class PostsEmailDigest extends AbstractTriggers
         $postDigests = EmailCampaignRepository::get_by_email_campaign_type(ER::POSTS_EMAIL_DIGEST);
 
         if (empty($postDigests)) return;
+
 
         foreach ($postDigests as $postDigest) {
 
@@ -185,8 +202,11 @@ class PostsEmailDigest extends AbstractTriggers
 
             $timezone = $this->timezone();
 
-            $carbon_now   = Carbon::now($timezone);
+            $carbon_now = Carbon::now($timezone);
+            $this->carbon_set_week_start_end($carbon_now);
+
             $carbon_today = Carbon::today($timezone);
+            $this->carbon_set_week_start_end($carbon_today);
 
             $schedule_hour = $carbon_today->hour($schedule_time);
 
