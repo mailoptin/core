@@ -125,14 +125,14 @@ class PostsEmailDigest extends AbstractTriggers
     public function should_send($email_campaign_id, $schedule_hour, $digest_type)
     {
         $timezone   = $this->timezone();
-        $carbon_now = Carbon::now($timezone);
-        $this->carbon_set_week_start_end($carbon_now);
+        $carbon_now = $this->carbon_set_week_start_end(Carbon::now($timezone));
 
         $last_processed_at = EmailCampaignMeta::get_meta_data($email_campaign_id, 'last_processed_at');
 
         if ( ! empty($last_processed_at)) {
-            $last_processed_at_carbon_instance = Carbon::createFromFormat('Y-m-d H:i:s', $this->last_processed_at($email_campaign_id), $timezone);
-            $this->carbon_set_week_start_end($last_processed_at_carbon_instance);
+            $last_processed_at_carbon_instance = $this->carbon_set_week_start_end(
+                Carbon::createFromFormat('Y-m-d H:i:s', $this->last_processed_at($email_campaign_id), $timezone)
+            );
 
             if ($digest_type == 'every_day') {
                 if ($last_processed_at_carbon_instance->isToday()) {
@@ -165,6 +165,8 @@ class PostsEmailDigest extends AbstractTriggers
      * Set start and end day of a week.
      *
      * @param Carbon $carbon
+     *
+     * @return Carbon
      */
     public function carbon_set_week_start_end($carbon)
     {
@@ -173,6 +175,8 @@ class PostsEmailDigest extends AbstractTriggers
 
         $carbon->setWeekStartsAt($start_of_week);
         $carbon->setWeekEndsAt($end_of_week);
+
+        return $carbon;
     }
 
     public function run_job()
@@ -197,11 +201,9 @@ class PostsEmailDigest extends AbstractTriggers
 
             $timezone = $this->timezone();
 
-            $carbon_now = Carbon::now($timezone);
-            $this->carbon_set_week_start_end($carbon_now);
+            $carbon_now = $this->carbon_set_week_start_end(Carbon::now($timezone));
 
-            $carbon_today = Carbon::today($timezone);
-            $this->carbon_set_week_start_end($carbon_today);
+            $carbon_today = $this->carbon_set_week_start_end(Carbon::today($timezone));
 
             $schedule_hour = $carbon_today->hour($schedule_time);
 
