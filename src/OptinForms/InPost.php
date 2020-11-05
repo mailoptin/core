@@ -69,7 +69,7 @@ class InPost
             $optin_form = OptinFormFactory::build($id);
 
             if ('between_content' == $optin_position) {
-                $content_array = explode(' ', strip_tags($content));
+                $content_array = explode(' ', $content);
                 $content_length = count($content_array);
                 $content_first_half = ceil($content_length/2);
                 $content_to_return = '';
@@ -78,7 +78,7 @@ class InPost
                     $content_to_return .= ' '.$content_array[$i];
                 }
 
-                $content_to_return .= $optin_form. '<p>';
+                $content_to_return .= $optin_form;
 
                 for ($i=$content_first_half; $i < $content_length; $i++) {
                     $content_to_return .= ' '.$content_array[$i];
