@@ -878,8 +878,9 @@ class CustomizerControls
                         'settings'    => $this->option_prefix . '[inpost_form_optin_position]',
                         'description' => __('Select position within your post the optin form will be displayed.', 'mailoptin'),
                         'choices'     => [
+                            'between_content'  => __('Between Content', 'mailoptin'),
                             'before_content' => __('Before Content', 'mailoptin'),
-                            'after_content'  => __('After Content', 'mailoptin'),
+                            'after_content'  => __('After Content', 'mailoptin')
                         ],
                         'priority'    => 15,
                     )
