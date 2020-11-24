@@ -6,13 +6,7 @@ trait WP_Customize_EA_CPT_Control_Trait
 {
     public function get_terms($taxonomy)
     {
-        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
-
-        return array_reduce($terms, function ($carry, \WP_Term $item) {
-            $carry[$item->term_id] = $item->name;
-
-            return $carry;
-        });
+        return [];
     }
 
     public function render_fields($custom_post_type, $saved_value = [])

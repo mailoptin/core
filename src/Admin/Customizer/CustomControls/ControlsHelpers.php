@@ -43,7 +43,7 @@ class ControlsHelpers
      *
      * @return array
      */
-    public static function get_all_post_types_posts($exclude = array(), $limit = 5000, $search = '')
+    public static function get_all_post_types_posts($exclude = array(), $limit = 500, $search = '')
     {
         $cache_key = md5($limit . '_' . implode("|", $exclude) . '_' . $search);
 
@@ -80,7 +80,7 @@ class ControlsHelpers
      *
      * @return array
      */
-    public static function get_post_type_posts($post_type, $limit = 3000, $post_status = 'publish', $search = '')
+    public static function get_post_type_posts($post_type, $limit = 500, $post_status = 'publish', $search = '')
     {
         global $wpdb;
 
@@ -126,18 +126,22 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_categories()
+    public static function get_categories($search = '', $limt = 500)
     {
-        $data = get_transient('mo_get_categories');
+        $cache_key = sprintf('mo_get_categories_%s_%s', $search, $limt);
+
+        $data = get_transient($cache_key);
 
         if (empty($data) || false === $data) {
 
             $data = get_categories([
                 'fields'     => 'id=>name',
-                'hide_empty' => false
+                'hide_empty' => false,
+                'number'     => $limt,
+                'search'     => $search
             ]);
 
-            set_transient('mo_get_categories', $data, apply_filters('mo_get_categories_cache_expiration', MINUTE_IN_SECONDS));
+            set_transient($cache_key, $data, apply_filters('mo_get_categories_cache_expiration', MINUTE_IN_SECONDS));
         }
 
         return $data;
@@ -176,20 +180,23 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_tags()
+    public static function get_tags($search = '', $limt = 500)
     {
-        $data = get_transient('mo_get_tags');
+        $cache_key = sprintf('mo_get_tags_%s_%s', $search, $limt);
+
+        $data = get_transient($cache_key);
 
         if (empty($data) || false === $data) {
 
             $data = get_tags([
                 'orderby' => 'count',
                 'order'   => 'DESC',
-                'fields'  => 'id=>name'
-
+                'fields'  => 'id=>name',
+                'number'     => $limt,
+                'search'     => $search
             ]);
 
-            set_transient('mo_get_tags', $data, apply_filters('mo_get_tags_cache_expiration', MINUTE_IN_SECONDS));
+            set_transient($cache_key, $data, apply_filters('mo_get_tags_cache_expiration', MINUTE_IN_SECONDS));
         }
 
         return $data;
