@@ -1208,6 +1208,12 @@ class AjaxHandler
             case 'post_tags' :
                 $response = ControlsHelpers::get_tags($q);
                 break;
+            case 'woocommerce_product_cat' :
+                $response = ControlsHelpers::get_terms('product_cat', $q);
+                break;
+            case 'woocommerce_product_tags' :
+                $response = ControlsHelpers::get_terms('product_tag', $q);
+                break;
         }
 
         wp_send_json($response);

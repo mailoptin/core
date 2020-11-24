@@ -152,12 +152,14 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_terms($taxonomy)
+    public static function get_terms($taxonomy, $search = '', $limt = 500)
     {
         return get_terms([
             'taxonomy'   => $taxonomy,
             'hide_empty' => false,
-            'fields'     => 'id=>name'
+            'fields'     => 'id=>name',
+            'number'     => $limt,
+            'search'     => $search
         ]);
     }
 
@@ -192,8 +194,8 @@ class ControlsHelpers
                 'orderby' => 'count',
                 'order'   => 'DESC',
                 'fields'  => 'id=>name',
-                'number'     => $limt,
-                'search'     => $search
+                'number'  => $limt,
+                'search'  => $search
             ]);
 
             set_transient($cache_key, $data, apply_filters('mo_get_tags_cache_expiration', MINUTE_IN_SECONDS));

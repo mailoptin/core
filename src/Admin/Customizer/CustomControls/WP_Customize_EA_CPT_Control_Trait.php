@@ -4,9 +4,16 @@ namespace MailOptin\Core\Admin\Customizer\CustomControls;
 
 trait WP_Customize_EA_CPT_Control_Trait
 {
-    public function get_terms($taxonomy)
+    public function get_terms($taxonomy, $search = '', $limt = 500)
     {
-        return [];
+        return get_terms([
+                'taxonomy'   => $taxonomy,
+                'hide_empty' => false,
+                'fields'     => 'id=>name',
+                'number'     => $limt,
+                'search'     => $search
+            ]
+        );
     }
 
     public function render_fields($custom_post_type, $saved_value = [])
