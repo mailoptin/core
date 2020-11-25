@@ -1190,9 +1190,6 @@ class AjaxHandler
             case 'posts_never_load' :
                 $response = ControlsHelpers::get_post_type_posts('post', 500, 'publish', $q);
                 break;
-            case 'woocommerce_products' :
-                $response = ControlsHelpers::get_post_type_posts('product', 500, 'publish', $q);
-                break;
             case 'pages_never_load' :
                 $response = ControlsHelpers::get_post_type_posts('page', 500, 'publish', $q);
                 break;
@@ -1207,6 +1204,9 @@ class AjaxHandler
                 break;
             case 'post_tags' :
                 $response = ControlsHelpers::get_tags($q);
+                break;
+            case 'woocommerce_products' :
+                $response = ControlsHelpers::get_post_type_posts('product', 500, 'publish', $q);
                 break;
             case 'woocommerce_product_cat' :
                 $response = ControlsHelpers::get_terms('product_cat', $q);

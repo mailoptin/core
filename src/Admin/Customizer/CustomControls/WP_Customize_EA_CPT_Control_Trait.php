@@ -41,6 +41,15 @@ trait WP_Customize_EA_CPT_Control_Trait
 
     public function select_markup($saved_value, $name_attr, $choices, $label)
     {
+        // ensures saved terms are always available as choices so that they are preselected.
+        if (isset($saved_value[$name_attr])) {
+            $choices += array_reduce($saved_value[$name_attr], function ($carry, $term_id) {
+                $carry[$term_id] = get_term($term_id)->name;
+
+                return $carry;
+            }, []);
+        }
+
         ?>
         <div class="mo-ea-cpt-setting" style="margin-bottom: 10px">
             <label>
