@@ -160,7 +160,9 @@
                                 $('.mo-ea-cpt-setting-container .mailoptin-chosen').chosen({
                                     inherit_select_classes: true,
                                     width: "100%"
-                                }).find('.search-field input').attr('placeholder', mailoptin_globals.chosen_search_placeholder);
+                                });
+
+                                $('.mo-ea-cpt-setting-container .mailoptin-chosen .search-field input').attr('placeholder', mailoptin_globals.chosen_search_placeholder);
                             }
 
                             remove_spinner();

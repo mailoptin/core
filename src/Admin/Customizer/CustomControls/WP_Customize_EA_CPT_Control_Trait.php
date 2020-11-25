@@ -4,7 +4,7 @@ namespace MailOptin\Core\Admin\Customizer\CustomControls;
 
 trait WP_Customize_EA_CPT_Control_Trait
 {
-    public function get_terms($taxonomy, $search = '', $limt = 500)
+    public function get_terms($taxonomy, $search = '', $limt = 200)
     {
         return get_terms([
                 'taxonomy'   => $taxonomy,
@@ -47,7 +47,7 @@ trait WP_Customize_EA_CPT_Control_Trait
                 <?php if ( ! empty($label)) : ?>
                     <span class="customize-control-title"><?php echo esc_html($label); ?></span>
                 <?php endif; ?>
-                <select name="<?php echo $name_attr; ?>" class="mailoptin-chosen" multiple>
+                <select name="<?= $name_attr ?>" class="mailoptin-chosen" data-search-type="ch_get_terms|<?= $name_attr ?>" multiple>
                     <?php
                     if (is_array($choices)) {
                         foreach ($choices as $key => $value) {

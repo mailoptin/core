@@ -1216,6 +1216,11 @@ class AjaxHandler
                 break;
         }
 
+        if (strpos($search_type, 'ch_get_terms') !== false) {
+            $param    = explode('|', $search_type);
+            $response = ControlsHelpers::get_terms($param[1], $q);
+        }
+
         wp_send_json($response);
     }
 

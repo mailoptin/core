@@ -80,7 +80,7 @@ class ControlsHelpers
      *
      * @return array
      */
-    public static function get_post_type_posts($post_type, $limit = 500, $post_status = 'publish', $search = '')
+    public static function get_post_type_posts($post_type, $limit = 200, $post_status = 'publish', $search = '')
     {
         global $wpdb;
 
@@ -126,7 +126,7 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_categories($search = '', $limt = 500)
+    public static function get_categories($search = '', $limt = 200)
     {
         $cache_key = sprintf('mo_get_categories_%s_%s', $search, $limt);
 
@@ -152,7 +152,7 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_terms($taxonomy, $search = '', $limt = 500)
+    public static function get_terms($taxonomy, $search = '', $limt = 200)
     {
         return get_terms([
             'taxonomy'   => $taxonomy,
@@ -182,7 +182,7 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_tags($search = '', $limt = 500)
+    public static function get_tags($search = '', $limt = 200)
     {
         $cache_key = sprintf('mo_get_tags_%s_%s', $search, $limt);
 

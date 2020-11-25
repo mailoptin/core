@@ -2,7 +2,7 @@
     $(window).on('load', function () {
         var chosen_selector = $('.mailoptin-chosen'), data_link;
 
-        chosen_selector.on('change', function (evt, params) {
+        $(document).on('change', '.mailoptin-chosen', function () {
             // multi select return null when no option is return whereas, customizer requires
             // an empty array when a form field (such as select) that returns array of option inorder to
             // trigger a change state/event.
