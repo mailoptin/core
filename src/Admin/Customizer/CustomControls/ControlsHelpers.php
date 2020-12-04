@@ -178,6 +178,22 @@ class ControlsHelpers
     }
 
     /**
+     * Get Users
+     */
+    public static function get_users()
+    {
+        $all_users = get_users();
+
+        $result = [];
+        foreach($all_users as $user)
+        {
+            $result[$user->ID] = $user->display_name;
+        }
+
+        return $result;
+    }
+
+    /**
      * Array of post tags.
      *
      * @return mixed
