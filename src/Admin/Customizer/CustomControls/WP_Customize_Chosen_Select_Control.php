@@ -51,6 +51,13 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
                     return $carry;
                 }, []);
                 break;
+            case 'RegisteredUsersConnect_users':
+                $options = array_reduce($savedValue, function ($carry, $user_id) {
+                    $carry[$user_id] = get_userdata($user_id)->display_name;
+
+                    return $carry;
+                }, []);
+                break;
         }
 
         return $options;

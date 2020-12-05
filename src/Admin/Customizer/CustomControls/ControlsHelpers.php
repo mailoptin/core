@@ -126,9 +126,9 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_categories($search = '', $limt = 200)
+    public static function get_categories($search = '', $limit = 200)
     {
-        $cache_key = sprintf('mo_get_categories_%s_%s', $search, $limt);
+        $cache_key = sprintf('mo_get_categories_%s_%s', $search, $limit);
 
         $data = get_transient($cache_key);
 
@@ -137,7 +137,7 @@ class ControlsHelpers
             $data = get_categories([
                 'fields'     => 'id=>name',
                 'hide_empty' => false,
-                'number'     => $limt,
+                'number'     => $limit,
                 'search'     => $search
             ]);
 
@@ -152,13 +152,13 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_terms($taxonomy, $search = '', $limt = 200)
+    public static function get_terms($taxonomy, $search = '', $limit = 200)
     {
         return get_terms([
             'taxonomy'   => $taxonomy,
             'hide_empty' => false,
             'fields'     => 'id=>name',
-            'number'     => $limt,
+            'number'     => $limit,
             'search'     => $search
         ]);
     }
@@ -179,14 +179,19 @@ class ControlsHelpers
 
     /**
      * Get Users
+     *
+     * @param string $search
+     * @param int $limit
+     *
+     * @return array
      */
-    public static function get_users()
+    public static function get_users($search = '', $limit = 200)
     {
-        $all_users = get_users();
+        $all_users = get_users(['search' => $search, 'number' => $limit]);
 
         $result = [];
-        foreach($all_users as $user)
-        {
+
+        foreach ($all_users as $user) {
             $result[$user->ID] = $user->display_name;
         }
 
@@ -198,9 +203,9 @@ class ControlsHelpers
      *
      * @return mixed
      */
-    public static function get_tags($search = '', $limt = 200)
+    public static function get_tags($search = '', $limit = 200)
     {
-        $cache_key = sprintf('mo_get_tags_%s_%s', $search, $limt);
+        $cache_key = sprintf('mo_get_tags_%s_%s', $search, $limit);
 
         $data = get_transient($cache_key);
 
@@ -210,7 +215,7 @@ class ControlsHelpers
                 'orderby' => 'count',
                 'order'   => 'DESC',
                 'fields'  => 'id=>name',
-                'number'  => $limt,
+                'number'  => $limit,
                 'search'  => $search
             ]);
 

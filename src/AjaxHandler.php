@@ -1214,6 +1214,9 @@ class AjaxHandler
             case 'woocommerce_product_tags' :
                 $response = ControlsHelpers::get_terms('product_tag', $q);
                 break;
+            case 'RegisteredUsersConnect_users' :
+                $response = ControlsHelpers::get_users($q);
+                break;
         }
 
         if (strpos($search_type, 'ch_get_terms') !== false) {
