@@ -15,6 +15,18 @@ class NewPublishPost extends AbstractTriggers
     public function __construct()
     {
         parent::__construct();
+        
+        // new way post 5.6
+        if (function_exists('wp_after_insert_post')) {
+            // new hook added in 5.6 triggered after post is published and all post meta data saved.
+            add_action('wp_after_insert_post', function ($post_id, WP_Post $post, $update, $post_before) {
+
+                $old_status = ppress_var_obj($post_before, 'post_status');
+
+                $this->new_publish_post($post->post_status, $old_status, $post);
+
+            }, 1, 4);
+        }
 
         // get called first before save_post and wp_after_insert_post. perfect for saving the previous post status
         add_action('transition_post_status', function ($new_status, $old_status, WP_Post $post) {
@@ -31,19 +43,6 @@ class NewPublishPost extends AbstractTriggers
             }
 
         }, 1, 3);
-
-
-        // new way post 5.6
-        if (function_exists('wp_after_insert_post')) {
-            // new hook added in 5.6 triggered after post is puslished and all post meta data saved.
-            add_action('wp_after_insert_post', function ($post_id, WP_Post $post, $update) {
-
-                global $mo_old_post_status;
-
-                $this->new_publish_post($post->post_status, $mo_old_post_status[$post_id], $post);
-
-            }, 1, 3);
-        }
 
         // old way pre 5.6
         if ( ! function_exists('wp_after_insert_post')) {
