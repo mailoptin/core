@@ -9,6 +9,7 @@ use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use pb_backupbuddy;
 use WP_Post;
+use function MailOptin\Core\moVarObj;
 
 class NewPublishPost extends AbstractTriggers
 {
@@ -21,7 +22,7 @@ class NewPublishPost extends AbstractTriggers
             // new hook added in 5.6 triggered after post is published and all post meta data saved.
             add_action('wp_after_insert_post', function ($post_id, WP_Post $post, $update, $post_before) {
 
-                $old_status = ppress_var_obj($post_before, 'post_status');
+                $old_status = moVarObj($post_before, 'post_status');
 
                 $this->new_publish_post($post->post_status, $old_status, $post);
 
