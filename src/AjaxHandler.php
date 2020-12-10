@@ -955,6 +955,14 @@ class AjaxHandler
         $extras['optin_campaign_id']     = $optin_campaign_id;
         $extras['connection_service']    = $connection_service;
         $extras['connection_email_list'] = $connection_email_list;
+
+        //add http referrer
+        $extras['referrer'] = $_SERVER['HTTP_REFERER'];
+        //get ip address
+        $extras['ip_address'] = $_SERVER['REMOTE_ADDR'];
+        //get campaign name
+        $extras['campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
+
         // useful for third party integration to specify custom fields.
         if ( ! empty($conversion_data->form_custom_field_mappings)) {
             $extras['form_custom_field_mappings'] = $conversion_data->form_custom_field_mappings;
