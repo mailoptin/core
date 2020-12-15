@@ -67,6 +67,21 @@
                         }
                     };
 
+                    var maybeSystemGeneratedField = function() {
+                        var field_type = $(field).find('.mo-optin-fields-field').val();
+                        if (field_type === 'ip_address' || field_type === 'referrer') {
+                            $(field).find(".color.mo-fields-block").hide();
+                            $(field).find(".background.mo-fields-block").hide();
+                            $(field).find(".font.mo-fields-block").hide();
+                            $(field).find(".field_required.mo-fields-block").hide();
+                        } else {
+                            $(field).find(".color.mo-fields-block").show();
+                            $(field).find(".background.mo-fields-block").show();
+                            $(field).find(".font.mo-fields-block").show();
+                            $(field).find(".field_required.mo-fields-block").show();
+                        }
+                    }
+
                     var maybeHideRecaptchaField = function () {
 
                         var field_type = $(field).find('.mo-optin-fields-field').val();
@@ -110,6 +125,7 @@
                     maybeHideCountryOptionsField();
                     maybeHideRecaptchaField();
                     maybeHideHiddenValueField();
+                    maybeSystemGeneratedField();
                     maybeHideListSubscriptionFields();
 
                     $(this)
@@ -119,7 +135,8 @@
                             maybeHideOptionsField();
                             maybeHideCountryOptionsField();
                             maybeHideRecaptchaField();
-                            maybeHideHiddenValueField();
+                            maybeHideHiddenValueField()
+                            maybeSystemGeneratedField();
                             maybeHideListSubscriptionFields();
                         });
 

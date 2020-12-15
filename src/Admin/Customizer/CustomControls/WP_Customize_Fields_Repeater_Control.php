@@ -349,6 +349,49 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
         echo '</div>';
     }
 
+    public function repeater_field_types($index, $name, $choices, $class = '', $label = '', $description = '')
+    {
+        if ( ! isset($index) || ! array_key_exists($index, $this->saved_values)) {
+            $index = '{mo-fields-index}';
+        }
+
+        $default     = isset($this->default_values[$name]) ? $this->default_values[$name] : '';
+        $saved_value = isset($this->saved_values[$index][$name]) ? $this->saved_values[$index][$name] : $default;
+
+        if (empty($choices)) return;
+
+        $random_id = wp_generate_password(5, false) . '_' . $index;
+
+        if ( ! empty($class)) {
+            $class = " $class";
+        }
+
+        echo "<div class=\"$name mo-fields-block{$class}\">";
+        if ( ! empty($label)) : ?>
+            <label for="<?php echo $random_id ?>" class="customize-control-title"><?php echo esc_html($label); ?></label>
+        <?php endif; ?>
+        <select id="<?php echo $random_id ?>" class="mo-optin-fields-field" name="<?php echo $name ?>">
+            <optgroup label="User Fields">
+                <?php
+                foreach ($choices['user'] as $value => $label) {
+                    echo '<option value="' . esc_attr($value) . '"' . selected($saved_value, $value, false) . '>' . $label . '</option>';
+                }
+                ?>
+            </optgroup>
+            <optgroup label="System Fields">
+                <?php
+                foreach($choices['system'] as $value => $label) {
+                    echo '<option value="' . esc_attr($value) . '"' . selected($saved_value, $value, false) . '>' . $label . '</option>';
+                }
+                ?>
+            </optgroup>
+        </select>
+        <?php if ( ! empty($description)) : ?>
+        <span class="description customize-control-description"><?php echo $description; ?></span>
+    <?php endif;
+        echo '</div>';
+    }
+
 
     public function repeater_chosen_select_field($index, $name, $choices, $class = '', $label = '', $description = '')
     {
@@ -596,7 +639,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
      */
     public function template($index = 9999999999999)
     {
-        $field_types = [
+        $field_types['user'] = [
             'text'              => __('Text', 'mailoptin'),
             'password'          => __('Password', 'mailoptin'),
             'textarea'          => __('Textarea', 'mailoptin'),
@@ -609,7 +652,10 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'recaptcha_v2'      => __('reCAPTCHA v2', 'mailoptin'),
             'recaptcha_v3'      => __('reCAPTCHA v3', 'mailoptin'),
             'country'           => __('Country', 'mailoptin'),
+
         ];
+
+        $field_types['system'] = \MailOptin\Core\system_form_fields();
 
         $widget_title = sprintf(__('Field %s', 'mailoptin'), '#' . ($index + 1));
         if (isset($this->saved_values[$index]['placeholder'])) {
@@ -658,7 +704,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                 <div class="mo-fields-widget-form">
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_before', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                     <?php $this->repeater_text_field($index, 'placeholder', '', __('Title', 'mailoptin')); ?>
-                    <?php $this->repeater_select_field($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
+                    <?php $this->repeater_field_types($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
                     <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
                     <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
 

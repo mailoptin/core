@@ -956,17 +956,27 @@ class AjaxHandler
         $extras['connection_service']    = $connection_service;
         $extras['connection_email_list'] = $connection_email_list;
 
-        //add http referrer
-        $extras['referrer'] = $_SERVER['HTTP_REFERER'];
-        //get ip address
-        $extras['ip_address'] = $_SERVER['REMOTE_ADDR'];
-        //get campaign name
-        $extras['campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
-
         // useful for third party integration to specify custom fields.
         if ( ! empty($conversion_data->form_custom_field_mappings)) {
             $extras['form_custom_field_mappings'] = $conversion_data->form_custom_field_mappings;
         }
+
+        $integration_data = $extras['integration_data'];
+        $system_fields = \MailOptin\Core\system_form_fields(true);
+        foreach($integration_data as $key => $value)
+        {
+            if(isset($system_fields[$value]))
+            {
+                $extras['integration_data'][$key] = $system_fields[$value];
+            }
+
+            //add the campaign name
+            if($value === 'campaign_name')
+            {
+                $extras['integration_data'][$key] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
+            }
+        }
+
         // useful for third party integration to specify subscribers tags.
         if ( ! empty($conversion_data->form_tags)) {
             $extras['form_tags'] = $conversion_data->form_tags;
@@ -1146,6 +1156,9 @@ class AjaxHandler
 
         $custom_fields = json_decode($custom_fields, true);
 
+        //check for system fields such as referrer, ip_address
+        $custom_fields = $this->replace_system_fields($custom_fields);
+
         $merge_fields = ConnectionFactory::make($connection)->get_optin_fields($list_id);
 
         if (empty($merge_fields)) wp_send_json_error($close_btn . __('Error: No integration field found. Select a list first if you haven\'t and try again.', 'mailoptin'));
@@ -1183,6 +1196,27 @@ class AjaxHandler
         $response .= '</div>';
 
         wp_send_json_success($response);
+    }
+
+    /**
+     * Returns the field type to replace the cid
+     */
+    public function replace_system_fields($custom_fields)
+    {
+        $return_custom_fields = [];
+        $system_fields = \MailOptin\Core\system_form_fields();
+
+        foreach($custom_fields as $custom_field)
+        {
+            if(array_key_exists($custom_field['field_type'], $system_fields))
+            {
+                $custom_field['cid'] = $custom_field['field_type'];
+            }
+
+            array_push($return_custom_fields, $custom_field);
+        }
+
+        return $return_custom_fields;
     }
 
     /**
