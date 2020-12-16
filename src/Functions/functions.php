@@ -421,3 +421,15 @@ function cache_transform($cache_key, $callback)
 
     return $result;
 }
+
+/**
+ * Return array of countries. Typically for consumption by select dropdown.
+ *
+ * @param $show_system_values
+ *
+ * @return array
+ */
+function system_form_fields($show_system_values = false)
+{
+    return apply_filters('mailoptin_system_form_fields_array', include(dirname(__FILE__) . '/system-fields.php'));
+}
