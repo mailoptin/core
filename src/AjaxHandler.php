@@ -968,16 +968,11 @@ class AjaxHandler
         $extras['mo_ip_address']    = get_ip_address();
         $extras['mo_campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
 
-        var_dump($extras);
-
         do_action_ref_array('mailoptin_before_optin_subscription', $extras);
 
         $instance = ConnectionFactory::make($connection_service);
 
         $response = $instance->subscribe($conversion_data->email, $conversion_data->name, $connection_email_list, $extras);
-
-        var_dump($response);
-        exit;
 
         do_action_ref_array('mailoptin_after_optin_subscription', $extras);
 
