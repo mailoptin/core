@@ -423,13 +423,17 @@ function cache_transform($cache_key, $callback)
 }
 
 /**
- * Return array of countries. Typically for consumption by select dropdown.
- *
- * @param $show_system_values
+ * Array of system fields for field mapping UI
  *
  * @return array
  */
-function system_form_fields($show_system_values = false)
+function system_form_fields()
 {
-    return apply_filters('mailoptin_system_form_fields_array', include(dirname(__FILE__) . '/system-fields.php'));
+    return apply_filters('mailoptin_system_form_fields_array', array(
+            'mo_ip_address'    => __('IP Address', 'mailoptin'),
+            'mo_campaign_name' => __('Optin Campaign Name', 'mailoptin'),
+            'referrer'         => __('Referrer URL', 'mailoptin'),
+            'conversion_page'  => __('Conversion Page', 'mailoptin'),
+        )
+    );
 }

@@ -964,27 +964,20 @@ class AjaxHandler
             $extras['form_tags'] = $conversion_data->form_tags;
         }
 
-        $integration_data = $extras['integration_data'];
-        $system_fields = \MailOptin\Core\system_form_fields(true);
-        foreach($integration_data as $key => $value)
-        {
-            if(isset($system_fields[$value]))
-            {
-                $extras['integration_data'][$key] = $system_fields[$value];
-            }
+        // $extras['referrer'] is already set
+        $extras['mo_ip_address']    = get_ip_address();
+        $extras['mo_campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
 
-            //add the campaign name
-            if($value === 'campaign_name')
-            {
-                $extras['integration_data'][$key] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
-            }
-        }
+        var_dump($extras);
 
         do_action_ref_array('mailoptin_before_optin_subscription', $extras);
 
         $instance = ConnectionFactory::make($connection_service);
 
         $response = $instance->subscribe($conversion_data->email, $conversion_data->name, $connection_email_list, $extras);
+
+        var_dump($response);
+        exit;
 
         do_action_ref_array('mailoptin_after_optin_subscription', $extras);
 
@@ -1142,23 +1135,23 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        $connection                 = sanitize_text_field($_POST['connect_service']);
-        $list_id                    = sanitize_text_field($_POST['list_id']);
-        $user_custom_fields         = stripslashes(sanitize_text_field($_POST['custom_fields']));
-        $custom_field_mappings      = stripslashes(sanitize_text_field($_POST['custom_field_mappings']));
-        $integration_index          = sanitize_text_field($_POST['integration_index']);
+        $connection            = sanitize_text_field($_POST['connect_service']);
+        $list_id               = sanitize_text_field($_POST['list_id']);
+        $custom_field_mappings = stripslashes(sanitize_text_field($_POST['custom_field_mappings']));
+        $integration_index     = sanitize_text_field($_POST['integration_index']);
 
         $close_btn = '<div class="mo-optin-map-custom-field-close"></div>';
 
+        //if (empty($custom_fields)) wp_send_json_error($close_btn . __('Error: You have no custom field added to your optin. Consider adding one.', 'mailoptin'));
 
-//        if (empty($custom_fields)) wp_send_json_error($close_btn . __('Error: You have no custom field added to your optin. Consider adding one.', 'mailoptin'));
+        $custom_fields = [];
 
-        $user_custom_fields = json_decode($user_custom_fields, true);
-
-        $custom_fields['user'] = $user_custom_fields;
+        $custom_fields['form_fields'] = json_decode(
+            stripslashes(sanitize_text_field($_POST['custom_fields'])), true
+        );
 
         //system custom fields
-        $custom_fields['system'] = \MailOptin\Core\system_form_fields();
+        $custom_fields['system_fields'] = \MailOptin\Core\system_form_fields();
 
         $merge_fields = ConnectionFactory::make($connection)->get_optin_fields($list_id);
 
@@ -1179,28 +1172,34 @@ class AjaxHandler
             $response .= "<label for='' class='customize-control-title'>$label</label>";
             $response .= "<select id=\"$key\" class=\"mo-optin-custom-field-select\" name=\"$key\">";
             $response .= '<option value="">' . __('Select...', 'mailoptin') . '</option>';
-            $response .= '<optgroup label="User Fields">';
-            foreach ($custom_fields['user'] as $custom_field) {
-                $db_val   = isset($custom_field_mappings[$integration_index][$key]) ? $custom_field_mappings[$integration_index][$key] : '';
-                $response .= sprintf(
-                    '<option value="%s" %s>%s</option>',
-                    $custom_field['cid'],
-                    selected($db_val, $custom_field['cid'], false),
-                    $custom_field['placeholder']
-                );
+
+            if ( ! empty($custom_fields['form_fields'])) {
+                $response .= sprintf('<optgroup label="%s">', esc_html__('Form Fields', 'mailoptin'));
+                foreach ($custom_fields['form_fields'] as $custom_field) {
+                    $db_val   = isset($custom_field_mappings[$integration_index][$key]) ? $custom_field_mappings[$integration_index][$key] : '';
+                    $response .= sprintf(
+                        '<option value="%s" %s>%s</option>',
+                        $custom_field['cid'],
+                        selected($db_val, $custom_field['cid'], false),
+                        $custom_field['placeholder']
+                    );
+                }
+                $response .= '</optgroup>';
             }
-            $response .= '</optgroup>';
-            $response .= '<optgroup label="System Fields">';
-            foreach ($custom_fields['system'] as $index => $value) {
-                $db_val   = isset($custom_field_mappings[$integration_index][$key]) ? $custom_field_mappings[$integration_index][$key] : '';
-                $response .= sprintf(
-                    '<option value="%s" %s>%s</option>',
-                    $index,
-                    selected($db_val,  $index, false),
-                    $value
-                );
+
+            if ( ! empty($custom_fields['system_fields'])) {
+                $response .= sprintf('<optgroup label="%s">', esc_html__('System Fields', 'mailoptin'));
+                foreach ($custom_fields['system_fields'] as $index => $value) {
+                    $db_val   = isset($custom_field_mappings[$integration_index][$key]) ? $custom_field_mappings[$integration_index][$key] : '';
+                    $response .= sprintf(
+                        '<option value="%s" %s>%s</option>',
+                        $index,
+                        selected($db_val, $index, false),
+                        $value
+                    );
+                }
+                $response .= '</optgroup>';
             }
-            $response .= '</optgroup>';
             $response .= '</select>';
             $response .= '</div>';
         }
