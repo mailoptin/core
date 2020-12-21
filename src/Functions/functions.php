@@ -69,11 +69,41 @@ function limit_text($text, $limit = 150)
 {
     $limit = ! is_int($limit) || 0 === $limit ? 150 : $limit;
 
+    // <p> not included cos it sometimes break layout and besides wpautop adds it back
+    $tags = apply_filters('mo_limit_text_tags', '<a><em><strong><blockquote><ul><ol><li>');
+
+    $text = strip_shortcodes(strip_tags(stripslashes($text), $tags));
+
     if (str_word_count($text, 0) > $limit) {
+
         $words = str_word_count($text, 2);
         $pos   = array_keys($words);
-        $text  = substr($text, 0, $pos[$limit]) . apply_filters('maioptin_limit_text_ellipsis', '. . .');
+        $text  = substr($text, 0, $pos[$limit]) . apply_filters('mailoptin_limit_text_ellipsis', '. . .');
     }
+
+// below also works but more code. culled from restrict content pro
+//    $more = false;
+//
+//    if (strstr($text, '<!--more-->')) {
+//        $more  = true;
+//        $limit = strpos($text, '<!--more-->');
+//    }
+//
+//    // <p> not included cos it sometimes break layout and besides wpautop adds it back
+//    $tags = apply_filters('mo_limit_text_tags', '<a><em><strong><blockquote><ul><ol><li>');
+//
+//    if ($more) {
+//        $text = strip_shortcodes(strip_tags(stripslashes(substr($text, 0, $limit)), $tags));
+//    } else {
+//        $text          = strip_shortcodes(strip_tags(stripslashes($text), $tags));
+//        $text          = preg_split('/\b/', $text, $limit * 2 + 1);
+//        $excerpt_waste = array_pop($text);
+//        $text          = implode($text);
+//
+//        if ( ! empty($text)) {
+//            $text .= apply_filters('mailoptin_limit_text_ellipsis', '. . .');
+//        }
+//    }
 
     return $text;
 }
