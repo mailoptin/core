@@ -247,21 +247,23 @@ class RegisterScripts
         }
 
         $localize_strings = array(
-            'admin_url'                   => admin_url(),
-            'public_js'                   => MAILOPTIN_ASSETS_URL . 'js/src',
-            'nonce'                       => wp_create_nonce('mailoptin-admin-nonce'),
-            'mailoptin_ajaxurl'           => AjaxHandler::get_endpoint(),
-            'is_customize_preview'        => is_customize_preview() ? 'true' : 'false',
+            'admin_url'                         => admin_url(),
+            'public_js'                         => MAILOPTIN_ASSETS_URL . 'js/src',
+            'nonce'                             => wp_create_nonce('mailoptin-admin-nonce'),
+            'mailoptin_ajaxurl'                 => AjaxHandler::get_endpoint(),
+            'is_customize_preview'              => is_customize_preview() ? 'true' : 'false',
             // for some weird reason, boolean false is converted to empty and true to "1" hence the use of 'false' in string form.
-            'disable_impression_tracking' => $disable_impression_status === true ? 'true' : 'false',
-            'split_test_start_label'      => __('Start Test', 'mailoptin'),
-            'split_test_pause_label'      => __('Pause Test', 'mailoptin'),
-            'chosen_search_placeholder'   => __('Type to search', 'mailoptin'),
-            'js_confirm_text'             => __('Are you sure you?', 'mailoptin'),
-            'js_clear_stat_text'          => __('Are you sure you want to do this? Clicking OK will delete all your optin analytics records.', 'mailoptin'),
-            'custom_field_label'          => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
-            'sidebar'                     => 0,
-            'js_required_title'           => __('Title is required.', 'mailoptin'),
+            'disable_impression_tracking'       => $disable_impression_status === true ? 'true' : 'false',
+            'split_test_start_label'            => __('Start Test', 'mailoptin'),
+            'split_test_pause_label'            => __('Pause Test', 'mailoptin'),
+            'chosen_search_placeholder'         => __('Type to search', 'mailoptin'),
+            'js_confirm_text'                   => __('Are you sure you?', 'mailoptin'),
+            'js_clear_stat_text'                => __('Are you sure you want to do this? Clicking OK will delete all your optin analytics records.', 'mailoptin'),
+            'custom_field_label'                => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
+            'sidebar'                           => 0,
+            'js_required_title'                 => __('Title is required.', 'mailoptin'),
+            'is_new_returning_visitors_cookies' => defined('MAILOPTIN_DETACH_LIBSODIUM') && apply_filters('mailoptin_is_new_returning_visitors_cookies', true) === true ? 'true' : 'false',
+            'enable_page_views_counter'         => apply_filters('mailoptin_enable_page_views_counter', true),
         );
 
         if ( ! is_admin()) {
@@ -306,7 +308,6 @@ class RegisterScripts
 
     /**
      * Mailoptin only css to fix conflicts
-     * 
      */
     public function mailoptin_only_css()
     {
