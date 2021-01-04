@@ -262,8 +262,7 @@ class RegisterScripts
             'custom_field_label'                => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                           => 0,
             'js_required_title'                 => __('Title is required.', 'mailoptin'),
-            'is_new_returning_visitors_cookies' => defined('MAILOPTIN_DETACH_LIBSODIUM') && apply_filters('mailoptin_is_new_returning_visitors_cookies', true) === true ? 'true' : 'false',
-            'enable_page_views_counter'         => apply_filters('mailoptin_enable_page_views_counter', true),
+            'is_new_returning_visitors_cookies' => defined('MAILOPTIN_DETACH_LIBSODIUM') && apply_filters('mailoptin_is_new_returning_visitors_cookies', true) === true ? 'true' : 'false'
         );
 
         if ( ! is_admin()) {
