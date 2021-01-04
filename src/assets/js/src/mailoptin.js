@@ -746,9 +746,11 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                 // This is how we determine new vs. returning visitors.
                 // basically the session cookie is to keep identifying the visitor until session expires
                 // then next visit, they become a returning visitor.
-                if (!Cookies.get('mo_has_visited')) {
-                    Cookies.set('mo_is_new', 'true');
-                    Cookies.set('mo_has_visited', 'true', {expires: 3999});
+                if (mailoptin_globals.is_new_returning_visitors_cookies === 'true') {
+                    if (!Cookies.get('mo_has_visited')) {
+                        Cookies.set('mo_is_new', 'true');
+                        Cookies.set('mo_has_visited', 'true', {expires: 3999});
+                    }
                 }
             },
 
