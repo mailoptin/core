@@ -296,7 +296,7 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
             },
 
             /**
-             * Determine if optin should display or not.
+             * Determine if optin variants should display or not.
              *
              * @param {object} optin_config
              *
@@ -314,7 +314,9 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
                         $.each(optin_config.split_test_variants, function (index, variant_config) {
 
-                            if (self.is_optin_visible(variant_config) === false) {
+                            if (self.is_defined_not_empty(variant_config.state_after_conversion) &&
+                                variant_config.state_after_conversion !== 'optin_form_shown' &&
+                                self.is_optin_visible(variant_config) === false) {
                                 flag = false;
                                 return false; // break the loop
                             }
