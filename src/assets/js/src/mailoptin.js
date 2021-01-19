@@ -620,16 +620,22 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                         optin_uuid = optin_config.optin_uuid;
 
                     $(window).on('resize.MoBarTop', function () {
-                        var cache = $('#' + optin_uuid);
-                        var mHeight = cache.outerHeight();
 
-                        if ($(window).width() <= 600) {
-                            mHeight -= $("#wpadminbar").outerHeight();
-                        }
+                        setTimeout(function () {
 
-                        mHeight = $.MailOptin.activeBarHeight = originalMargin + mHeight;
+                            var cache = $('#' + optin_uuid + '_bar'),
+                                cache2 = $("#wpadminbar"),
+                                mHeight = cache.outerHeight();
 
-                        $(document.body).css('margin-top', originalMargin + mHeight + 'px');
+                            if ($(window).width() <= 600 && cache2.length > 0) {
+                                mHeight -= cache2.outerHeight();
+                            }
+
+                            mHeight = $.MailOptin.activeBarHeight = originalMargin + mHeight;
+
+                            $(document.body).css('margin-top', originalMargin + mHeight + 'px');
+
+                        }, 500)
                     });
 
                     // init
