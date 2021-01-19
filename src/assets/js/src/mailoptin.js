@@ -628,7 +628,11 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
                                 mHeight = cache.outerHeight();
 
                             if ($(window).width() <= 600 && cache2.length > 0) {
-                                mHeight -= cache2.outerHeight();
+                                if ($('#' + optin_uuid + '.mo-optin-form-bar-sticky').length > 0) {
+                                    mHeight -= cache2.outerHeight();
+                                } else {
+                                    mHeight += cache2.outerHeight();
+                                }
                             }
 
                             mHeight = $.MailOptin.activeBarHeight = originalMargin + mHeight;
