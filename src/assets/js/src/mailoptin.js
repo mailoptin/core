@@ -231,7 +231,8 @@ define(['jquery', 'js.cookie', 'mailoptin_globals', 'pikaday', 'moModal', 'moExi
 
             load_adblock_detect_script: function () {
                 var ad = document.createElement('script');
-                ad.src = mailoptin_globals.public_js + '/showads.js';
+                // lists of terms blocked https://easylist.to/easylist/easylist.txt
+                ad.src = mailoptin_globals.public_js + '/ad-m.js';
                 ad.async = true;
 
                 // Attempt to append it to the <head>, otherwise append to the document.
