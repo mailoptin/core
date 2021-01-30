@@ -1186,3 +1186,35 @@ form.mo-inline {
 .mo-builder-create-btn:focus {
     border-bottom: 2px solid #2980b9;
 }
+
+/** Import Leads css **/
+#mo-import-leads {
+    background: #fff;
+    padding: 15px 20px;
+}
+
+#mo-import-leads .mo-import-leads-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+}
+
+
+#mo-import-leads .mo-import-leads-content {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    min-height: 25rem;
+    text-align: center;
+}
+
+#mo-import-leads .mo-import-leads-content input[type=file] {
+    margin-bottom: 35px;
+}
+
+.mo-import-leads-title {
+    font-size: 23px;
+    font-weight: 400;
+}
