@@ -39,8 +39,14 @@ class ConversionImport
                 if(update_option($this->conversion_data, $new_file_path)) {
                     wp_safe_redirect(add_query_arg('step', '2', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
                     exit;
+                } else {
+                    return __('There was an error, couldn\'t save the csv file path', 'mailoptin');
                 }
+            } else {
+                return __('CSV file could not be moved.', 'mailoptin');
             }
+        } else {
+            return __('The uploaded file is not a csv file. Please try again.', 'mailoptin');
         }
     }
 
@@ -60,28 +66,30 @@ class ConversionImport
         $insert_data = [];
         $conversionRepoResponse = false;
 
-        try {
-            foreach ($data as $key => $value) {
-                foreach ($fields as $field_key => $field_value) {
-                    if (isset($value[$field_value])) {
-                        $insert_data[$field_key] = esc_html($value[$field_value]);
-                    }
+        foreach ($data as $key => $value) {
+            foreach ($fields as $field_key => $field_value) {
+                if (isset($value[$field_value])) {
+                    $insert_data[$field_key] = esc_html($value[$field_value]);
                 }
+            }
 
-                //add fields to data before passing
+            //add fields to data before passing
 
-                $insert_data['optin_campaign_id'] = 0; // since it's non mailoptin form, set it to zero.
-                $insert_data['optin_campaign_type'] = esc_html__('Import Leads with CSV', 'mailoptin');;
-                $insert_data['user_agent'] = esc_html($_SERVER['HTTP_USER_AGENT']);
-                $insert_data['conversion_page'] = __('Leads Import', 'mailoptin');
-                $insert_data['referrer'] = __('Leads Import', 'mailoptin');
-                $insert_data['custom_fields'] = NULL;
+            $insert_data['optin_campaign_id'] = 0; // since it's non mailoptin form, set it to zero.
+            $insert_data['optin_campaign_type'] = esc_html__('Import Leads with CSV', 'mailoptin');;
+            $insert_data['user_agent'] = esc_html($_SERVER['HTTP_USER_AGENT']);
+            $insert_data['conversion_page'] = __('Leads Import', 'mailoptin');
+            $insert_data['referrer'] = __('Leads Import', 'mailoptin');
+            $insert_data['custom_fields'] = NULL;
 
+            //get the conversion by email
+            $conversion_by_email = OptinConversionsRepository::get_conversions_by_email($insert_data['email']);
+            if($conversion_by_email) {
+                $conversionRepoResponse = OptinConversionsRepository::update($conversion_by_email[0]['id'], $insert_data);
+            } else {
                 //insert into repository
                 $conversionRepoResponse = OptinConversionsRepository::add($insert_data);
             }
-        } catch(Exception $e) {
-
         }
 
 
@@ -95,8 +103,7 @@ class ConversionImport
             wp_safe_redirect(add_query_arg('step', '3', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
             exit;
         } else {
-            wp_safe_redirect(add_query_arg('step', '2', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
-            exit;
+            return __('There was an error importing leads into the leadbank', 'mailoptin');
         }
     }
 
@@ -132,6 +139,19 @@ class ConversionImport
         //return the first row, usually the CSV header
         return $reader->fetchOne();
     }
+
+    /**
+     * Show admin notices like errors and success messages
+     *
+     */
+    public function show_error_message($message) {
+        return add_action( 'admin_notices', function() use($message) {
+            $class = 'notice notice-error';
+
+            echo sprintf('<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ));
+        });
+    }
+
 
     /**
      * @return ConversionImport|null
