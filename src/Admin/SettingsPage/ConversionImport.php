@@ -129,19 +129,6 @@ class ConversionImport
     }
 
     /**
-     * Show admin notices like errors and success messages
-     *
-     */
-    public function show_error_message($message) {
-        return add_action( 'admin_notices', function() use($message) {
-            $class = 'notice notice-error';
-
-            echo sprintf('<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ));
-        });
-    }
-
-
-    /**
      * @return ConversionImport|null
      *
      */
