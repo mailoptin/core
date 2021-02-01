@@ -180,7 +180,7 @@ abstract class AbstractConnect
             mkdir($error_log_folder, 0755);
         }
 
-        error_log($message . "\r\n\r\n", 3, "{$error_log_folder}{$filename}.log");
+        error_log(current_time('mysql') . ': ' . $message . "\r\n\r\n", 3, "{$error_log_folder}{$filename}.log");
 
         $email_campaign_name = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
 
@@ -285,7 +285,7 @@ abstract class AbstractConnect
             mkdir($error_log_folder, 0755);
         }
 
-        $response = error_log($message . "\r\n", 3, "{$error_log_folder}{$filename}.log");
+        $response = error_log(current_time('mysql') . ': ' . $message . "\r\n", 3, "{$error_log_folder}{$filename}.log");
 
         if ( ! apply_filters('mailoptin_disable_send_optin_error_email', false, $optin_campaign_id)) {
             self::send_optin_error_email($optin_campaign_id, $message);
