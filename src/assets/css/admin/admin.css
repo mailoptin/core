@@ -1218,3 +1218,43 @@ form.mo-inline {
     font-size: 23px;
     font-weight: 400;
 }
+
+#mo-import-leads .mo-import-leads-content .mo-map-leads > p {
+    font-size: 20px;
+}
+
+#mo-import-leads .mo-import-leads-content .mo-map-leads {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#mo-import-leads .mo-import-leads-content .mo-map-leads table {
+    margin-bottom: 25px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 700px;
+    padding: 15px;
+}
+
+#mo-import-leads .mo-import-leads-content .mo-map-leads table thead tr {
+    border: 1px solid #000;
+    font-size: 18px;
+    padding: 15px 0;
+}
+
+#mo-import-leads .mo-import-leads-content .mo-map-leads table tr {
+    border-bottom: 1px solid #000000;
+    text-align: left;
+    position: relative;
+}
+
+#mo-import-leads .mo-import-leads-content .mo-map-leads table td {
+    padding: 15px 15px;
+}
+
+#mo-import-leads .mo-import-leads-content .mo-map-leads table tbody td select {
+    width: 100%;
+}
