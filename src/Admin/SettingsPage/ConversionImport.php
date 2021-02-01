@@ -20,8 +20,10 @@ class ConversionImport
     {
         $this->conversion_data = 'mo_conversion_csv_path';
     }
+
     /**
      * a call to read the csv file
+     *
      */
     public function process_upload($file) {
         $csv_mines = array('text/x-comma-separated-values', 'text/comma-separated-values', 'application/octet-stream', 'application/vnd.ms-excel', 'application/x-csv', 'text/x-csv', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.msexcel', 'text/plain');
@@ -107,24 +109,10 @@ class ConversionImport
         }
     }
 
-    /**
-     *  Associative array of columns
-     *
-     * @return array
-     */
-    public function get_columns()
-    {
-        $columns = array(
-            'email'          => __('Subscriber Email', 'mailoptin'),
-            'name'           => __('Subscriber Name', 'mailoptin'),
-        );
-
-        return $columns;
-    }
-
 
     /**
      * read the csv and process
+     *
      */
     public function read_csv_headers() {
         $file_path = get_option('mo_conversion_csv_path');
