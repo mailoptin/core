@@ -1188,12 +1188,12 @@ form.mo-inline {
 }
 
 /** Import Leads css **/
-#mo-import-leads {
+#mo_csv_import {
     background: #fff;
     padding: 15px 20px 60px;
 }
 
-#mo-import-leads .mo-import-leads-title-container {
+#mo_csv_import .mo_csv_import-title-container {
     display: flex;
     justify-content: space-between;
     align-content: center;
@@ -1201,7 +1201,7 @@ form.mo-inline {
 }
 
 
-#mo-import-leads .mo-import-leads-content {
+#mo_csv_import .mo_csv_import-content {
     display: flex;
     justify-content: center;
     flex-direction: column;
@@ -1210,20 +1210,20 @@ form.mo-inline {
     text-align: center;
 }
 
-#mo-import-leads .mo-import-leads-content input[type=file] {
+#mo_csv_import .mo_csv_import-content input[type=file] {
     margin-bottom: 35px;
 }
 
-.mo-import-leads-title {
+.mo_csv_import-title {
     font-size: 23px;
     font-weight: 400;
 }
 
-#mo-import-leads .mo-import-leads-content p {
+#mo_csv_import .mo_csv_import-content p {
     font-size: 20px;
 }
 
-#mo-import-leads .mo-import-leads-content .mo-map-leads {
+#mo_csv_import .mo_csv_import-content .mo-map-leads {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -1231,7 +1231,7 @@ form.mo-inline {
     flex-direction: column;
 }
 
-#mo-import-leads .mo-import-leads-content .mo-map-leads table {
+#mo_csv_import .mo_csv_import-content .mo-map-leads table {
     margin-bottom: 25px;
     margin-top: 20px;
     width: 100%;
@@ -1239,33 +1239,33 @@ form.mo-inline {
     padding: 15px;
 }
 
-#mo-import-leads .mo-import-leads-content .mo-map-leads table thead tr {
+#mo_csv_import .mo_csv_import-content .mo-map-leads table thead tr {
     border: 1px solid #000;
     font-size: 18px;
     padding: 15px 0;
 }
 
-#mo-import-leads .mo-import-leads-content .mo-map-leads table tr {
+#mo_csv_import .mo_csv_import-content .mo-map-leads table tr {
     border-bottom: 1px solid #000000;
     text-align: left;
     position: relative;
 }
 
-#mo-import-leads .mo-import-leads-content .mo-map-leads table td {
+#mo_csv_import .mo_csv_import-content .mo-map-leads table td {
     padding: 15px 15px;
 }
 
-#mo-import-leads .mo-import-leads-content .mo-map-leads table tbody td select {
+#mo_csv_import .mo_csv_import-content .mo-map-leads table tbody td select {
     width: 100%;
 }
 
-#mo-import-leads .multi-step {
+#mo_csv_import .multi-step {
     margin: 1em 0;
     width: 100%;
     max-width: 700px;
 }
 
-#mo-import-leads .multi-step .multi-step-list {
+#mo_csv_import .multi-step .multi-step-list {
     position: relative;
     display: flex;
     flex-direction: row;
@@ -1274,16 +1274,16 @@ form.mo-inline {
     padding: 0;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:first-child {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:first-child {
     margin-left: 0;
     margin-right: 2.33em;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:last-child {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:last-child {
     margin-right: 0;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item {
     position: relative;
     width: 100%;
     margin: 0 0.3333333333em;
@@ -1293,44 +1293,44 @@ form.mo-inline {
 }
 
 @media only screen and (max-width: 786px) {
-    #mo-import-leads .multi-step .multi-step-list .multi-step-item {
+    #mo_csv_import .multi-step .multi-step-list .multi-step-item {
         margin: 0 0.33em;
     }
 
-    #mo-import-leads .multi-step .multi-step-list .multi-step-item .item-subtitle {
+    #mo_csv_import .multi-step .multi-step-list .multi-step-item .item-subtitle {
         display: none;
     }
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-title,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-subtitle {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-title,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-subtitle {
     position: relative;
     margin: 0;
     z-index: 2;
     font-size: 18px;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-title {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-title {
     color: #4285f4;
     font-weight: 600;
     margin: 0;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.active:hover {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.active:hover {
     cursor: pointer;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.current .item-title,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.current .item-subtitle {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.current .item-title,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.current .item-subtitle {
     color: #fff;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.active.current:hover .item-title,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.active.current:hover .item-subtitle {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.active.current:hover .item-title,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.active.current:hover .item-subtitle {
     color: #4285f4;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.error:after {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.error:after {
     position: absolute;
     top: 50%;
     z-index: 2;
@@ -1340,7 +1340,7 @@ form.mo-inline {
     color: #d50000;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-wrap {
     padding: 1em;
     position: relative;
     height: 100%;
@@ -1349,8 +1349,8 @@ form.mo-inline {
     flex-direction: column;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-wrap:before,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-wrap:after {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-wrap:before,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-wrap:after {
     position: absolute;
     left: 0;
     content: " ";
@@ -1360,80 +1360,80 @@ form.mo-inline {
     background-color: #eee;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-wrap:before {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-wrap:before {
     top: 0;
     transform: skew(20deg);
     border-radius: 0.2em 0.2em 0 0;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item .item-wrap:after {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item .item-wrap:after {
     bottom: 0;
     transform: skew(-20deg);
     border-radius: 0 0 0.2em 0.2em;
 }
 
-#mo-import-leads .multi-step .multi-step-list .current .item-wrap:before,
-#mo-import-leads .multi-step .multi-step-list .current .item-wrap:after {
+#mo_csv_import .multi-step .multi-step-list .current .item-wrap:before,
+#mo_csv_import .multi-step .multi-step-list .current .item-wrap:after {
     background-color: #4285f4;
 }
 
-#mo-import-leads .multi-step  .active:hover .item-wrap:before,
-#mo-import-leads .multi-step  .active:hover .item-wrap:after {
+#mo_csv_import .multi-step  .active:hover .item-wrap:before,
+#mo_csv_import .multi-step  .active:hover .item-wrap:after {
     background-color: #d8f1ff;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.error .item-title,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item.error .item-subtitle {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.error .item-title,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item.error .item-subtitle {
     padding-right: 2em;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:first-child .item-wrap,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:last-child .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:first-child .item-wrap,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:last-child .item-wrap {
     width: 100%;
     border-radius: 0.2em;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:before,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:last-child .item-wrap:before,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:after,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:last-child .item-wrap:after {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:before,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:last-child .item-wrap:before,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:after,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:last-child .item-wrap:after {
     width: 50%;
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:first-child .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:first-child .item-wrap {
     background: linear-gradient(to right, #eee 95%, transparent 5%);
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:before,
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:after {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:before,
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:first-child .item-wrap:after {
     left: 50%;
 }
 
-#mo-import-leads .multi-step .multi-step-list .active.multi-step-item:first-child:hover .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .active.multi-step-item:first-child:hover .item-wrap {
     background: linear-gradient(to right, #d8f1ff 95%, transparent 5%);
 }
 
-#mo-import-leads .multi-step .multi-step-list .current.multi-step-item:first-child .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .current.multi-step-item:first-child .item-wrap {
     background: linear-gradient(to right, #4285f4 95%, transparent 5%);
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:last-child .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:last-child .item-wrap {
     background: linear-gradient(to left, #eee 95%, transparent 5%);
 }
 
-#mo-import-leads .multi-step .multi-step-list .multi-step-item:last-child .item-wrap:before, .multi-step-item:last-child .item-wrap:after {
+#mo_csv_import .multi-step .multi-step-list .multi-step-item:last-child .item-wrap:before, .multi-step-item:last-child .item-wrap:after {
     right: 50%;
 }
 
-#mo-import-leads .multi-step .multi-step-list .active.multi-step-item:last-child:hover .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .active.multi-step-item:last-child:hover .item-wrap {
     background: linear-gradient(to left, #d8f1ff 95%, transparent 5%);
 }
 
-#mo-import-leads .multi-step .multi-step-list .current.multi-step-item:last-child .item-wrap {
+#mo_csv_import .multi-step .multi-step-list .current.multi-step-item:last-child .item-wrap {
     background: linear-gradient(to left, #4285f4 95%, transparent 5%);
 }
 
-#mo-import-leads .multi-step .multi-step-list .checked .multi-step-item.completed:after {
+#mo_csv_import .multi-step .multi-step-list .checked .multi-step-item.completed:after {
     position: absolute;
     top: 50%;
     z-index: 2;
