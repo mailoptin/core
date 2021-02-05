@@ -4,10 +4,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 
 use League\Csv\Reader;
-use MailOptin\Core\Core;
-use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use MailOptin\Core\Repositories\OptinConversionsRepository;
-use WpFluent\Exception;
 
 class ConversionImport
 {
@@ -66,37 +63,37 @@ class ConversionImport
         array_shift($data);
 
         $insert_data = [];
-        $conversionRepoResponse = false;
+        $conversionRepoResponse = '';
 
         foreach ($data as $key => $value) {
             foreach ($fields as $field_key => $field_value) {
-                if (isset($value[$field_value])) {
-                    $insert_data[$field_key] = esc_html($value[$field_value]);
+                switch($field_key)  {
+                    case 'custom_fields':
+                        $insert_data[$field_key] = $value[$field_value];
+                        break;
+                    default:
+                        $insert_data[$field_key] = esc_html($value[$field_value]);
                 }
             }
 
-            //add fields to data before passing
 
+            //add fields to data before passing
             $insert_data['optin_campaign_id'] = 0; // since it's non mailoptin form, set it to zero.
-            $insert_data['optin_campaign_type'] = esc_html__('Import Leads with CSV', 'mailoptin');;
-            $insert_data['user_agent'] = esc_html($_SERVER['HTTP_USER_AGENT']);
-            $insert_data['conversion_page'] = __('Leads Import', 'mailoptin');
-            $insert_data['referrer'] = __('Leads Import', 'mailoptin');
-            $insert_data['custom_fields'] = NULL;
+            $insert_data['optin_campaign_type'] = esc_html__('CSV', 'mailoptin');
 
             //get the conversion by email
             $conversion_by_email = OptinConversionsRepository::get_conversions_by_email($insert_data['email']);
             if($conversion_by_email) {
+                //update
                 $conversionRepoResponse = OptinConversionsRepository::update($conversion_by_email[0]['id'], $insert_data);
             } else {
-                //insert into repository
+                //insert into new
                 $conversionRepoResponse = OptinConversionsRepository::add($insert_data);
             }
         }
 
-
         //If the conversion is true
-        if($conversionRepoResponse) {
+        if(strlen($conversionRepoResponse) >= 1) {
             //remove the file path
             unlink($file_path);
 
