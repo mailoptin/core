@@ -81,15 +81,8 @@ class ConversionImport
             $insert_data['optin_campaign_id'] = 0; // since it's non mailoptin form, set it to zero.
             $insert_data['optin_campaign_type'] = esc_html__('CSV', 'mailoptin');
 
-            //get the conversion by email
-            $conversion_by_email = OptinConversionsRepository::get_conversions_by_email($insert_data['email']);
-            if($conversion_by_email) {
-                //update
-                $conversionRepoResponse = OptinConversionsRepository::update($conversion_by_email[0]['id'], $insert_data);
-            } else {
-                //insert into new
-                $conversionRepoResponse = OptinConversionsRepository::add($insert_data);
-            }
+            //add the conversion by email
+            $conversionRepoResponse = OptinConversionsRepository::add($insert_data);
         }
 
         //If the conversion is true
