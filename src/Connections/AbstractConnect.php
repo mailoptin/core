@@ -35,8 +35,8 @@ abstract class AbstractConnect
     public function get_oauth_url($slug)
     {
         return add_query_arg([
-            'redirect_url' => MAILOPTIN_CONNECTIONS_SETTINGS_PAGE,
-            'moconnect_nonce'        => wp_create_nonce('mo_save_oauth_credentials')
+            'redirect_url'    => MAILOPTIN_CONNECTIONS_SETTINGS_PAGE,
+            'moconnect_nonce' => wp_create_nonce('mo_save_oauth_credentials')
         ],
             MAILOPTIN_OAUTH_URL . "/$slug/"
         );
@@ -495,10 +495,10 @@ $footer_content";
 
             // try refresh twice before failing.
             $response = wp_remote_get($url);
-            $result   = json_decode(wp_remote_retrieve_body($response), true);
+            $result   = json_decode($response_body = wp_remote_retrieve_body($response), true);
 
             if ( ! isset($result['success']) || $result['success'] !== true) {
-                throw new \Exception('Error failed to refresh ' . json_encode($result), 9990009909);
+                throw new \Exception('Error failed to refresh ' . $response_body);
             }
         }
 
