@@ -244,6 +244,8 @@ class RegisterScripts
             $disable_impression_status = true;
         }
 
+        $enable_init_js_cookies_filter = apply_filters('mailoptin_enable_init_js_cookies', apply_filters('mailoptin_is_new_returning_visitors_cookies', true));
+
         $localize_strings = array(
             'admin_url'                         => admin_url(),
             'public_js'                         => MAILOPTIN_ASSETS_URL . 'js/src',
@@ -260,7 +262,7 @@ class RegisterScripts
             'custom_field_label'                => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                           => 0,
             'js_required_title'                 => __('Title is required.', 'mailoptin'),
-            'is_new_returning_visitors_cookies' => defined('MAILOPTIN_DETACH_LIBSODIUM') && apply_filters('mailoptin_is_new_returning_visitors_cookies', true) === true ? 'true' : 'false'
+            'is_new_returning_visitors_cookies' => defined('MAILOPTIN_DETACH_LIBSODIUM') && $enable_init_js_cookies_filter === true ? 'true' : 'false'
         );
 
         if ( ! is_admin()) {
