@@ -289,7 +289,7 @@ class RegisterScripts
         }
 
         wp_localize_script(
-            'jquery', 'mailoptin_globals',
+            'mailoptin', 'mailoptin_globals',
             apply_filters('mo_mailoptin_js_globals', $localize_strings)
         );
     }
