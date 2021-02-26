@@ -46,7 +46,7 @@ class RegisterScripts
         wp_enqueue_script('mailoptin-add-optin-campaign', MAILOPTIN_ASSETS_URL . 'js/admin/new-optin-campaign.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
         wp_enqueue_script('mailoptin-optin-type-selection', MAILOPTIN_ASSETS_URL . 'js/admin/optin-type-selection.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
         wp_enqueue_script('mailoptin-add-email-campaign', MAILOPTIN_ASSETS_URL . 'js/admin/new-email-campaign.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
-        $this->global_js_variables();
+        $this->global_js_variables('jquery');
         do_action('mo_admin_js_enqueue');
     }
 
@@ -213,7 +213,7 @@ class RegisterScripts
 
         Recaptcha::get_instance()->enqueue_script();
 
-        $this->global_js_variables();
+        $this->global_js_variables('mailoptin');
     }
 
     /**
@@ -233,8 +233,10 @@ class RegisterScripts
 
     /**
      * Global JS variables by required by mailoptin.
+     *
+     * @param string $handle
      */
-    public function global_js_variables()
+    public function global_js_variables($handle = 'jquery')
     {
         global $post;
 
@@ -289,7 +291,7 @@ class RegisterScripts
         }
 
         wp_localize_script(
-            'mailoptin', 'mailoptin_globals',
+            $handle, 'mailoptin_globals',
             apply_filters('mo_mailoptin_js_globals', $localize_strings)
         );
     }
