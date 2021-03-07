@@ -88,6 +88,8 @@ class Base
 
         add_action('activate_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
 
+        add_filter('wpmu_drop_tables', [$this, 'wpmu_drop_tables']);
+
         RegisterScripts::get_instance();
         AjaxHandler::get_instance();
         Cron::get_instance();
@@ -114,8 +116,6 @@ class Base
         add_action('plugins_loaded', [$this, 'register_metadata_table']);
 
         add_action('plugins_loaded', [$this, 'db_updates']);
-
-        add_filter('wpmu_drop_tables', array($this, 'wpmu_drop_tables'));
     }
 
     public function db_updates()
