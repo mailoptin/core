@@ -81,7 +81,7 @@ class Base
         if (version_compare($wp_version, '5.1', '<')) {
             add_action('wpmu_new_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
         } else {
-            add_action('wp_insert_site', function (\WP_Site $new_site) {
+            add_action('wp_initialize_site', function (\WP_Site $new_site) {
                 RegisterActivation\Base::multisite_new_blog_install($new_site->blog_id);
             });
         }
