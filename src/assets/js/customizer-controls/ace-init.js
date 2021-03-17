@@ -1,6 +1,6 @@
 // I converted to using windows.load because customizer ready event wasn't firing in email customizer.
 jQuery(window).on('load', function () {
-    jQuery('.ace-build').each(function () {
+    jQuery('.data-ace').each(function () {
         var editor_id = jQuery(this).attr('id');
         var theme = jQuery(this).data('ace-theme');
         var language = jQuery(this).data('ace-lang');
