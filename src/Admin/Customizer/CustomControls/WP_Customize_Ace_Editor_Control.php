@@ -45,7 +45,7 @@ class WP_Customize_Ace_Editor_Control extends WP_Customize_Control
                 <span class="description customize-control-description"><?php echo $this->description; ?></span>
             <?php endif; ?>
 
-            <div id="<?php echo $this->editor_id; ?>" data-block-type="ace" data-ace-lang="<?php echo $this->language; ?>" data-ace-theme="<?php echo $this->theme; ?>" style="position:relative;width:100%;height:300px;"></div>
+            <div id="<?php echo $this->editor_id; ?>" class="ace-build" data-block-type="ace" data-ace-lang="<?php echo $this->language; ?>" data-ace-theme="<?php echo $this->theme; ?>" style="position:relative;width:100%;height:300px;"></div>
 
             <textarea id="<?php echo $this->editor_id; ?>-textarea" <?php $this->link(); ?> style="display:none;">
                 <?php $this->value(); ?>
