@@ -54,7 +54,7 @@ class RegisterScripts
             wp_enqueue_script('mo-requirejs', MAILOPTIN_ASSETS_URL . 'js/src/require.js', ['jquery', 'backbone', 'wp-util'], MAILOPTIN_VERSION_NUMBER, true);
             wp_enqueue_script('mo-flow-builder', MAILOPTIN_ASSETS_URL . 'js/admin/flowbuilder/main.js', ['jquery', 'backbone', 'mo-requirejs'], MAILOPTIN_VERSION_NUMBER, true);
         } else {
-            wp_enqueue_script('mo-flow-builder', MAILOPTIN_ASSETS_URL . 'js/admin/flowbuilder.min.js', ['jquery', 'backbone', 'wp-util'], MAILOPTIN_VERSION_NUMBER, true);
+            wp_enqueue_script('mo-flow-builder', MAILOPTIN_ASSETS_URL . 'js/flowbuilder.min.js', ['jquery', 'backbone', 'wp-util'], MAILOPTIN_VERSION_NUMBER, true);
         }
 
         do_action('mo_admin_js_enqueue');

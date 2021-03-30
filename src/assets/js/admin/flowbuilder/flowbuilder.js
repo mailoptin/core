@@ -1,15 +1,7 @@
 /**
  * @var {object} mailoptin_globals
  */
-var includes = [
-    'jquery',
-    'trigger.view',
-    'rules.view',
-    'actions.view',
-    'util'
-];
-
-define(includes, function ($, TriggerView, RulesView, ActionsView, Util) {
+define(["jquery", "trigger.view", "rules.view", "actions.view", "util"], function ($, TriggerView, RulesView, ActionsView, Util) {
 
     $('body').on('mo-flows-field-change', function (e, container) {
         Util.re_init_js_scripts(container);

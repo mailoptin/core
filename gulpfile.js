@@ -28,7 +28,7 @@ gulp.task('flowBuilderRjs', function () {
                 baseUrl: './src/assets/js/admin/flowbuilder',
                 name: "../../src/almond",
                 include: "main",
-                out: "admin/flowbuilder.min.js"
+                out: "flowbuilder.min.js"
             };
         }))
         .pipe(gulp.dest('src/assets/js'));
