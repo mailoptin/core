@@ -404,7 +404,6 @@ HTML;
       text-decoration: none;
       background-color: #dc4d2f;
       -webkit-text-size-adjust: none;
-      mso-hide: all;
     }
 
     /*Media Queries ------------------------------ */

@@ -456,7 +456,6 @@ HTML;
       text-align: center;
       text-decoration: none;
       -webkit-text-size-adjust: none;
-      mso-hide: all;
     }
 
     /*Media Queries ------------------------------ */
