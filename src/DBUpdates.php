@@ -222,9 +222,9 @@ class DBUpdates
 
             $table = AdvanceAnalytics::advance_stat_table_name();
 
-            $sql = "ALTER TABLE $table ADD id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT FIRST";
-
-            $wpdb->query($sql);
+            if ($wpdb->query("SHOW COLUMNS FROM $table LIKE 'id'") === 0) {
+                $wpdb->query("ALTER TABLE $table ADD id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT FIRST");
+            }
         }
     }
 
