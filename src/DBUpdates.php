@@ -218,11 +218,14 @@ class DBUpdates
     {
         global $wpdb;
 
-        $table = AdvanceAnalytics::advance_stat_table_name();
+        if (class_exists('MailOptin\AdvanceAnalytics\AdvanceAnalytics')) {
 
-        $sql = "ALTER TABLE $table ADD id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT FIRST";
+            $table = AdvanceAnalytics::advance_stat_table_name();
 
-        $wpdb->query($sql);
+            $sql = "ALTER TABLE $table ADD id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT FIRST";
+
+            $wpdb->query($sql);
+        }
     }
 
     public static function get_instance()
