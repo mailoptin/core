@@ -391,7 +391,8 @@ $footer_content";
         $names = explode(' ', $name);
 
         $data[] = isset($names[0]) ? trim($names[0]) : '';
-        $data[] = isset($names[1]) ? trim($names[1]) : '';
+        unset($names[0]);
+        $data[] = join(' ', $names);
 
         return $data;
     }
