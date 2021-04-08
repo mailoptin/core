@@ -91,6 +91,7 @@ class Shortcodes
         add_shortcode('post-author-website', [$this, 'post_author_website_tag']);
         add_shortcode('post-author-email', [$this, 'post_author_email_tag']);
         add_shortcode('post-meta', [$this, 'post_meta_tag']);
+//        add_shortcode('mo_date', [$this, 'mo_post_date']);
 
         do_action('mo_define_email_automation_post_shortcodes', $this->wp_post_obj);
     }
@@ -151,6 +152,18 @@ class Shortcodes
             $this->wp_post_obj->post_title
         );
     }
+
+//    public function mo_post_date($atts) {
+//        extract(shortcode_atts(array(
+//            'format' => '',
+//        ), $atts));
+//
+//        if ( ! empty($format)) {
+//            return date($format, strtotime_utc($this->wp_post_obj->post_date));
+//        }
+//
+//        return $this->wp_post_obj->post_date;
+//    }
 
     public function post_feature_image_url_tag($att)
     {
