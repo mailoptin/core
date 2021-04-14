@@ -174,8 +174,10 @@ class AjaxHandler
             return;
         }
 
-        $admin_email       = mo_test_admin_email();
         $email_campaign_id = absint($_REQUEST['email_campaign_id']);
+        $admin_email = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
+        if(empty($admin_email)) $admin_email = mo_test_admin_email();
+
         $campaign_subject  = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
 
         if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
