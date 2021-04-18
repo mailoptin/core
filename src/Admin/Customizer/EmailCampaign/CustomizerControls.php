@@ -31,9 +31,6 @@ class CustomizerControls
     /** @var string DB option name prefix */
     private $option_prefix;
 
-    /** @var string ID of template footer customizer section. */
-    public $campaign_send_email_section_id = 'mailoptin_campaign_send_email';
-
     /**
      * @param \WP_Customize_Manager $wp_customize
      * @param string $option_prefix
@@ -964,7 +961,7 @@ HTML;
                     array(
                         'label'    => __('Send Test Email To', 'mailoptin'),
                         'type'     => 'text',
-                        'section'  => $this->campaign_send_email_section_id,
+                        'section'  => $this->customizerClassInstance->campaign_send_email_section_id,
                         'settings' => $this->option_prefix . '[send_test_email_input]',
                         'priority' => 10
                     )
@@ -975,7 +972,7 @@ HTML;
                     array(
                         'label'       => __('Background Color', 'mailoptin'),
                         'description' => __("Save any changes first and then click the button to send the test email. If empty, it will be sent to " . mo_test_admin_email(), 'mailoptin'),
-                        'section'     => $this->campaign_send_email_section_id,
+                        'section'     => $this->customizerClassInstance->campaign_send_email_section_id,
                         'settings'    => $this->option_prefix . '[send_test_email]',
                         'priority'    => 20
                     )
