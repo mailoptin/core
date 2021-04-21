@@ -125,7 +125,7 @@
 
 })(
     window.wp.blocks,
-    window.wp.editor,
+    window.wp.blockEditor,
     window.wp.i18n.__,
     window.wp.element,
     window.wp.components,
