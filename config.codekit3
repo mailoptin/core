@@ -276,6 +276,32 @@
       "q" : 100,
       "rq" : 75
     },
+    "\/src\/assets\/images\/forminator-addon-icon.png" : {
+      "ft" : 32768,
+      "iS" : 2803,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/forminator-addon-icon.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/forminator-addon-icon@2x.png" : {
+      "ft" : 32768,
+      "iS" : 9674,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/forminator-addon-icon@2x.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
     "\/src\/assets\/images\/index.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -328,19 +354,6 @@
       "iS" : 16125,
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/mailoptin-blue.png",
-      "oF" : 0,
-      "oIPL" : 1,
-      "opt" : 1,
-      "oT" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 100,
-      "rq" : 75
-    },
-    "\/src\/assets\/images\/mailoptin-white.png" : {
-      "ft" : 32768,
-      "iS" : 7923,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/mailoptin-white.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -1460,7 +1473,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 640699325.20194602
+    "lastBuiltDate" : 641202292.24061501
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
