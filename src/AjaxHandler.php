@@ -969,6 +969,11 @@ class AjaxHandler
         $extras['mo_ip_address']    = get_ip_address();
         $extras['mo_campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
 
+        //add the disable_double_optin for external forms
+        if($optin_campaign_id == 0) {
+            $extras['disable_double_optin'] = $conversion_data->disable_double_optin;
+        }
+
         do_action_ref_array('mailoptin_before_optin_subscription', $extras);
 
         $instance = ConnectionFactory::make($connection_service);
