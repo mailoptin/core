@@ -971,7 +971,7 @@ class AjaxHandler
 
         //add the disable_double_optin for external forms
         if($optin_campaign_id == 0) {
-            $extras['disable_double_optin'] = $conversion_data->disable_double_optin;
+            $extras['is_double_optin'] = $conversion_data->is_double_optin;
         }
 
         do_action_ref_array('mailoptin_before_optin_subscription', $extras);

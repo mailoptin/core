@@ -16,7 +16,7 @@ class ConversionDataBuilder
     public $connection_service;
     public $connection_email_list;
     public $is_timestamp_check_active = true;
-    public $disable_double_optin = false;
+    public $is_double_optin = true;
     public $form_custom_field_mappings = [];
     public $form_tags = [];
 }
