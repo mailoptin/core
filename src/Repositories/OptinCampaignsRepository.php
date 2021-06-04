@@ -387,7 +387,7 @@ class OptinCampaignsRepository extends AbstractRepository
         $table = parent::campaigns_table();
 
         return parent::wpdb()->get_results(
-            parent::wpdb()->prepare("SELECT * FROM $table WHERE optin_type = '%s'",
+            parent::wpdb()->prepare("SELECT * FROM $table WHERE optin_type = %s",
                 $optin_type
             )
         );
