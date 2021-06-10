@@ -505,6 +505,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'on_click_action'       => array(
+                    'default'   => $this->customizer_defaults['on_click_action'],
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'success_message'            => array(
                     'default'   => $this->customizer_defaults['success_message'],
                     'type'      => 'option',

@@ -932,11 +932,23 @@ class CustomizerControls
                     $this->wp_customize,
                     $this->option_prefix . '[close_backdrop_click]',
                     apply_filters('mo_optin_form_customizer_close_backdrop_click_args', array(
-                            'label'    => __('Close on Overlay Click', 'mailoptin'),
+                            'label'    => __('Close on Overlays Click', 'mailoptin'),
                             'section'  => $this->customizerClassInstance->configuration_section_id,
                             'settings' => $this->option_prefix . '[close_backdrop_click]',
                             'type'     => 'light',
                             'priority' => 48,
+                        )
+                    )
+                ),
+                'on_click_action'          => new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[on_click_action]',
+                    apply_filters('mo_optin_form_customizer_on_click_action_args', array(
+                            'label'    => __('On Click Action', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->configuration_section_id,
+                            'settings' => $this->option_prefix . '[on_click_action]',
+                            'type'     => 'light',
+                            'priority' => 54,
                         )
                     )
                 ),
@@ -993,6 +1005,7 @@ class CustomizerControls
 
         if ($this->customizerClassInstance->optin_campaign_type !== 'lightbox') {
             unset($content_control_args['close_backdrop_click']);
+            unset($content_control_args['on_click_action']);
         }
 
         do_action('mailoptin_before_configuration_controls_addition');
