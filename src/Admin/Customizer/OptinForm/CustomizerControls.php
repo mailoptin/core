@@ -1204,10 +1204,6 @@ class CustomizerControls
 
     /**
      * Page filter display rule.
-     *
-     * @param \WP_Customize_Manager $wp_customize
-     * @param string $option_prefix
-     * @param Customizer $customizerClassInstance
      */
     public function page_filter_display_rule_controls()
     {
