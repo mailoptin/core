@@ -34,6 +34,13 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
             case 'pages_never_load':
             case 'cpt_never_load':
             case 'exclusive_post_types_posts_load':
+                $options = array_reduce($savedValue, function ($carry, $post_id) {
+                    $post_type_label = get_post_type_object(get_post_type($post_id))->label;
+                    $carry[$post_type_label][$post_id] = get_the_title($post_id);
+
+                    return $carry;
+                }, []);
+                break;
             case 'woocommerce_products':
                 $options = array_reduce($savedValue, function ($carry, $post_id) {
                     $carry[$post_id] = get_the_title($post_id);
