@@ -6,27 +6,21 @@ class PreviewCampaignLog
 {
     public function __construct()
     {
-        add_filter('template_include', array($this, 'preview_campaign'));
+        add_action('template_redirect', array($this, 'preview_campaign'));
         add_action('template_redirect', array($this, 'preview_campaign_error_log'));
     }
 
     /**
      * Handle preview of campaign newsletter content.
-     *
-     * @param string $template
-     *
-     * @return string
      */
-    public function preview_campaign($template)
+    public function preview_campaign()
     {
-
         if ( \MailOptin\Core\current_user_has_privilege()) {
             if (isset($_GET['mailoptin']) && isset($_GET['type']) && isset($_GET['id']) && 'preview-campaign' == $_GET['mailoptin']) {
-                $template = MAILOPTIN_SETTINGS_PAGE_FOLDER . 'include.preview-campaign-log.php';
+                require MAILOPTIN_SETTINGS_PAGE_FOLDER . 'include.preview-campaign-log.php';
+                exit;
             }
         }
-
-        return $template;
     }
 
     /**
