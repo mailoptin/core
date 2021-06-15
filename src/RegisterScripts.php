@@ -294,7 +294,7 @@ class RegisterScripts
             $screen = get_current_screen();
 
             //Ensure this is a post edit screen to save resources
-            if ($screen->is_block_editor && post_can_new_post_notification($post)) {
+            if (isset($screen->is_block_editor) && $screen->is_block_editor && post_can_new_post_notification($post)) {
                 $localize_strings['sidebar']                   = 1;
                 $localize_strings['disable_notifications']     = get_post_meta($post->ID, '_mo_disable_npp', true);
                 $localize_strings['disable_notifications_txt'] = __('Disable MailOptin new post notification for this post.', 'mailoptin');
