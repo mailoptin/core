@@ -592,7 +592,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
     /**
      * $index is high numeric value by default so new field added wont have populated data from saved data.
      *
-     * @param string $index
+     * @param int $index
      */
     public function template($index = 9999999999999)
     {

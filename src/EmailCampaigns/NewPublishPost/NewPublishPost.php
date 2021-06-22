@@ -58,7 +58,7 @@ class NewPublishPost extends AbstractTriggers
 
                 $this->new_publish_post($post->post_status, $mo_old_post_status[$post_id], $post);
 
-            }, 99999999999999999999, 2);
+            }, 999999999, 2);
         }
 
         // deprecated because it is triggered before all meta data are saved.
