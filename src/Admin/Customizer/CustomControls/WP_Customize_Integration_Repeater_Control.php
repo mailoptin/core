@@ -109,6 +109,9 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
     public function integration_template()
     {
         ?>
+        <script type="text/html" id="tmpl-mo-webhook-integration-js-template">
+            <?php $this->request_headers_template() ?>
+        </script>
         <script type="text/html" id="tmpl-mo-integration-js-template">
             <?php $this->template(); ?>
         </script>
@@ -564,6 +567,49 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
         <?php
     }
 
+    public function request_headers_template($index = 9999999999999) {
+        $header_fields_label = [
+            ''                              => __('Select a Name', 'mailoptin'),
+            'Accept'                        => __('Accept', 'mailoptin'),
+            'Accept-Charset'                => __('Accept-Charset', 'mailoptin'),
+            'Accept-Encoding'               => __('Accept-Encoding', 'mailoptin'),
+            'Accept-Language'               => __('Accept-Language', 'mailoptin'),
+            'Accept-Datetime'               => __('Accept-Datetime', 'mailoptin'),
+            'Authorization'                 => __('Authorization', 'mailoptin'),
+            'Cache-Control'                 => __('Cache-Control', 'mailoptin'),
+            'Connection'                    => __('Connection', 'mailoptin'),
+            'Content-Length'                => __('Content-Length', 'mailoptin'),
+            'Date'                          => __('Date', 'mailoptin'),
+            'Expect'                        => __('Expect', 'mailoptin'),
+            'From'                          => __('From', 'mailoptin'),
+            'Host'                          => __('Host', 'mailoptin'),
+            'If-Match'                      => __('If-Match', 'mailoptin'),
+            'If-Modified-Since'             => __('If-Modified-Since', 'mailoptin'),
+            'If-None-Match'                 => __('If-None-Match', 'mailoptin'),
+            'If-Range'                      => __('If-Range', 'mailoptin'),
+            'If-Unmodified-Since'           => __('If-Unmodified-Since', 'mailoptin'),
+            'Max-Forwards'                  => __('Max-Forwards', 'mailoptin'),
+            'Origin'                        => __('Origin', 'mailoptin'),
+            'Pragma'                        => __('Pragma', 'mailoptin'),
+            'Proxy-Authorization'           => __('Proxy-Authorization', 'mailoptin'),
+            'Range'                         => __('Range', 'mailoptin'),
+            'Referer'                       => __('Referer', 'mailoptin'),
+            'TE'                            => __('TE', 'mailoptin'),
+            'User-Agent'                    => __('User-Agent', 'mailoptin'),
+            'Upgrade'                       => __('Upgrade', 'mailoptin'),
+            'Via'                           => __('Via', 'mailoptin'),
+            'Warning'                       => __('Warning', 'mailoptin'),
+            'mo_custom_header'              => __('Add Custom Key', 'mailoptin'),
+        ];
+
+        ?>
+        <div class="mo-integration-widget mo-integration-part-widget" data-integration-index="<?= $index; ?>">
+        <?php $this->select_field($index, 'mo_webhook_integration_header_name[]', $header_fields_label, '', __('Header Name', 'mailoptin'), __('Setup the HTTP headers to be sent with the webhook request.', 'mailoptin')); ?>
+        <?php $this->text_field($index, 'mo_webhook_connection_header_value[]', '', __('Header Value', 'mailoptin')); ?>
+        <button type="button" class="button mo-integration-webhook__remove">&times;</button>
+        </div>
+        <?php
+    }
     public function advance_settings($index)
     {
         echo '<div class="mo-integration-widget-advanced-settings-wrap" style="display: none">';
@@ -609,7 +655,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
         Apparently, it is automatically inserted by customizer*/
         ?>
         <div class="mo-integration__add_new">
-            <button type="button" class="button mo-add-new-integration">
+            <button type="button" class="button mo-integration-widget-actions">
                 <?php _e('Add Another Integration', 'mailoptin') ?>
             </button>
         </div>
