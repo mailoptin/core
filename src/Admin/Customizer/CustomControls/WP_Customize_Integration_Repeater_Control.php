@@ -655,7 +655,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
         Apparently, it is automatically inserted by customizer*/
         ?>
         <div class="mo-integration__add_new">
-            <button type="button" class="button mo-integration-widget-actions">
+            <button type="button" class="button mo-add-new-integration">
                 <?php _e('Add Another Integration', 'mailoptin') ?>
             </button>
         </div>
