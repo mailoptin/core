@@ -59,6 +59,20 @@ trait CustomizerTrait
 
     public function clean_up_customizer()
     {
+        if (Settings::instance()->switch_customizer_loader() != 'true' && ! $this->is_ninja_form_shortcode()) {
+
+            add_filter('customize_loaded_components', function ($component) {
+
+                $i = array_search('nav_menus', $component);
+                if (is_numeric($i)) {
+                    unset($component[$i]);
+                }
+
+                return $component;
+
+            }, 99);
+        }
+
         // this should never change from init to say admin_init in future because it will
         // cause wp_enqueue_scripts filter from taking effect cos its used in frontend.
         add_action('init', function () {
