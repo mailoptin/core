@@ -61,14 +61,19 @@ trait CustomizerTrait
     {
         if (Settings::instance()->switch_customizer_loader() != 'true' && ! $this->is_ninja_form_shortcode()) {
 
-            add_filter('customize_loaded_components', function ($component) {
+            add_filter('customize_loaded_components', function ($components) {
 
-                $i = array_search('nav_menus', $component);
-                if (is_numeric($i)) {
-                    unset($component[$i]);
+                $core_components = array('nav_menus', 'widgets');
+
+                if ( ! empty($components)) {
+                    foreach ($components as $component_key => $component) {
+                        if (in_array($component, $core_components, true)) {
+                            unset($components[$component_key]);
+                        }
+                    }
                 }
 
-                return $component;
+                return $components;
 
             }, 99);
         }
