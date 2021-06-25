@@ -65,7 +65,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
 
      /**
      * Mailoptin only css to fix conflicts
-     * 
+     *
      */
     public function mailoptin_only_css()
     {

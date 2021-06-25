@@ -12,6 +12,7 @@ class RegisterScripts
     public function __construct()
     {
         add_action('admin_enqueue_scripts', array($this, 'admin_css'));
+        add_action('admin_enqueue_scripts', [$this, 'admin_js']);
         add_action('customize_controls_init', [$this, 'admin_js']);
         add_action('admin_enqueue_scripts', [$this, 'fancybox_assets']);
         add_action('wp_enqueue_scripts', array($this, 'public_css'));
