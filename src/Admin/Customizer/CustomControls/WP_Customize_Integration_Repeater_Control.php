@@ -63,7 +63,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
         do_action('mo_optin_integration_control_enqueue');
     }
 
-     /**
+    /**
      * Mailoptin only css to fix conflicts
      *
      */
@@ -108,6 +108,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
 
     public function integration_template()
     {
+        do_action('mo_optin_integration_control_template', $this);
         ?>
         <script type="text/html" id="tmpl-mo-integration-js-template">
             <?php $this->template(); ?>
