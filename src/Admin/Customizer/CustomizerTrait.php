@@ -62,7 +62,7 @@ trait CustomizerTrait
         if (Settings::instance()->switch_customizer_loader() != 'true' && ! $this->is_ninja_form_shortcode()) {
 
             add_filter('customize_loaded_components', function ($components) {
-                
+
                 $core_components = array('nav_menus'/*, 'widgets'*/);
 
                 if ( ! empty($components)) {
@@ -247,7 +247,6 @@ trait CustomizerTrait
      */
     public function js_script()
     {
-        $webhook_label     = __('Request Method (Required)', 'mailoptin');
         $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
         $ck_label          = __('ConvertKit Forms', 'mailoptin');
         $drip_label        = __('Drip Campaigns', 'mailoptin');
@@ -293,10 +292,6 @@ trait CustomizerTrait
                         if (connection_service === 'WordPressUserRegistrationConnect') {
                             title_obj.text('<?php echo $wp_user_reg_label; ?>');
                         }
-
-                        if (connection_service === 'WebHookConnect') {
-                            title_obj.text('<?php echo $webhook_label; ?>');
-                        }
                     }
 
                     function logic_new(connection_service, parent) {
@@ -334,10 +329,6 @@ trait CustomizerTrait
                                 if (connection_service === 'WordPressUserRegistrationConnect') {
                                     title_obj.text('<?php echo $wp_user_reg_label; ?>');
                                 }
-
-                                if (connection_service === 'WebHookConnect') {
-                                    title_obj.text('<?php echo $webhook_label; ?>');
-                                }
                             });
                         } else {
 
@@ -371,10 +362,6 @@ trait CustomizerTrait
 
                             if (connection_service === 'WordPressUserRegistrationConnect') {
                                 title_obj.text('<?php echo $wp_user_reg_label; ?>');
-                            }
-
-                            if (connection_service === 'WebHookConnect') {
-                                title_obj.text('<?php echo $webhook_label; ?>');
                             }
                         }
                     }
