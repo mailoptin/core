@@ -62,7 +62,7 @@ trait CustomizerTrait
         if (Settings::instance()->switch_customizer_loader() != 'true' && ! $this->is_ninja_form_shortcode()) {
 
             add_filter('customize_loaded_components', function ($components) {
-
+                
                 $core_components = array('nav_menus'/*, 'widgets'*/);
 
                 if ( ! empty($components)) {
