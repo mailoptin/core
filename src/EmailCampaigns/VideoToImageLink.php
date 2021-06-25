@@ -74,9 +74,11 @@ class VideoToImageLink
 
     protected function convertYoutube($id)
     {
-        $youtube_play_button_overlay = MAILOPTIN_ASSETS_URL . 'images/youtube-play-button-overlay.png';
+        //$youtube_play_button_overlay = MAILOPTIN_ASSETS_URL . 'images/youtube-play-button-overlay.png';
 
-        if (defined('W3GUY_LOCAL')) $youtube_play_button_overlay = 'https://i.imgur.com/QH1IyIm.png';
+        //if (defined('W3GUY_LOCAL')) $youtube_play_button_overlay = 'https://i.imgur.com/QH1IyIm.png';
+
+        $youtube_play_button_overlay = 'https://i.imgur.com/QH1IyIm.png';
 
         $result = wp_remote_get(sprintf('https://www.youtube.com/oembed?format=json&url=https://youtube.com/watch?v=%s', $id));
 
