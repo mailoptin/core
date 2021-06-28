@@ -248,6 +248,7 @@ trait CustomizerTrait
      */
     public function js_script()
     {
+        $webhook_label     = __('Request Method (Required)', 'mailoptin');
         $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
         $ck_label          = __('ConvertKit Forms', 'mailoptin');
         $drip_label        = __('Drip Campaigns', 'mailoptin');
@@ -293,6 +294,10 @@ trait CustomizerTrait
                         if (connection_service === 'WordPressUserRegistrationConnect') {
                             title_obj.text('<?php echo $wp_user_reg_label; ?>');
                         }
+
+                        if (connection_service === 'WebHookConnect') {
+                            title_obj.text('<?php echo $webhook_label; ?>');
+                        }
                     }
 
                     function logic_new(connection_service, parent) {
@@ -330,6 +335,10 @@ trait CustomizerTrait
                                 if (connection_service === 'WordPressUserRegistrationConnect') {
                                     title_obj.text('<?php echo $wp_user_reg_label; ?>');
                                 }
+
+                                if (connection_service === 'WebHookConnect') {
+                                    title_obj.text('<?php echo $webhook_label; ?>');
+                                }
                             });
                         } else {
 
@@ -363,6 +372,10 @@ trait CustomizerTrait
 
                             if (connection_service === 'WordPressUserRegistrationConnect') {
                                 title_obj.text('<?php echo $wp_user_reg_label; ?>');
+                            }
+
+                            if (connection_service === 'WebHookConnect') {
+                                title_obj.text('<?php echo $webhook_label; ?>');
                             }
                         }
                     }
