@@ -8,6 +8,7 @@ if ( ! defined('ABSPATH')) {
 
 use MailOptin\Core\Admin\AdminNotices;
 use MailOptin\Core\Admin\SettingsPage\ConversionExport;
+use MailOptin\Core\Admin\SettingsPage\NavigationMenu;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
 use MailOptin\Core\EmailCampaigns\Misc;
@@ -143,6 +144,7 @@ class Base
         Admin\SettingsPage\AdvanceAnalytics::get_instance();
         AdminNotices::get_instance();
         ConversionExport::get_instance();
+        NavigationMenu::get_instance();
         ProUpgrade::get_instance();
 
         do_action('mailoptin_admin_hooks');
