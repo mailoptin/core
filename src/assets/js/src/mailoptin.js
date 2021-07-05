@@ -657,7 +657,7 @@ var mailoptin_optin = {
         }
 
         this.show();
-        $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config]);
+        $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config, optin_type]);
     },
 
     /**
@@ -1241,6 +1241,9 @@ var mailoptin_optin = {
     eventSubscription: function () {
         // track impression for optin form other than modals
         $(document.body).on('moOptin:show', function (e, optin_uuid, optin_js_config) {
+
+            mailoptin_optin.content_locker_init(optin_js_config);
+
             $.MailOptin.track_impression(optin_uuid);
             // track GA
             mailoptin_optin.ga_event_tracking('impression', optin_js_config);
@@ -1248,6 +1251,34 @@ var mailoptin_optin = {
 
         // success actions
         $(document.body).on('moOptinConversion', this.success_action_after_conversion);
+    },
+
+    is_content_locker_enabled: function (optin_config) {
+        return mailoptin_optin.is_defined_not_empty(optin_config.content_lock_status) &&
+            true === optin_config.content_lock_status &&
+            mailoptin_optin.is_defined_not_empty(optin_config.content_lock_style);
+    },
+
+    content_locker_init: function (optin_config) {
+
+        if (mailoptin_optin.is_content_locker_enabled(optin_config)) {
+            console.log(optin_config)
+            if ('obfuscation' == optin_config.content_lock_style) {
+
+                $('#' + optin_config.optin_uuid).nextAll().each(function (index, el) {
+                    $(el).addClass('mailoptin-content-lock');
+                });
+            }
+        }
+    },
+
+    content_locker_removal: function (optin_config) {
+
+        if (mailoptin_optin.is_defined_not_empty(optin_config.content_lock_status) &&
+            true === optin_config.content_lock_status &&
+            mailoptin_optin.is_defined_not_empty(optin_config.content_lock_style)
+        ) {
+        }
     },
 
     add_query_args: function (uri, params) {
