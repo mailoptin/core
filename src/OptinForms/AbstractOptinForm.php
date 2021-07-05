@@ -1115,6 +1115,9 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $x_seconds_status = $this->get_customizer_value('x_seconds_status');
         $x_seconds_value  = $this->get_customizer_value('x_seconds_value');
 
+        $content_lock_status = $this->get_customizer_value('inpost_content_locking_activate');
+        $content_lock_style  = $this->get_customizer_value('inpost_content_locking_style');
+
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
             $x_seconds_status = true;
             $x_seconds_value  = 3;
@@ -1180,6 +1183,12 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
                 $data['required_custom_fields'] = $required_custom_fields;
             }
+        }
+
+        /** after x seconds display rule */
+        if ($content_lock_status === true && ! empty($content_lock_style)) {
+            $data['content_lock_status'] = $content_lock_status;
+            $data['content_lock_style']  = $content_lock_style;
         }
 
         /** click launch display rule */
