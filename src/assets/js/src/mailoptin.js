@@ -148,13 +148,13 @@ var mailoptin_optin = {
             });
 
             // handle CTA button click if activated
-            if (self.is_defined_not_empty(optin_js_config.cta_display) && optin_js_config.cta_display === true && self.is_defined_not_empty(optin_js_config.cta_action)) {
+            if (self.is_var_defined(optin_js_config, 'cta_display') && optin_js_config.cta_display === true && self.is_var_defined(optin_js_config, 'cta_action')) {
                 // if cta action is to navigate
                 $(document).on('click', '#' + $optin_css_id + '_cta_button', function (e) {
                     e.preventDefault();
                     var optin_container = $(this).parents('.moOptinForm');
 
-                    if (optin_js_config.cta_action === 'navigate_to_url' && self.is_defined_not_empty(optin_js_config.cta_navigate_url)) {
+                    if (optin_js_config.cta_action === 'navigate_to_url' && self.is_var_defined(optin_js_config, 'cta_navigate_url')) {
                         // bail if we are in customizer preview.
                         if ($.MailOptin.is_customize_preview === true) return;
                         // set cookie for this option conversion when button is clicked.
@@ -205,7 +205,10 @@ var mailoptin_optin = {
      * @returns {boolean}
      */
     is_after_x_seconds_active: function (optin_config) {
-        return optin_config.x_seconds_status === true && optin_config.x_seconds_value !== undefined;
+
+        return typeof optin_config.x_seconds_status !== 'undefined' &&
+            optin_config.x_seconds_status === true &&
+            typeof optin_config.x_seconds_value !== 'undefined';
     },
 
     /**
@@ -328,7 +331,7 @@ var mailoptin_optin = {
 
                 $.each(optin_config.split_test_variants, function (index, variant_config) {
 
-                    if (self.is_defined_not_empty(variant_config.state_after_conversion) &&
+                    if (self.is_var_defined(variant_config, 'state_after_conversion') &&
                         variant_config.state_after_conversion !== 'optin_form_shown' &&
                         self.is_optin_visible(variant_config) === false) {
                         flag = false;
@@ -1161,7 +1164,7 @@ var mailoptin_optin = {
 
         action = action || 'impression';
 
-        if (mailoptin_optin.is_defined_not_empty(optin_js_config.ga_active) === false) return;
+        if (mailoptin_optin.is_var_defined(optin_js_config, 'ga_active') === false) return;
 
         if (typeof ga !== "function") return;
 
@@ -1260,9 +1263,9 @@ var mailoptin_optin = {
     },
 
     is_content_locker_enabled: function (optin_config) {
-        return mailoptin_optin.is_defined_not_empty(optin_config.content_lock_status) &&
+        return mailoptin_optin.is_var_defined(optin_config, 'content_lock_status') &&
             true === optin_config.content_lock_status &&
-            mailoptin_optin.is_defined_not_empty(optin_config.content_lock_style);
+            mailoptin_optin.is_var_defined(optin_config, 'content_lock_style');
     },
 
     content_locker_init: function (optin_config) {
@@ -1393,6 +1396,18 @@ var mailoptin_optin = {
                 }
             }
         });
+    },
+
+    /**
+     * Check if value is defined
+     *
+     * @param {mixed} varObj
+     * @param {string|int} objKey
+     *
+     * @returns {boolean}
+     */
+    is_var_defined: function (varObj, objKey) {
+        return (typeof varObj[objKey] !== 'undefined');
     },
 
     /**
