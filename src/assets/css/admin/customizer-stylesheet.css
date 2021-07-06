@@ -68,10 +68,6 @@ strong.panel-title.site-title:hover {
     box-shadow: 0px 0px 10px 0px #000;
 }
 
-.customize-control-textarea textarea {
-    height: 500px;
-}
-
 #customize-controls .description {
     color: #999;
 }

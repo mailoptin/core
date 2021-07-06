@@ -862,7 +862,7 @@ class CustomizerControls
         $content_control_args = apply_filters(
             "mo_optin_form_customizer_configuration_controls",
             array(
-                'split_test_note'            => apply_filters('mo_optin_form_customizer_split_test_note_args', array(
+                'split_test_note'                 => apply_filters('mo_optin_form_customizer_split_test_note_args', array(
                         'type'        => 'textarea',
                         'label'       => __('Split Test Note', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->configuration_section_id,
@@ -871,7 +871,7 @@ class CustomizerControls
                         'priority'    => 13,
                     )
                 ),
-                'inpost_form_optin_position' => apply_filters('mo_optin_form_customizer_inpost_form_optin_position_args', array(
+                'inpost_form_optin_position'      => apply_filters('mo_optin_form_customizer_inpost_form_optin_position_args', array(
                         'type'        => 'select',
                         'label'       => __('Optin Form Position', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->configuration_section_id,
@@ -885,7 +885,32 @@ class CustomizerControls
                         'priority'    => 15,
                     )
                 ),
-                'slidein_position'           => apply_filters('mo_optin_form_customizer_slidein_position_args', array(
+                'inpost_content_locking_activate' => new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[inpost_content_locking_activate]',
+                    apply_filters('mo_optin_form_customizer_inpost_content_locking_activate_args', array(
+                            'label'    => __('Lock Content Below Optin', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->configuration_section_id,
+                            'settings' => $this->option_prefix . '[inpost_content_locking_activate]',
+                            'type'     => 'light',
+                            'priority' => 16,
+                        )
+                    )
+                ),
+                'inpost_content_locking_style'    => apply_filters('mo_optin_form_customizer_inpost_content_locking_style_args', array(
+                        'type'        => 'select',
+                        'description' => esc_html__('Select how the content will be protected.', 'mailoptin'),
+                        'choices'     => [
+                            'obfuscation' => esc_html__('Obfuscation', 'mailoptin'),
+                            'removal'     => esc_html__('Removal', 'mailoptin'),
+                        ],
+                        'label'       => esc_html__('Content Locking Style', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->configuration_section_id,
+                        'settings'    => $this->option_prefix . '[inpost_content_locking_style]',
+                        'priority'    => 17,
+                    )
+                ),
+                'slidein_position'                => apply_filters('mo_optin_form_customizer_slidein_position_args', array(
                         'type'     => 'select',
                         'choices'  => ['bottom_right' => __('Bottom Right', 'mailoptin'), 'bottom_left' => __('Bottom Left', 'mailoptin')],
                         'label'    => __('Slide-in Position', 'mailoptin'),
@@ -894,7 +919,7 @@ class CustomizerControls
                         'priority' => 20,
                     )
                 ),
-                'bar_position'               => apply_filters('mo_optin_form_customizer_bar_position_args', array(
+                'bar_position'                    => apply_filters('mo_optin_form_customizer_bar_position_args', array(
                         'type'     => 'select',
                         'choices'  => ['top' => __('Top', 'mailoptin'), 'bottom' => __('Bottom', 'mailoptin')],
                         'label'    => __('Bar Position', 'mailoptin'),
@@ -903,7 +928,7 @@ class CustomizerControls
                         'priority' => 30,
                     )
                 ),
-                'bar_sticky'                 => new WP_Customize_Toggle_Control(
+                'bar_sticky'                      => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[bar_sticky]',
                     apply_filters('mo_optin_form_customizer_bar_sticky_args', array(
@@ -916,7 +941,7 @@ class CustomizerControls
                         )
                     )
                 ),
-                'hide_close_button'          => new WP_Customize_Toggle_Control(
+                'hide_close_button'               => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[hide_close_button]',
                     apply_filters('mo_optin_form_customizer_hide_close_button_args', array(
@@ -928,7 +953,7 @@ class CustomizerControls
                         )
                     )
                 ),
-                'close_backdrop_click'       => new WP_Customize_Toggle_Control(
+                'close_backdrop_click'            => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[close_backdrop_click]',
                     apply_filters('mo_optin_form_customizer_close_backdrop_click_args', array(
@@ -940,7 +965,7 @@ class CustomizerControls
                         )
                     )
                 ),
-                'cookie'                     => apply_filters('mo_optin_form_customizer_cookie_args', array(
+                'cookie'                          => apply_filters('mo_optin_form_customizer_cookie_args', array(
                         'type'        => 'text',
                         'label'       => __('Cookie Duration', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->configuration_section_id,
@@ -952,7 +977,7 @@ class CustomizerControls
                         )
                     )
                 ),
-                'success_cookie'             => apply_filters('mo_optin_form_customizer_success_cookie_args', array(
+                'success_cookie'                  => apply_filters('mo_optin_form_customizer_success_cookie_args', array(
                         'type'        => 'text',
                         'label'       => __('Success Cookie Duration', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->configuration_section_id,
@@ -964,7 +989,7 @@ class CustomizerControls
                         )
                     )
                 ),
-                'remove_branding'            => new WP_Customize_Toggle_Control(
+                'remove_branding'                 => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[remove_branding]',
                     apply_filters('mo_optin_form_customizer_remove_branding_args', array(

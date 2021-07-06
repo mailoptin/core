@@ -1245,7 +1245,7 @@
       "bF" : 4,
       "ft" : 64,
       "ma" : 0,
-      "mi" : 2,
+      "mi" : 1,
       "oA" : 0,
       "oAP" : "\/src\/assets\/js\/mailoptin.min.js",
       "oF" : 3,
@@ -1473,7 +1473,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 641202292.24061501
+    "lastBuiltDate" : 647280354.29544997
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
