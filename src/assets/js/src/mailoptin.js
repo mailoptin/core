@@ -45,6 +45,8 @@ $.MailOptin = {
 
 var mailoptin_optin = {
 
+    content_locker_storage: [],
+
     mailoptin_jq_plugin: function () {
         var self = this;
         $.fn.mailoptin = function (skip_display_checks) {
@@ -1267,9 +1269,17 @@ var mailoptin_optin = {
 
         if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
 
-        if ('obfuscation' === optin_config.content_lock_style) {
+        var nextAll = $('#' + optin_config.optin_uuid).nextAll();
 
-            $('#' + optin_config.optin_uuid).nextAll().each(function (index, el) {
+        if ('removal' === optin_config.content_lock_style) {
+
+            nextAll.each(function (index, el) {
+                mailoptin_optin.content_locker_storage.push($(el).clone(true));
+                $(el).remove();
+            });
+
+        } else {
+            nextAll.each(function (index, el) {
                 $(el).addClass('mailoptin-content-lock');
             });
         }
@@ -1279,9 +1289,20 @@ var mailoptin_optin = {
 
         if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
 
-        if ('obfuscation' === optin_config.content_lock_style) {
+        var optin_container = $('#' + optin_config.optin_uuid),
+            nextAll = optin_container.nextAll();
 
-            $('#' + optin_config.optin_uuid).nextAll().each(function (index, el) {
+        if ('removal' === optin_config.content_lock_style) {
+
+            mailoptin_optin.content_locker_storage.reverse();
+
+            $.each(mailoptin_optin.content_locker_storage, function (index, el) {
+                optin_container.after(el);
+            });
+
+        } else {
+
+            nextAll.each(function (index, el) {
                 $(el).removeClass('mailoptin-content-lock');
             });
         }
