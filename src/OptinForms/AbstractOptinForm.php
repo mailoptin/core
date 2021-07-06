@@ -1216,6 +1216,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $success_action         = $this->get_customizer_value('success_action');
         $data['success_action'] = $success_action;
 
+        $data['state_after_conversion'] = $this->state_after_conversion();
+
         if ($success_action == 'redirect_url') {
             $data['redirect_url_value'] = esc_url($this->get_customizer_value('redirect_url_value'));
             $data['pass_lead_data']     = $this->get_customizer_value('pass_lead_data_redirect_url');

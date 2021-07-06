@@ -292,15 +292,17 @@ var mailoptin_optin = {
      * @returns {boolean}
      */
     is_optin_visible: function (optin_config) {
-        var $optin_uuid = optin_config.optin_uuid;
-        // if global success cookie found, do not display any optin.
-        if (optin_config.global_success_cookie > 0 && Cookies.get('mo_global_success_cookie')) return false;
-        // if global interaction/exit cookie found, do not display any optin.
-        if (optin_config.global_cookie > 0 && Cookies.get('mo_global_cookie')) return false;
-        // if success cookie found for this optin, do not display it.
-        if (Cookies.get('mo_success_' + $optin_uuid)) return false;
-        // if exit cookie found for this optin, do not dispay it.
-        if (Cookies.get('mo_' + $optin_uuid)) return false;
+        if (optin_config.state_after_conversion !== 'optin_form_shown') {
+            var $optin_uuid = optin_config.optin_uuid;
+            // if global success cookie found, do not display any optin.
+            if (optin_config.global_success_cookie > 0 && Cookies.get('mo_global_success_cookie')) return false;
+            // if global interaction/exit cookie found, do not display any optin.
+            if (optin_config.global_cookie > 0 && Cookies.get('mo_global_cookie')) return false;
+            // if success cookie found for this optin, do not display it.
+            if (Cookies.get('mo_success_' + $optin_uuid)) return false;
+            // if exit cookie found for this optin, do not dispay it.
+            if (Cookies.get('mo_' + $optin_uuid)) return false;
+        }
 
         return true;
     },
@@ -1202,6 +1204,8 @@ var mailoptin_optin = {
         // track GA
         mailoptin_optin.ga_event_tracking('conversion', optin_js_config);
 
+        mailoptin_optin.content_locker_removal(optin_js_config);
+
         // if we have a JS success script, trigger it.
         if (is_success_js_script === true) {
             if (success_js_script.indexOf('<script') === -1) {
@@ -1261,23 +1265,25 @@ var mailoptin_optin = {
 
     content_locker_init: function (optin_config) {
 
-        if (mailoptin_optin.is_content_locker_enabled(optin_config)) {
-            console.log(optin_config)
-            if ('obfuscation' == optin_config.content_lock_style) {
+        if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
 
-                $('#' + optin_config.optin_uuid).nextAll().each(function (index, el) {
-                    $(el).addClass('mailoptin-content-lock');
-                });
-            }
+        if ('obfuscation' === optin_config.content_lock_style) {
+
+            $('#' + optin_config.optin_uuid).nextAll().each(function (index, el) {
+                $(el).addClass('mailoptin-content-lock');
+            });
         }
     },
 
     content_locker_removal: function (optin_config) {
 
-        if (mailoptin_optin.is_defined_not_empty(optin_config.content_lock_status) &&
-            true === optin_config.content_lock_status &&
-            mailoptin_optin.is_defined_not_empty(optin_config.content_lock_style)
-        ) {
+        if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
+
+        if ('obfuscation' === optin_config.content_lock_style) {
+
+            $('#' + optin_config.optin_uuid).nextAll().each(function (index, el) {
+                $(el).removeClass('mailoptin-content-lock');
+            });
         }
     },
 
