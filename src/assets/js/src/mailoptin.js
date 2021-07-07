@@ -387,7 +387,7 @@ var mailoptin_optin = {
         }
 
         // return if click launch status is activated for optin but the trigger isn't it.
-        if (optin_config.click_launch_status === true && skip_display_checks === false) return;
+        if (self.is_var_defined(optin_config, 'click_launch_status') && optin_config.click_launch_status === true && skip_display_checks === false) return;
 
         if (self.is_optin_visible(optin_config) === false) return;
 
@@ -1331,11 +1331,7 @@ var mailoptin_optin = {
             $(element).mailoptin();
         });
 
-        // click launch trigger
-        $('.mailoptin-click-trigger').click(function (event) {
-            event.preventDefault();
-
-            var optin_uuid = $(this).data('optin-uuid') || $(this).attr('id');
+        var clickLaunchCallback = function (optin_uuid) {
 
             if (typeof optin_uuid !== 'undefined') {
 
@@ -1346,6 +1342,30 @@ var mailoptin_optin = {
                 ];
 
                 $(selector.join(',')).mailoptin(true);
+            }
+        }
+
+        // click launch trigger
+        $(document).on('click', '.mailoptin-click-trigger', function (event) {
+
+            event.preventDefault();
+
+            var optin_uuid = $(this).data('optin-uuid') || $(this).attr('id');
+
+            clickLaunchCallback(optin_uuid);
+        });
+
+        // click launch trigger
+        $(document).on('click', '[class*="mailoptin-click-trigger-"]', function (event) {
+
+            event.preventDefault();
+
+            // https://stackoverflow.com/a/17367855/2648410
+            var optin_uuid, className = this.className.match(/mailoptin-click-trigger-([a-z0-1]+)\s?/i);
+
+            if (null !== className) {
+                optin_uuid = className[1];
+                clickLaunchCallback(optin_uuid);
             }
         });
     },
