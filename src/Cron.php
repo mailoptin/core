@@ -4,6 +4,7 @@ namespace MailOptin\Core;
 
 use Carbon\Carbon;
 use MailOptin\Libsodium\LibsodiumSettingsPage;
+use PAnD as PAnD;
 use stdClass;
 
 class Cron
@@ -33,6 +34,12 @@ class Cron
 
     public function catch_late_email_digest_event_notice()
     {
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
+
+        if ( ! PAnD::is_admin_notice_active('catch_late_email_digest_event-7')) {
+            return;
+        }
+
         $cron = wp_get_scheduled_event('mo_hourly_recurring_job');
 
         if ( ! $cron) return;
@@ -40,7 +47,7 @@ class Cron
         if ( ! $this->is_late(wp_get_scheduled_event('mo_hourly_recurring_job'))) return;
 
         printf(
-            '<div id="mailoptin-crontrol-late-message" class="notice notice-warning"><p>%4$s %1$s</p><p><a target="_blank" href="%2$s">%3$s</a></p></div>',
+            '<div id="mailoptin-crontrol-late-message" data-dismissible="catch_late_email_digest_event-7" class="notice notice-warning is-dismissible"><p>%4$s %1$s</p><p><a target="_blank" href="%2$s">%3$s</a></p></div>',
             /* translators: %s: Help page URL. */
             esc_html__('One or more MailOptin\'s cron events have missed their schedule. This might cause your scheduled emails and tasks to stop working.', 'mailoptin'),
             'https://mailoptin.io/article/fix-cron-events-missing-schedules/',
