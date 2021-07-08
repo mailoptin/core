@@ -885,31 +885,6 @@ class CustomizerControls
                         'priority'    => 15,
                     )
                 ),
-                'inpost_content_locking_activate' => new WP_Customize_Toggle_Control(
-                    $this->wp_customize,
-                    $this->option_prefix . '[inpost_content_locking_activate]',
-                    apply_filters('mo_optin_form_customizer_inpost_content_locking_activate_args', array(
-                            'label'    => __('Lock Content Below Optin', 'mailoptin'),
-                            'section'  => $this->customizerClassInstance->configuration_section_id,
-                            'settings' => $this->option_prefix . '[inpost_content_locking_activate]',
-                            'type'     => 'light',
-                            'priority' => 16,
-                        )
-                    )
-                ),
-                'inpost_content_locking_style'    => apply_filters('mo_optin_form_customizer_inpost_content_locking_style_args', array(
-                        'type'        => 'select',
-                        'description' => esc_html__('Select how the content will be protected.', 'mailoptin'),
-                        'choices'     => [
-                            'obfuscation' => esc_html__('Obfuscation', 'mailoptin'),
-                            'removal'     => esc_html__('Removal', 'mailoptin'),
-                        ],
-                        'label'       => esc_html__('Content Locking Style', 'mailoptin'),
-                        'section'     => $this->customizerClassInstance->configuration_section_id,
-                        'settings'    => $this->option_prefix . '[inpost_content_locking_style]',
-                        'priority'    => 17,
-                    )
-                ),
                 'slidein_position'                => apply_filters('mo_optin_form_customizer_slidein_position_args', array(
                         'type'     => 'select',
                         'choices'  => ['bottom_right' => __('Bottom Right', 'mailoptin'), 'bottom_left' => __('Bottom Left', 'mailoptin')],

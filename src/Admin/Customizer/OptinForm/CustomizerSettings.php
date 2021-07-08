@@ -480,16 +480,6 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'inpost_content_locking_activate' => array(
-                    'default'   => $this->customizer_defaults['inpost_content_locking_activate'],
-                    'type'      => 'option',
-                    'transport' => 'postMessage',
-                ),
-                'inpost_content_locking_style' => array(
-                    'default'   => $this->customizer_defaults['inpost_content_locking_style'],
-                    'type'      => 'option',
-                    'transport' => 'postMessage',
-                ),
                 'bar_position'               => array(
                     'default'   => $this->customizer_defaults['bar_position'],
                     'type'      => 'option',

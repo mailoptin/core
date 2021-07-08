@@ -596,8 +596,6 @@ class Customizer
                 // restrict inpost_form_optin_position control to only inpost type
                 if ('inpost' != $customizerClassInstance->optin_campaign_type) {
                     unset($controls['inpost_form_optin_position']);
-                    unset($controls['inpost_content_locking_activate']);
-                    unset($controls['inpost_content_locking_style']);
                 }
 
                 return $controls;
