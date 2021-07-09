@@ -63,7 +63,7 @@ trait CustomizerTrait
 
             add_filter('customize_loaded_components', function ($components) {
 
-                $core_components = array('nav_menus', 'widgets');
+                $core_components = array('nav_menus'/*, 'widgets'*/);
 
                 if ( ! empty($components)) {
                     foreach ($components as $component_key => $component) {
@@ -130,7 +130,6 @@ trait CustomizerTrait
 
                     $child_theme  = $wp_get_theme->get_stylesheet();
                     $parent_theme = $wp_get_theme->get_template();
-
 
                     // important in fixing: Uncaught TypeError: Cannot set property '_value' of undefined
                     // from /wp-admin/js/customize-nav-menus.min.js
