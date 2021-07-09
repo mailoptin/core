@@ -260,6 +260,7 @@
                 $.post(ajaxurl, {
                         action: 'mailoptin_customizer_fetch_email_list',
                         connect_service: connect_service,
+                        ui: 'optin',
                         security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
                     },
                     function (response) {
