@@ -16,7 +16,7 @@ class NewPublishPost extends AbstractTriggers
     public function __construct()
     {
         parent::__construct();
-        
+
         // new way post 5.6
         if (function_exists('wp_after_insert_post')) {
             // new hook added in 5.6 triggered after post is published and all post meta data saved.
@@ -171,6 +171,8 @@ class NewPublishPost extends AbstractTriggers
                         if (empty($result)) continue;
                     }
                 }
+
+                do_action('mo_new_publish_post_before_send', $post);
 
                 $send_immediately_active = $this->send_immediately($email_campaign_id);
                 $email_subject           = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_subject'));
