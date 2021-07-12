@@ -59,7 +59,7 @@ abstract class AbstractCampaignLogMeta
      *
      * @return mixed
      */
-    public static function get_campaignlog_meta($campaign_log_id, $meta_key = '', $single = false)
+    public static function get_campaignlog_meta($campaign_log_id, $meta_key = '', $single = true)
     {
         return get_metadata('campaign_log', $campaign_log_id, $meta_key, $single);
     }
