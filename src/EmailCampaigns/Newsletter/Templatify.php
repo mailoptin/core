@@ -18,7 +18,6 @@ class Templatify implements TemplatifyInterface
 
     /**
      * @param int $email_campaign_id
-     * @param array $posts
      */
     public function __construct($email_campaign_id)
     {
