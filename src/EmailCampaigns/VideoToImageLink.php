@@ -117,6 +117,12 @@ class VideoToImageLink
 
         if ( ! is_wp_error($temp_file)) {
 
+            $name = ! empty($name) ? $name : basename($url);
+
+            if (strpos($name, '.jpg') === false) {
+                $name .= '.jpg';
+            }
+
             // Array based on $_FILE as seen in PHP file uploads
             $file = array(
                 'name'     => ! empty($name) ? $name : basename($url), // ex: wp-header-logo.png
