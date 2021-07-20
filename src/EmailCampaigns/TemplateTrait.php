@@ -37,11 +37,13 @@ trait TemplateTrait
             $post = get_post($post);
         }
 
-        return get_permalink($post);
+        return apply_filters('mo_email_automation_post_url', get_permalink($post), $post);
     }
 
     /**
      * @param WP_Post $post
+     *
+     * @param string $post_metas
      *
      * @return string
      */
@@ -86,6 +88,8 @@ trait TemplateTrait
 
     /**
      * @param int|WP_Post $post
+     *
+     * @param null|mixed $post_content_length
      *
      * @return string
      */
@@ -143,6 +147,8 @@ trait TemplateTrait
      * @param int|WP_Post|\stdClass $post
      * @param string $email_campaign_id
      *
+     * @param string $default_feature_image
+     *
      * @return mixed|string
      */
     public function feature_image($post, $email_campaign_id = '', $default_feature_image = '')
@@ -164,13 +170,13 @@ trait TemplateTrait
 
         if (has_post_thumbnail($post)) {
             $featured_image_size = apply_filters('mailoptin_email_campaign_featured_image_size', 'full');
-            $image_data = wp_get_attachment_image_src(get_post_thumbnail_id($post), $featured_image_size);
+            $image_data          = wp_get_attachment_image_src(get_post_thumbnail_id($post), $featured_image_size);
             if ( ! empty($image_data[0])) {
                 return $image_data[0];
             }
         }
 
-        return $default_feature_image;
+        return apply_filters('mo_email_automation_post_feature_image', $default_feature_image, $post, $email_campaign_id, $default_feature_image);
     }
 
     /**

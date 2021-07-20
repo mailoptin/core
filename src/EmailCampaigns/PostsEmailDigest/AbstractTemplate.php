@@ -60,11 +60,11 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
             ]);
 
             $replace = apply_filters('mo_email_campaign_ped_replace_args', [
-                $this->post_title($post),
+                apply_filters('mo_posts_email_digest_post_title', $this->post_title($post)),
                 apply_filters('mo_posts_email_digest_post_content', $this->post_content($post), $post, $this->email_campaign_id),
-                $this->feature_image($post),
-                $this->post_url($post),
-                $this->post_meta($post),
+                apply_filters('mo_posts_email_digest_post_feature_image', $this->feature_image($post), $post, $this->email_campaign_id),
+                apply_filters('mo_posts_email_digest_post_url', $this->post_url($post), $post, $this->email_campaign_id),
+                apply_filters('mo_posts_email_digest_post_meta', $this->post_meta($post), $post, $this->email_campaign_id)
             ]);
 
             echo apply_filters(
