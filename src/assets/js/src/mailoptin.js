@@ -377,6 +377,8 @@ var mailoptin_optin = {
      */
     rule_base_show_optin_form: function (optin_config, optin_type, skip_display_checks) {
 
+        var or_matching_condition = optin_config.display_rule_OR_matching;
+
         var self = mailoptin_optin;
         // we did this becos 'this' inside setTimeout() will be wrong.
         var _this = this;
@@ -426,8 +428,8 @@ var mailoptin_optin = {
 
             if (!actual_referrer_url) return;
 
-            var display_type = optin_config.referrer_detection_settings;
-            var referrers = optin_config.referrer_detection_values;
+            var display_type = optin_config.referrer_detection_settings,
+                referrers = optin_config.referrer_detection_values;
 
             if (display_type === 'show_to') {
                 var is_display = false;
@@ -485,14 +487,37 @@ var mailoptin_optin = {
             }
         }
 
-        var wait_seconds = optin_config.x_seconds_value * 1000;
-        var optin_scroll_percent = optin_config.x_scroll_value;
+        var wait_seconds = optin_config.x_seconds_value * 1000,
+            optin_scroll_percent = optin_config.x_scroll_value;
 
-        // If all three rules are active, run the below shebang
-        if (self.is_after_x_seconds_active(optin_config) === true &&
-            self.is_after_x_scroll_active(optin_config) === true &&
-            self.is_exit_intent_active(optin_config) === true) {
-            setTimeout(function () {
+        if (false === or_matching_condition) {
+            // If all three rules are active, run the below shebang
+            if (self.is_after_x_seconds_active(optin_config) === true &&
+                self.is_after_x_scroll_active(optin_config) === true &&
+                self.is_exit_intent_active(optin_config) === true) {
+                setTimeout(function () {
+                    $.moScrollTrigger('enable');
+                    $(document).on('moScrollTrigger', function (e, pctScrolled) {
+                        if (pctScrolled >= optin_scroll_percent) {
+                            $.moExitIntent('enable');
+                            $(document).on("moExitIntent", function () {
+                                return self.display_optin_form.call(_this, optin_config, optin_type);
+                            });
+                        }
+                    });
+
+                }, wait_seconds);
+
+                return;
+            }
+        }
+
+
+        if (false === or_matching_condition) {
+            // If only "is_after_x_scroll_active" and "is_exit_intent_active" rules are active, run the below shebang
+            if (self.is_after_x_scroll_active(optin_config) === true &&
+                self.is_exit_intent_active(optin_config) === true) {
+
                 $.moScrollTrigger('enable');
                 $(document).on('moScrollTrigger', function (e, pctScrolled) {
                     if (pctScrolled >= optin_scroll_percent) {
@@ -503,33 +528,64 @@ var mailoptin_optin = {
                     }
                 });
 
-            }, wait_seconds);
-
-            return;
+                return;
+            }
         }
 
-        // If only "is_after_x_scroll_active" and "is_exit_intent_active" rules are active, run the below shebang
-        if (self.is_after_x_scroll_active(optin_config) === true &&
-            self.is_exit_intent_active(optin_config) === true) {
 
-            $.moScrollTrigger('enable');
-            $(document).on('moScrollTrigger', function (e, pctScrolled) {
-                if (pctScrolled >= optin_scroll_percent) {
+        if (false === or_matching_condition) {
+            // If only "after_x_seconds" and "after_x_scroll" rules are active, run the below shebang
+            if (self.is_after_x_seconds_active(optin_config) === true &&
+                self.is_after_x_scroll_active(optin_config) === true) {
+
+                setTimeout(function () {
+                    $.moScrollTrigger('enable');
+                    $(document).on('moScrollTrigger', function (e, pctScrolled) {
+                        if (_this.hasClass('si-open') === false) {
+                            if (pctScrolled >= optin_scroll_percent) {
+                                _this.addClass('si-open');
+                                return self.display_optin_form.call(_this, optin_config, optin_type);
+                            }
+                        }
+                    });
+
+                }, wait_seconds);
+
+                return;
+            }
+        }
+
+
+        if (false === or_matching_condition) {
+            // If only "after_x_seconds" and "exit intent" rules are active, run the below shebang
+            if (self.is_after_x_seconds_active(optin_config) === true &&
+                self.is_exit_intent_active(optin_config) === true) {
+                setTimeout(function () {
                     $.moExitIntent('enable');
                     $(document).on("moExitIntent", function () {
                         return self.display_optin_form.call(_this, optin_config, optin_type);
                     });
-                }
-            });
 
-            return;
+                }, wait_seconds);
+
+                return;
+            }
         }
 
-        // If only "after_x_seconds" and "after_x_scroll" rules are active, run the below shebang
-        if (self.is_after_x_seconds_active(optin_config) === true &&
-            self.is_after_x_scroll_active(optin_config) === true) {
+        if (self.is_after_x_seconds_active(optin_config) ||
+            self.is_after_x_scroll_active(optin_config) ||
+            self.is_exit_intent_active(optin_config)
+        ) {
 
-            setTimeout(function () {
+            // If only "after_x_seconds" rules is active, run the below shebang
+            if (self.is_after_x_seconds_active(optin_config) === true) {
+                setTimeout(function () {
+                    return self.display_optin_form.call(_this, optin_config, optin_type);
+                }, wait_seconds);
+            }
+
+            // If only "after x scroll" rules is active, run the below shebang
+            if (self.is_after_x_scroll_active(optin_config)) {
                 $.moScrollTrigger('enable');
                 $(document).on('moScrollTrigger', function (e, pctScrolled) {
                     if (_this.hasClass('si-open') === false) {
@@ -539,56 +595,15 @@ var mailoptin_optin = {
                         }
                     }
                 });
+            }
 
-            }, wait_seconds);
-
-            return;
-        }
-
-        // If only "after_x_seconds" and "exit intent" rules are active, run the below shebang
-        if (self.is_after_x_seconds_active(optin_config) === true &&
-            self.is_exit_intent_active(optin_config) === true) {
-            setTimeout(function () {
+            // If only "exit intent" rules is active, run the below shebang
+            if (self.is_exit_intent_active(optin_config)) {
                 $.moExitIntent('enable');
                 $(document).on("moExitIntent", function () {
                     return self.display_optin_form.call(_this, optin_config, optin_type);
                 });
-
-            }, wait_seconds);
-
-            return;
-        }
-
-        // If only "after_x_seconds" rules is active, run the below shebang
-        if (self.is_after_x_seconds_active(optin_config) === true) {
-            setTimeout(function () {
-                return self.display_optin_form.call(_this, optin_config, optin_type);
-            }, wait_seconds);
-
-            return;
-        }
-
-        // If only "after x scroll" rules is active, run the below shebang
-        if (self.is_after_x_scroll_active(optin_config)) {
-            $.moScrollTrigger('enable');
-            $(document).on('moScrollTrigger', function (e, pctScrolled) {
-                if (_this.hasClass('si-open') === false) {
-                    if (pctScrolled >= optin_scroll_percent) {
-                        _this.addClass('si-open');
-                        return self.display_optin_form.call(_this, optin_config, optin_type);
-                    }
-                }
-            });
-
-            return;
-        }
-
-        // If only "exit intent" rules is active, run the below shebang
-        if (self.is_exit_intent_active(optin_config)) {
-            $.moExitIntent('enable');
-            $(document).on("moExitIntent", function () {
-                return self.display_optin_form.call(_this, optin_config, optin_type);
-            });
+            }
 
             return;
         }

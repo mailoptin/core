@@ -1269,6 +1269,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             }
         }
 
+        $data['display_rule_OR_matching'] = true;
+
         $data = apply_filters('mo_optin_js_config', $data, $this);
 
         $json = json_encode($data);
