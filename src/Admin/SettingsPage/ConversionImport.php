@@ -4,6 +4,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 
 use League\Csv\Reader;
+use League\Csv\Statement;
 use MailOptin\Core\Repositories\OptinConversionsRepository;
 use function MailOptin\Core\moVar;
 
@@ -48,51 +49,55 @@ class ConversionImport
     }
 
     /**
-     * call to import function
+     * @param $fields
      *
+     * @return string|void
      */
     public function import($fields)
     {
-        $csv_headers = $this->read_csv_headers();
-        $file_path   = get_option($this->conversion_data);
+        try {
 
-        $reader = Reader::createFromPath($file_path, 'r');
+            $file_path = get_option($this->conversion_data);
 
-        $data = $reader->fetchAssoc($csv_headers);
+            $reader = Reader::createFromPath($file_path, 'r');
+            $reader->setHeaderOffset(0);
+            $records = $reader->getRecords();
 
-        array_shift($data);
+            $conversionRepoResponse = '';
 
-        $insert_data            = [];
-        $conversionRepoResponse = '';
+            foreach ($records as $record) {
 
-        foreach ($data as $key => $value) {
+                $insert_data = [];
 
-            foreach ($fields as $field_key => $field_value) {
+                foreach ($fields as $field_key => $field_value) {
 
-                switch ($field_key) {
-                    case 'custom_fields':
-                        $insert_data[$field_key] = $value[$field_value];
-                        break;
-                    default:
-                        $insert_data[$field_key] = esc_html(moVar($value, $field_value, ''));
+                    switch ($field_key) {
+                        case 'custom_fields':
+                            $insert_data[$field_key] = moVar($record, $field_value, '[]');
+                            break;
+                        default:
+                            $insert_data[$field_key] = moVar($record, $field_value, '');
+                    }
                 }
+
+                //add fields to data before passing
+                $insert_data['optin_campaign_id']   = 0; // since it's non mailoptin form, set it to zero.
+                $insert_data['optin_campaign_type'] = esc_html__('CSV', 'mailoptin');
+
+                $conversionRepoResponse = OptinConversionsRepository::add($insert_data);
             }
 
-            //add fields to data before passing
-            $insert_data['optin_campaign_id']   = 0; // since it's non mailoptin form, set it to zero.
-            $insert_data['optin_campaign_type'] = esc_html__('CSV', 'mailoptin');
+            if ($conversionRepoResponse !== false) {
+                //remove the file path
+                unlink($file_path);
 
-            $conversionRepoResponse = OptinConversionsRepository::add($insert_data);
-        }
-
-        if ($conversionRepoResponse !== false) {
-            //remove the file path
-            unlink($file_path);
-
-            //delete the path saved in wp_options table
-            delete_option($this->conversion_data);
-            wp_safe_redirect(add_query_arg('step', '3', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
-            exit;
+                //delete the path saved in wp_options table
+                delete_option($this->conversion_data);
+                wp_safe_redirect(add_query_arg('step', '3', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
+                exit;
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
 
         return __('There was an error importing leads into the leadbank', 'mailoptin');

@@ -67,16 +67,20 @@ class ConversionExport
             $contents[] = $conversion;
         }
 
-        $writer = Writer::createFromFileObject(new \SplTempFileObject()); //the CSV file will be created using a temporary File
-        $writer->setNewline("\r\n"); //use windows line endings for compatibility with some csv libraries
-        $writer->insertOne($header);
-        $writer->insertAll($contents);
-        // Because you are providing the filename you don't have to
-        // set the HTTP headers Writer::output can
-        // directly set them for you
-        // The file is downloadable
-        $writer->output('optin-conversions-' . date('m-d-Y') . '.csv');
-        die;
+        try {
+            $writer = Writer::createFromFileObject(new \SplTempFileObject()); //the CSV file will be created using a temporary File
+            $writer->setNewline("\r\n"); //use windows line endings for compatibility with some csv libraries
+            $writer->insertOne($header);
+            $writer->insertAll($contents);
+            // Because you are providing the filename you don't have to
+            // set the HTTP headers Writer::output can
+            // directly set them for you
+            // The file is downloadable
+            $writer->output('optin-conversions-' . date('m-d-Y') . '.csv');
+            die;
+        } catch (\Exception $e) {
+
+        }
     }
 
 
