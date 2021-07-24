@@ -11,6 +11,7 @@
     "nesbot/carbon": "^1.32",
     "symfony/polyfill-mbstring": "1.19.0"
   },
+  "_comment": "our league/csv version requires 7.0.10 and higher. explicitly requiring symfony/polyfill-mbstring 1.19.0 because wp.org svn linter doesn't support PHP 8 and fails to parse https://github.com/symfony/polyfill/blob/main/src/Mbstring/bootstrap80.php",
   "autoload": {
     "psr-4": {
       "MailOptin\\Core\\": "src/"
@@ -33,6 +34,5 @@
   },
   "scripts": {
     "test": "phpunit"
-  },
-  "_comment": "our league/csv version requires 7.0.10 and higher. explicitly requiring symfony/polyfill-mbstring 1.19.0 because wp.org svn linter doesn't support PHP 8 and fails to parse https://github.com/symfony/polyfill/blob/main/src/Mbstring/bootstrap80.php"
+  }
 }
