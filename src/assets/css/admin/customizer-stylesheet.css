@@ -705,3 +705,7 @@ li[id*="code_your_own"] + .customize-control {
 .mailoptin-optin-themes-ajax-error .close-button-div{
     margin-top: 10px;
 }
+
+.WebHookConnect_request_header_fields .mo-webhook-header-name-text-field {
+    display: none;
+}
