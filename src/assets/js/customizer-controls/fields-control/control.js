@@ -28,7 +28,7 @@
 
                     var maybeHideCountryOptionsField = function () {
                         var field_type = $(field).find('.mo-optin-fields-field').val();
-                        if(field_type === 'country') {
+                        if (field_type === 'country') {
                             $(field).find(".country_field_options.mo-fields-block").show();
                         } else {
                             $(field).find(".country_field_options.mo-fields-block").hide();
@@ -220,6 +220,8 @@
                 old_data[index]['field_type'] = 'text';
 
                 data_store.val(JSON.stringify(old_data)).trigger('change');
+
+                $(document).trigger('mo_optin_custom_field_added', [data_store.val()])
             };
 
             var toggleAllWidget = function (e) {
@@ -308,6 +310,8 @@
                 old_data = _.without(old_data, null, '');
 
                 data_store.val(JSON.stringify(old_data)).trigger('change');
+
+                $(document).trigger('mo_optin_custom_field_saved', [data_store.val()])
             };
 
             var save_all_widget_changes = function () {
