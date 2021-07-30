@@ -149,6 +149,24 @@
                         old_data[index][item_name][field_value] = $(this).next('.mo_mc_interest_label').text();
                     }
                 }
+            } else if ($(this).hasClass('mo-webhook-field')) {
+                var item_name = field_name.replace('[]', '');
+                if (this.checked === false) {
+                    delete old_data[index][item_name][field_value];
+                } else {
+                    if (typeof old_data[index][item_name] === 'undefined') {
+                        old_data[index][item_name] = {};
+                        old_data[index][item_name][field_value] = $(this).next('.mo_mc_interest_label').text();
+                    } else {
+                        // ideally, we should check if it's === 0 but because checked event ha fired before
+                        // we get to this point, so we check if this is the first check.
+                        // all this is so we are sure we are not adding new checked interests to previous obsolete checked ones
+                        if ($('.mo_mc_interest:checked', parent).length === 1) {
+                            old_data[index][item_name] = {}
+                        }
+                        old_data[index][item_name][field_value] = $(this).next('.mo_mc_interest_label').text();
+                    }
+                }
             } else if ($(this).attr('type') === 'checkbox' && field_name.indexOf('[]') !== -1) {
                 var item_name = field_name.replace('[]', '');
                 if (this.checked === true) {

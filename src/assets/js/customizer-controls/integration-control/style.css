@@ -2,7 +2,8 @@
     text-align: center;
 }
 
-.mo-integration-widget {
+.mo-integration-widget,
+.mo-integration-widget-wrap {
     box-sizing: border-box;
     box-shadow: rgba(0, 0, 0, 0.04) 0px 1px 1px;
     margin: 0px auto 10px;
