@@ -1,5 +1,5 @@
 #customize-controls .customize-info .customize-help-toggle {
-    display:none !important;
+    display: none !important;
 }
 
 .wp-customizer .fancybox-container {
@@ -27,7 +27,7 @@ strong.panel-title.site-title:hover {
 }
 
 .panel-title.site-title {
-    cursor:pointer;
+    cursor: pointer;
 }
 
 .customize-control + .customize-control {
@@ -702,10 +702,26 @@ li[id*="code_your_own"] + .customize-control {
     padding: 8px;
 }
 
-.mailoptin-optin-themes-ajax-error .close-button-div{
+.mailoptin-optin-themes-ajax-error .close-button-div {
     margin-top: 10px;
 }
 
 .WebHookConnect_request_header_fields .mo-webhook-header-name-text-field {
     display: none;
+}
+
+.WebHookConnect_request_header_fields .mo-field-header,
+.WebHookConnect_request_body_fields .mo-field-header {
+    margin: 0 -10px;
+}
+
+.mo-webhook-intergration-body .mo-webhook-body-wrap {
+    box-shadow: rgb(0 0 0 / 12%) 0px 1px 1px;
+    padding: 0 0 10px;
+}
+
+.WebHookConnect_request_header_fields .dashicons,
+.WebHookConnect_request_body_fields .dashicons {
+    font-size: 14px;
+    display: inline;
 }
