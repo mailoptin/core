@@ -715,7 +715,8 @@ li[id*="code_your_own"] + .customize-control {
     margin: 0 -10px;
 }
 
-.mo-webhook-intergration-body .mo-webhook-body-wrap {
+.mo-webhook-integration-header .mo-webhook-header-wrap,
+.mo-webhook-integration-body .mo-webhook-body-wrap {
     box-shadow: rgb(0 0 0 / 12%) 0px 1px 1px;
     padding: 0 0 10px;
 }
