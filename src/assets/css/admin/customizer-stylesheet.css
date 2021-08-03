@@ -726,3 +726,7 @@ li[id*="code_your_own"] + .customize-control {
     font-size: 14px;
     display: inline;
 }
+
+.mo-integration-block .mo-webhook-add-btn-wrap {
+    padding: 5px 0 0;
+}
