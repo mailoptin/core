@@ -56,16 +56,16 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
 
         // toggle control assets
         wp_enqueue_script('mo-customizer-toggle-control', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/toggle-control/customizer-toggle-control.js', array('jquery'), false, true);
-        
+
         //mailoptin css
         $this->mailoptin_only_css();
 
         do_action('mo_optin_integration_control_enqueue');
     }
 
-     /**
+    /**
      * Mailoptin only css to fix conflicts
-     * 
+     *
      */
     public function mailoptin_only_css()
     {
@@ -108,6 +108,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
 
     public function integration_template()
     {
+        do_action('mo_optin_integration_control_template', $this);
         ?>
         <script type="text/html" id="tmpl-mo-integration-js-template">
             <?php $this->template(); ?>

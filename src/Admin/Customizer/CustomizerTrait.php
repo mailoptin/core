@@ -254,6 +254,7 @@ trait CustomizerTrait
         $zohocrm_label     = __('ZohoCRM Modules', 'mailoptin');
         $fbca_label        = __('Custom Audience', 'mailoptin');
         $jilt_label        = __('Select Linked Store', 'mailoptin');
+        $webhook_label     = __('Request Method', 'mailoptin');
         $default_label     = __('Select Email List', 'mailoptin');
         ?>
         <script type="text/javascript">
@@ -287,6 +288,10 @@ trait CustomizerTrait
 
                         if (connection_service === 'JiltConnect') {
                             title_obj.text('<?php echo $jilt_label; ?>');
+                        }
+
+                        if (connection_service === 'WebHookConnect') {
+                            title_obj.text('<?php echo $webhook_label; ?>');
                         }
 
                         if (connection_service === 'WordPressUserRegistrationConnect') {
@@ -326,6 +331,10 @@ trait CustomizerTrait
                                     title_obj.text('<?php echo $jilt_label; ?>');
                                 }
 
+                                if (connection_service === 'WebHookConnect') {
+                                    title_obj.text('<?php echo $webhook_label; ?>');
+                                }
+
                                 if (connection_service === 'WordPressUserRegistrationConnect') {
                                     title_obj.text('<?php echo $wp_user_reg_label; ?>');
                                 }
@@ -358,6 +367,10 @@ trait CustomizerTrait
 
                             if (connection_service === 'JiltConnect') {
                                 title_obj.text('<?php echo $jilt_label; ?>');
+                            }
+
+                            if (connection_service === 'WebHookConnect') {
+                                title_obj.text('<?php echo $webhook_label; ?>');
                             }
 
                             if (connection_service === 'WordPressUserRegistrationConnect') {
