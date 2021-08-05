@@ -1058,8 +1058,8 @@ class CustomizerControls
 
         if ( ! apply_filters('mailoptin_enable_leadbank', false)) {
             $content = sprintf(
-                __('To store leads or subscribers in MailOptin without requiring an email service provider like Mailchimp, %sUpgrade to premium%s now.', 'mailoptin'),
-                '<a target="_blank" href="https://mailoptin.io/lead-generation-wordpress/#leadbank">',
+                __('To store subscribers in MailOptin without requiring an email marketing software like Mailchimp and gain access to premium integrations such as Webhook, %sUpgrade to premium%s now.', 'mailoptin'),
+                '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=integrations_panel">',
                 '</a>'
             );
 
