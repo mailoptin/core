@@ -493,6 +493,10 @@ $footer_content";
 
         $response = wp_remote_get($url);
 
+        if (is_wp_error($response)) {
+            throw new \Exception($response->get_error_message());
+        }
+
         $result = json_decode(wp_remote_retrieve_body($response), true);
 
         if ( ! isset($result['success']) || $result['success'] !== true) {
