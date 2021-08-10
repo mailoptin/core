@@ -503,7 +503,12 @@ $footer_content";
 
             // try refresh twice before failing.
             $response = wp_remote_get($url);
-            $result   = json_decode($response_body = wp_remote_retrieve_body($response), true);
+
+            if (is_wp_error($response)) {
+                throw new \Exception($response->get_error_message());
+            }
+
+            $result = json_decode($response_body = wp_remote_retrieve_body($response), true);
 
             if ( ! isset($result['success']) || $result['success'] !== true) {
                 throw new \Exception('Error failed to refresh ' . $response_body);
