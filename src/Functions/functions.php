@@ -84,6 +84,9 @@ function limit_text($text, $limit = 150)
         $text  = substr($text, 0, $pos[$limit]) . apply_filters('mailoptin_limit_text_ellipsis', '. . .');
     }
 
+    // remove VC tags and empty paragraphs (<p></p>)
+    $text = preg_replace(['/\[vc(.*?)\]/', '/<p[^>]*><\\/p[^>]*>/'], '', $text);
+
     return $text;
 }
 
