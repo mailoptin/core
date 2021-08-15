@@ -15,7 +15,9 @@ class Cron
 
         add_action('mo_daily_recurring_job', [$this, 'cleanup_old_leadbank_data']);
 
-        add_action('mailoptin_admin_notices', [$this, 'catch_late_email_digest_event_notice']);
+        add_action('mailoptin_admin_notices', function () {
+            add_action('admin_notices', [$this, 'catch_late_email_digest_event_notice']);
+        });
     }
 
     public function create_recurring_schedule()
