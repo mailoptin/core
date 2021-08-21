@@ -324,20 +324,6 @@ class Email_Campaign_List extends \WP_List_Table
     }
 
     /**
-     * Columns to make sortable.
-     *
-     * @return array
-     */
-    public function get_sortable_columns()
-    {
-        $sortable_columns = array(
-            'name' => array('name', true),
-        );
-
-        return $sortable_columns;
-    }
-
-    /**
      * Returns an associative array containing the bulk action
      *
      * @return array

@@ -50,15 +50,6 @@ class Newsletter_List extends \WP_List_Table
         return $columns;
     }
 
-    public function get_sortable_columns()
-    {
-        $sortable_columns = array(
-            'name' => array('name', true),
-        );
-
-        return $sortable_columns;
-    }
-
     /**
      * Render the bulk edit checkbox
      *
