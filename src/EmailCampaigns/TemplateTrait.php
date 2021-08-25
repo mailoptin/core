@@ -188,6 +188,9 @@ trait TemplateTrait
      */
     public function replace_footer_placeholder_tags($content)
     {
+        // remove empty images. That is, images with empty src
+        $content = preg_replace('/<img([^>]+)src=""([^>]*)>/', '', $content);
+
         $search = [
             '{{company_name}}',
             '{{company_address}}',
