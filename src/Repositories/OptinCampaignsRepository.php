@@ -520,6 +520,8 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_customizer_value($optin_campaign_id, $settings_name, $default = '')
     {
+        if (absint($optin_campaign_id) == 0) return false;
+
         $settings = self::get_optin_saved_customizer_data();
         $value    = isset($settings[$optin_campaign_id][$settings_name]) ? $settings[$optin_campaign_id][$settings_name] : null;
 
@@ -532,7 +534,7 @@ class OptinCampaignsRepository extends AbstractRepository
      * Return value of a optin form customizer settings or the default settings value if not found.
      *
      * @param int $optin_campaign_id
-     * @param string $optin_form_setting
+     * @param $settings_name
      *
      * @return string
      */
