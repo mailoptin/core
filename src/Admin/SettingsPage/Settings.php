@@ -71,7 +71,7 @@ class Settings extends AbstractSettingsPage
                     'section_title'            => __('General Settings', 'mailoptin'),
                     'remove_plugin_data'       => [
                         'type'        => 'checkbox',
-                        'label'       => __('Remove Data on Uninstall?', 'mailoptin'),
+                        'label'       => __('Remove Data on Uninstall', 'mailoptin'),
                         'description' => __('Check this box if you would like MailOptin to completely remove all of its data when uninstalled.', 'mailoptin'),
                     ],
                     'mailoptin_affiliate_url'  => [
