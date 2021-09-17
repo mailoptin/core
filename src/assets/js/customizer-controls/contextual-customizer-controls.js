@@ -173,6 +173,14 @@
                         if (typeof api.section('mo_wp_polylang_display_rule_section') !== 'undefined') {
                             api.section('mo_wp_polylang_display_rule_section').active(!is_displayed());
                         }
+
+                        if (typeof api.section('mo_wp_woocommerce_display_rule_section') !== 'undefined') {
+                            api.section('mo_wp_woocommerce_display_rule_section').active(!is_displayed());
+                        }
+
+                        if (typeof api.section('mo_wp_woocommerce_atc_display_rule_section') !== 'undefined') {
+                            api.section('mo_wp_woocommerce_atc_display_rule_section').active(!is_displayed());
+                        }
                     };
 
                     control.active.validate = is_displayed;

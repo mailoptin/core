@@ -393,6 +393,30 @@ var mailoptin_optin = {
 
         if (self.split_test_cookie_test(optin_config) === false) return;
 
+        if (self.is_var_defined(optin_config, 'wc_atc_activate_rule') && optin_config.wc_atc_activate_rule === true) {
+
+            var required_products = false;
+
+            if (self.is_var_defined(optin_config, 'wc_atc_products')) {
+
+            }
+
+            $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
+
+                var product_id = $thisbutton.data('product_id');
+
+                if (self.is_var_defined(optin_config, 'wc_atc_products') &&
+                    $.inArray(product_id, optin_config.wc_atc_products) === -1
+                ) {
+                    return false;
+                }
+
+                return self.display_optin_form.call(_this, optin_config, optin_type);
+            });
+
+            return;
+        }
+
         if (self.is_after_x_page_views_active(optin_config)) {
             var x_page_views_condition = optin_config.x_page_views_condition;
             var x_page_views_value = optin_config.x_page_views_value;
