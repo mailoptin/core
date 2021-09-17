@@ -397,10 +397,6 @@ var mailoptin_optin = {
 
             var required_products = false;
 
-            if (self.is_var_defined(optin_config, 'wc_atc_products')) {
-
-            }
-
             $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
 
                 var product_id = $thisbutton.data('product_id');
@@ -1505,6 +1501,11 @@ var mailoptin_optin = {
         });
     }
 };
+
+$(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
+
+    console.log(event, fragments, cart_hash, $thisbutton)
+});
 
 moModal();
 moExitIntent();
