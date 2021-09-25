@@ -243,7 +243,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
      * @param string $optin_form_setting
      * @param string $default
      *
-     * @return string
+     * @return mixed
      */
     public function get_customizer_value($optin_form_setting, $default = '')
     {
