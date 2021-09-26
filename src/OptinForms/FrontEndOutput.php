@@ -75,7 +75,6 @@ class FrontEndOutput
                 if ( ! $this->query_level_targeting_rule_checker($id)) {
                     continue;
                 }
-
             }
 
             echo OptinFormFactory::build($id);

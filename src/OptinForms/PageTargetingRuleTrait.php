@@ -74,8 +74,10 @@ trait PageTargetingRuleTrait
             return true;
         }
 
-        if (apply_filters('mailoptin_page_targeting_optin_rule', false, $id, $post_id)) {
-            return true;
+        $custom_check = apply_filters('mailoptin_page_targeting_optin_rule', null, $id, $post_id);
+
+        if ( ! is_null($custom_check) && is_bool($custom_check)) {
+            return $custom_check;
         }
 
         // if current view is neither frontpage, homepage, archive page or search page, return false.
