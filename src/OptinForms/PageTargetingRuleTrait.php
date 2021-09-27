@@ -142,6 +142,12 @@ trait PageTargetingRuleTrait
             return true;
         }
 
+        $custom_check = apply_filters('mailoptin_page_targeting_optin_rule_after', null, $id, $post_id);
+
+        if ( ! is_null($custom_check) && is_bool($custom_check)) {
+            return $custom_check;
+        }
+
         return false;
     }
 }
