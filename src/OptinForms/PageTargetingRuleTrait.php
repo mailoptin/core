@@ -74,6 +74,14 @@ trait PageTargetingRuleTrait
             return true;
         }
 
+        // useful for display rules such as woo cart conditions where if rule doesn't match, return false
+        // to stop the optin display otherwise return the default filter var which is basically not doing anything.
+        $custom_check_circuit = apply_filters('mailoptin_page_targeting_optin_rule_short_circuit', null, $id, $post_id);
+
+        if ( ! is_null($custom_check_circuit) && is_bool($custom_check_circuit)) {
+            return $custom_check_circuit;
+        }
+
         $custom_check = apply_filters('mailoptin_page_targeting_optin_rule', null, $id, $post_id);
 
         if ( ! is_null($custom_check) && is_bool($custom_check)) {
