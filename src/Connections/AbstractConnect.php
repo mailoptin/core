@@ -173,7 +173,6 @@ abstract class AbstractConnect
         $email_campaign_name = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
         $filename            = md5($email_campaign_name . $campaign_log_id);
 
-
         $error_log_folder = MAILOPTIN_CAMPAIGN_ERROR_LOG;
 
         // does bugs folder exist? if NO, create it.
@@ -183,22 +182,25 @@ abstract class AbstractConnect
 
         error_log(current_time('mysql') . ': ' . $message . "\r\n\r\n", 3, "{$error_log_folder}{$filename}.log");
 
-        $email_campaign_name = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
+        if ( ! apply_filters('mailoptin_disable_sending_email_campaign_error', false, $email_campaign_id)) {
 
-        $main_message = apply_filters(
-            'mo_email_campaign_error_email_message',
-            sprintf(
-                __('The email campaign "%s" had the following error "%s".', 'mailoptin'),
-                $email_campaign_name,
-                $message
-            )
-        );
+            $email_campaign_name = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
 
-        $email = get_option('admin_email');
+            $main_message = apply_filters(
+                'mo_email_campaign_error_email_message',
+                sprintf(
+                    __('The email campaign "%s" had the following error "%s".', 'mailoptin'),
+                    $email_campaign_name,
+                    $message
+                )
+            );
 
-        $subject = apply_filters('mo_email_campaign_error_email_subject', sprintf(__('Warning! "%s" Email Campaign Is Not Working', 'mailoptin'), $email_campaign_name), $email_campaign_id);
+            $email = get_option('admin_email');
 
-        @wp_mail($email, $subject, $main_message);
+            $subject = apply_filters('mo_email_campaign_error_email_subject', sprintf(__('Warning! "%s" Email Campaign Is Not Working', 'mailoptin'), $email_campaign_name), $email_campaign_id);
+
+            @wp_mail($email, $subject, $main_message);
+        }
     }
 
     /**
