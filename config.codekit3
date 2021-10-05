@@ -1211,17 +1211,6 @@
       "sC" : 3,
       "tS" : 0
     },
-    "\/src\/assets\/js\/src\/almond.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 0,
-      "mi" : 1,
-      "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/src\/almond-min.js",
-      "oF" : 1,
-      "sC" : 3,
-      "tS" : 0
-    },
     "\/src\/assets\/js\/src\/index.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -1473,7 +1462,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 655124708.39927101
+    "lastBuiltDate" : 655124859.97122705
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
