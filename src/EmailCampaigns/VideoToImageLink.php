@@ -6,7 +6,6 @@ namespace MailOptin\Core\EmailCampaigns;
 class VideoToImageLink
 {
     protected $subject;
-    protected $output;
 
     public function __construct($subject)
     {
@@ -15,6 +14,10 @@ class VideoToImageLink
 
     public function forge()
     {
+        if (apply_filters('mailoptin_disable_videotoimagelink', false)) {
+            return $this->subject;
+        }
+
         return $this->findYoutube($this->findVimeo($this->subject));
     }
 
