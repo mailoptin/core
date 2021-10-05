@@ -207,7 +207,6 @@ abstract class AbstractConnect
      * get email service/connect specific optin error log.
      *
      * @param string $filename log file name.
-     * @param int|null $optin_campaign_id
      *
      * @return string
      */
