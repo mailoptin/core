@@ -393,39 +393,6 @@ var mailoptin_optin = {
 
         if (self.split_test_cookie_test(optin_config) === false) return;
 
-        if (self.is_var_defined(optin_config, 'wc_atc_activate_rule') && optin_config.wc_atc_activate_rule === true) {
-
-            $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
-
-                var product_id = $thisbutton.data('product_id');
-
-                if (self.is_var_defined(optin_config, 'wc_atc_products') &&
-                    $.inArray(product_id, optin_config.wc_atc_products) === -1
-                ) {
-                    return false;
-                }
-
-                return self.display_optin_form.call(_this, optin_config, optin_type);
-            });
-
-            if (self.is_var_defined(mailoptin_globals, 'wc_atc_products')) {
-
-                if (self.is_var_defined(optin_config, 'wc_atc_products')) {
-
-                    /** array intersect @see https://stackoverflow.com/a/1885569/2648410 */
-                    var intersect = optin_config.wc_atc_products.filter(function (n) {
-                        return mailoptin_globals.wc_atc_products.indexOf(n) !== -1;
-                    });
-
-                    if (intersect.length === 0) return false;
-                }
-
-                return self.display_optin_form.call(_this, optin_config, optin_type);
-            }
-
-            return;
-        }
-
         if (self.is_after_x_page_views_active(optin_config)) {
             var x_page_views_condition = optin_config.x_page_views_condition;
             var x_page_views_value = optin_config.x_page_views_value;
@@ -516,6 +483,40 @@ var mailoptin_optin = {
             if (optin_config.device_targeting_hide_desktop === true) {
                 if (!mdInstance.mobile()) return;
             }
+        }
+
+        // WooCommerce added to cart
+        if (self.is_var_defined(optin_config, 'wc_atc_activate_rule') && optin_config.wc_atc_activate_rule === true) {
+
+            $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
+
+                var product_id = $thisbutton.data('product_id');
+
+                if (self.is_var_defined(optin_config, 'wc_atc_products') &&
+                    $.inArray(product_id, optin_config.wc_atc_products) === -1
+                ) {
+                    return false;
+                }
+
+                return self.display_optin_form.call(_this, optin_config, optin_type);
+            });
+
+            if (self.is_var_defined(mailoptin_globals, 'wc_atc_products')) {
+
+                if (self.is_var_defined(optin_config, 'wc_atc_products')) {
+
+                    /** array intersect @see https://stackoverflow.com/a/1885569/2648410 */
+                    var intersect = optin_config.wc_atc_products.filter(function (n) {
+                        return mailoptin_globals.wc_atc_products.indexOf(n) !== -1;
+                    });
+
+                    if (intersect.length === 0) return false;
+                }
+
+                return self.display_optin_form.call(_this, optin_config, optin_type);
+            }
+
+            return;
         }
 
         var wait_seconds = optin_config.x_seconds_value * 1000;
