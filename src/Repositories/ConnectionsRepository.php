@@ -74,9 +74,18 @@ class ConnectionsRepository
             return array();
         }
 
-        $connectInstance = ConnectionFactory::make($connection);
+        $cache_key = 'mo_connection_email_list_' . $connection;
 
-        $email_list = (array)$connectInstance->get_email_list();
+        $email_list = get_transient($cache_key);
+
+        if (empty($email_list) || false === $email_list) {
+
+            $connectInstance = ConnectionFactory::make($connection);
+
+            $email_list = (array)$connectInstance->get_email_list();
+
+            set_transient($cache_key, $email_list, MINUTE_IN_SECONDS);
+        }
 
         return $email_list;
     }
