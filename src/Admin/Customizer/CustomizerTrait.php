@@ -406,7 +406,6 @@ trait CustomizerTrait
         // Enable rich editing for this view (Overrides 'Disable the visual editor when writing' option for current user)
         add_filter('user_can_richedit', '__return_true');
         wp_enqueue_editor();
-        wp_enqueue_editor();
 
         if ( ! empty($GLOBALS['post'])) {
             wp_enqueue_media(array('post' => $GLOBALS['post']->ID));
