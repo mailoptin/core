@@ -3,6 +3,8 @@
 namespace MailOptin\Core\Repositories;
 
 
+use function MailOptin\Core\moVar;
+
 class OptinConversionsRepository extends AbstractRepository
 {
 
@@ -29,14 +31,14 @@ class OptinConversionsRepository extends AbstractRepository
         $response = parent::wpdb()->insert(
             parent::conversions_table(),
             array(
-                'optin_id'        => $data['optin_campaign_id'],
-                'optin_type'      => $data['optin_campaign_type'],
-                'name'            => $data['name'],
-                'email'           => $data['email'],
-                'custom_fields'   => $data['custom_fields'],
-                'user_agent'      => $data['user_agent'],
-                'conversion_page' => $data['conversion_page'],
-                'referrer'        => $data['referrer'],
+                'optin_id'        => absint($data['optin_campaign_id']),
+                'optin_type'      => sanitize_text_field($data['optin_campaign_type']),
+                'name'            => sanitize_text_field($data['name']),
+                'email'           => sanitize_text_field($data['email']),
+                'custom_fields'   => sanitize_text_field(moVar($data, 'custom_fields', '[]')),
+                'user_agent'      => sanitize_text_field($data['user_agent']),
+                'conversion_page' => sanitize_text_field($data['conversion_page']),
+                'referrer'        => sanitize_text_field($data['referrer']),
                 'date_added'      => current_time('mysql')
             ),
             array(
@@ -76,14 +78,14 @@ class OptinConversionsRepository extends AbstractRepository
     public static function update($id, $data)
     {
         $update_data = array(
-            'optin_id'        => $data['optin_campaign_id'],
-            'optin_type'      => $data['optin_campaign_type'],
-            'name'            => $data['name'],
-            'email'           => $data['email'],
-            'user_agent'      => $data['user_agent'],
-            'conversion_page' => $data['conversion_page'],
-            'referrer'        => $data['referrer'],
-            'date_added'      => current_time('mysql')
+            'optin_id'        => absint($data['optin_campaign_id']),
+            'optin_type'      => sanitize_text_field($data['optin_campaign_type']),
+            'name'            => sanitize_text_field($data['name']),
+            'email'           => sanitize_text_field($data['email']),
+            'custom_fields'   => sanitize_text_field(moVar($data, 'custom_fields', '[]')),
+            'user_agent'      => sanitize_text_field($data['user_agent']),
+            'conversion_page' => sanitize_text_field($data['conversion_page']),
+            'referrer'        => sanitize_text_field($data['referrer'])
         );
 
         $update_data = array_filter($update_data, function ($value) {

@@ -243,7 +243,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
      * @param string $optin_form_setting
      * @param string $default
      *
-     * @return string
+     * @return mixed
      */
     public function get_customizer_value($optin_form_setting, $default = '')
     {
@@ -664,6 +664,20 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         html div#$optin_campaign_uuid .mo-optin-form-container .mo-optin-form-wrapper .mo-optin-fields-wrapper .list_subscription-field input[type=checkbox] {
             cursor: pointer;
         }
+
+        .mailoptin-content-lock {
+            color: transparent!important;
+            text-shadow: rgba(0,0,0,.5) 0 0 10px;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            pointer-events: none;
+            filter: url(\"data:image/svg+xml;utf9,<svg%20version='1.1'%20xmlns='http://www.w3.org/2000/svg'><filter%20id='blur'><feGaussianBlur%20stdDeviation='10'%20/></filter></svg>#blur\");
+            -webkit-filter: blur(10px);
+            -ms-filter: blur(10px);
+            -o-filter: blur(10px);
+            filter: blur(10px);
+        }
         ";
 
         $global_css .= $this->font_size_css();
@@ -860,6 +874,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $optin_form .= apply_filters('mo_optin_form_shortcode_structure', do_shortcode($this->optin_form()), $this->optin_campaign_id, $this->optin_campaign_uuid, $this->optin_form());
 
         $optin_form .= "</div>";
+        $optin_form .= $this->timestamp_spam_combat();
         $optin_form .= "</div>";
 
         $output = PHP_EOL . apply_filters('mo_optin_form_attribution_start', '<!-- This site converts visitors into subscribers and customers with the MailOptin WordPress plugin v' . MAILOPTIN_VERSION_NUMBER . ' - https://mailoptin.io -->' . PHP_EOL);
@@ -886,37 +901,14 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
      */
     public function get_optin_form_structure()
     {
-        /* $this->timestamp_spam_combat() in this section ensure the timestamp is never cached. */
-
-        if (is_customize_preview()) return $this->_get_optin_form_structure();
-
         // Bypass cache if this optin form has successfully received opt-in from visitor and 'state after conversion' is not set to still display optin form.
         // so success message overlay will be shown instead of opt-in form.
         if (OCR::user_has_successful_optin($this->optin_campaign_uuid)) {
-
             // if state after conversion is set to 'optin form hidden', return nothing.
             if ($this->state_after_conversion() == 'optin_form_hidden') return '';
-
-            return $this->_get_optin_form_structure() . $this->timestamp_spam_combat();
         }
 
-        // if cache is disable, fetch fresh optin structure.
-        if (apply_filters('mailoptin_disable_optin_form_cache', false)) return $this->_get_optin_form_structure() . $this->timestamp_spam_combat();
-
-        $cache_key       = "mo_get_optin_form_structure_{$this->optin_campaign_id}";
-        $optin_structure = get_transient($cache_key);
-
-        if (empty($optin_structure) || false === $optin_structure) {
-
-            $optin_structure = $this->_get_optin_form_structure();
-            set_transient(
-                $cache_key,
-                $optin_structure,
-                apply_filters('mailoptin_get_optin_form_structure_cache_expiration', HOUR_IN_SECONDS)
-            );
-        }
-
-        return $optin_structure . $this->timestamp_spam_combat();
+        return $this->_get_optin_form_structure();
     }
 
     /**
@@ -1214,6 +1206,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         /** after conversion / success actions */
         $success_action         = $this->get_customizer_value('success_action');
         $data['success_action'] = $success_action;
+
+        $data['state_after_conversion'] = $this->state_after_conversion();
 
         if ($success_action == 'redirect_url') {
             $data['redirect_url_value'] = esc_url($this->get_customizer_value('redirect_url_value'));

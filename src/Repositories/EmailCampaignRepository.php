@@ -3,6 +3,7 @@
 namespace MailOptin\Core\Repositories;
 
 use MailOptin\Core\Admin\Customizer\EmailCampaign\AbstractCustomizer;
+use function MailOptin\Core\is_boolean;
 
 class EmailCampaignRepository extends AbstractRepository
 {
@@ -235,7 +236,7 @@ class EmailCampaignRepository extends AbstractRepository
     {
         $abstract_customizer = new AbstractCustomizer($email_campaign_id);
         $customizer_defaults = isset($abstract_customizer->customizer_defaults[$settings_name]) && $abstract_customizer->customizer_defaults[$settings_name] !== null ? $abstract_customizer->customizer_defaults[$settings_name] : '';
-        $default             = ! empty($default) ? $default : $customizer_defaults;
+        $default             = is_boolean($default) || ! empty($default) ? $default : $customizer_defaults;
         $settings            = self::get_settings();
         $value               = isset($settings[$email_campaign_id][$settings_name]) ? $settings[$email_campaign_id][$settings_name] : null;
 
@@ -248,11 +249,10 @@ class EmailCampaignRepository extends AbstractRepository
      *
      * @param int $email_campaign_id
      * @param string $settings_name
-     * @param string $default
      *
      * @return string
      */
-    public static function get_customizer_value_without_default($email_campaign_id, $settings_name, $default = '')
+    public static function get_customizer_value_without_default($email_campaign_id, $settings_name)
     {
         $settings = self::get_settings();
 

@@ -45,6 +45,8 @@ $.MailOptin = {
 
 var mailoptin_optin = {
 
+    content_locker_storage: [],
+
     mailoptin_jq_plugin: function () {
         var self = this;
         $.fn.mailoptin = function (skip_display_checks) {
@@ -146,13 +148,13 @@ var mailoptin_optin = {
             });
 
             // handle CTA button click if activated
-            if (self.is_defined_not_empty(optin_js_config.cta_display) && optin_js_config.cta_display === true && self.is_defined_not_empty(optin_js_config.cta_action)) {
+            if (self.is_var_defined(optin_js_config, 'cta_display') && optin_js_config.cta_display === true && self.is_var_defined(optin_js_config, 'cta_action')) {
                 // if cta action is to navigate
                 $(document).on('click', '#' + $optin_css_id + '_cta_button', function (e) {
                     e.preventDefault();
                     var optin_container = $(this).parents('.moOptinForm');
 
-                    if (optin_js_config.cta_action === 'navigate_to_url' && self.is_defined_not_empty(optin_js_config.cta_navigate_url)) {
+                    if (optin_js_config.cta_action === 'navigate_to_url' && self.is_var_defined(optin_js_config, 'cta_navigate_url')) {
                         // bail if we are in customizer preview.
                         if ($.MailOptin.is_customize_preview === true) return;
                         // set cookie for this option conversion when button is clicked.
@@ -203,7 +205,10 @@ var mailoptin_optin = {
      * @returns {boolean}
      */
     is_after_x_seconds_active: function (optin_config) {
-        return optin_config.x_seconds_status === true && optin_config.x_seconds_value !== undefined;
+
+        return typeof optin_config.x_seconds_status !== 'undefined' &&
+            optin_config.x_seconds_status === true &&
+            typeof optin_config.x_seconds_value !== 'undefined';
     },
 
     /**
@@ -292,15 +297,17 @@ var mailoptin_optin = {
      * @returns {boolean}
      */
     is_optin_visible: function (optin_config) {
-        var $optin_uuid = optin_config.optin_uuid;
-        // if global success cookie found, do not display any optin.
-        if (optin_config.global_success_cookie > 0 && Cookies.get('mo_global_success_cookie')) return false;
-        // if global interaction/exit cookie found, do not display any optin.
-        if (optin_config.global_cookie > 0 && Cookies.get('mo_global_cookie')) return false;
-        // if success cookie found for this optin, do not display it.
-        if (Cookies.get('mo_success_' + $optin_uuid)) return false;
-        // if exit cookie found for this optin, do not dispay it.
-        if (Cookies.get('mo_' + $optin_uuid)) return false;
+        if (optin_config.state_after_conversion !== 'optin_form_shown') {
+            var $optin_uuid = optin_config.optin_uuid;
+            // if global success cookie found, do not display any optin.
+            if (optin_config.global_success_cookie > 0 && Cookies.get('mo_global_success_cookie')) return false;
+            // if global interaction/exit cookie found, do not display any optin.
+            if (optin_config.global_cookie > 0 && Cookies.get('mo_global_cookie')) return false;
+            // if success cookie found for this optin, do not display it.
+            if (Cookies.get('mo_success_' + $optin_uuid)) return false;
+            // if exit cookie found for this optin, do not dispay it.
+            if (Cookies.get('mo_' + $optin_uuid)) return false;
+        }
 
         return true;
     },
@@ -324,7 +331,7 @@ var mailoptin_optin = {
 
                 $.each(optin_config.split_test_variants, function (index, variant_config) {
 
-                    if (self.is_defined_not_empty(variant_config.state_after_conversion) &&
+                    if (self.is_var_defined(variant_config, 'state_after_conversion') &&
                         variant_config.state_after_conversion !== 'optin_form_shown' &&
                         self.is_optin_visible(variant_config) === false) {
                         flag = false;
@@ -380,7 +387,7 @@ var mailoptin_optin = {
         }
 
         // return if click launch status is activated for optin but the trigger isn't it.
-        if (optin_config.click_launch_status === true && skip_display_checks === false) return;
+        if (self.is_var_defined(optin_config, 'click_launch_status') && optin_config.click_launch_status === true && skip_display_checks === false) return;
 
         if (self.is_optin_visible(optin_config) === false) return;
 
@@ -476,6 +483,40 @@ var mailoptin_optin = {
             if (optin_config.device_targeting_hide_desktop === true) {
                 if (!mdInstance.mobile()) return;
             }
+        }
+
+        // WooCommerce added to cart
+        if (self.is_var_defined(optin_config, 'wc_atc_activate_rule') && optin_config.wc_atc_activate_rule === true) {
+
+            $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
+
+                var product_id = $thisbutton.data('product_id');
+
+                if (self.is_var_defined(optin_config, 'wc_atc_products') &&
+                    $.inArray(product_id, optin_config.wc_atc_products) === -1
+                ) {
+                    return false;
+                }
+
+                return self.display_optin_form.call(_this, optin_config, optin_type);
+            });
+
+            if (self.is_var_defined(mailoptin_globals, 'wc_atc_products')) {
+
+                if (self.is_var_defined(optin_config, 'wc_atc_products')) {
+
+                    /** array intersect @see https://stackoverflow.com/a/1885569/2648410 */
+                    var intersect = optin_config.wc_atc_products.filter(function (n) {
+                        return mailoptin_globals.wc_atc_products.indexOf(n) !== -1;
+                    });
+
+                    if (intersect.length === 0) return false;
+                }
+
+                return self.display_optin_form.call(_this, optin_config, optin_type);
+            }
+
+            return;
         }
 
         var wait_seconds = optin_config.x_seconds_value * 1000;
@@ -657,7 +698,7 @@ var mailoptin_optin = {
         }
 
         this.show();
-        $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config]);
+        $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config, optin_type]);
     },
 
     /**
@@ -1157,7 +1198,7 @@ var mailoptin_optin = {
 
         action = action || 'impression';
 
-        if (mailoptin_optin.is_defined_not_empty(optin_js_config.ga_active) === false) return;
+        if (mailoptin_optin.is_var_defined(optin_js_config, 'ga_active') === false) return;
 
         if (typeof ga !== "function") return;
 
@@ -1202,6 +1243,8 @@ var mailoptin_optin = {
         // track GA
         mailoptin_optin.ga_event_tracking('conversion', optin_js_config);
 
+        mailoptin_optin.content_locker_removal(optin_js_config);
+
         // if we have a JS success script, trigger it.
         if (is_success_js_script === true) {
             if (success_js_script.indexOf('<script') === -1) {
@@ -1241,6 +1284,9 @@ var mailoptin_optin = {
     eventSubscription: function () {
         // track impression for optin form other than modals
         $(document.body).on('moOptin:show', function (e, optin_uuid, optin_js_config) {
+
+            mailoptin_optin.content_locker_init(optin_js_config);
+
             $.MailOptin.track_impression(optin_uuid);
             // track GA
             mailoptin_optin.ga_event_tracking('impression', optin_js_config);
@@ -1248,6 +1294,55 @@ var mailoptin_optin = {
 
         // success actions
         $(document.body).on('moOptinConversion', this.success_action_after_conversion);
+    },
+
+    is_content_locker_enabled: function (optin_config) {
+        return mailoptin_optin.is_var_defined(optin_config, 'content_lock_status') &&
+            true === optin_config.content_lock_status &&
+            mailoptin_optin.is_var_defined(optin_config, 'content_lock_style');
+    },
+
+    content_locker_init: function (optin_config) {
+
+        if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
+
+        var nextAll = $('#' + optin_config.optin_uuid).nextAll();
+
+        if ('removal' === optin_config.content_lock_style) {
+
+            nextAll.each(function (index, el) {
+                mailoptin_optin.content_locker_storage.push($(el).clone(true));
+                $(el).remove();
+            });
+
+        } else {
+            nextAll.each(function (index, el) {
+                $(el).addClass('mailoptin-content-lock');
+            });
+        }
+    },
+
+    content_locker_removal: function (optin_config) {
+
+        if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
+
+        var optin_container = $('#' + optin_config.optin_uuid),
+            nextAll = optin_container.nextAll();
+
+        if ('removal' === optin_config.content_lock_style) {
+
+            mailoptin_optin.content_locker_storage.reverse();
+
+            $.each(mailoptin_optin.content_locker_storage, function (index, el) {
+                optin_container.after(el);
+            });
+
+        } else {
+
+            nextAll.each(function (index, el) {
+                $(el).removeClass('mailoptin-content-lock');
+            });
+        }
     },
 
     add_query_args: function (uri, params) {
@@ -1270,11 +1365,7 @@ var mailoptin_optin = {
             $(element).mailoptin();
         });
 
-        // click launch trigger
-        $('.mailoptin-click-trigger').click(function (event) {
-            event.preventDefault();
-
-            var optin_uuid = $(this).data('optin-uuid') || $(this).attr('id');
+        var clickLaunchCallback = function (optin_uuid) {
 
             if (typeof optin_uuid !== 'undefined') {
 
@@ -1285,6 +1376,30 @@ var mailoptin_optin = {
                 ];
 
                 $(selector.join(',')).mailoptin(true);
+            }
+        }
+
+        // click launch trigger
+        $(document).on('click', '.mailoptin-click-trigger', function (event) {
+
+            event.preventDefault();
+
+            var optin_uuid = $(this).data('optin-uuid') || $(this).attr('id');
+
+            clickLaunchCallback(optin_uuid);
+        });
+
+        // click launch trigger
+        $(document).on('click', '[class*="mailoptin-click-trigger-"]', function (event) {
+
+            event.preventDefault();
+
+            // https://stackoverflow.com/a/17367855/2648410
+            var optin_uuid, className = this.className.match(/mailoptin-click-trigger-([a-z0-1]+)\s?/i);
+
+            if (null !== className) {
+                optin_uuid = className[1];
+                clickLaunchCallback(optin_uuid);
             }
         });
     },
@@ -1335,6 +1450,18 @@ var mailoptin_optin = {
                 }
             }
         });
+    },
+
+    /**
+     * Check if value is defined
+     *
+     * @param {mixed} varObj
+     * @param {string|int} objKey
+     *
+     * @returns {boolean}
+     */
+    is_var_defined: function (varObj, objKey) {
+        return (typeof varObj[objKey] !== 'undefined');
     },
 
     /**

@@ -173,6 +173,14 @@
                         if (typeof api.section('mo_wp_polylang_display_rule_section') !== 'undefined') {
                             api.section('mo_wp_polylang_display_rule_section').active(!is_displayed());
                         }
+
+                        if (typeof api.section('mo_wp_woocommerce_display_rule_section') !== 'undefined') {
+                            api.section('mo_wp_woocommerce_display_rule_section').active(!is_displayed());
+                        }
+
+                        if (typeof api.section('mo_wp_woocommerce_atc_display_rule_section') !== 'undefined') {
+                            api.section('mo_wp_woocommerce_atc_display_rule_section').active(!is_displayed());
+                        }
                     };
 
                     control.active.validate = is_displayed;
@@ -188,47 +196,72 @@
                 api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][click_launch_html_code]', linkSettingValueToControlActiveState);
             });
 
+            api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][inpost_content_locking_activate]', function (setting) {
+
+                var is_displayed, linkSettingValueToControlActiveState;
+
+                is_displayed = function () {
+                    return setting.get();
+                };
+
+                linkSettingValueToControlActiveState = function (control) {
+
+                    var setActiveState = function () {
+                        control.active.set(is_displayed());
+                    };
+
+                    control.active.validate = is_displayed;
+
+                    // Set initial active state.
+                    setActiveState();
+
+                    setting.bind(setActiveState);
+                };
+
+                api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][inpost_content_locking_style]', linkSettingValueToControlActiveState);
+            });
+
             // contextual display of redirect_url in success panel/section.
             api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][success_action]', function (setting) {
-                    var is_redirect_url_value_displayed, is_success_message_displayed,
-                        linkSettingValueToControlActiveState1, linkSettingValueToControlActiveState2;
+                var is_redirect_url_value_displayed, is_success_message_displayed,
+                    linkSettingValueToControlActiveState1, linkSettingValueToControlActiveState2;
 
-                    is_success_message_displayed = function () {
-                        return setting.get() === 'success_message';
+                is_success_message_displayed = function () {
+                    return setting.get() === 'success_message';
+                };
+
+                is_redirect_url_value_displayed = function () {
+                    return setting.get() === 'redirect_url';
+                };
+
+                linkSettingValueToControlActiveState1 = function (control) {
+                    var setActiveState = function () {
+                        control.active.set(is_redirect_url_value_displayed());
                     };
 
-                    is_redirect_url_value_displayed = function () {
-                        return setting.get() === 'redirect_url';
+                    control.active.validate = is_redirect_url_value_displayed;
+                    // Set initial active state.
+                    setActiveState();
+
+                    setting.bind(setActiveState);
+                };
+
+                linkSettingValueToControlActiveState2 = function (control) {
+                    var setActiveState = function () {
+                        control.active.set(is_success_message_displayed());
                     };
 
-                    linkSettingValueToControlActiveState1 = function (control) {
-                        var setActiveState = function () {
-                            control.active.set(is_redirect_url_value_displayed());
-                        };
+                    control.active.validate = is_success_message_displayed;
+                    // Set initial active state.
+                    setActiveState();
 
-                        control.active.validate = is_redirect_url_value_displayed;
-                        // Set initial active state.
-                        setActiveState();
+                    setting.bind(setActiveState);
+                };
 
-                        setting.bind(setActiveState);
-                    };
-
-                    linkSettingValueToControlActiveState2 = function (control) {
-                        var setActiveState = function () {
-                            control.active.set(is_success_message_displayed());
-                        };
-
-                        control.active.validate = is_success_message_displayed;
-                        // Set initial active state.
-                        setActiveState();
-
-                        setting.bind(setActiveState);
-                    };
-
-                    api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][redirect_url_value]', linkSettingValueToControlActiveState1);
-                    api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][pass_lead_data_redirect_url]', linkSettingValueToControlActiveState1);
-                    api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][success_message]', linkSettingValueToControlActiveState2);
-                });
+                api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][redirect_url_value]', linkSettingValueToControlActiveState1);
+                api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][pass_lead_data_redirect_url]', linkSettingValueToControlActiveState1);
+                api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][success_message]', linkSettingValueToControlActiveState2);
+            });
 
             api('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][note_acceptance_checkbox]', function (setting) {
                 var is_displayed, linkSettingValueToControlActiveState, controlCloseOptinOnClick;

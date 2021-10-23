@@ -67,7 +67,7 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
                 break;
         }
 
-        return $options;
+        return apply_filters('mo_customizer_chosen_select_prepopulation', $options, $this->search_type);
     }
 
     public function render_content()

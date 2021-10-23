@@ -50,6 +50,7 @@ function custom_settings_page_api()
  * @param string $content
  *
  * @return string string
+ * @throws \Html2Text\Html2TextException
  */
 function html_to_text($content)
 {
@@ -72,7 +73,7 @@ function limit_text($text, $limit = 150)
     $limit = ! is_int($limit) || 0 === $limit ? 150 : $limit;
 
     // <p> not included cos it sometimes break layout and besides wpautop adds it back
-    $tags = apply_filters('mo_limit_text_tags', '<a><img><em><i><code><ins><del><strong><blockquote><ul><ol><li><h1><h2><h3><h4><h5><h6><b>');
+    $tags = apply_filters('mo_limit_text_tags', '<style><a><img><em><i><code><ins><del><strong><blockquote><ul><ol><li><h1><h2><h3><h4><h5><h6><b><div><span>');
 
     $text = strip_shortcodes(strip_tags(stripslashes($text), $tags));
 
@@ -82,6 +83,9 @@ function limit_text($text, $limit = 150)
         $pos   = array_keys($words);
         $text  = substr($text, 0, $pos[$limit]) . apply_filters('mailoptin_limit_text_ellipsis', '. . .');
     }
+
+    // remove VC tags and empty paragraphs (<p></p>)
+    $text = preg_replace(['/\[vc(.*?)\]/', '/<p[^>]*><\\/p[^>]*>/'], '', $text);
 
     return $text;
 }

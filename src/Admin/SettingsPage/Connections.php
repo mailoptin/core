@@ -165,7 +165,10 @@ class Connections extends AbstractSettingsPage
                 return -1;
             }
 
-            return strcmp($a["section_title"], $b["section_title"]);
+            $first_comp  = isset($a["section_title_without_status"]) ? $a["section_title_without_status"] : $a["section_title"];
+            $second_comp = isset($b["section_title_without_status"]) ? $b["section_title_without_status"] : $b["section_title"];
+
+            return strcmp($first_comp, $second_comp);
         });
 
         $nav_tabs         = '';

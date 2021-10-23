@@ -61,7 +61,7 @@ class OptinCampaignMeta
      *
      * @return mixed
      */
-    public static function get_campaign_meta($campaign_id, $meta_key = '', $single = false)
+    public static function get_campaign_meta($campaign_id, $meta_key = '', $single = true)
     {
         return get_metadata('optin_campaign', $campaign_id, $meta_key, $single);
     }
@@ -71,6 +71,8 @@ class OptinCampaignMeta
      *
      * @param string $meta_key
      * @param int $parent_optin_id
+     *
+     * @return bool|mixed
      */
     public static function get_optin_id_by_meta_key_value($meta_key, $parent_optin_id)
     {
@@ -98,6 +100,8 @@ class OptinCampaignMeta
      *
      * @param string $meta_key
      * @param int $optin_campaign_id
+     *
+     * @return bool|mixed
      */
     public static function get_meta_value_by_optin_campaign_id($meta_key, $optin_campaign_id)
     {

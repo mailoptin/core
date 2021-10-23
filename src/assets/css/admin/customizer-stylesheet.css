@@ -1,5 +1,5 @@
 #customize-controls .customize-info .customize-help-toggle {
-    display:none !important;
+    display: none !important;
 }
 
 .wp-customizer .fancybox-container {
@@ -27,7 +27,7 @@ strong.panel-title.site-title:hover {
 }
 
 .panel-title.site-title {
-    cursor:pointer;
+    cursor: pointer;
 }
 
 .customize-control + .customize-control {
@@ -66,10 +66,6 @@ strong.panel-title.site-title:hover {
     -webkit-box-shadow: 0px 0px 10px 0px #000;
     -moz-box-shadow: 0px 0px 10px 0px #000;
     box-shadow: 0px 0px 10px 0px #000;
-}
-
-.customize-control-textarea textarea {
-    height: 500px;
 }
 
 #customize-controls .description {
@@ -706,6 +702,31 @@ li[id*="code_your_own"] + .customize-control {
     padding: 8px;
 }
 
-.mailoptin-optin-themes-ajax-error .close-button-div{
+.mailoptin-optin-themes-ajax-error .close-button-div {
     margin-top: 10px;
+}
+
+.WebHookConnect_request_header_fields .mo-webhook-header-name-text-field {
+    display: none;
+}
+
+.WebHookConnect_request_header_fields .mo-field-header,
+.WebHookConnect_request_body_fields .mo-field-header {
+    margin: 0 -10px;
+}
+
+.mo-webhook-integration-header .mo-webhook-header-wrap,
+.mo-webhook-integration-body .mo-webhook-body-wrap {
+    box-shadow: rgb(0 0 0 / 12%) 0px 1px 1px;
+    padding: 0 0 10px;
+}
+
+.WebHookConnect_request_header_fields .dashicons,
+.WebHookConnect_request_body_fields .dashicons {
+    font-size: 14px;
+    display: inline;
+}
+
+.mo-integration-block .mo-webhook-add-btn-wrap {
+    padding: 5px 0 0;
 }

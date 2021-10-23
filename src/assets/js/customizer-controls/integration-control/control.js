@@ -167,7 +167,10 @@
             } else if (this.tagName === 'SELECT' && $(this).hasClass('mailoptin-integration-chosen')) {
                 old_data[index][field_name] = $(this).val();
             } else {
-                old_data[index][field_name] = field_value;
+
+                if (!$(this).parent().hasClass('mo-webhook-field')) {
+                    old_data[index][field_name] = field_value;
+                }
             }
 
             // remove null and empty from array elements.
@@ -260,6 +263,7 @@
                 $.post(ajaxurl, {
                         action: 'mailoptin_customizer_fetch_email_list',
                         connect_service: connect_service,
+                        ui: 'optin',
                         security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
                     },
                     function (response) {

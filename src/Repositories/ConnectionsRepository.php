@@ -74,20 +74,17 @@ class ConnectionsRepository
             return array();
         }
 
-        $email_list = get_transient("_mo_connection_cache_$connection");
+        $cache_key = 'mo_connection_email_list_' . $connection;
 
-        // re-fetch email list from connect service API if prior return email list that was cache was empty
-        // or if there was no cache data.
+        $email_list = get_transient($cache_key);
+
         if (empty($email_list) || false === $email_list) {
+
             $connectInstance = ConnectionFactory::make($connection);
 
             $email_list = (array)$connectInstance->get_email_list();
 
-            set_transient(
-                "_mo_connection_cache_$connection",
-                $email_list,
-                apply_filters('mailoptin_email_list_cache_expiration', MINUTE_IN_SECONDS)
-            );
+            set_transient($cache_key, $email_list, MINUTE_IN_SECONDS);
         }
 
         return $email_list;

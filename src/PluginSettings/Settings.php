@@ -31,21 +31,23 @@ class Settings
 
     public function from_name()
     {
-        return str_replace('&#039;', "'", $this->settings_data['from_name']);
+        return apply_filters('mo_email_campaign_from_name', str_replace('&#039;', "'", $this->settings_data['from_name']));
     }
 
     public function from_email()
     {
-        return $this->settings_data['from_email'];
+        return apply_filters('mo_email_campaign_from_email', $this->settings_data['from_email']);
     }
 
     public function reply_to()
     {
         if ( ! empty($this->settings_data['reply_to'])) {
-            return $reply_to = $this->settings_data['reply_to'];
+            $reply_to = $this->settings_data['reply_to'];
         } else {
-            return $reply_to = $this->settings_data['from_email'];
+            $reply_to = $this->settings_data['from_email'];
         }
+
+        return apply_filters('mo_email_campaign_reply_to_email', $reply_to);
     }
 
     /**

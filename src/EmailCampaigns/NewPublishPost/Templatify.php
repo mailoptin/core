@@ -52,10 +52,10 @@ class Templatify implements TemplatifyInterface
         );
 
         $replace = [
-            $this->post->post_title,
+            apply_filters('mo_new_publish_post_title', $this->post->post_title, $this->post, $this->email_campaign_id),
             apply_filters('mo_new_publish_post_content', $this->post_content($this->post), $this->post, $this->email_campaign_id),
-            $this->post_url($this->post),
-            $this->post_meta($this->post)
+            apply_filters('mo_new_publish_post_url', $this->post_url($this->post), $this->post, $this->email_campaign_id),
+            apply_filters('mo_new_publish_post_meta', $this->post_meta($this->post), $this->post, $this->email_campaign_id)
         ];
 
         return apply_filters('mo_new_post_notification_post_content_forge', str_replace($search, $replace, $preview_structure));
@@ -71,11 +71,12 @@ class Templatify implements TemplatifyInterface
         do_action('mailoptin_email_template_before_forge', $this->email_campaign_id, $this->template_class);
 
         if (ER::is_code_your_own_template($this->email_campaign_id)) {
-            $content              = ER::get_customizer_value($this->email_campaign_id, 'code_your_own');
-            $templatified_content = (new Shortcodes($this->email_campaign_id))->from($this->post)->parse($content);
+            $content = ER::get_customizer_value($this->email_campaign_id, 'code_your_own');
         } else {
-            $templatified_content = do_shortcode($this->post_content_forge());
+            $content = $this->post_content_forge();
         }
+
+        $templatified_content = (new Shortcodes($this->email_campaign_id))->from($this->post)->parse($content);
 
         $templatified_content = apply_filters('mo_new_publish_post_post_templatify_forge', $templatified_content, $this->post, $this);
 

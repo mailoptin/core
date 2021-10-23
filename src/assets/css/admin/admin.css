@@ -467,6 +467,7 @@ tr.mo-test-mode {
     text-align: center;
 }
 
+.mailoptin-data-listing th.manage-column.column-name,
 .mailoptin-data-listing td.name.column-name {
     text-align: left;
 }
@@ -552,11 +553,11 @@ a.mo-split-test-upgrade {
 
 /* optin wp listing column re-arrangement*/
 table.optin_forms th#actions {
-    width: 20% !important;
+    width: 18% !important;
 }
 
 table.optin_forms th#name {
-    width: 24%;
+    width: 22%;
 }
 
 table.optin_forms th#uuid {

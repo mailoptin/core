@@ -59,6 +59,25 @@ trait CustomizerTrait
 
     public function clean_up_customizer()
     {
+        if (Settings::instance()->switch_customizer_loader() != 'true' && ! $this->is_ninja_form_shortcode()) {
+
+            add_filter('customize_loaded_components', function ($components) {
+
+                $core_components = array('nav_menus'/*, 'widgets'*/);
+
+                if ( ! empty($components)) {
+                    foreach ($components as $component_key => $component) {
+                        if (in_array($component, $core_components, true)) {
+                            unset($components[$component_key]);
+                        }
+                    }
+                }
+
+                return $components;
+
+            }, 99);
+        }
+
         // this should never change from init to say admin_init in future because it will
         // cause wp_enqueue_scripts filter from taking effect cos its used in frontend.
         add_action('init', function () {
@@ -111,7 +130,6 @@ trait CustomizerTrait
 
                     $child_theme  = $wp_get_theme->get_stylesheet();
                     $parent_theme = $wp_get_theme->get_template();
-
 
                     // important in fixing: Uncaught TypeError: Cannot set property '_value' of undefined
                     // from /wp-admin/js/customize-nav-menus.min.js
@@ -237,6 +255,7 @@ trait CustomizerTrait
         $zohocrm_label     = __('ZohoCRM Modules', 'mailoptin');
         $fbca_label        = __('Custom Audience', 'mailoptin');
         $jilt_label        = __('Select Linked Store', 'mailoptin');
+        $webhook_label     = __('Request Method', 'mailoptin');
         $default_label     = __('Select Email List', 'mailoptin');
         ?>
         <script type="text/javascript">
@@ -270,6 +289,10 @@ trait CustomizerTrait
 
                         if (connection_service === 'JiltConnect') {
                             title_obj.text('<?php echo $jilt_label; ?>');
+                        }
+
+                        if (connection_service === 'WebHookConnect') {
+                            title_obj.text('<?php echo $webhook_label; ?>');
                         }
 
                         if (connection_service === 'WordPressUserRegistrationConnect') {
@@ -313,6 +336,10 @@ trait CustomizerTrait
                                     title_obj.text('<?php echo $jilt_label; ?>');
                                 }
 
+                                if (connection_service === 'WebHookConnect') {
+                                    title_obj.text('<?php echo $webhook_label; ?>');
+                                }
+
                                 if (connection_service === 'WordPressUserRegistrationConnect') {
                                     title_obj.text('<?php echo $wp_user_reg_label; ?>');
                                 }
@@ -351,6 +378,10 @@ trait CustomizerTrait
                                 title_obj.text('<?php echo $jilt_label; ?>');
                             }
 
+                            if (connection_service === 'WebHookConnect') {
+                                title_obj.text('<?php echo $webhook_label; ?>');
+                            }
+
                             if (connection_service === 'WordPressUserRegistrationConnect') {
                                 title_obj.text('<?php echo $wp_user_reg_label; ?>');
                             }
@@ -387,7 +418,6 @@ trait CustomizerTrait
     {
         // Enable rich editing for this view (Overrides 'Disable the visual editor when writing' option for current user)
         add_filter('user_can_richedit', '__return_true');
-        wp_enqueue_editor();
         wp_enqueue_editor();
 
         if ( ! empty($GLOBALS['post'])) {

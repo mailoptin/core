@@ -184,7 +184,7 @@ class AdminNotices
         );
         $label  = __('Sure! I\'d love to give a review', 'mailoptin');
 
-        $dismiss_label = __('Dimiss Forever', 'mailoptin');
+        $dismiss_label = __('Dismiss Forever', 'mailoptin');
 
         $notice .= "<div style=\"margin:10px 0 0;\"><a href=\"$review_url\" target='_blank' class=\"button-primary\">$label</a></div>";
         $notice .= "<div style=\"margin:10px 0 0;\"><a href=\"$dismiss_url\">$dismiss_label</a></div>";
