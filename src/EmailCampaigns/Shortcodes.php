@@ -328,12 +328,8 @@ class Shortcodes
         
         $field = sanitize_key($atts['field']);
         
-        if (empty($field)) return '';
+        if (empty($field) || !function_exists('get_field') ) return '';
         
-        if (function_exists('get_field') ) {
-            return get_field($field, $this->wp_post_obj->ID);
-        }
-        
-        return '';
+        return get_field($field, $this->wp_post_obj->ID);
     }
 }
