@@ -25,6 +25,7 @@ class CloneOptinCampaign
     public function forge()
     {
         $clonee = OptinCampaignsRepository::get_optin_campaign_by_id($this->optin_campaign_id);
+       
         $new_uuid = AjaxHandler::generateUniqueId();
 
         $optin_campaign_id = OptinCampaignsRepository::add_optin_campaign(
