@@ -91,6 +91,8 @@ class Shortcodes
         add_shortcode('post-author-website', [$this, 'post_author_website_tag']);
         add_shortcode('post-author-email', [$this, 'post_author_email_tag']);
         add_shortcode('post-meta', [$this, 'post_meta_tag']);
+        add_shortcode('post-meta', [$this, 'post_meta_tag']);
+        add_shortcode('post-custom-field', [$this, 'post_custom_field']);
 
         do_action('mo_define_email_automation_post_shortcodes', $this->wp_post_obj);
     }
@@ -319,5 +321,21 @@ class Shortcodes
         if (empty($key)) return '';
 
         return get_post_meta($this->wp_post_obj->ID, $key, true);
+    }
+    
+    public function post_custom_field($atts)
+    {
+        $atts = shortcode_atts(['field' => ''], $atts);
+    
+        $field = sanitize_key($atts['field']);
+        
+        if (empty($field)) return '';
+    
+        if (function_exists('get_field') ) {
+            return get_field($field, $this->wp_post_obj->ID);
+        }
+        
+        return '';
+        
     }
 }
