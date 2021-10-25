@@ -21,9 +21,9 @@
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
-      "oA" : 1,
+      "oA" : 0,
       "oAP" : "\/.gitignore",
-      "oF" : 1
+      "oF" : 0
     },
     "\/.travis.yml" : {
       "cB" : 0,
@@ -59,25 +59,25 @@
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
-      "oA" : 1,
+      "oA" : 0,
       "oAP" : "\/composer.lock",
-      "oF" : 1
+      "oF" : 0
     },
     "\/index.php" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
-      "oA" : 1,
+      "oA" : 0,
       "oAP" : "\/index.php",
-      "oF" : 1
+      "oF" : 0
     },
     "\/phpunit.xml.dist" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
-      "oA" : 1,
+      "oA" : 0,
       "oAP" : "\/phpunit.xml.dist",
-      "oF" : 1
+      "oF" : 0
     },
     "\/README.md" : {
       "cB" : 0,
@@ -88,9 +88,9 @@
       "eSQ" : 1,
       "ft" : 4096,
       "hM" : 0,
-      "oA" : 1,
+      "oA" : 0,
       "oAP" : "\/README.html",
-      "oF" : 1,
+      "oF" : 0,
       "oFM" : 0,
       "oS" : 0,
       "pHT" : 0,
@@ -1462,7 +1462,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 655124859.97122705
+    "lastBuiltDate" : 656889386.42104006
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -1756,7 +1756,7 @@
     "bowerUseExactVersion" : 0,
     "browserRefreshDelay" : 0,
     "browserslistString" : ">0.2%, last 2 versions, Firefox ESR, not dead",
-    "buildEnvironment" : 0,
+    "buildEnvironment" : 1,
     "buildFolderActive" : 0,
     "buildFolderName" : "build",
     "cleanBuild" : 1,
@@ -1901,7 +1901,7 @@
     "cssoForceMediaMerge" : 0,
     "cssoRestructure" : 1,
     "environmentVariableEntries" : [
-      "NODE_ENV:::production"
+      "NODE_ENV:::development"
     ],
     "esLintConfigFileHandlingType" : 0,
     "esLintECMAVersion" : 7,
