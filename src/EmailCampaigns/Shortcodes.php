@@ -324,12 +324,15 @@ class Shortcodes
     
     public function post_custom_field($atts)
     {
-        $atts = shortcode_atts(['field' => ''], $atts);
+        $atts = shortcode_atts(['field' => '', 'post_id' => ''], $atts);
         
         $field = sanitize_key($atts['field']);
+        $post_id = sanitize_key($atts['post_id']);
         
         if (empty($field) || !function_exists('get_field') ) return '';
         
-        return get_field($field, $this->wp_post_obj->ID);
+        if(empty($post_id)) $post_id = $this->wp_post_obj->ID;
+        
+        return get_field($field, $post_id);
     }
 }
