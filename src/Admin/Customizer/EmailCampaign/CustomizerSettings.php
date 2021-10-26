@@ -104,6 +104,10 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'acf_shortcode'              => array(
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'unsubscribe_shortcode'            => array(
                     'type'      => 'option',
                     'transport' => 'postMessage',

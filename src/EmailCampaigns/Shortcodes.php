@@ -91,6 +91,7 @@ class Shortcodes
         add_shortcode('post-author-website', [$this, 'post_author_website_tag']);
         add_shortcode('post-author-email', [$this, 'post_author_email_tag']);
         add_shortcode('post-meta', [$this, 'post_meta_tag']);
+        add_shortcode('acf-field', [$this, 'acf_custom_field']);
 
         do_action('mo_define_email_automation_post_shortcodes', $this->wp_post_obj);
     }
@@ -319,5 +320,26 @@ class Shortcodes
         if (empty($key)) return '';
 
         return get_post_meta($this->wp_post_obj->ID, $key, true);
+    }
+
+    public function acf_custom_field($atts)
+    {
+        $atts = shortcode_atts(['field' => '', 'post_id' => '', 'format_value' => true], $atts);
+
+        $field        = sanitize_key($atts['field']);
+        $post_id      = absint($atts['post_id']);
+        $format_value = in_array($atts['format_value'], ['true', true], true);
+
+        if (empty($field) || ! function_exists('get_field')) return '';
+
+        if (empty($post_id)) $post_id = $this->wp_post_obj->ID;
+
+        $value = get_field($field, $post_id, $format_value);
+
+        if (is_array($value)) {
+            $value = @implode(', ', $value);
+        }
+
+        return $value;
     }
 }
