@@ -144,6 +144,7 @@ class Base
         AdminNotices::get_instance();
         ConversionExport::get_instance();
         ProUpgrade::get_instance();
+        \MoBFnote::instance();
 
         do_action('mailoptin_admin_hooks');
     }
