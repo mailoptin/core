@@ -6,8 +6,10 @@ export default function mcGroupsValidation() {
         if (choices_obj.length === 0) return;
         if (optin_js_config.mailchimp_segment_required === false) return;
         var checked = false;
+        var checked_array = ['radio', 'checkbox'];
         choices_obj.each(function () {
-            if (this.checked) checked = true;
+            if(checked_array.indexOf(this.type) <= -1 && this.value.length > 0) checked = true;
+            else if (this.checked) checked = true;
         });
         if (checked === false) {
             mailoptin_optin.display_optin_error.call(undefined, $optin_css_id, optin_js_config.mailchimp_segment_required_error);
