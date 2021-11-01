@@ -37,6 +37,8 @@ if ( ! class_exists('\MoBFnote')) {
 
             if (defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
 
+            if ( ! current_user_can('administrator')) return;
+
             $start = strtotime('november 24th, 2021');
             $end   = strtotime('december 1st, 2021');
             $now   = time();
