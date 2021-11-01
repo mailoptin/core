@@ -434,7 +434,7 @@ class Lupin extends AbstractOptinTheme
     [mo-optin-form-name-field class="lupinSidebar-input"]
     [mo-optin-form-email-field class="lupinSidebar-input"]
     [mo-optin-form-custom-fields]
-    [mo-mailchimp-interests]
+    [mo-mailchimp-interests class="lupinSidebar-input"]
     [mo-optin-form-submit-button class="lupinSidebar-submit"]
     [/mo-optin-form-fields-wrapper]
     [mo-optin-form-cta-button]
@@ -489,6 +489,7 @@ html div#$optin_uuid div#$optin_css_id.lupinSidebar-container .lupinSidebar-form
      }
 
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.lupinSidebar-input,
+html div#$optin_uuid div#$optin_css_id.lupinSidebar-container select.lupinSidebar-input,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.mo-optin-form-custom-field.text-field,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.mo-optin-form-custom-field.password-field,
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container input.mo-optin-form-custom-field.date-field,

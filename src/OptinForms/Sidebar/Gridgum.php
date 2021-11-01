@@ -521,7 +521,7 @@ class Gridgum extends AbstractOptinTheme
                             [mo-optin-form-name-field class="gridgum_input_field"]
                             [mo-optin-form-email-field class="gridgum_input_field"]
                             [mo-optin-form-custom-fields]
-                            [mo-mailchimp-interests]
+                            [mo-mailchimp-interests class="gridgum_input_field"]
                             [mo-optin-form-submit-button class="gridgum_submit_button"]
                             [/mo-optin-form-fields-wrapper]
     [mo-optin-form-cta-button class="gridgum_submit_button"]
@@ -614,7 +614,8 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-inner .gr
          line-height: normal;
      }
 
-html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-form input.gridgum_input_field, 
+html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-form input.gridgum_input_field,
+html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_body-form select.gridgum_input_field,
 html div#$optin_uuid div#$optin_css_id.gridgum_container input.mo-optin-form-custom-field.date-field, 
 html div#$optin_uuid div#$optin_css_id.gridgum_container input.mo-optin-form-custom-field.text-field,
 html div#$optin_uuid div#$optin_css_id.gridgum_container input.mo-optin-form-custom-field.password-field,
