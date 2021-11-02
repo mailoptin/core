@@ -1178,17 +1178,6 @@
       "oAP" : "\/src\/assets\/js\/index.php",
       "oF" : 1
     },
-    "\/src\/assets\/js\/mailoptin.min.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 0,
-      "mi" : 1,
-      "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min-min.js",
-      "oF" : 1,
-      "sC" : 3,
-      "tS" : 0
-    },
     "\/src\/assets\/js\/mobile-detect.min.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -1258,7 +1247,7 @@
       "ma" : 0,
       "mi" : 1,
       "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation-min.js",
+      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation.min.js",
       "oF" : 0,
       "sC" : 3,
       "tS" : 0
@@ -1526,7 +1515,11 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
+<<<<<<< HEAD
     "lastBuiltDate" : 660219767.69629395
+=======
+    "lastBuiltDate" : 657576795.60134494
+>>>>>>> Added Comma Separated CSS When Content Locker is active
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -1820,7 +1813,7 @@
     "bowerUseExactVersion" : 0,
     "browserRefreshDelay" : 0,
     "browserslistString" : ">0.2%, last 2 versions, Firefox ESR, not dead",
-    "buildEnvironment" : 0,
+    "buildEnvironment" : 1,
     "buildFolderActive" : 0,
     "buildFolderName" : "build",
     "cleanBuild" : 1,
@@ -1965,7 +1958,7 @@
     "cssoForceMediaMerge" : 0,
     "cssoRestructure" : 1,
     "environmentVariableEntries" : [
-      "NODE_ENV:::production"
+      "NODE_ENV:::development"
     ],
     "esLintConfigFileHandlingType" : 0,
     "esLintECMAVersion" : 7,
