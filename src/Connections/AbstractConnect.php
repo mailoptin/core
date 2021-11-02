@@ -154,7 +154,7 @@ abstract class AbstractConnect
      */
     public static function ajax_failure($error = '')
     {
-        return ['success' => false, 'message' => $error];
+        return ['success' => false, 'message' => apply_filters('mo_optin_ajax_error_message', $error)];
     }
 
     /**
