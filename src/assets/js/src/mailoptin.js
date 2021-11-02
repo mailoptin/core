@@ -1306,15 +1306,25 @@ var mailoptin_optin = {
 
         if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
 
+        var contentSelector = optin_config.content_lock_selector.toString();
+
         var nextAll = $('#' + optin_config.optin_uuid).nextAll();
 
+        if(contentSelector.length > 0 && $(contentSelector).length > 0) {
+            nextAll = $(contentSelector);
+        }
+
         if ('removal' === optin_config.content_lock_style) {
-
-            nextAll.each(function (index, el) {
-                mailoptin_optin.content_locker_storage.push($(el).clone(true));
-                $(el).remove();
-            });
-
+            if($(contentSelector).length > 0) {
+                nextAll.each(function (index, el) {
+                    $(el).hide();
+                });
+            } else {
+                nextAll.each(function (index, el) {
+                    mailoptin_optin.content_locker_storage.push($(el).clone(true));
+                    $(el).remove();
+                });
+            }
         } else {
             nextAll.each(function (index, el) {
                 $(el).addClass('mailoptin-content-lock');
@@ -1329,14 +1339,25 @@ var mailoptin_optin = {
         var optin_container = $('#' + optin_config.optin_uuid),
             nextAll = optin_container.nextAll();
 
+        var contentSelector = optin_config.content_lock_selector.toString();
+
+        if(contentSelector.length > 0 && $(contentSelector).length > 0) {
+            nextAll = $(contentSelector);
+        }
+
         if ('removal' === optin_config.content_lock_style) {
 
             mailoptin_optin.content_locker_storage.reverse();
 
-            $.each(mailoptin_optin.content_locker_storage, function (index, el) {
-                optin_container.after(el);
-            });
-
+            if($(contentSelector).length > 0) {
+                nextAll.each(function (index, el) {
+                    $(el).show();
+                });
+            } else {
+                $.each(mailoptin_optin.content_locker_storage, function (index, el) {
+                    optin_container.after(el);
+                });
+            }
         } else {
 
             nextAll.each(function (index, el) {
