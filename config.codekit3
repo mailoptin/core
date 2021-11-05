@@ -552,6 +552,35 @@
       "q" : 100,
       "rq" : 75
     },
+<<<<<<< HEAD
+=======
+    "\/src\/assets\/images\/optin-themes\/blogger\/blogger-lightbox.png" : {
+      "ft" : 32768,
+      "iS" : 23014,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/blogger-lightbox.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/blogger\/optin-image.png" : {
+      "ft" : 32768,
+      "iS" : 23014,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/optin-image.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+>>>>>>> 7a7ba7a (remove close ico)
     "\/src\/assets\/images\/optin-themes\/boldy-inpost.png" : {
       "ft" : 32768,
       "iS" : 40378,
