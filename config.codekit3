@@ -2,9 +2,6 @@
   "AAInfo" : "This is a CodeKit 3 project config file. EDITING THIS FILE IS A POOR LIFE DECISION. Doing so may cause CodeKit to crash and\/or corrupt your project. Several critical values in this file are 64-bit integers, which JavaScript JSON parsers do not support because JavaScript cannot handle 64-bit integers. These values will be corrupted if the file is parsed with JavaScript. This file is not backwards-compatible with CodeKit 1 or 2. For details, see https:\/\/codekitapp.com\/",
   "buildSteps" : [
     {
-      "itemsToProcess" : [
-        "\/src\/assets\/js\/src\/mailoptin.js"
-      ],
       "name" : "New \"Process Certain Files\" Step",
       "stepType" : 0,
       "uuidString" : "9AED0CD2-293C-4201-AA90-9B50DE14EA50"
@@ -1257,17 +1254,6 @@
       "oAP" : "\/src\/assets\/js\/src\/js.cookie.min.js",
       "oF" : 0,
       "sC" : 3,
-      "tS" : 0
-    },
-    "\/src\/assets\/js\/src\/mailoptin.js" : {
-      "bF" : 4,
-      "ft" : 64,
-      "ma" : 0,
-      "mi" : 2,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min.js",
-      "oF" : 3,
-      "sC" : 0,
       "tS" : 0
     },
     "\/src\/assets\/js\/src\/main.js" : {
