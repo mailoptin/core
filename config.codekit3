@@ -565,19 +565,6 @@
       "q" : 100,
       "rq" : 75
     },
-    "\/src\/assets\/images\/optin-themes\/blogger\/close.png" : {
-      "ft" : 32768,
-      "iS" : 742,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/close.png",
-      "oF" : 0,
-      "oIPL" : 0,
-      "opt" : 0,
-      "oT" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 100,
-      "rq" : 75
-    },
     "\/src\/assets\/images\/optin-themes\/blogger\/optin-image.png" : {
       "ft" : 32768,
       "iS" : 23014,
