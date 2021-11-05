@@ -39,6 +39,14 @@
       "oAP" : "\/bin",
       "oF" : 0
     },
+    "\/build\/.gitignore" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/build\/.gitignore",
+      "oF" : 0
+    },
     "\/composer.json" : {
       "ft" : 524288,
       "oA" : 1,
@@ -536,6 +544,45 @@
       "iS" : 35909,
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/optin-themes\/baremetal-lightbox.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/blogger\/blogger-lightbox.png" : {
+      "ft" : 32768,
+      "iS" : 23014,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/blogger-lightbox.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/blogger\/close.png" : {
+      "ft" : 32768,
+      "iS" : 742,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/close.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/blogger\/optin-image.png" : {
+      "ft" : 32768,
+      "iS" : 23014,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/optin-image.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -1170,6 +1217,17 @@
       "oAP" : "\/src\/assets\/js\/index.php",
       "oF" : 1
     },
+    "\/src\/assets\/js\/mailoptin.min.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 1,
+      "oAP" : "\/src\/assets\/js\/mailoptin.min.min.js",
+      "oF" : 1,
+      "sC" : 3,
+      "tS" : 0
+    },
     "\/src\/assets\/js\/mobile-detect.min.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -1443,7 +1501,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 657576795.60134494
+    "lastBuiltDate" : 657754644.88920999
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
