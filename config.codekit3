@@ -552,32 +552,6 @@
       "q" : 100,
       "rq" : 75
     },
-    "\/src\/assets\/images\/optin-themes\/blogger\/blogger-lightbox.png" : {
-      "ft" : 32768,
-      "iS" : 23014,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/blogger-lightbox.png",
-      "oF" : 0,
-      "oIPL" : 1,
-      "opt" : 1,
-      "oT" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 100,
-      "rq" : 75
-    },
-    "\/src\/assets\/images\/optin-themes\/blogger\/optin-image.png" : {
-      "ft" : 32768,
-      "iS" : 23014,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/optin-themes\/blogger\/optin-image.png",
-      "oF" : 0,
-      "oIPL" : 1,
-      "opt" : 1,
-      "oT" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 100,
-      "rq" : 75
-    },
     "\/src\/assets\/images\/optin-themes\/boldy-inpost.png" : {
       "ft" : 32768,
       "iS" : 40378,
@@ -1210,7 +1184,7 @@
       "ma" : 0,
       "mi" : 1,
       "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min.min.js",
+      "oAP" : "\/src\/assets\/js\/mailoptin.min-min.js",
       "oF" : 1,
       "sC" : 3,
       "tS" : 0
@@ -1284,7 +1258,7 @@
       "ma" : 0,
       "mi" : 1,
       "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation.min.js",
+      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation-min.js",
       "oF" : 0,
       "sC" : 3,
       "tS" : 0
@@ -1552,15 +1526,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-<<<<<<< HEAD
-<<<<<<< HEAD
     "lastBuiltDate" : 660219767.69629395
-=======
-    "lastBuiltDate" : 657576795.60134494
->>>>>>> Added Comma Separated CSS When Content Locker is active
-=======
-    "lastBuiltDate" : 657754644.88920999
->>>>>>> optin template
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -1854,7 +1820,7 @@
     "bowerUseExactVersion" : 0,
     "browserRefreshDelay" : 0,
     "browserslistString" : ">0.2%, last 2 versions, Firefox ESR, not dead",
-    "buildEnvironment" : 1,
+    "buildEnvironment" : 0,
     "buildFolderActive" : 0,
     "buildFolderName" : "build",
     "cleanBuild" : 1,
@@ -1999,7 +1965,7 @@
     "cssoForceMediaMerge" : 0,
     "cssoRestructure" : 1,
     "environmentVariableEntries" : [
-      "NODE_ENV:::development"
+      "NODE_ENV:::production"
     ],
     "esLintConfigFileHandlingType" : 0,
     "esLintECMAVersion" : 7,
