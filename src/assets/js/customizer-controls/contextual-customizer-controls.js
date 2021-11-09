@@ -219,6 +219,7 @@
                 };
 
                 api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][inpost_content_locking_style]', linkSettingValueToControlActiveState);
+                api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][inpost_content_locking_selector]', linkSettingValueToControlActiveState);
             });
 
             // contextual display of redirect_url in success panel/section.
