@@ -2,9 +2,6 @@
   "AAInfo" : "This is a CodeKit 3 project config file. EDITING THIS FILE IS A POOR LIFE DECISION. Doing so may cause CodeKit to crash and\/or corrupt your project. Several critical values in this file are 64-bit integers, which JavaScript JSON parsers do not support because JavaScript cannot handle 64-bit integers. These values will be corrupted if the file is parsed with JavaScript. This file is not backwards-compatible with CodeKit 1 or 2. For details, see https:\/\/codekitapp.com\/",
   "buildSteps" : [
     {
-      "itemsToProcess" : [
-        "\/src\/assets\/js\/src\/mailoptin.js"
-      ],
       "name" : "New \"Process Certain Files\" Step",
       "stepType" : 0,
       "uuidString" : "9AED0CD2-293C-4201-AA90-9B50DE14EA50"
@@ -1183,9 +1180,9 @@
       "ft" : 64,
       "ma" : 0,
       "mi" : 1,
-      "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min-min.js",
-      "oF" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/js\/mailoptin.min.min.js",
+      "oF" : 0,
       "sC" : 3,
       "tS" : 0
     },
@@ -1231,14 +1228,14 @@
       "tS" : 0
     },
     "\/src\/assets\/js\/src\/mailoptin.js" : {
-      "bF" : 4,
+      "bF" : 0,
       "ft" : 64,
       "ma" : 0,
-      "mi" : 2,
+      "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min.js",
-      "oF" : 3,
-      "sC" : 0,
+      "oAP" : "\/src\/assets\/js\/src\/mailoptin.min.js",
+      "oF" : 0,
+      "sC" : 3,
       "tS" : 0
     },
     "\/src\/assets\/js\/src\/main.js" : {
@@ -1258,7 +1255,7 @@
       "ma" : 0,
       "mi" : 1,
       "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation-min.js",
+      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation.min.js",
       "oF" : 0,
       "sC" : 3,
       "tS" : 0
@@ -1328,6 +1325,70 @@
       "oF" : 0,
       "sC" : 3,
       "tS" : 0
+    },
+    "\/src\/assets\/sound\/beep-down.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep-down.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/beep-three.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep-three.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/beep-up.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep-up.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/beep.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/chime.aiff" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/chime.aiff",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/clong.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/clong.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/pong.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/pong.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/snare-flam.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/snare-flam.wav",
+      "oF" : 0
     },
     "\/src\/assets\/toastr" : {
       "ft" : 65536,
@@ -1462,7 +1523,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 656963222.20689702
+    "lastBuiltDate" : 658161971.85027802
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -1756,7 +1817,7 @@
     "bowerUseExactVersion" : 0,
     "browserRefreshDelay" : 0,
     "browserslistString" : ">0.2%, last 2 versions, Firefox ESR, not dead",
-    "buildEnvironment" : 0,
+    "buildEnvironment" : 1,
     "buildFolderActive" : 0,
     "buildFolderName" : "build",
     "cleanBuild" : 1,
@@ -1901,7 +1962,7 @@
     "cssoForceMediaMerge" : 0,
     "cssoRestructure" : 1,
     "environmentVariableEntries" : [
-      "NODE_ENV:::production"
+      "NODE_ENV:::development"
     ],
     "esLintConfigFileHandlingType" : 0,
     "esLintECMAVersion" : 7,

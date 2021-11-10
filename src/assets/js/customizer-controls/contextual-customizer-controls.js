@@ -466,6 +466,25 @@
                 });
             });
 
+            //add event handler to detect when opening sound is changed and play the sound to allow admin to preview it
+            $('select[data-customize-setting-link*=optin_sound]').on('change', function (event) {
+                const value = $(this).val();
+                if($.inArray(value, ['none', 'custom']) === -1) {
+                    const audio = new Audio( mailoptin_globals.public_sound + value);
+                    audio.addEventListener('canplaythrough', function () {
+                        this.play()
+                            .catch(function (reason) {
+                                console.warn('Sound was not able to play when selected. Reason: ' + reason)
+                            });
+                    });
+                    audio.addEventListener('error', function () {
+                        console.error( 'Error occurred when trying to load popup opening sound.' );
+                    })
+                }
+
+                $('li[id*=optin_custom_sound]').toggle(value === 'custom');
+            }).change();
+
             // handle situations when field mapping view is showing and save button is clicked.
             jQuery('#save').on('click', function (e) {
 

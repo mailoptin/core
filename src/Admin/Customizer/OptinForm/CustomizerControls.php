@@ -940,6 +940,35 @@ class CustomizerControls
                         )
                     )
                 ),
+                'optin_sound' => apply_filters('mo_optin_form_customizer_optin_sound_args', array(
+                        'type'        => 'select',
+                        'label'       => __('Optin Sound', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->configuration_section_id,
+                        'settings'    => $this->option_prefix . '[optin_sound]',
+                        'description' => __('Select the optin sound to play when Optin is displayed', 'mailoptin'),
+                        'choices'     => [
+                            'none'          => __('None', 'mailoptin'),
+                            'beep.wav'          => __('Beep', 'mailoptin'),
+                            'beep-up.wav'       => __('Beep Up', 'mailoptin'),
+                            'beep-down.wav'     => __('Beep Down', 'mailoptin'),
+                            'clong.wav'         => __('Clong', 'mailoptin'),
+                            'chime.aiff'         => __('Chime', 'mailoptin'),
+                            'pong.wav'          => __('Pong', 'mailoptin'),
+                            'snare-flam.wav'    => __('Snare Flam', 'mailoptin'),
+                            'custom'            => __('Custom', 'mailoptin')
+                        ],
+                        'priority'    => 50,
+                    )
+                ),
+                'optin_custom_sound'                     => apply_filters('mo_optin_form_customizer_optin_custom_sound_args', array(
+                        'type'        => 'url',
+                        'label'       => __('Custom Optin Sound', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->configuration_section_id,
+                        'settings'    => $this->option_prefix . '[optin_custom_sound]',
+                        'priority'    => 52,
+                        'description' => __('Add a URL to a mp3/wav audio file to play', 'mailoptin'),
+                    )
+                ),
                 'cookie'                     => apply_filters('mo_optin_form_customizer_cookie_args', array(
                         'type'        => 'text',
                         'label'       => __('Cookie Duration', 'mailoptin'),
@@ -993,6 +1022,10 @@ class CustomizerControls
 
         if ($this->customizerClassInstance->optin_campaign_type !== 'lightbox') {
             unset($content_control_args['close_backdrop_click']);
+        }
+    
+        if (!in_array($this->customizerClassInstance->optin_campaign_type, ['lightbox',  'notification-bar', 'slide-in'])) {
+            unset($content_control_args['optin_sound']);
         }
 
         do_action('mailoptin_before_configuration_controls_addition');

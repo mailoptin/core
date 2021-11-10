@@ -111,7 +111,7 @@ var mailoptin_optin = {
 
                 // merge modal specific object with that of optin js config
                 optin_js_config = $.extend({}, modal_options, optin_js_config);
-
+                console.log(optin_js_config);
                 self.process_optin_form_display.call(this, optin_js_config, 'lightbox', skip_display_checks);
             }
 
@@ -376,7 +376,7 @@ var mailoptin_optin = {
      * @param {boolean} skip_display_checks skip any display/cookie check
      */
     rule_base_show_optin_form: function (optin_config, optin_type, skip_display_checks) {
-
+        console.log(optin_js_config);
         var self = mailoptin_optin;
         // we did this becos 'this' inside setTimeout() will be wrong.
         var _this = this;
