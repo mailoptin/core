@@ -1366,32 +1366,32 @@ var mailoptin_optin = {
         if (!mailoptin_optin.is_content_locker_enabled(optin_config)) return;
 
         var optin_container = $('#' + optin_config.optin_uuid),
-            nextAll = optin_container.nextAll();
+            nextAll2 = false,
+            nextAll = optin_container.nextAll(),
+            contentSelector = optin_config.content_lock_selector.toString();
 
-        var contentSelector = optin_config.content_lock_selector.toString();
-
-        if(contentSelector.length > 0 && $(contentSelector).length > 0) {
-            nextAll = $(contentSelector);
+        if (contentSelector.length > 0 && $(contentSelector).length > 0) {
+            nextAll2 = $(contentSelector);
         }
 
         if ('removal' === optin_config.content_lock_style) {
 
             mailoptin_optin.content_locker_storage.reverse();
 
-            if($(contentSelector).length > 0) {
-                nextAll.each(function (index, el) {
-                    $(el).show();
-                });
-            } else {
-                $.each(mailoptin_optin.content_locker_storage, function (index, el) {
-                    optin_container.after(el);
-                });
+            if (nextAll2 !== false) {
+                nextAll2.show();
             }
-        } else {
 
-            nextAll.each(function (index, el) {
-                $(el).removeClass('mailoptin-content-lock');
+            $.each(mailoptin_optin.content_locker_storage, function (index, el) {
+                optin_container.after(el);
             });
+
+        } else {
+            nextAll.removeClass('mailoptin-content-lock');
+
+            if (nextAll2 !== false) {
+                nextAll2.removeClass('mailoptin-content-lock');
+            }
         }
     },
 
