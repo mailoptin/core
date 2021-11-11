@@ -2,9 +2,6 @@
   "AAInfo" : "This is a CodeKit 3 project config file. EDITING THIS FILE IS A POOR LIFE DECISION. Doing so may cause CodeKit to crash and\/or corrupt your project. Several critical values in this file are 64-bit integers, which JavaScript JSON parsers do not support because JavaScript cannot handle 64-bit integers. These values will be corrupted if the file is parsed with JavaScript. This file is not backwards-compatible with CodeKit 1 or 2. For details, see https:\/\/codekitapp.com\/",
   "buildSteps" : [
     {
-      "itemsToProcess" : [
-        "\/src\/assets\/js\/src\/mailoptin.js"
-      ],
       "name" : "New \"Process Certain Files\" Step",
       "stepType" : 0,
       "uuidString" : "9AED0CD2-293C-4201-AA90-9B50DE14EA50"
@@ -43,9 +40,9 @@
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
-      "oA" : 1,
+      "oA" : 0,
       "oAP" : "\/build\/.gitignore",
-      "oF" : 3
+      "oF" : 0
     },
     "\/composer.json" : {
       "ft" : 524288,
@@ -1178,17 +1175,6 @@
       "oAP" : "\/src\/assets\/js\/index.php",
       "oF" : 1
     },
-    "\/src\/assets\/js\/mailoptin.min.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 0,
-      "mi" : 1,
-      "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min-min.js",
-      "oF" : 1,
-      "sC" : 3,
-      "tS" : 0
-    },
     "\/src\/assets\/js\/mobile-detect.min.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -1230,17 +1216,6 @@
       "sC" : 3,
       "tS" : 0
     },
-    "\/src\/assets\/js\/src\/mailoptin.js" : {
-      "bF" : 4,
-      "ft" : 64,
-      "ma" : 0,
-      "mi" : 2,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min.js",
-      "oF" : 3,
-      "sC" : 0,
-      "tS" : 0
-    },
     "\/src\/assets\/js\/src\/main.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -1258,7 +1233,7 @@
       "ma" : 0,
       "mi" : 1,
       "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation-min.js",
+      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation.min.js",
       "oF" : 0,
       "sC" : 3,
       "tS" : 0
@@ -1423,14 +1398,6 @@
       "oAP" : "\/src\/RegisterActivation",
       "oF" : 0
     },
-    "\/src\/RegisterScripts.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/RegisterScripts.php",
-      "oF" : 1
-    },
     "\/src\/Repositories" : {
       "ft" : 65536,
       "oA" : 1,
@@ -1462,7 +1429,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 658175941.98492098
+    "lastBuiltDate" : 658325597.71870995
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
