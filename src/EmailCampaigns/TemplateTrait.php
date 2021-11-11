@@ -141,7 +141,7 @@ trait TemplateTrait
         }
     
         // remove VC tags and empty paragraphs (<p></p>)
-        $text = preg_replace(['/\[vc(.*?)\]/', '/<p[^>]*><\\/p[^>]*>/'], '', $text);
+        $post_content = preg_replace(['/\[vc(.*?)\]/', '/<p[^>]*><\\/p[^>]*>/'], '', $post_content);
 
         return wpautop($post_content);
     }
