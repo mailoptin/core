@@ -149,7 +149,7 @@ class Shortcodes
         return sprintf(
             '<img class="mo-post-feature-image" src="%s" alt="%s">',
             $this->feature_image($this->wp_post_obj, $this->email_campaign_id, $default_feature_image),
-            $this->wp_post_obj->post_title
+            $this->feature_image_alt($this->wp_post_obj)
         );
     }
 
