@@ -177,7 +177,7 @@ class Lucid extends AbstractTemplate
             <a href="{{post.url}}">
                 <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
                 {{post.meta}}
-                <img class"mo-imgix" src="{{post.feature.image}}">
+                <img class"mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}">
             </a>
         <?php endif;
 
