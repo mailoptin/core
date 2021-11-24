@@ -962,6 +962,7 @@ var mailoptin_optin = {
     displaySuccessContent: function () {
         // display the success container div.
         this.find('.mo-optin-success-msg').show();
+        this.addClass('mo-optin-success-state');
     },
 
     /**

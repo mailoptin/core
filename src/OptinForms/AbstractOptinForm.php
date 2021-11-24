@@ -9,6 +9,7 @@ use MailOptin\Core\Admin\Customizer\OptinForm\CustomizerSettings;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\RegisterScripts;
 use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
+use function MailOptin\Core\is_mailoptin_customizer_preview;
 use function MailOptin\Core\moVar;
 
 abstract class AbstractOptinForm extends AbstractCustomizer implements OptinFormInterface
@@ -786,6 +787,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         $has_custom_field_class_indicator = $has_custom_field_flag === true ? ' mo-optin-has-custom-field' : '';
 
+        $success_state_class = ! is_mailoptin_customizer_preview() && OCR::user_has_successful_optin($this->optin_campaign_uuid) && $this->state_after_conversion() == 'success_message_shown' ? ' mo-optin-success-state' : '';
+
         if ($this->optin_campaign_type == 'lightbox') {
             $modalWrapperStyle = implode(';', [
                 'display: none',
@@ -802,7 +805,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 'background: rgba(0,0,0,0.7)'
             ]);
 
-            $optin_form .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$has_custom_field_class_indicator}\" data-optin-type='{$this->optin_campaign_type}' style='$modalWrapperStyle'>";
+            $optin_form .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$has_custom_field_class_indicator}{$success_state_class}\" data-optin-type='{$this->optin_campaign_type}' style='$modalWrapperStyle'>";
         }
 
         if ($this->optin_campaign_type == 'bar') {
@@ -820,7 +823,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             ];
 
             $barWrapperStyle = implode(';', $bar_wrapper_style_properties);
-            $optin_form      .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$position_class}{$is_sticky}{$has_custom_field_class_indicator}\" data-optin-type='{$this->optin_campaign_type}' style='$barWrapperStyle'>";
+            $optin_form      .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$position_class}{$is_sticky}{$has_custom_field_class_indicator}{$success_state_class}\" data-optin-type='{$this->optin_campaign_type}' style='$barWrapperStyle'>";
         }
 
         if ($this->optin_campaign_type == 'slidein') {
@@ -836,7 +839,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 'z-index: 999999999'
             ];
             $slideinWrapperStyle              = implode(';', $slidein_wrapper_style_properties);
-            $optin_form                       .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$position_class}{$has_custom_field_class_indicator}\" data-optin-type='{$this->optin_campaign_type}' style='$slideinWrapperStyle'>";
+            $optin_form                       .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$position_class}{$has_custom_field_class_indicator}{$success_state_class}\" data-optin-type='{$this->optin_campaign_type}' style='$slideinWrapperStyle'>";
         }
 
         // set optin to display:none when schedule is active then allow mailoptinjs to decide whether to show it or not.
@@ -860,13 +863,13 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         if ($this->optin_campaign_type == 'sidebar') {
             $sidebar_wrapper_style_properties = [$is_hidden_style];
             $sidebarWrapperStyle              = implode(';', $sidebar_wrapper_style_properties);
-            $optin_form                       .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$has_custom_field_class_indicator}\" data-optin-type='{$this->optin_campaign_type}' style='$sidebarWrapperStyle'>";
+            $optin_form                       .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$has_custom_field_class_indicator}{$success_state_class}\" data-optin-type='{$this->optin_campaign_type}' style='$sidebarWrapperStyle'>";
         }
 
         if ($this->optin_campaign_type == 'inpost') {
             $inpost_wrapper_style_properties = [$is_hidden_style];
             $inpostWrapperStyle              = implode(';', $inpost_wrapper_style_properties);
-            $optin_form                      .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$has_custom_field_class_indicator}\" data-optin-type='{$this->optin_campaign_type}' style='$inpostWrapperStyle'>";
+            $optin_form                      .= "<div id='$optin_campaign_uuid' class=\"moOptinForm mo-optin-form-{$this->optin_campaign_type} {$name_email_class_indicator}{$display_only_button_class_indicator}{$has_custom_field_class_indicator}{$success_state_class}\" data-optin-type='{$this->optin_campaign_type}' style='$inpostWrapperStyle'>";
         }
 
         $optin_form .= "<div class='mo-optin-form-container' id='{$optin_css_id}_container' style='position:relative;margin: 0 auto;'>";
