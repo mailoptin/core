@@ -960,7 +960,7 @@ class CustomizerControls
                         'priority'    => 50,
                     )
                 ),
-                'optin_custom_sound'                     => apply_filters('mo_optin_form_customizer_optin_custom_sound_args', array(
+                'optin_custom_sound'        => apply_filters('mo_optin_form_customizer_optin_custom_sound_args', array(
                         'type'        => 'url',
                         'label'       => __('Custom Optin Sound', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->configuration_section_id,
@@ -1024,8 +1024,9 @@ class CustomizerControls
             unset($content_control_args['close_backdrop_click']);
         }
     
-        if (!in_array($this->customizerClassInstance->optin_campaign_type, ['lightbox',  'notification-bar', 'slide-in'])) {
+        if (!in_array($this->customizerClassInstance->optin_campaign_type, ['lightbox',  'bar', 'slidein'])) {
             unset($content_control_args['optin_sound']);
+            unset($content_control_args['optin_custom_sound']);
         }
 
         do_action('mailoptin_before_configuration_controls_addition');

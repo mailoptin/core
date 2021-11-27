@@ -470,7 +470,8 @@
             $('select[data-customize-setting-link*=optin_sound]').on('change', function (event) {
                 const value = $(this).val();
                 if($.inArray(value, ['none', 'custom']) === -1) {
-                    const audio = new Audio( mailoptin_globals.public_sound + value);
+                    var audio_sound_url = mailoptin_globals.public_sound + value;
+                    const audio = new Audio( audio_sound_url);
                     audio.addEventListener('canplaythrough', function () {
                         this.play()
                             .catch(function (reason) {

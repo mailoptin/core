@@ -1268,6 +1268,17 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 $data['cta_navigate_url'] = $this->get_customizer_value('cta_button_navigation_url');
             }
         }
+        
+        /**  Optin Sound */
+        $optin_sound_config = $this->get_customizer_value('optin_sound');
+        if(!empty($optin_sound_config) && $optin_sound_config != 'none') {
+            $data['optin_sound'] = $optin_sound_config;
+        }
+    
+        $optin_custom_sound_config = $this->get_customizer_value('optin_custom_sound');
+        if($optin_sound_config == 'custom' && !empty($optin_custom_sound_config)) {
+            $data['optin_custom_sound'] = $optin_custom_sound_config;
+        }
 
         $data = apply_filters('mo_optin_js_config', $data, $this);
 
