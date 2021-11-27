@@ -2,6 +2,9 @@
   "AAInfo" : "This is a CodeKit 3 project config file. EDITING THIS FILE IS A POOR LIFE DECISION. Doing so may cause CodeKit to crash and\/or corrupt your project. Several critical values in this file are 64-bit integers, which JavaScript JSON parsers do not support because JavaScript cannot handle 64-bit integers. These values will be corrupted if the file is parsed with JavaScript. This file is not backwards-compatible with CodeKit 1 or 2. For details, see https:\/\/codekitapp.com\/",
   "buildSteps" : [
     {
+      "itemsToProcess" : [
+        "\/src\/assets\/js\/src\/mailoptin.js"
+      ],
       "name" : "New \"Process Certain Files\" Step",
       "stepType" : 0,
       "uuidString" : "9AED0CD2-293C-4201-AA90-9B50DE14EA50"
@@ -12,7 +15,7 @@
       "uuidString" : "A37598BB-52C3-4652-8A10-5BABEB9FAA63"
     }
   ],
-  "creatorBuild" : "34214",
+  "creatorBuild" : "34264",
   "files" : {
     "\/.gitignore" : {
       "cB" : 0,
@@ -40,9 +43,9 @@
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
-      "oA" : 0,
+      "oA" : 1,
       "oAP" : "\/build\/.gitignore",
-      "oF" : 0
+      "oF" : 3
     },
     "\/composer.json" : {
       "ft" : 524288,
@@ -1180,11 +1183,19 @@
       "ft" : 64,
       "ma" : 0,
       "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/js\/mailoptin.min.min.js",
-      "oF" : 0,
+      "oA" : 1,
+      "oAP" : "\/src\/assets\/js\/mailoptin.min-min.js",
+      "oF" : 1,
       "sC" : 3,
       "tS" : 0
+    },
+    "\/src\/assets\/js\/mailoptin.min.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/js\/mailoptin.min.js.map",
+      "oF" : 0
     },
     "\/src\/assets\/js\/mobile-detect.min.js" : {
       "bF" : 0,
@@ -1228,14 +1239,14 @@
       "tS" : 0
     },
     "\/src\/assets\/js\/src\/mailoptin.js" : {
-      "bF" : 0,
+      "bF" : 4,
       "ft" : 64,
       "ma" : 0,
-      "mi" : 1,
+      "mi" : 2,
       "oA" : 0,
-      "oAP" : "\/src\/assets\/js\/src\/mailoptin.min.js",
-      "oF" : 0,
-      "sC" : 3,
+      "oAP" : "\/src\/assets\/js\/mailoptin.min.js",
+      "oF" : 3,
+      "sC" : 0,
       "tS" : 0
     },
     "\/src\/assets\/js\/src\/main.js" : {
@@ -1255,7 +1266,7 @@
       "ma" : 0,
       "mi" : 1,
       "oA" : 1,
-      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation.min.js",
+      "oAP" : "\/src\/assets\/js\/src\/mc-groups-validation-min.js",
       "oF" : 0,
       "sC" : 3,
       "tS" : 0
@@ -1523,7 +1534,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 658161971.85027802
+    "lastBuiltDate" : 659452615.80494404
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -1817,7 +1828,7 @@
     "bowerUseExactVersion" : 0,
     "browserRefreshDelay" : 0,
     "browserslistString" : ">0.2%, last 2 versions, Firefox ESR, not dead",
-    "buildEnvironment" : 1,
+    "buildEnvironment" : 0,
     "buildFolderActive" : 0,
     "buildFolderName" : "build",
     "cleanBuild" : 1,
@@ -1962,7 +1973,7 @@
     "cssoForceMediaMerge" : 0,
     "cssoRestructure" : 1,
     "environmentVariableEntries" : [
-      "NODE_ENV:::development"
+      "NODE_ENV:::production"
     ],
     "esLintConfigFileHandlingType" : 0,
     "esLintECMAVersion" : 7,
@@ -2670,6 +2681,9 @@
       },
       "no-unused-labels" : {
         "active" : 1
+      },
+      "no-unused-private-class-members" : {
+        "active" : 0
       },
       "no-unused-vars" : {
         "active" : 1,
