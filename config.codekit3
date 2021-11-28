@@ -15,7 +15,7 @@
       "uuidString" : "A37598BB-52C3-4652-8A10-5BABEB9FAA63"
     }
   ],
-  "creatorBuild" : "34214",
+  "creatorBuild" : "34264",
   "files" : {
     "\/.gitignore" : {
       "cB" : 0,
@@ -38,14 +38,6 @@
       "oA" : 1,
       "oAP" : "\/bin",
       "oF" : 0
-    },
-    "\/build\/.gitignore" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/build\/.gitignore",
-      "oF" : 3
     },
     "\/composer.json" : {
       "ft" : 524288,
@@ -1329,6 +1321,70 @@
       "sC" : 3,
       "tS" : 0
     },
+    "\/src\/assets\/sound\/beep-down.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep-down.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/beep-three.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep-three.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/beep-up.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep-up.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/beep.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/beep.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/clong.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/clong.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/pong.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/pong.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/pop.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/pop.wav",
+      "oF" : 0
+    },
+    "\/src\/assets\/sound\/snare-flam.wav" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/sound\/snare-flam.wav",
+      "oF" : 0
+    },
     "\/src\/assets\/toastr" : {
       "ft" : 65536,
       "oA" : 1,
@@ -1462,7 +1518,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 659452615.80494404
+    "lastBuiltDate" : 659827220.29022396
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -2609,6 +2665,9 @@
       },
       "no-unused-labels" : {
         "active" : 1
+      },
+      "no-unused-private-class-members" : {
+        "active" : 0
       },
       "no-unused-vars" : {
         "active" : 1,

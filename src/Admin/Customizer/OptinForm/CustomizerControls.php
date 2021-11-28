@@ -952,7 +952,7 @@ class CustomizerControls
                             'beep-up.wav'       => __('Beep Up', 'mailoptin'),
                             'beep-down.wav'     => __('Beep Down', 'mailoptin'),
                             'clong.wav'         => __('Clong', 'mailoptin'),
-                            'chime.aiff'         => __('Chime', 'mailoptin'),
+                            'pop.wav'           => __('Pop', 'mailoptin'),
                             'pong.wav'          => __('Pong', 'mailoptin'),
                             'snare-flam.wav'    => __('Snare Flam', 'mailoptin'),
                             'custom'            => __('Custom', 'mailoptin')
