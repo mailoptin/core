@@ -140,6 +140,9 @@ trait TemplateTrait
             );
         }
 
+        // remove VC tags and empty paragraphs (<p></p>)
+        $post_content = preg_replace(['/\[vc(.*?)\]/', '/<p[^>]*><\\/p[^>]*>/', '/\[\/vc(.*?)\]/'], '', $post_content);
+
         return wpautop($post_content);
     }
 
@@ -177,6 +180,36 @@ trait TemplateTrait
         }
 
         return apply_filters('mo_email_automation_post_feature_image', $default_feature_image, $post, $email_campaign_id, $default_feature_image);
+    }
+
+    /**
+     * @param int|WP_Post|\stdClass $post
+     *
+     * @return string
+     */
+    public function feature_image_alt($post)
+    {
+        if ($post instanceof \stdClass) {
+            return '';
+        }
+
+        $alt = '';
+
+        if (has_post_thumbnail($post)) {
+
+            $get_post_thumbnail_id = get_post_thumbnail_id($post);
+            $alt                   = get_post_meta($get_post_thumbnail_id, '_wp_attachment_image_alt', true);
+
+            if (empty($alt)) {
+                $alt = get_the_title($get_post_thumbnail_id);
+            }
+        }
+
+        if (empty($alt)) {
+            $alt = get_the_title($post);
+        }
+
+        return apply_filters('mo_email_automation_post_feature_image_alt', $alt, $post);
     }
 
     /**
