@@ -469,7 +469,7 @@
 
             //add event handler to detect when opening sound is changed and play the sound to allow admin to preview it
             $('select[data-customize-setting-link*=optin_sound]').on('change', function (event) {
-                const value = $(this).val();
+                var value = $(this).val();
                 if(value !== 'none') {
                     var audio_sound_url = value !== 'custom' ? mailoptin_globals.public_sound + value : $('li[id*=optin_custom_sound]').find('input').val();
                     const audio = new Audio( audio_sound_url);
@@ -481,11 +481,28 @@
                     });
                     audio.addEventListener('error', function () {
                         console.error( 'Error occurred when trying to load popup opening sound.' );
-                    })
+                    });
                 }
 
                 $('li[id*=optin_custom_sound]').toggle(value === 'custom');
             }).change();
+
+            //add event handler to detect when a custom sound url is entered and then play the sound
+            $('input[data-customize-setting-link*=optin_custom_sound]').on('change', function (event) {
+                var audio_sound_url = $(this).val();
+                if(audio_sound_url.length > 0) {
+                    const audio = new Audio(audio_sound_url);
+                    audio.addEventListener('canplaythrough', function () {
+                        this.play()
+                            .catch(function (reason) {
+                                console.warn('Sound was not able to play when selected. Reason: ' + reason)
+                            });
+                    });
+                    audio.addEventListener('error', function () {
+                        console.error( 'Error occurred when trying to load popup opening sound.' );
+                    });
+                }
+            });
 
             // handle situations when field mapping view is showing and save button is clicked.
             jQuery('#save').on('click', function (e) {
