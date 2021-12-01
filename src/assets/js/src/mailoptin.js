@@ -111,7 +111,6 @@ var mailoptin_optin = {
 
                 // merge modal specific object with that of optin js config
                 optin_js_config = $.extend({}, modal_options, optin_js_config);
-
                 self.process_optin_form_display.call(this, optin_js_config, 'lightbox', skip_display_checks);
             }
 
@@ -376,7 +375,6 @@ var mailoptin_optin = {
      * @param {boolean} skip_display_checks skip any display/cookie check
      */
     rule_base_show_optin_form: function (optin_config, optin_type, skip_display_checks) {
-
         var self = mailoptin_optin;
         // we did this becos 'this' inside setTimeout() will be wrong.
         var _this = this;
@@ -638,7 +636,6 @@ var mailoptin_optin = {
      * @param {boolean} skip_display_checks
      */
     display_optin_form: function (optin_config, optin_type, skip_display_checks) {
-
         // bail if required parameter is undefined
         if (typeof optin_type === 'undefined' || typeof optin_type === 'undefined') return;
 
@@ -654,7 +651,7 @@ var mailoptin_optin = {
         if (optin_type !== undefined && optin_type === 'lightbox') {
             // trigger optin show event.
             $(document.body).on($.MoModalBox.OPEN, function (e, elm, optin_config) {
-                $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config]);
+                $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config, optin_type]);
             });
 
             this.MoModalBox(optin_config);
@@ -698,7 +695,30 @@ var mailoptin_optin = {
         }
 
         this.show();
+
         $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config, optin_type]);
+    },
+
+    optin_sound_selected: function (optin_config, optin_type) {
+        //if we are in customizer, don't execute this to avoid double sound playing
+        if ($.MailOptin.is_customize_preview === true) return;
+
+        if(optin_type === 'bar' || optin_type === 'lightbox' || optin_type === 'slidein') {
+            var optin_sound_config = optin_config.optin_sound;
+            if('none' !== optin_sound_config) {
+                var optin_sound_url = 'custom' !== optin_sound_config ? mailoptin_globals.public_sound + optin_sound_config : optin_config.optin_custom_sound;
+                var audio = new Audio( optin_sound_url);
+                audio.addEventListener('canplaythrough', function () {
+                    this.play()
+                        .catch(function (reason) {
+                            console.warn('Sound was not able to play when selected. Reason: ' + reason)
+                        });
+                });
+                audio.addEventListener('error', function () {
+                    console.error( 'Error occurred when trying to load popup opening sound.' );
+                });
+            }
+        }
     },
 
     /**
@@ -1284,13 +1304,16 @@ var mailoptin_optin = {
      */
     eventSubscription: function () {
         // track impression for optin form other than modals
-        $(document.body).on('moOptin:show', function (e, optin_uuid, optin_js_config) {
+        $(document.body).on('moOptin:show', function (e, optin_uuid, optin_js_config, optin_type) {
 
             mailoptin_optin.content_locker_init(optin_js_config);
 
             $.MailOptin.track_impression(optin_uuid);
             // track GA
             mailoptin_optin.ga_event_tracking('impression', optin_js_config);
+
+            //find and play audio
+            mailoptin_optin.optin_sound_selected(optin_js_config, optin_type);
         });
 
         // success actions
