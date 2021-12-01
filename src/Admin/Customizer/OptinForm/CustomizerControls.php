@@ -942,10 +942,10 @@ class CustomizerControls
                 ),
                 'optin_sound'                => apply_filters('mo_optin_form_customizer_optin_sound_args', array(
                         'type'        => 'select',
-                        'label'       => __('Optin Sound', 'mailoptin'),
+                        'label'       => __('Sound Effect', 'mailoptin'),
                         'section'     => $this->customizerClassInstance->configuration_section_id,
                         'settings'    => $this->option_prefix . '[optin_sound]',
-                        'description' => __('Select the sound to play when optin is displayed.', 'mailoptin'),
+                        'description' => __('Select sound to play when optin is displayed.', 'mailoptin'),
                         'choices'     => [
                             'none'           => __('None', 'mailoptin'),
                             'pop.wav'        => __('Pop', 'mailoptin'),
