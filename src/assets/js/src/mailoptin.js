@@ -707,27 +707,18 @@ var mailoptin_optin = {
             var optin_sound_config = optin_config.optin_sound;
             if('none' !== optin_sound_config) {
                 var optin_sound_url = 'custom' !== optin_sound_config ? mailoptin_globals.public_sound + optin_sound_config : optin_config.optin_custom_sound;
-                this.play_optin_sound(optin_sound_url);
+                var audio = new Audio( optin_sound_url);
+                audio.addEventListener('canplaythrough', function () {
+                    this.play()
+                        .catch(function (reason) {
+                            console.warn('Sound was not able to play when selected. Reason: ' + reason)
+                        });
+                });
+                audio.addEventListener('error', function () {
+                    console.error( 'Error occurred when trying to load popup opening sound.' );
+                });
             }
         }
-    },
-
-    play_optin_sound: function (url) {
-        window.AudioContext = window.AudioContext||window.webkitAudioContext;
-        var context = new AudioContext();
-        var source = context.createBufferSource();
-        source.connect(context.destination);
-        var request = new XMLHttpRequest();
-        request.open('GET', url, true);
-        request.responseType = 'arraybuffer';
-        request.onload = function() {
-            context.decodeAudioData(request.response, function(response) {
-                source.buffer = response;
-                source.start(0);
-                source.loop = false;
-            }, function () { console.error('There was a problem playing the audio.'); } );
-        }
-        request.send();
     },
 
     /**
