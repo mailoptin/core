@@ -1338,7 +1338,6 @@ var mailoptin_optin = {
             nextAll2 = $(contentSelector);
         }
 
-
         if ('removal' === optin_config.content_lock_style) {
 
             if (nextAll2 !== false) {
