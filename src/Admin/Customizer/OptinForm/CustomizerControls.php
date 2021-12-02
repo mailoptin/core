@@ -940,6 +940,35 @@ class CustomizerControls
                         )
                     )
                 ),
+                'optin_sound'                => apply_filters('mo_optin_form_customizer_optin_sound_args', array(
+                        'type'        => 'select',
+                        'label'       => __('Sound Effect', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->configuration_section_id,
+                        'settings'    => $this->option_prefix . '[optin_sound]',
+                        'description' => __('Select sound to play when optin is displayed.', 'mailoptin'),
+                        'choices'     => [
+                            'none'           => __('None', 'mailoptin'),
+                            'pop.wav'        => __('Pop', 'mailoptin'),
+                            'beep.wav'       => __('Beep', 'mailoptin'),
+                            'beep-up.wav'    => __('Beep Up', 'mailoptin'),
+                            'beep-down.wav'  => __('Beep Down', 'mailoptin'),
+                            'clong.wav'      => __('Clong', 'mailoptin'),
+                            'pong.wav'       => __('Pong', 'mailoptin'),
+                            'snare-flam.wav' => __('Snare Flam', 'mailoptin'),
+                            'custom'         => __('Custom', 'mailoptin')
+                        ],
+                        'priority'    => 55,
+                    )
+                ),
+                'optin_custom_sound'         => apply_filters('mo_optin_form_customizer_optin_custom_sound_args', array(
+                        'type'        => 'url',
+                        'label'       => __('Custom Sound URL', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->configuration_section_id,
+                        'settings'    => $this->option_prefix . '[optin_custom_sound]',
+                        'priority'    => 56,
+                        'description' => __('Add a URL to a mp3/wav audio file to play.', 'mailoptin'),
+                    )
+                ),
                 'cookie'                     => apply_filters('mo_optin_form_customizer_cookie_args', array(
                         'type'        => 'text',
                         'label'       => __('Cookie Duration', 'mailoptin'),
@@ -993,6 +1022,34 @@ class CustomizerControls
 
         if ($this->customizerClassInstance->optin_campaign_type !== 'lightbox') {
             unset($content_control_args['close_backdrop_click']);
+        }
+
+        if (
+            ! defined('MAILOPTIN_DETACH_LIBSODIUM') ||
+            ! in_array($this->customizerClassInstance->optin_campaign_type, ['lightbox', 'bar', 'slidein'])
+        ) {
+            unset($content_control_args['optin_sound']);
+            unset($content_control_args['optin_custom_sound']);
+        }
+
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+
+            $content = sprintf(
+                __('Want to play or trigger a beep, pop or custom sound when an optin is displayed, %sUpgrade to premium%s now.', 'mailoptin'),
+                '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=configuration_panel_optin_sound">',
+                '</a>'
+            );
+
+            $content_control_args['optin_sound'] = new WP_Customize_Custom_Content(
+                $this->wp_customize,
+                $this->option_prefix . '[optin_sound]',
+                array(
+                    'content'  => $content,
+                    'section'  => $this->customizerClassInstance->configuration_section_id,
+                    'settings' => $this->option_prefix . '[optin_sound]',
+                    'priority' => 55,
+                )
+            );
         }
 
         do_action('mailoptin_before_configuration_controls_addition');

@@ -263,6 +263,7 @@ class RegisterScripts
         $localize_strings = array(
             'admin_url'                         => admin_url(),
             'public_js'                         => MAILOPTIN_ASSETS_URL . 'js/src',
+            'public_sound'                      => MAILOPTIN_ASSETS_URL.'sound/',
             'nonce'                             => wp_create_nonce('mailoptin-admin-nonce'),
             'mailoptin_ajaxurl'                 => AjaxHandler::get_endpoint(),
             'is_customize_preview'              => is_customize_preview() ? 'true' : 'false',

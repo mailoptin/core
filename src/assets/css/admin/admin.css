@@ -1434,3 +1434,16 @@ form.mo-inline {
     content: "✓";
     color: #54b948;
 }
+
+.mailoptin-admin tr#hubspot_clear_cache_row td {
+    border: 1px solid #c3c4c7;
+}
+
+.mailoptin-admin .mo-connection-clear-cache-wrap {
+    padding: 10px 20px;
+    text-align:center;
+}
+
+.mailoptin-admin #hubspot_clear_cache_row .description {
+    padding: 10px 20px;
+}

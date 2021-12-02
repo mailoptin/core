@@ -505,6 +505,16 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'optin_sound'       => array(
+                    'default'   => $this->customizer_defaults['optin_sound'],
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                'optin_custom_sound'       => array(
+                    'default'   => $this->customizer_defaults['optin_custom_sound'],
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'success_message'            => array(
                     'default'   => $this->customizer_defaults['success_message'],
                     'type'      => 'option',
