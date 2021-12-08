@@ -362,6 +362,20 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_type'  => 'lightbox', // accept comma delimited values eg lightbox,sidebar,inpost
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/blogger/blogger-lightbox.png'
             ],
+            [
+                'name'        => 'Upcoming Event',
+                'optin_class' => 'UpcomingEvent',
+                'flag'        => 'premium',
+                'optin_type'  => 'lightbox',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/upcoming-event/upcoming-event-lightbox.png'
+            ],
+            [
+                'name'        => 'Promo',
+                'optin_class' => 'Promo',
+                'flag'        => 'premium',
+                'optin_type'  => 'lightbox',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo/promo-lightbox.png'
+            ],
         ];
     }
 
