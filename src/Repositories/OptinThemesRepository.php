@@ -376,6 +376,13 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_type'  => 'lightbox',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo/promo-lightbox.png'
             ],
+            [
+                'name'        => 'Good News',
+                'optin_class' => 'GoodNews',
+                'flag'        => 'premium',
+                'optin_type'  => 'lightbox',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/goodnews/goodnews-lightbox.png'
+            ],
         ];
     }
 
