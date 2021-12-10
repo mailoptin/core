@@ -966,7 +966,7 @@ class CustomizerControls
                         'section'     => $this->customizerClassInstance->configuration_section_id,
                         'settings'    => $this->option_prefix . '[optin_custom_sound]',
                         'priority'    => 56,
-                        'description' => __('Add a URL to a mp3/wav audio file to play.', 'mailoptin'),
+                        'description' => __('Add a URL to an mp3/wav audio file to play.', 'mailoptin'),
                     )
                 ),
                 'cookie'                     => apply_filters('mo_optin_form_customizer_cookie_args', array(
