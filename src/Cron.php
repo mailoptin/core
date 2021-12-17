@@ -32,6 +32,10 @@ class Cron
         if ( ! wp_next_scheduled('mo_daily_recurring_job')) {
             wp_schedule_event(time(), 'daily', 'mo_daily_recurring_job');
         }
+
+        if ( ! wp_next_scheduled('mo_twice_daily_recurring_job')) {
+            wp_schedule_event(time(), 'twicedaily', 'mo_twice_daily_recurring_job');
+        }
     }
 
     public function catch_late_email_digest_event_notice()
