@@ -113,7 +113,7 @@ class NewPublishPost extends AbstractTriggers
 
                 if (ER::is_campaign_active($email_campaign_id) === false) continue;
     
-                //wpml translations
+                //post translations
                 $post = apply_filters('mailoptin_email_campaign_translated_post',
                     $post,
                     ER::get_merged_customizer_value($email_campaign_id, 'post_translation'),
