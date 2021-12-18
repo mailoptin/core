@@ -232,11 +232,6 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage'
                 ],
-                'post_translation'                    => [
-                    'default'   => $this->customizer_defaults['post_translation'],
-                    'type'      => 'option',
-                    'transport' => 'postMessage'
-                ],
                 'recipient_header'                => [
                     'type'      => 'option',
                     'transport' => 'postMessage',
@@ -329,7 +324,6 @@ class CustomizerSettings extends AbstractCustomizer
             $email_campaign_settings_args['post_categories']['transport']           = 'refresh';
             $email_campaign_settings_args['post_tags']['transport']                 = 'refresh';
             $email_campaign_settings_args['post_authors']['transport']              = 'refresh';
-            $email_campaign_settings_args['post_translation']['transport']              = 'refresh';
         }
 
         foreach ($email_campaign_settings_args as $id => $args) {
