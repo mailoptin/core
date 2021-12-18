@@ -355,13 +355,6 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_type'  => 'slidein',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/quince/quince-inpost-sidebar-slidein.png'
             ],
-            [
-                'name'        => 'Blogger',
-                'optin_class' => 'Blogger',
-                'flag'        => 'premium',
-                'optin_type'  => 'lightbox', // accept comma delimited values eg lightbox,sidebar,inpost
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/blogger/blogger-lightbox.png'
-            ],
         ];
     }
 
