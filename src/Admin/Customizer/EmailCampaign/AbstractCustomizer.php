@@ -40,16 +40,6 @@ class AbstractCustomizer
 
         return $val;
     }
-    
-    public function get_default_active_language() {
-        $default_language = apply_filters('wpml_default_language', NULL );
-        
-        if(!empty($default_language)) {
-            return $default_language;
-        }
-        
-        return '';
-    }
 
     public function npp_code_your_own()
     {
@@ -450,7 +440,6 @@ HTML;
         $defaults['post_categories']           = apply_filters('mailoptin_customizer_email_campaign_post_categories', [], $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['post_tags']                 = apply_filters('mailoptin_customizer_email_campaign_post_tags', [], $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['post_authors']              = apply_filters('mailoptin_customizer_email_campaign_post_authors', [], $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
-        $defaults['post_translation']           = apply_filters('mailoptin_customizer_email_campaign_post_translation', $this->get_default_active_language(), $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['connection_service']        = apply_filters('mailoptin_customizer_email_campaign_connection_service', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['connection_email_list']     = apply_filters('mailoptin_customizer_email_campaign_connection_email_list', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['send_immediately']          = apply_filters('mailoptin_customizer_email_campaign_send_immediately', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);

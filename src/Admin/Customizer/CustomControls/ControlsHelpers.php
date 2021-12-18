@@ -252,22 +252,6 @@ class ControlsHelpers
 
         return $data;
     }
-    
-    public static function get_active_languages() {
-        $data = get_transient('mo_get_active_languages');
-        
-        if(empty($data)) {
-            $data = array_reduce(apply_filters('wpml_active_languages', null, 'orderby=id&order=desc'), function ($carry, $item) {
-                $carry[$item['code']] = $item['native_name'];
-        
-                return $carry;
-            }, []);
-            
-            set_transient('mo_get_active_languages', $data, apply_filters('mo_get_active_language_cache_expiration', MINUTE_IN_SECONDS));
-        }
-        
-        return $data;
-    }
 
     /**
      * Return array of publicly queryable custom post types.
