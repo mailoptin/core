@@ -103,7 +103,6 @@ class NewPublishPost extends AbstractTriggers
     public function new_publish_post($new_status, $old_status, $post)
     {
         if ($new_status == 'publish' && $old_status != 'publish') {
-
             if (get_post_meta($post->ID, '_mo_disable_npp', true) == 'yes') return;
 
             $new_publish_post_campaigns = ER::get_by_email_campaign_type(ER::NEW_PUBLISH_POST);
@@ -112,6 +111,23 @@ class NewPublishPost extends AbstractTriggers
                 $email_campaign_id = absint($npp_campaign['id']);
 
                 if (ER::is_campaign_active($email_campaign_id) === false) continue;
+    
+                //wpml translations
+                $has_translations = apply_filters( 'wpml_element_has_translations', NULL, $post->ID, $post->post_type);
+                if($has_translations) {
+                    $element_trid = apply_filters( 'wpml_element_trid', NULL, $post->ID);
+                    $element_type = apply_filters('wpml_element_type', $post->post_type);
+                    $element_translations = apply_filters( 'wpml_get_element_translations', NULL, $element_trid, $element_type);
+                    $post_translation = ER::get_merged_customizer_value($email_campaign_id, 'post_translation');
+                    
+                    if(isset($element_translations[$post_translation])) {
+                        $post_element = $element_translations[$post_translation];
+                        
+                        $post_id = $post_element->element_id;
+                        
+                        $post = get_post($post_id);
+                    }
+                }
 
                 $custom_post_type = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
 

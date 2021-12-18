@@ -277,6 +277,16 @@ class CustomizerControls
                     ]
                 )
             ),
+            'post_translation'         =>  apply_filters('mo_optin_form_customizer_post_translation_args',  [
+                    'label'    => __('Select Translation', 'mailoptin'),
+                    'section'  => $this->customizerClassInstance->campaign_settings_section_id,
+                    'settings' => $this->option_prefix . '[post_translation]',
+                    'type'     => 'select',
+                    'choices'  => ControlsHelpers::get_active_languages(),
+                    'description' => __('Choose the post language to be sent to the recipient.', 'mailoptin'),
+                    'priority' => 48
+                ]
+            ),
             'recipient_header'          => new WP_Customize_Custom_Content(
                 $this->wp_customize,
                 $this->option_prefix . '[recipient_header]',
@@ -463,6 +473,11 @@ class CustomizerControls
             unset($campaign_settings_controls['schedule_header']);
             $campaign_settings_controls['email_campaign_title']['label'] = __('Email Subject', 'mailoptin');
         }
+        
+        //check if WPML is installed
+//        if() {
+//            unset()
+//        }
 
         $email_campaign_settings_control_args = apply_filters(
             "mailoptin_email_campaign_customizer_settings_controls",
