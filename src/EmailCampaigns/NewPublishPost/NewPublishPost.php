@@ -103,6 +103,7 @@ class NewPublishPost extends AbstractTriggers
     public function new_publish_post($new_status, $old_status, $post)
     {
         if ($new_status == 'publish' && $old_status != 'publish') {
+            
             if (get_post_meta($post->ID, '_mo_disable_npp', true) == 'yes') return;
 
             $new_publish_post_campaigns = ER::get_by_email_campaign_type(ER::NEW_PUBLISH_POST);
