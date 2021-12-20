@@ -111,13 +111,6 @@ class PostsEmailDigest extends AbstractTriggers
                 'after'  => $newer_than_timestamp
             ]
         ];
-    
-        //apply post translation filter
-        $parameters = apply_filters('mailoptin_post_digest_translated_post_args',
-            $parameters,
-            ER::get_merged_customizer_value($email_campaign_id, 'post_translation'),
-            $email_campaign_id
-        );
         
         return get_posts(apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id));
     }
