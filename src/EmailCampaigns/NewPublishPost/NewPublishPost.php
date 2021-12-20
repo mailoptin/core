@@ -116,7 +116,6 @@ class NewPublishPost extends AbstractTriggers
                 //post translations
                 $post = apply_filters('mailoptin_email_campaign_translated_post',
                     $post,
-                    ER::get_merged_customizer_value($email_campaign_id, 'post_translation'),
                     $email_campaign_id
                 );
 
