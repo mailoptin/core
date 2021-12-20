@@ -248,11 +248,6 @@ class Customizer
                 'value'    => 'form_image'
             ],
             [
-                'selector' => '.mo-optin-form-background-image',
-                'type'     => 'control',
-                'value'    => 'form_background_image'
-            ],
-            [
                 'selector' => '.mo-optin-form-cta-button',
                 'type'     => 'control',
                 'value'    => 'display_only_button'
