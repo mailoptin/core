@@ -326,6 +326,16 @@ class EmailCampaignRepository extends AbstractRepository
 
         return 1 === $val ? true : (is_bool($val) ? $val : false);
     }
+    
+    public static function has_current_language($post, $email_campaign_id)
+    {
+        $post = apply_filters('mailoptin_email_campaign_translated_post',
+            $post,
+            $email_campaign_id
+        );
+        
+        return $post;
+    }
 
     public static function is_code_your_own_template($email_campaign_id)
     {
