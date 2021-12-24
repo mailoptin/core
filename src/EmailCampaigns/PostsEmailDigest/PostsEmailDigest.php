@@ -111,7 +111,7 @@ class PostsEmailDigest extends AbstractTriggers
                 'after'  => $newer_than_timestamp
             ]
         ];
-        
+
         return get_posts(apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id));
     }
 
