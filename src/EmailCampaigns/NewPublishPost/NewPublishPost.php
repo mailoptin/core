@@ -113,6 +113,8 @@ class NewPublishPost extends AbstractTriggers
 
                 if (ER::is_campaign_active($email_campaign_id) === false) continue;
 
+                if ( ! apply_filters('mo_new_publish_post_loop_check', true, $post, $email_campaign_id)) continue;
+
                 $custom_post_type = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
 
                 $post_type_support = ['post'];
