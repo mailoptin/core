@@ -112,8 +112,8 @@ class NewPublishPost extends AbstractTriggers
                 $email_campaign_id = absint($npp_campaign['id']);
 
                 if (ER::is_campaign_active($email_campaign_id) === false) continue;
-    
-                if(!apply_filters('mailoptin_is_email_campaign_translated_post', true, $post, $email_campaign_id)) continue;
+
+                if ( ! apply_filters('mo_new_publish_post_loop_check', true, $post, $email_campaign_id)) continue;
 
                 $custom_post_type = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
 
