@@ -112,6 +112,8 @@ class PostsEmailDigest extends AbstractTriggers
             ]
         ];
 
+        do_action('mo_post_digest_post_collection', $email_campaign_id, $parameters);
+
         return get_posts(apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id));
     }
 
