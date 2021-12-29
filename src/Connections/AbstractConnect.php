@@ -498,22 +498,12 @@ $footer_content";
             throw new \Exception($response->get_error_message());
         }
 
-        $result = json_decode(wp_remote_retrieve_body($response), true);
+        $response_body = wp_remote_retrieve_body($response);
+
+        $result = \json_decode($response_body, true);
 
         if ( ! isset($result['success']) || $result['success'] !== true) {
-
-            // try refresh twice before failing.
-            $response = wp_remote_get($url);
-
-            if (is_wp_error($response)) {
-                throw new \Exception($response->get_error_message());
-            }
-
-            $result = json_decode($response_body = wp_remote_retrieve_body($response), true);
-
-            if ( ! isset($result['success']) || $result['success'] !== true) {
-                throw new \Exception('Error failed to refresh ' . $response_body);
-            }
+            throw new \Exception('Error failed to refresh ' . $response_body);
         }
 
         return $result;

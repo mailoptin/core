@@ -160,7 +160,7 @@ class CustomizerControls
 
             $this->default_form_background_image = apply_filters('mo_optin_form_partial_default_background_image', '');
 
-            if (apply_filters('mo_optin_form_enable_selective_refresh_form_background_image', true) && isset($this->wp_customize->selective_refresh)) {
+            if (apply_filters('mo_optin_form_enable_selective_refresh_form_background_image', false) && isset($this->wp_customize->selective_refresh)) {
                 $this->wp_customize->selective_refresh->add_partial($this->option_prefix . '[form_background_image]', array(
                     // Whether to refresh the entire preview in case a partial cannot be refreshed.
                     // A partial render is considered a failure if the render_callback returns false.
@@ -211,6 +211,21 @@ class CustomizerControls
                 )
             )
         );
+    
+        if (apply_filters('mo_optin_form_enable_dotted_border_color', false)) {
+            
+            $page_control_args['form_dotted_border_color'] = new \WP_Customize_Color_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[form_dotted_border_color]',
+                apply_filters('mo_optin_form_customizer_form_dotted_border_args', array(
+                        'label'    => __('Dotted Border Color', 'mailoptin'),
+                        'section'  => $this->customizerClassInstance->design_section_id,
+                        'settings' => $this->option_prefix . '[form_dotted_border_color]',
+                        'priority' => 40,
+                    )
+                )
+            );
+        }
 
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
             $content = sprintf(
@@ -966,7 +981,7 @@ class CustomizerControls
                         'section'     => $this->customizerClassInstance->configuration_section_id,
                         'settings'    => $this->option_prefix . '[optin_custom_sound]',
                         'priority'    => 56,
-                        'description' => __('Add a URL to a mp3/wav audio file to play.', 'mailoptin'),
+                        'description' => __('Add a URL to an mp3/wav audio file to play.', 'mailoptin'),
                     )
                 ),
                 'cookie'                     => apply_filters('mo_optin_form_customizer_cookie_args', array(
