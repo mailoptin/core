@@ -199,7 +199,7 @@ class CustomizerControls
                 )
             )
         );
-        
+
         $page_control_args['form_border_color'] = new \WP_Customize_Color_Control(
             $this->wp_customize,
             $this->option_prefix . '[form_border_color]',
