@@ -396,7 +396,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                 'position'     => 'relative',
                 'margin-right' => 'auto',
                 'margin-left'  => 'auto',
-                'background'   => $this->get_customizer_value('form_background_color'),
+                'background-color'   => $this->get_customizer_value('form_background_color'),
                 'border-color' => $this->get_customizer_value('form_border_color'),
                 'line-height'  => 'normal'
             ],

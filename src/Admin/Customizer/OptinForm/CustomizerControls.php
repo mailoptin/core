@@ -160,7 +160,7 @@ class CustomizerControls
 
             $this->default_form_background_image = apply_filters('mo_optin_form_partial_default_background_image', '');
 
-            if (apply_filters('mo_optin_form_enable_selective_refresh_form_background_image', true) && isset($this->wp_customize->selective_refresh)) {
+            if (apply_filters('mo_optin_form_enable_selective_refresh_form_background_image', false) && isset($this->wp_customize->selective_refresh)) {
                 $this->wp_customize->selective_refresh->add_partial($this->option_prefix . '[form_background_image]', array(
                     // Whether to refresh the entire preview in case a partial cannot be refreshed.
                     // A partial render is considered a failure if the render_callback returns false.

@@ -28,6 +28,8 @@ class PostsEmailDigestTemplatePreview extends Templatify
 
         $parameters = PostsEmailDigest::get_instance()->post_collect_query($email_campaign_id);
 
+        do_action('mo_post_digest_post_collection', $email_campaign_id, $parameters);
+
         $parameters = apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id, 'customizer');
 
         $response = get_posts($parameters);

@@ -32,13 +32,9 @@ class Connections
      */
     public static function instance($removeCache = false)
     {
-        if ($removeCache) {
-            return new self(get_option(MAILOPTIN_CONNECTIONS_DB_OPTION_NAME));
-        }
-
         static $instance = null;
 
-        if (is_null($instance)) {
+        if ($removeCache || is_null($instance)) {
             $instance = new self(get_option(MAILOPTIN_CONNECTIONS_DB_OPTION_NAME));
         }
 
