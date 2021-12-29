@@ -74,12 +74,6 @@ class CustomizerSettings extends AbstractCustomizer
                     'sanitize_callback' => 'sanitize_hex_color',
                     'transport'         => 'postMessage',
                 ),
-                'form_dotted_border_color'     => array(
-                    'default'           => $this->customizer_defaults['form_dotted_border_color'],
-                    'type'              => 'option',
-                    'sanitize_callback' => 'sanitize_hex_color',
-                    'transport'         => 'refresh',
-                ),
                 'form_custom_css'       => array(
                     'default'   => $this->customizer_defaults['form_custom_css'],
                     'type'      => 'option',

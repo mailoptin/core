@@ -211,21 +211,6 @@ class CustomizerControls
                 )
             )
         );
-    
-        if (apply_filters('mo_optin_form_enable_dotted_border_color', false)) {
-            
-            $page_control_args['form_dotted_border_color'] = new \WP_Customize_Color_Control(
-                $this->wp_customize,
-                $this->option_prefix . '[form_dotted_border_color]',
-                apply_filters('mo_optin_form_customizer_form_dotted_border_args', array(
-                        'label'    => __('Dotted Border Color', 'mailoptin'),
-                        'section'  => $this->customizerClassInstance->design_section_id,
-                        'settings' => $this->option_prefix . '[form_dotted_border_color]',
-                        'priority' => 40,
-                    )
-                )
-            );
-        }
 
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
             $content = sprintf(
