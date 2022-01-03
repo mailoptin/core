@@ -3,6 +3,8 @@
 namespace MailOptin\Core\Admin\SettingsPage;
 
 // Exit if accessed directly
+use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Integration_Repeater_Control;
+use MailOptin\Core\Repositories\ConnectionsRepository;
 use W3Guy\Custom_Settings_Page_Api;
 
 if ( ! defined('ABSPATH')) {
@@ -211,4 +213,5 @@ abstract class AbstractSettingsPage
 
         return $content;
     }
+    
 }
