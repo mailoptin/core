@@ -360,7 +360,7 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Pansy',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox', // accept comma delimited values eg lightbox,sidebar,inpost
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy/pansy-lightbox.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-lightbox.png'
             ],
             [
                 'name'        => 'Hosta',
@@ -374,7 +374,7 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Promo',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo/promo-lightbox.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox.png'
             ],
             [
                 'name'        => 'Good News',
