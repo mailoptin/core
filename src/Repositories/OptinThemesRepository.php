@@ -377,11 +377,11 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox.png'
             ],
             [
-                'name'        => 'Good News',
-                'optin_class' => 'GoodNews',
+                'name'        => 'Ursinia',
+                'optin_class' => 'Ursinia',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/goodnews/goodnews-lightbox.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-lightbox.png'
             ],
         ];
     }
