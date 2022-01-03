@@ -356,11 +356,11 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/quince/quince-inpost-sidebar-slidein.png'
             ],
             [
-                'name'        => 'Blogger',
-                'optin_class' => 'Blogger',
+                'name'        => 'Pansy',
+                'optin_class' => 'Pansy',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox', // accept comma delimited values eg lightbox,sidebar,inpost
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/blogger/blogger-lightbox.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy/pansy-lightbox.png'
             ],
             [
                 'name'        => 'Hosta',
