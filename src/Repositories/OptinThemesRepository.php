@@ -363,11 +363,11 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/blogger/blogger-lightbox.png'
             ],
             [
-                'name'        => 'Upcoming Event',
-                'optin_class' => 'UpcomingEvent',
+                'name'        => 'Hosta',
+                'optin_class' => 'Hosta',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/upcoming-event/upcoming-event-lightbox.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/hosta/hosta-lightbox.png'
             ],
             [
                 'name'        => 'Promo',

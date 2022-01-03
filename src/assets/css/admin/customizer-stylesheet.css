@@ -173,7 +173,7 @@ li#accordion-section-mailoptin_upsell_section {
 
 /* hide the added save draft and changes ish added in WP 4.9 */
 button#publish-settings {
-    display: none !important;
+    /*display: none !important;*/
 }
 
 /* Inputs */
