@@ -122,7 +122,9 @@ class CustomizerControls
 
             $this->default_form_image = apply_filters('mo_optin_form_partial_default_image', '');
 
-            if (isset($this->wp_customize->selective_refresh)) {
+            // selective refresh not working.. no time to debug now.
+            if (false) {
+                //if (isset($this->wp_customize->selective_refresh)) {
                 $this->wp_customize->selective_refresh->add_partial($this->option_prefix . '[form_image]', array(
                     // Whether to refresh the entire preview in case a partial cannot be refreshed.
                     // A partial render is considered a failure if the render_callback returns false.
