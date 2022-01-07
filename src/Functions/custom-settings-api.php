@@ -793,7 +793,7 @@ class Custom_Settings_Page_Api
         $label          = esc_attr($args['label']);
         $description    = @$args['description'];
         $tr_id          = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
-        $checkbox_label = ! empty($args['checkbox_label']) ? sanitize_text_field($args['checkbox_label']) : __('Activate', 'wp_cspa');
+        $checkbox_label = ! empty($args['checkbox_label']) ? sanitize_text_field($args['checkbox_label']) : __('Activate', 'mailoptin');
         $value          = ! empty($args['value']) ? esc_attr($args['value']) : 'true';
         $option_name    = $this->option_name;
         ob_start();

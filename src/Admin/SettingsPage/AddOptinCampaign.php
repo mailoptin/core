@@ -38,7 +38,7 @@ class AddOptinCampaign extends AbstractSettingsPage
         if (!empty($_GET['page']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG) : ?>
             <div class="mailoptin-optin-new-list mailoptin-optin-clear">
                 <h4><?php _e('Title', 'mailoptin'); ?>
-                    <input type="text" name="mailoptin-optin-campaign" id="mailoptin-add-optin-campaign-title" placeholder="<?php _e('Enter a name...', 'profilepress') ?>">
+                    <input type="text" name="mailoptin-optin-campaign" id="mailoptin-add-optin-campaign-title" placeholder="<?php _e('Enter a name...', 'mailoptin') ?>">
                 </h4>
             </div>
             <div id="mailoptin-sub-bar">
