@@ -393,12 +393,12 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
     {
         $style_arg = apply_filters('mo_optin_form_container_styles',
             [
-                'position'     => 'relative',
-                'margin-right' => 'auto',
-                'margin-left'  => 'auto',
-                'background-color'   => $this->get_customizer_value('form_background_color'),
-                'border-color' => $this->get_customizer_value('form_border_color'),
-                'line-height'  => 'normal'
+                'position'         => 'relative',
+                'margin-right'     => 'auto',
+                'margin-left'      => 'auto',
+                'background-color' => $this->get_customizer_value('form_background_color'),
+                'border-color'     => $this->get_customizer_value('form_border_color'),
+                'line-height'      => 'normal'
             ],
             $this->optin_campaign_id,
             $this->optin_campaign_type,
@@ -737,7 +737,9 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
             $html .= sprintf('<%s class="mo-optin-form-image-wrapper%s">', $tag, $wrapper_class);
         }
 
-        $html .= sprintf('<img src="%s" class="mo-optin-form-image" style="%s"/>', esc_url_raw($src), $style);
+        $alt = $this->get_form_image_alt();
+
+        $html .= sprintf('<img alt="%s" src="%s" class="mo-optin-form-image" style="%s"/>', esc_attr($alt), esc_url_raw($src), $style);
 
         if ($atts['wrapper_enabled'] == 'true') {
             $html .= "</$tag>";
@@ -780,6 +782,13 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
     public function get_form_image_url($default_image_url = '')
     {
         return $this->get_attachment_image_url('form_image', $default_image_url);
+    }
+
+    public function get_form_image_alt()
+    {
+        $attachment_id = $this->get_customizer_value('form_image');
+
+        return get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
     }
 
     /**

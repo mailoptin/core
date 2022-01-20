@@ -67,7 +67,7 @@ if ( ! class_exists('\MoBFnote')) {
                     <p>
                         <?php
                         printf(
-                            __('%1$sHuge Black Friday Sale%2$s: Get 40%% off your MailOptin plugin upgrade today with the coupon %3$sBFCM2021%4$s', 'peters-login-redirect'),
+                            __('%1$sHuge Black Friday Sale%2$s: Get 40%% off your MailOptin plugin upgrade today with the coupon %3$sBFCM2021%4$s', 'mailoptin'),
                             '<span class="mobfnote-stylize"><strong>', '</strong></span>', '<code>', '</code>');
                         ?>
                     </p>
@@ -76,7 +76,7 @@ if ( ! class_exists('\MoBFnote')) {
                 </div>
                 <div class="mobfnote-notice-other-half">
                     <a target="_blank" class="button button-primary button-hero" id="mobfnote-install-mailoptin-plugin" href="<?php echo $bf_url; ?>">
-                        <?php _e('Save 40% Now!', 'peters-login-redirect'); ?>
+                        <?php _e('Save 40% Now!', 'mailoptin'); ?>
                     </a>
                     <div class="mobfnote-notice-learn-more">
                         <a target="_blank" href="<?php echo $bf_url; ?>">Learn more</a>
@@ -84,7 +84,7 @@ if ( ! class_exists('\MoBFnote')) {
                 </div>
                 <a href="<?php echo $dismiss_url; ?>">
                     <button type="button" class="notice-dismiss">
-                        <span class="screen-reader-text"><?php _e('Dismiss this notice', 'peters-login-redirect'); ?>.</span>
+                        <span class="screen-reader-text"><?php _e('Dismiss this notice', 'mailoptin'); ?>.</span>
                     </button>
                 </a>
             </div>

@@ -734,6 +734,32 @@
       "q" : 100,
       "rq" : 75
     },
+    "\/src\/assets\/images\/optin-themes\/hosta\/bg-image.png" : {
+      "ft" : 32768,
+      "iS" : 140774,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/hosta\/bg-image.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/hosta\/hosta-lightbox.png" : {
+      "ft" : 32768,
+      "iS" : 159884,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/hosta\/hosta-lightbox.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
     "\/src\/assets\/images\/optin-themes\/index.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -906,11 +932,37 @@
       "q" : 100,
       "rq" : 75
     },
+    "\/src\/assets\/images\/optin-themes\/pansy-lightbox.png" : {
+      "ft" : 32768,
+      "iS" : 16799,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/pansy-lightbox.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
     "\/src\/assets\/images\/optin-themes\/primrose-sidebar.png" : {
       "ft" : 32768,
       "iS" : 114554,
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/optin-themes\/primrose-sidebar.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/promo-lightbox.png" : {
+      "ft" : 32768,
+      "iS" : 22635,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/promo-lightbox.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -1067,6 +1119,19 @@
       "iS" : 17842,
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/optin-themes\/solidago-optin.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/ursinia-lightbox.png" : {
+      "ft" : 32768,
+      "iS" : 19389,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/ursinia-lightbox.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -1526,7 +1591,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 660219767.69629395
+    "lastBuiltDate" : 663314321.11942196
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
