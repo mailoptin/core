@@ -1,0 +1,90 @@
+/*.admin-color-fresh #adminmenu .wp-submenu a:after {*/
+/*    background: #666;*/
+/*}*/
+
+/*.admin-color-light #adminmenu .wp-submenu a:after {*/
+/*    background: #ddd;*/
+/*}*/
+
+/*.admin-color-blue #adminmenu .wp-submenu a:after {*/
+/*    background: #85c7e0;*/
+/*}*/
+
+/*.admin-color-coffee #adminmenu .wp-submenu a:after {*/
+/*    background: #7f7068;*/
+/*}*/
+
+/*.admin-color-ectoplasm #adminmenu .wp-submenu a:after {*/
+/*    background: #755a9d;*/
+/*}*/
+
+/*.admin-color-midnight #adminmenu .wp-submenu a:after {*/
+/*    background: #555865;*/
+/*}*/
+
+/*.admin-color-ocean #adminmenu .wp-submenu a:after {*/
+/*    background: #739dac;*/
+/*}*/
+
+/*.admin-color-sunrise #adminmenu .wp-submenu a:after {*/
+/*    background: #e14c46;*/
+/*}*/
+
+/*#adminmenu .wp-submenu a[href$="page=mailoptin-integrations"],*/
+/*#adminmenu .wp-submenu a[href$="page=mailoptin-emails"] {*/
+/*    position: relative;*/
+/*    margin-bottom: 10px*/
+/*}*/
+
+/*#adminmenu .wp-submenu a[href$="page=mailoptin-integrations"]:after,*/
+/*#adminmenu .wp-submenu a[href$="page=mailoptin-emails"]:after {*/
+/*    position: absolute;*/
+/*    content: "";*/
+/*    display: block;*/
+/*    width: 30px;*/
+/*    height: 1px;*/
+/*    bottom: -5px;*/
+/*}*/
+
+#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-integrations"]:after,
+#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-emails"]:after
+{
+    border-bottom: 1px solid hsla(0,0%,100%,.2);
+    display: block;
+    float: left;
+    margin: 13px -15px 8px;
+    content: "";
+    width: calc(100% + 30px)
+}
+
+@media screen and (max-width: 782px) {
+    #adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-integrations"]:after,
+    #adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-emails"]:after {
+        margin:20px -20px 8px;
+        width: calc(100% + 40px)
+    }
+}
+
+#adminmenu li[class*="mailoptin-"] ul>li:nth-last-child(2):after {
+    margin-left: 0
+}
+
+#adminmenu li[class*="mailoptin-"] ul.wp-submenu-wrap li {
+    clear: both
+}
+
+#adminmenu li[class*="mailoptin-"] a.wp-has-current-submenu:after {
+    display: none
+}
+
+ul#adminmenu li[class*="mailoptin-"] ul.wp-submenu li.current a:before {
+    right: 0;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border: 8px solid transparent;
+    border-right-color: #f1f1f1;
+    margin-top: 2px
+}

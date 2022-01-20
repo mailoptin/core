@@ -318,6 +318,8 @@ class RegisterScripts
 
         $base_text = $screen->base;
 
+        wp_enqueue_style('mailoptin-menu', MAILOPTIN_ASSETS_URL . 'css/admin/mailoptin-menu.css', [], filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/mailoptin-menu.css'));
+
         if (strpos($base_text, 'mailoptin') !== false || is_customize_preview()) {
 
             wp_enqueue_style('mailoptin-admin-tooltipster', MAILOPTIN_ASSETS_URL . 'tooltipster/bundle.min.css', [], MAILOPTIN_VERSION_NUMBER);
