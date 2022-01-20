@@ -704,8 +704,8 @@ var mailoptin_optin = {
         if ($.MailOptin.is_customize_preview === true) return;
 
         if(optin_type === 'bar' || optin_type === 'lightbox' || optin_type === 'slidein') {
-            var optin_sound_config = optin_config.optin_sound;
-            if(typeof optin_sound_config !== 'undefined' && 'none' !== optin_sound_config) {
+            var optin_sound_config = typeof optin_config.optin_sound !== 'undefined' ? optin_config.optin_sound : '';
+            if('none' !== optin_sound_config) {
                 var optin_sound_url = 'custom' !== optin_sound_config ? mailoptin_globals.public_sound + optin_sound_config : optin_config.optin_custom_sound;
                 var audio = new Audio( optin_sound_url);
                 audio.addEventListener('canplaythrough', function () {
