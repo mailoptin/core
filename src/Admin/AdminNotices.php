@@ -229,7 +229,7 @@ class AdminNotices
         if ( ! class_exists('WooCommerce')) return;
 
         $upgrade_url = 'https://mailoptin.io/integrations/woocommerce/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=woo_admin_notice';
-        $notice      = sprintf(__('Did you know you can display targeted messages and optin forms across your WooCommerce store and also automatically send email alert of new products to your subscribers and customers? %sLearn more%s', 'mailoptin'),
+        $notice      = sprintf(__('Did you know you can display targeted message & optin forms across your WooCommerce store, add customers to your email list after their purchase, and automatically send email alert of new products? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_woocommerce_features-forever" class="notice notice-info is-dismissible">';
