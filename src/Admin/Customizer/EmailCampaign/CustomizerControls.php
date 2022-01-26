@@ -987,7 +987,10 @@ HTML;
                     $this->option_prefix . '[send_test_email]',
                     array(
                         'label'       => __('Background Color', 'mailoptin'),
-                        'description' => __("Save any changes first and then click the button to send the test email. If empty, it will be sent to " . mo_test_admin_email(), 'mailoptin'),
+                        'description' => sprintf(
+                            esc_html__("%sSave changes after entering an email address%s before clicking the button to send the test email. If empty, it will be sent to " . mo_test_admin_email(), 'mailoptin'),
+                            '<strong>', '</strong>'
+                        ),
                         'section'     => $this->customizerClassInstance->campaign_send_email_section_id,
                         'settings'    => $this->option_prefix . '[send_test_email]',
                         'priority'    => 20
