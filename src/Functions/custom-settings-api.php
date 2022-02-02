@@ -777,6 +777,62 @@ class Custom_Settings_Page_Api
         <?php
         return ob_get_clean();
     }
+    
+    
+    /**
+     * Renders the select2 dropdown
+     *
+     * @param array $db_options addons DB options
+     * @param string $key array key of class argument
+     * @param array $args class args
+     *
+     * @return string
+     */
+    public function _select2($db_options, $key, $args)
+    {
+        $key                  = esc_attr($key);
+        $label                = esc_attr($args['label']);
+        $description          = @$args['description'];
+        $tr_id                = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $disabled             = isset($args['disabled']) && $args['disabled'] === true ? 'disabled="disabled"' : '';
+        $options              = $args['options'];
+        $default_select_value = @$args['value'];
+        $option_name          = $this->option_name;
+        ob_start() ?>
+        <tr id="<?php echo $tr_id; ?>">
+            <th scope="row"><label for="<?php echo $key; ?>"><?php echo $label; ?></label></th>
+            <td>
+
+                <?php do_action('wp_cspa_before_select_dropdown', $db_options, $option_name, $key, $args); ?>
+                <select class="mo-select2" id="<?php echo $key; ?>"
+                        name="<?php echo $option_name, '[', $key, ']'; ?>[]" <?php echo $disabled; ?> multiple>
+                    <?php foreach ($options as $option_key => $option_value) :
+                          $selected = '';
+                          if((!empty($db_options[$key]) && in_array($option_key, $db_options[$key])) || $option_key === $default_select_value) {
+                            $selected = 'selected';
+                          }
+                    ?>
+                        <option value="<?php echo $option_key; ?>" <?php echo $selected; ?>><?php echo esc_attr($option_value); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php do_action('wp_cspa_after_select_dropdown', $db_options, $option_name, $key, $args); ?>
+
+                <p class="description"><?php echo $description; ?></p>
+            </td>
+        </tr>
+        <script type="text/javascript">
+            var run = function () {
+                var cache = jQuery('select#<?php echo $key; ?>.mo-select2');
+                if (typeof cache.select2 !== 'undefined') {
+                    cache.select2()
+                }
+            };
+            jQuery(window).on('load', run);
+            run();
+        </script>
+        <?php
+        return ob_get_clean();
+    }
 
     /**
      * Renders the checkbox field
