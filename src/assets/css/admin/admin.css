@@ -696,8 +696,12 @@ form.mo-inline {
     background: #fff;
 }
 
-.metabox-holder.mailoptin-tab-settings textarea {
-    width: 25em;
+.metabox-holder.mailoptin-tab-settings textarea,
+.metabox-holder.mailoptin-tab-settings input:not([type=submit]):not([type=checkbox]):not([type=radio]),
+.metabox-holder.mailoptin-tab-settings select,
+.metabox-holder.mailoptin-tab-settings .select2-container {
+    max-width: 30em;
+    width: 100% !important;
 }
 
 .mailoptin-settings-wrap .mailoptin-tab-settings .postbox {
