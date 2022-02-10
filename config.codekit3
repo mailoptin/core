@@ -43,9 +43,9 @@
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
-      "oA" : 0,
+      "oA" : 1,
       "oAP" : "\/build\/.gitignore",
-      "oF" : 0
+      "oF" : 3
     },
     "\/composer.json" : {
       "ft" : 524288,
@@ -1243,6 +1243,17 @@
       "oAP" : "\/src\/assets\/js\/index.php",
       "oF" : 1
     },
+    "\/src\/assets\/js\/mailoptin.min.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 1,
+      "oAP" : "\/src\/assets\/js\/mailoptin.min-min.js",
+      "oF" : 1,
+      "sC" : 3,
+      "tS" : 0
+    },
     "\/src\/assets\/js\/mobile-detect.min.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -1541,6 +1552,14 @@
       "oAP" : "\/src\/RegisterActivation",
       "oF" : 0
     },
+    "\/src\/RegisterScripts.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 1,
+      "oAP" : "\/src\/RegisterScripts.php",
+      "oF" : 1
+    },
     "\/src\/Repositories" : {
       "ft" : 65536,
       "oA" : 1,
@@ -1572,7 +1591,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 666173813.59212005
+    "lastBuiltDate" : 663314321.11942196
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -2719,9 +2738,6 @@
       },
       "no-unused-labels" : {
         "active" : 1
-      },
-      "no-unused-private-class-members" : {
-        "active" : 0
       },
       "no-unused-vars" : {
         "active" : 1,
