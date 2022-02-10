@@ -470,7 +470,7 @@
             //add event handler to detect when opening sound is changed and play the sound to allow admin to preview it
             $('select[data-customize-setting-link*=optin_sound], input[data-customize-setting-link*=optin_custom_sound]').on('change', function (event) {
                 var value = $('select[data-customize-setting-link*=optin_sound]').val();
-                if(value !== 'none') {
+                if(value !== 'none' && value !== '') {
                     var audio_sound_url = value !== 'custom' ? mailoptin_globals.public_sound + value : $('li[id*=optin_custom_sound]').find('input').val();
                     var audio = new Audio( audio_sound_url);
                     audio.addEventListener('canplaythrough', function () {

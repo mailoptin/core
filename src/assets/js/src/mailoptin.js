@@ -705,7 +705,7 @@ var mailoptin_optin = {
 
         if(optin_type === 'bar' || optin_type === 'lightbox' || optin_type === 'slidein') {
             var optin_sound_config = typeof optin_config.optin_sound !== 'undefined' ? optin_config.optin_sound : '';
-            if('none' !== optin_sound_config) {
+            if('none' !== optin_sound_config && optin_sound_config !== '') {
                 var optin_sound_url = 'custom' !== optin_sound_config ? mailoptin_globals.public_sound + optin_sound_config : optin_config.optin_custom_sound;
                 var audio = new Audio( optin_sound_url);
                 audio.addEventListener('canplaythrough', function () {
