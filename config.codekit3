@@ -15,7 +15,7 @@
       "uuidString" : "A37598BB-52C3-4652-8A10-5BABEB9FAA63"
     }
   ],
-  "creatorBuild" : "34264",
+  "creatorBuild" : "34214",
   "files" : {
     "\/.gitignore" : {
       "cB" : 0,
@@ -1572,7 +1572,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 666144143.77462304
+    "lastBuiltDate" : 666173813.59212005
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
