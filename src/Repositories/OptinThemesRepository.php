@@ -370,11 +370,25 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-sidebar.png'
             ],
             [
+                'name'        => 'Pansy',
+                'optin_class' => 'Pansy',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-inpost.png'
+            ],
+            [
                 'name'        => 'Hosta',
                 'optin_class' => 'Hosta',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/hosta/hosta-lightbox.png'
+            ],
+            [
+                'name'        => 'Hosta',
+                'optin_class' => 'Hosta',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/hosta/hosta-inpost.png'
             ],
             [
                 'name'        => 'Hosta',
@@ -398,6 +412,13 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-sidebar.png'
             ],
             [
+                'name'        => 'Promo',
+                'optin_class' => 'Promo',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-inpost.png'
+            ],
+            [
                 'name'        => 'Ursinia',
                 'optin_class' => 'Ursinia',
                 'flag'        => 'premium',
@@ -410,6 +431,13 @@ class OptinThemesRepository extends AbstractRepository
                 'flag'        => 'premium',
                 'optin_type'  => 'sidebar',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-sidebar.png'
+            ],
+            [
+                'name'        => 'Ursinia',
+                'optin_class' => 'Ursinia',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-inpost.png'
             ],
         ];
     }
