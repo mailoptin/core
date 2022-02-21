@@ -367,14 +367,14 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Pansy',
                 'flag'        => 'premium',
                 'optin_type'  => 'sidebar',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-sidebar.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-inpost-sidebar.png'
             ],
             [
                 'name'        => 'Pansy',
                 'optin_class' => 'Pansy',
                 'flag'        => 'premium',
                 'optin_type'  => 'inpost',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-inpost.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-inpost-sidebar.png'
             ],
             [
                 'name'        => 'Hosta',
