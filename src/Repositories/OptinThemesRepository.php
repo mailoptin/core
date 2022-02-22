@@ -402,7 +402,7 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Promo',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost.png'
             ],
             [
                 'name'        => 'Promo',
@@ -416,7 +416,7 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Promo',
                 'flag'        => 'premium',
                 'optin_type'  => 'inpost',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-inpost.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost.png'
             ],
             [
                 'name'        => 'Ursinia',
