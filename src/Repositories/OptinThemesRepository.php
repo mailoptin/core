@@ -402,21 +402,21 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Promo',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost-sidebar.png'
             ],
             [
                 'name'        => 'Promo',
                 'optin_class' => 'Promo',
                 'flag'        => 'premium',
                 'optin_type'  => 'sidebar',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-sidebar.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost-sidebar.png'
             ],
             [
                 'name'        => 'Promo',
                 'optin_class' => 'Promo',
                 'flag'        => 'premium',
                 'optin_type'  => 'inpost',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost-sidebar.png'
             ],
             [
                 'name'        => 'Ursinia',
@@ -430,14 +430,14 @@ class OptinThemesRepository extends AbstractRepository
                 'optin_class' => 'Ursinia',
                 'flag'        => 'premium',
                 'optin_type'  => 'sidebar',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-sidebar.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-inpost-sidebar.png'
             ],
             [
                 'name'        => 'Ursinia',
                 'optin_class' => 'Ursinia',
                 'flag'        => 'premium',
                 'optin_type'  => 'inpost',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-inpost.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-inpost-sidebar.png'
             ],
         ];
     }
