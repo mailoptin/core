@@ -363,6 +363,20 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-lightbox.png'
             ],
             [
+                'name'        => 'Pansy',
+                'optin_class' => 'Pansy',
+                'flag'        => 'premium',
+                'optin_type'  => 'sidebar',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-inpost-sidebar.png'
+            ],
+            [
+                'name'        => 'Pansy',
+                'optin_class' => 'Pansy',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/pansy-inpost-sidebar.png'
+            ],
+            [
                 'name'        => 'Hosta',
                 'optin_class' => 'Hosta',
                 'flag'        => 'premium',
@@ -370,11 +384,39 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/hosta/hosta-lightbox.png'
             ],
             [
+                'name'        => 'Hosta',
+                'optin_class' => 'Hosta',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/hosta/hosta-inpost.png'
+            ],
+            [
+                'name'        => 'Hosta',
+                'optin_class' => 'Hosta',
+                'flag'        => 'premium',
+                'optin_type'  => 'sidebar',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/hosta/hosta-sidebar.png'
+            ],
+            [
                 'name'        => 'Promo',
                 'optin_class' => 'Promo',
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox.png'
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost-sidebar.png'
+            ],
+            [
+                'name'        => 'Promo',
+                'optin_class' => 'Promo',
+                'flag'        => 'premium',
+                'optin_type'  => 'sidebar',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost-sidebar.png'
+            ],
+            [
+                'name'        => 'Promo',
+                'optin_class' => 'Promo',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/promo-lightbox-inpost-sidebar.png'
             ],
             [
                 'name'        => 'Ursinia',
@@ -382,6 +424,20 @@ class OptinThemesRepository extends AbstractRepository
                 'flag'        => 'premium',
                 'optin_type'  => 'lightbox',
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-lightbox.png'
+            ],
+            [
+                'name'        => 'Ursinia',
+                'optin_class' => 'Ursinia',
+                'flag'        => 'premium',
+                'optin_type'  => 'sidebar',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-inpost-sidebar.png'
+            ],
+            [
+                'name'        => 'Ursinia',
+                'optin_class' => 'Ursinia',
+                'flag'        => 'premium',
+                'optin_type'  => 'inpost',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/ursinia-inpost-sidebar.png'
             ],
         ];
     }
