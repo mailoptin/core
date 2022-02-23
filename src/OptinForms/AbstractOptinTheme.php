@@ -1094,8 +1094,15 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             } else {
                                 $html .= "<div class='mo-checkbox-title'>$placeholder</div>";
                                 foreach ($options as $option) {
-                                    $option = esc_attr(trim($option));
-                                    $html   .= "<label><input type=\"checkbox\" value=\"$option\" name=\"{$field_id}[]\"><span>$option</span></label>";
+                                    $option_value = esc_attr( $option );
+                                    $option_label = esc_html( $option );
+                                    
+                                    if ( false !== strpos( $option, '|' ) ) {
+                                        list( $label, $value ) = explode( '|', $option );
+                                        $option_value = esc_attr($value);
+                                        $option_label = esc_html($label);
+                                    }
+                                    $html   .= "<label><input type=\"checkbox\" value=\"$option_value\" name=\"{$field_id}[]\"><span>$option_label</span></label>";
                                 }
                             }
                             $html .= '</div>';
@@ -1107,11 +1114,18 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                             //Display options
                             foreach ($options as $option) {
-                                $option = esc_attr(trim($option));
-                                if (empty ($option)) {
+                                $option_value = esc_attr( $option );
+                                $option_label = esc_html( $option );
+    
+                                if ( false !== strpos( $option, '|' ) ) {
+                                    list( $label, $value ) = explode( '|', $option );
+                                    $option_value = esc_attr($value);
+                                    $option_label = esc_html($label);
+                                }
+                                if (empty ($option_label)) {
                                     continue;
                                 }
-                                $html .= "<label><input type=\"radio\" value=\"$option\" name=\"$field_id\"><span>$option</span></label>";
+                                $html .= "<label><input type=\"radio\" value=\"$option_value\" name=\"$field_id\"><span>$option_label</span></label>";
                             }
                             $html .= "</div>" . $atts['tag_end'];
                             break;
@@ -1122,11 +1136,18 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html        .= "<option value='' selected='selected'>$placeholder</option>";
                             //Display options
                             foreach ($options as $option) {
-                                $option = esc_attr(trim($option));
-                                if (empty ($option)) {
+                                $option_value = esc_attr( $option );
+                                $option_label = esc_html( $option );
+    
+                                if ( false !== strpos( $option, '|' ) ) {
+                                    list( $label, $value ) = explode( '|', $option );
+                                    $option_value = esc_attr($value);
+                                    $option_label = esc_html($label);
+                                }
+                                if (empty ($option_label)) {
                                     continue;
                                 }
-                                $html .= "<option value=\"$option\" >$option</option>";
+                                $html .= "<option value=\"$option_value\" >$option_label</option>";
                             }
                             $html .= "</select>" . $atts['tag_end'];
                             break;

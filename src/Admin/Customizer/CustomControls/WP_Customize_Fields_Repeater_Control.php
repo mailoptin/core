@@ -66,7 +66,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
 
     /**
      * Mailoptin only css to fix conflicts
-     * 
+     *
      */
     public function mailoptin_only_css()
     {
@@ -659,7 +659,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_before', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                     <?php $this->repeater_text_field($index, 'placeholder', '', __('Title', 'mailoptin')); ?>
                     <?php $this->repeater_select_field($index, 'field_type', $field_types, '', __('Type', 'mailoptin')); ?>
-                    <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options', 'mailoptin')); ?>
+                    <?php $this->repeater_textarea_field($index, 'field_options', '', __('Options', 'mailoptin'), __('Enter a comma-separated list of options. To differentiate between label and value, separate them with a pipe char ("|"). For example: First Name|f_name, Last Name|l_name', 'mailoptin')); ?>
                     <?php $this->repeater_text_field($index, 'hidden_value', '', __('Value', 'mailoptin'), __('Enter the value for this hidden field', 'mailoptin')); ?>
 
                     <?php $this->repeater_select_field($index, 'country_field_options', $list_country_name_select_type, '', __('Show Country In', 'mailoptin')); ?>
