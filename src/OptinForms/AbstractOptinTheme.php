@@ -1049,7 +1049,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                     $options = [];
                     if ( ! empty($field['field_options'])) {
-                        $options = preg_split( "/\\r\\n|\\r|\\n/", $field['field_options']);
+                        $options = array_map('trim', explode(',', $field['field_options']));
                         $options = array_filter($options, function ($field) {
                             return ! empty($field);
                         });
