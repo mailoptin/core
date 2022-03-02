@@ -747,11 +747,37 @@
       "q" : 100,
       "rq" : 75
     },
+    "\/src\/assets\/images\/optin-themes\/hosta\/hosta-inpost.png" : {
+      "ft" : 32768,
+      "iS" : 619715,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/hosta\/hosta-inpost.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
     "\/src\/assets\/images\/optin-themes\/hosta\/hosta-lightbox.png" : {
       "ft" : 32768,
       "iS" : 159884,
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/optin-themes\/hosta\/hosta-lightbox.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/hosta\/hosta-sidebar.png" : {
+      "ft" : 32768,
+      "iS" : 436655,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/hosta\/hosta-sidebar.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -932,11 +958,37 @@
       "q" : 100,
       "rq" : 75
     },
+    "\/src\/assets\/images\/optin-themes\/pansy-inpost-sidebar.png" : {
+      "ft" : 32768,
+      "iS" : 55871,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/pansy-inpost-sidebar.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
     "\/src\/assets\/images\/optin-themes\/pansy-lightbox.png" : {
       "ft" : 32768,
       "iS" : 16799,
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/optin-themes\/pansy-lightbox.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/pansy-sidebar.png" : {
+      "ft" : 32768,
+      "iS" : 55604,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/pansy-sidebar.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -958,11 +1010,11 @@
       "q" : 100,
       "rq" : 75
     },
-    "\/src\/assets\/images\/optin-themes\/promo-lightbox.png" : {
+    "\/src\/assets\/images\/optin-themes\/promo-lightbox-inpost-sidebar.png" : {
       "ft" : 32768,
       "iS" : 22635,
       "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/optin-themes\/promo-lightbox.png",
+      "oAP" : "\/src\/assets\/images\/optin-themes\/promo-lightbox-inpost-sidebar.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -1119,6 +1171,19 @@
       "iS" : 17842,
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/optin-themes\/solidago-optin.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/optin-themes\/ursinia-inpost-sidebar.png" : {
+      "ft" : 32768,
+      "iS" : 59205,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/optin-themes\/ursinia-inpost-sidebar.png",
       "oF" : 0,
       "oIPL" : 1,
       "opt" : 1,
@@ -1591,7 +1656,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 664840975.15607297
+    "lastBuiltDate" : 667948118.40437901
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
