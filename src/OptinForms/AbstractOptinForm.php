@@ -701,7 +701,11 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $script = "<script type=\"text/javascript\">{$this->optin_js_config()}</script>";
 
         $styles = '<style id="mo-optin-form-stylesheet" type="text/css">';
-        $styles .= mo_minify_css($this->optin_form_css() . $this->global_css());
+        if (is_customize_preview()) {
+            $styles .= $this->optin_form_css() . $this->global_css();
+        } else {
+            $styles .= mo_minify_css($this->optin_form_css() . $this->global_css());
+        }
         $styles .= '</style>';
         $styles = apply_filters('mo_optin_form_css', $styles, $this->optin_campaign_uuid, $this->optin_campaign_id);
 
@@ -1271,15 +1275,15 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 $data['cta_navigate_url'] = $this->get_customizer_value('cta_button_navigation_url');
             }
         }
-        
+
         /**  Optin Sound */
         $optin_sound_config = $this->get_customizer_value('optin_sound');
-        if(!empty($optin_sound_config) && $optin_sound_config != 'none') {
+        if ( ! empty($optin_sound_config) && $optin_sound_config != 'none') {
             $data['optin_sound'] = $optin_sound_config;
         }
-    
+
         $optin_custom_sound_config = $this->get_customizer_value('optin_custom_sound');
-        if($optin_sound_config == 'custom' && !empty($optin_custom_sound_config)) {
+        if ($optin_sound_config == 'custom' && ! empty($optin_custom_sound_config)) {
             $data['optin_custom_sound'] = $optin_custom_sound_config;
         }
 
