@@ -100,6 +100,8 @@ class Shortcodes
             return sprintf(__('Shortcode embed does not support %s optin.', 'mailoptin'), $optin_type);
         }
 
+        if ( ! apply_filters('mailoptin_show_optin_form', true, $optin_campaign_id)) return '';
+
         return OptinFormFactory::build(absint($optin_campaign_id));
     }
 
