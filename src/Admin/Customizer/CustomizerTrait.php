@@ -196,6 +196,10 @@ trait CustomizerTrait
                 remove_action('customize_controls_print_footer_scripts', [\Astra_Customizer::get_instance(), 'print_footer_scripts']);
             }
 
+            if (class_exists('Astra_Customizer') && method_exists('Astra_Customizer', 'enqueue_customizer_scripts')) {
+                remove_action('customize_controls_enqueue_scripts', [\Astra_Customizer::get_instance(), 'enqueue_customizer_scripts'], 999);
+            }
+
             // flatbase theme compat
             add_filter('nice_scripts', '__return_false');
 
