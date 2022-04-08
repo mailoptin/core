@@ -7,7 +7,6 @@ use MailOptin\Core\Logging\CampaignLogPersistence;
 use MailOptin\Core\Logging\CampaignLogRepository;
 use MailOptin\Core\PluginSettings\Settings;
 use Pelago\Emogrifier\CssInliner;
-use Pelago\Emogrifier\HtmlProcessor\HtmlPruner;
 use W3Guy\Custom_Settings_Page_Api;
 use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
@@ -191,7 +190,7 @@ function plugin_settings()
 
 function array_flatten($zarray, $ignore_index = false)
 {
-    if ( ! is_array($zarray)) return false;
+    if ( ! is_array($zarray)) return [];
 
     $result = [];
 
