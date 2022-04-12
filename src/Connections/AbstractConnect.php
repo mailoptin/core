@@ -318,7 +318,7 @@ $footer_content";
     {
         if ( ! isset($optin_campaign_id, $error_message)) return;
 
-        $email = get_option('admin_email');
+        $email = apply_filters('mo_optin_campaign_error_email_address', get_option('admin_email'));
 
         $optin_campaign_name = OptinCampaignsRepository::get_optin_campaign_name($optin_campaign_id);
 
