@@ -7,6 +7,8 @@ use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
 
 class Shortcodes
 {
+    use UserTargetingRuleTrait, QueryStringTargetingRuleTrait;
+
     public function __construct()
     {
         add_shortcode('mo-optin-form', [$this, 'optin_shortcode']);
@@ -101,6 +103,10 @@ class Shortcodes
         }
 
         if ( ! apply_filters('mailoptin_show_optin_form', true, $optin_campaign_id)) return '';
+
+        if ( ! $this->user_targeting_rule_checker($optin_campaign_id)) return '';
+
+        if ( ! $this->query_level_targeting_rule_checker($optin_campaign_id)) return '';
 
         return OptinFormFactory::build(absint($optin_campaign_id));
     }
