@@ -39,14 +39,6 @@
       "oAP" : "\/bin",
       "oF" : 0
     },
-    "\/build\/.gitignore" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/build\/.gitignore",
-      "oF" : 3
-    },
     "\/composer.json" : {
       "ft" : 524288,
       "oA" : 1,
@@ -1656,7 +1648,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 667948118.40437901
+    "lastBuiltDate" : 672696651.53993106
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,

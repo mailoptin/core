@@ -143,6 +143,8 @@ var mailoptin_optin = {
             $(document).on('click', '.mo-trigger-conversion', function () {
                 // set cookie for this option conversion when button is clicked.
                 self.set_cookie('success', $optin_uuid, optin_js_config);
+
+                optin_js_config.mo_email = 'CTA';
                 self.ga_event_tracking('conversion', optin_js_config);
             });
 
@@ -158,6 +160,7 @@ var mailoptin_optin = {
                         if ($.MailOptin.is_customize_preview === true) return;
                         // set cookie for this option conversion when button is clicked.
                         self.set_cookie('success', $optin_uuid, optin_js_config);
+                        optin_js_config.mo_email = 'CTA';
                         self.ga_event_tracking('conversion', optin_js_config);
 
                         window.location.assign(optin_js_config.cta_navigate_url);
@@ -703,11 +706,11 @@ var mailoptin_optin = {
         //if we are in customizer, don't execute this to avoid double sound playing
         if ($.MailOptin.is_customize_preview === true) return;
 
-        if(optin_type === 'bar' || optin_type === 'lightbox' || optin_type === 'slidein') {
+        if (optin_type === 'bar' || optin_type === 'lightbox' || optin_type === 'slidein') {
             var optin_sound_config = typeof optin_config.optin_sound !== 'undefined' ? optin_config.optin_sound : '';
-            if('none' !== optin_sound_config && optin_sound_config !== '') {
+            if ('none' !== optin_sound_config && optin_sound_config !== '') {
                 var optin_sound_url = 'custom' !== optin_sound_config ? mailoptin_globals.public_sound + optin_sound_config : optin_config.optin_custom_sound;
-                var audio = new Audio( optin_sound_url);
+                var audio = new Audio(optin_sound_url);
                 audio.addEventListener('canplaythrough', function () {
                     this.play()
                         .catch(function (reason) {
@@ -715,7 +718,7 @@ var mailoptin_optin = {
                         });
                 });
                 audio.addEventListener('error', function () {
-                    console.error( 'Error occurred when trying to load popup opening sound.' );
+                    console.error('Error occurred when trying to load popup opening sound.');
                 });
             }
         }
@@ -1221,20 +1224,36 @@ var mailoptin_optin = {
 
         if (mailoptin_optin.is_var_defined(optin_js_config, 'ga_active') === false) return;
 
-        if (typeof ga !== "function") return;
+        if (typeof ga === "function") {
 
-        ga(function () {
+            ga(function () {
 
-            var trackingId = ga.getAll()[0].get('trackingId');
+                var trackingId = ga.getAll()[0].get('trackingId');
 
-            if (mailoptin_optin.is_defined_not_empty(trackingId) === false) return;
+                if (mailoptin_optin.is_defined_not_empty(trackingId) === false) return;
 
-            ga('create', trackingId, 'auto', 'moTracker');
+                ga('create', trackingId, 'auto', 'moTracker');
 
-            ga('moTracker.send', 'event', optin_js_config.optin_campaign_name, action, optin_js_config.optin_uuid, {
-                nonInteraction: true
+                ga('moTracker.send', 'event', optin_js_config.optin_campaign_name, action, optin_js_config.optin_uuid, {
+                    nonInteraction: true
+                });
             });
-        });
+        }
+
+        if (typeof gtag === "function") {
+            var event_type = 'mailoptin_' + action,
+                optin_campaign_name = optin_js_config['optin_campaign_name'],
+                event_payload = {
+                    "optin_campaign": optin_campaign_name,
+                    "optin_uuid": optin_js_config.optin_uuid,
+                };
+
+            if (typeof optin_js_config.mo_email !== 'undefined') {
+                event_payload['lead_email'] = optin_js_config.mo_email;
+            }
+
+            gtag("event", event_type, event_payload);
+        }
     },
 
     /**
@@ -1259,6 +1278,7 @@ var mailoptin_optin = {
 
         if (mailoptin_optin.is_defined_not_empty(optin_data.email)) {
             lead_data.mo_email = optin_data.email;
+            optin_js_config.mo_email = optin_data.email
         }
 
         // track GA
