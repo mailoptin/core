@@ -1324,8 +1324,8 @@ form.mo-inline {
     background-color: #4285f4;
 }
 
-#mo_csv_import .multi-step  .active:hover .item-wrap:before,
-#mo_csv_import .multi-step  .active:hover .item-wrap:after {
+#mo_csv_import .multi-step .active:hover .item-wrap:before,
+#mo_csv_import .multi-step .active:hover .item-wrap:after {
     background-color: #d8f1ff;
 }
 
@@ -1396,7 +1396,7 @@ form.mo-inline {
 
 .mailoptin-admin .mo-connection-clear-cache-wrap {
     padding: 10px 20px;
-    text-align:center;
+    text-align: center;
 }
 
 .mailoptin-admin #hubspot_clear_cache_row .description {
@@ -1418,7 +1418,8 @@ form.mo-inline {
     font-size: 14px;
 }
 
-.mo-woo-upsell-block {
+.mo-woo-upsell-block,
+.mo-external-upsell-block {
     background-color: #d9edf7;
     border: 1px solid #bce8f1;
     box-sizing: border-box;
@@ -1428,7 +1429,8 @@ form.mo-inline {
     padding: 10px;
 }
 
-.mo-woo-upsell-block p {
+.mo-woo-upsell-block p,
+.mo-external-upsell-block p {
     margin: 0 0 5px 0;
     font-size: 14px;
 }
