@@ -3,6 +3,10 @@
 
     $(window).on('load', function () {
 
+        // removes the "Hurray! Your theme supports Full Site Editing with blocks." customizer notice
+        // @see https://core.trac.wordpress.org/ticket/54939#comment:47
+        wp.customize.notifications.remove('site_editor_block_theme_notice');
+
 // --------------------- Rename optin theme ----------------------------- //
 
         $('body').on('click', '.panel-title.site-title', function () {
