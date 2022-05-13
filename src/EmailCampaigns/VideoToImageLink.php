@@ -25,7 +25,8 @@ class VideoToImageLink
     {
         $return = preg_replace_callback(
             [
-                '/https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([a-z0-9\-_]+)/i', // placed first to avoid recursion
+                // [^=][^"] is there so as not to match when used in a link on element attribute
+                '/[^=][^"]https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([a-z0-9\-_]+)/i', // placed first to avoid recursion
                 '/<iframe.*src="(?:.+)?youtube(?:-nocookie)?.com\/(?:embed|\?)?\/([a-z0-9\-_]+).+".+<\/iframe>/i'
             ],
             function ($matches) {
@@ -44,7 +45,8 @@ class VideoToImageLink
     {
         $return = preg_replace_callback(
             [
-                '/https:\/\/(?:www .)?vimeo.com\/([\d]+)/',
+                // [^=][^"] is there so as not to match when used in a link on element attribute
+                '/[^=][^"]https:\/\/(?:www .)?vimeo.com\/([\d]+)/',
                 '/<iframe.*src="(?:.+)?player.vimeo.com\/video\/(\d+).+".+<\/iframe>/'
             ],
             function ($matches) {
