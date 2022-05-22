@@ -9,7 +9,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 11;
+    const DB_VER = 12;
 
     public function init_options()
     {
@@ -225,6 +225,13 @@ class DBUpdates
             if ($wpdb->query("SHOW COLUMNS FROM $table LIKE 'id'") === 0) {
                 $wpdb->query("ALTER TABLE $table ADD id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT FIRST");
             }
+        }
+    }
+
+    public function update_routine_12()
+    {
+        if (function_exists('wp_clear_scheduled_hook')) {
+            wp_clear_scheduled_hook('mo_twice_daily_recurring_job');
         }
     }
 
