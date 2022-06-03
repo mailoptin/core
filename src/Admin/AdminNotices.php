@@ -24,7 +24,8 @@ class AdminNotices
             add_action('admin_notices', array($this, 'optin_branding_added_by_default'));
             add_action('admin_notices', array($this, 'review_plugin_notice'));
             add_action('admin_notices', array($this, 'show_woocommerce_features'));
-            add_action('admin_notices', array($this, 'learndash_woocommerce_features'));
+            add_action('admin_notices', array($this, 'show_learndash_features'));
+            add_action('admin_notices', array($this, 'show_memberpress_features'));
             add_action('admin_notices', array($this, 'show_wpforms_features'));
             add_action('admin_notices', array($this, 'show_cf7_features'));
             add_action('admin_notices', array($this, 'show_forminator_features'));
@@ -238,7 +239,7 @@ class AdminNotices
         echo '</div>';
     }
 
-    public function learndash_woocommerce_features()
+    public function show_learndash_features()
     {
         if ( ! $this->is_admin_notice_show()) return;
 
@@ -253,6 +254,25 @@ class AdminNotices
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_learndash_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_memberpress_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_memberpress_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('\MeprAppCtrl')) return;
+
+        $upgrade_url = 'https://mailoptin.io/?p=34444&utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=memberpress_admin_notice';
+        $notice      = sprintf(__('Did you know you can add your MemberPress users/members to your email list after they subscribe to any membership or based on the plan they are enrolled in? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_memberpress_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
