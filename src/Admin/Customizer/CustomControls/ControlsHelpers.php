@@ -239,7 +239,15 @@ class ControlsHelpers
 
         if (empty($data) || false === $data) {
 
-            $data = get_users(['who' => 'authors', 'fields' => ['ID', 'display_name']]);
+            $args = ['capability' => ['edit_posts'], 'fields' => ['ID', 'display_name']];
+
+            // Capability queries were only introduced in WP 5.9.
+            if (version_compare($GLOBALS['wp_version'], '5.9', '<')) {
+                $args['who'] = 'authors';
+                unset($args['capability']);
+            }
+
+            $data = get_users($args);
 
             $data = array_reduce($data, function ($carry, $item) {
                 $carry[$item->ID] = $item->display_name;
