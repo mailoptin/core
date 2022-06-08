@@ -175,10 +175,10 @@ class AjaxHandler
         }
 
         $email_campaign_id = absint($_REQUEST['email_campaign_id']);
-        $admin_email = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
-        if(empty($admin_email)) $admin_email = mo_test_admin_email();
+        $admin_email       = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
+        if (empty($admin_email)) $admin_email = mo_test_admin_email();
 
-        $campaign_subject  = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
+        $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
 
         if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
             $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_title'));
@@ -970,7 +970,7 @@ class AjaxHandler
         $extras['mo_campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
 
         //add the disable_double_optin for external forms
-        if($optin_campaign_id == 0) {
+        if ($optin_campaign_id == 0) {
             $extras['is_double_optin'] = $conversion_data->is_double_optin;
         }
 
@@ -1254,6 +1254,17 @@ class AjaxHandler
                 break;
             case 'RegisteredUsersConnect_users' :
                 $response = ControlsHelpers::get_users($q);
+                break;
+            case 'MemberPressConnect_members' :
+                if (class_exists('\MeprUser')) {
+                    $members = \MeprUser::list_table('', '', '', $q, 'any', '0');
+                    if (is_array($members['results']) && ! empty($members['results'])) {
+                        $response = [];
+                        foreach ($members['results'] as $member) {
+                            $response[$member->ID] = sprintf('%s %s (%s)', $member->first_name, $member->last_name, $member->email);
+                        }
+                    }
+                }
                 break;
         }
 
