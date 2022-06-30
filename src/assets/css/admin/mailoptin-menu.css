@@ -24,19 +24,3 @@
 #adminmenu li[class*="mailoptin-"] ul.wp-submenu-wrap li {
     clear: both
 }
-
-#adminmenu li[class*="mailoptin-"] a.wp-has-current-submenu:after {
-    display: none
-}
-
-ul#adminmenu li[class*="mailoptin-"] ul.wp-submenu li.current a:before {
-    right: 0;
-    content: " ";
-    height: 0;
-    width: 0;
-    position: absolute;
-    pointer-events: none;
-    border: 8px solid transparent;
-    border-right-color: #f1f1f1;
-    margin-top: 2px
-}
