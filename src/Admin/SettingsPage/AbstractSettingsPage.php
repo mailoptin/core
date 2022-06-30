@@ -205,7 +205,7 @@ abstract class AbstractSettingsPage
 
     public static function profilepress_ad()
     {
-        $content = '<a href="https://profilepress.net/pricing/?discount=20PERCENTOFF&ref=mailoptin_settings_page" target="_blank">';
+        $content = '<a href="https://profilepress.com/pricing/?discount=20PERCENTOFF&ref=mailoptin_settings_page" target="_blank">';
         $content .= '<img width="250" src="' . MAILOPTIN_ASSETS_URL . 'images/profilepress-ad.jpg' . '">';
         $content .= '</a>';
 
