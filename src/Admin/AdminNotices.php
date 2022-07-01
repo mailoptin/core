@@ -249,7 +249,7 @@ class AdminNotices
 
         if ( ! class_exists('\SFWD_LMS')) return;
 
-        $upgrade_url = 'https://mailoptin.io/?p=33850&utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=learndash_admin_notice';
+        $upgrade_url = 'https://mailoptin.io/article/learndash-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=learndash_admin_notice';
         $notice      = sprintf(__('Did you know you can add LearnDash students to your email list after they enroll to any course or based on the group or course they are enrolled in? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
@@ -268,9 +268,11 @@ class AdminNotices
 
         if ( ! class_exists('\MeprAppCtrl')) return;
 
-        $upgrade_url = 'https://mailoptin.io/?p=34444&utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=memberpress_admin_notice';
-        $notice      = sprintf(__('Did you know you can add your MemberPress users/members to your email list after they subscribe to any membership or based on the plan they are enrolled in? %sLearn more%s', 'mailoptin'),
-            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        $upgrade_url = 'https://mailoptin.io/article/memberpress-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=memberpress_admin_notice';
+        $notice      = sprintf(__('Did you know you can %1$sadd MemberPress members to your email list%2$s after membership subscription %3$sand send emails to members%2$s at anytime? %4$sLearn more%2$s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>',
+            '<a href="https://mailoptin.io/article/send-wordpress-emails-memberpress-members/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=memberpress_admin_notice" target="_blank">',
+            '<a href="https://mailoptin.io/integrations/memberpress/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=memberpress_admin_notice" target="_blank">'
         );
         echo '<div data-dismissible="show_memberpress_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
