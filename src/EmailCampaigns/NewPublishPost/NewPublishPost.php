@@ -221,7 +221,10 @@ class NewPublishPost extends AbstractTriggers
      */
     public function send_campaign($email_campaign_id, $campaign_log_id)
     {
-        $campaign           = $this->CampaignLogRepository->getById($campaign_log_id);
+        $campaign = $this->CampaignLogRepository->getById($campaign_log_id);
+
+        if ( ! $campaign) return;
+
         $connection_service = $this->connection_service($email_campaign_id);
 
         $connection_instance = ConnectionFactory::make($connection_service);
