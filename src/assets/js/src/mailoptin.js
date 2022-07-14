@@ -279,6 +279,16 @@ var mailoptin_optin = {
     },
 
     /**
+     * Is cookie targeting active?
+     *
+     * @param {object} optin_config
+     * @returns {boolean}
+     */
+    is_cookie_targeting_rule_active: function (optin_config) {
+        return optin_config.cookie_targeting_status === true;
+    },
+
+    /**
      * Is Adblock rule active?
      *
      * @param {object} optin_config
@@ -416,6 +426,46 @@ var mailoptin_optin = {
                     if (self.get_page_views() > x_page_views_value) return;
                     break;
             }
+        }
+
+        if (self.is_cookie_targeting_rule_active(optin_config) === true) {
+
+            var cookie_is_display,
+                cookie_targeting_settings = optin_config.cookie_targeting_settings,
+                cookie_name = optin_config.cookie_targeting_name,
+                cookie_value = optin_config.cookie_targeting_value;
+
+            if (cookie_targeting_settings === 'show') {
+                cookie_is_display = false;
+
+                if (mailoptin_optin.is_defined_not_empty(cookie_name) && mailoptin_optin.is_defined_not_empty(cookie_value)) {
+                    if (Cookies.get(cookie_name) === cookie_value) {
+                        cookie_is_display = true;
+                    }
+                }
+                else if (mailoptin_optin.is_defined_not_empty(cookie_name)) {
+                    if (typeof Cookies.get(cookie_name) !== 'undefined') {
+                        cookie_is_display = true;
+                    }
+                }
+            }
+
+            if (cookie_targeting_settings === 'hide') {
+                cookie_is_display = true;
+
+                if (mailoptin_optin.is_defined_not_empty(cookie_name) && mailoptin_optin.is_defined_not_empty(cookie_value)) {
+                    if (Cookies.get(cookie_name) === cookie_value) {
+                        cookie_is_display = false;
+                    }
+                }
+                else if (mailoptin_optin.is_defined_not_empty(cookie_name)) {
+                    if (typeof Cookies.get(cookie_name) !== 'undefined') {
+                        cookie_is_display = false;
+                    }
+                }
+            }
+
+            if (!cookie_is_display) return;
         }
 
         if (self.is_referrer_detection_rule_active(optin_config) === true) {

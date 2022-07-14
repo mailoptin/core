@@ -747,6 +747,15 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         return ( ! is_customize_preview() && ! empty($referrer_detection_status) && ! empty($referrer_detection_settings) && ! empty($referrer_detection_values));
     }
 
+    public function is_cookie_targeting_rule_active()
+    {
+        $status      = $this->get_customizer_value('cookie_targeting_status', false);
+        $settings    = $this->get_customizer_value('cookie_targeting_settings', 'show');
+        $cookie_name = $this->get_customizer_value('cookie_targeting_name');
+
+        return ( ! is_customize_preview() && ! empty($status) && ! empty($settings) && ! empty($cookie_name));
+    }
+
     public function is_x_page_views_rule_active()
     {
         $x_page_views_status    = $this->get_customizer_value('x_page_views_status');
@@ -855,7 +864,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                  $this->is_adblock_rule_active() ||
                  $this->is_referral_detection_rule_active() ||
                  $this->is_newvsreturn_rule_active() ||
-                 $this->is_referral_detection_rule_active() ||
+                 $this->is_cookie_targeting_rule_active() ||
                  $this->is_device_targeting_active() ||
                  $this->is_x_page_views_rule_active() ||
                  OCR::is_split_test_optin($this->optin_campaign_id)
