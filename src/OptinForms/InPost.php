@@ -13,7 +13,7 @@ class InPost
 
     public function __construct()
     {
-        add_filter('the_content', [$this, 'insert_optin'], 99999999999999999999);
+        add_filter('the_content', [$this, 'insert_optin'], PHP_INT_MAX - 5);
     }
 
     public function insert_optin($content)
