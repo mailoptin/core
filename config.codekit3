@@ -39,6 +39,12 @@
       "oAP" : "\/bin",
       "oF" : 0
     },
+    "\/build" : {
+      "ft" : 65536,
+      "oA" : 1,
+      "oAP" : "\/build",
+      "oF" : 0
+    },
     "\/composer.json" : {
       "ft" : 524288,
       "oA" : 1,
@@ -3203,7 +3209,7 @@
       "ENVIRONMENT:::$NODE_ENV"
     ],
     "rollupTreeshakingEnabled" : 1,
-    "skippedFoldersString" : "logs,\/src\/assets\/fancybox,\/src\/assets\/tooltipster,\/src\/functions,\/vendor,\/tests,\/src\/assets\/css,\/src\/assets\/toastr,\/src\/admin,\/bin,\/src\/emailcampaigns,_logs,log,\/src\/repositories,.idea,\/src\/registeractivation,cache,\/src\/optinforms,\/src\/assets\/chosen,\/src\/connections,\/src\/assets\/js\/admin,\/src\/assets\/js\/customizer-controls,node_modules,\/src\/logging,_cache,\/src\/pluginsettings,\/storage\/framework\/sessions",
+    "skippedFoldersString" : "\/tests,\/src\/assets\/chosen,\/src\/assets\/fancybox,\/vendor,\/build,\/src\/repositories,\/storage\/framework\/sessions,node_modules,.idea,cache,\/src\/registeractivation,\/src\/connections,\/src\/assets\/toastr,\/src\/admin,\/bin,log,\/src\/logging,\/src\/pluginsettings,\/src\/emailcampaigns,\/src\/functions,\/src\/assets\/css,_cache,\/src\/optinforms,\/src\/assets\/js\/admin,logs,\/src\/assets\/tooltipster,_logs,\/src\/assets\/js\/customizer-controls",
     "sourceFolderName" : "source",
     "susyVersion" : 3,
     "tsAllowSyntheticDefaultImports" : 0,

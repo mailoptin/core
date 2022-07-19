@@ -575,13 +575,18 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_custom_field_type_by_id($cid, $optin_campaign_id)
     {
+        $val = '';
+
         $fields = self::form_custom_fields($optin_campaign_id);
 
         foreach ($fields as $field) {
             if ($field['cid'] == $cid) {
-                return $field['field_type'];
+                $val = $field['field_type'];
+                break;
             }
         }
+
+        return apply_filters('mailoptin_get_custom_field_type_by_id', $val, $cid, $optin_campaign_id);
     }
 
     /**
