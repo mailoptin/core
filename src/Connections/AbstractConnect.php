@@ -195,7 +195,7 @@ abstract class AbstractConnect
                 )
             );
 
-            $email = get_option('admin_email');
+            $email = apply_filters('mo_email_campaign_error_email_address', get_option('admin_email'));
 
             $subject = apply_filters('mo_email_campaign_error_email_subject', sprintf(__('Warning! "%s" Email Campaign Is Not Working', 'mailoptin'), $email_campaign_name), $email_campaign_id);
 
