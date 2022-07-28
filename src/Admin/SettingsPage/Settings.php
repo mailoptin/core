@@ -37,10 +37,10 @@ class Settings extends AbstractSettingsPage
      */
     public function clear_optin_cache()
     {
-        if (defined('DOING_AJAX'))
-            return;
+        if (defined('DOING_AJAX')) return;
 
-        if (isset($_GET['clear-optin-cache']) && $_GET['clear-optin-cache'] == 'true') {
+        if (isset($_GET['clear-optin-cache']) && $_GET['clear-optin-cache'] == 'true' && \MailOptin\Core\current_user_has_privilege()) {
+            check_admin_referer('mo_clear_optin_cache');
             OptinCampaignsRepository::burst_all_cache();
             wp_safe_redirect(add_query_arg('optin-cache', 'cleared', MAILOPTIN_SETTINGS_SETTINGS_PAGE));
             exit;
@@ -64,8 +64,12 @@ class Settings extends AbstractSettingsPage
 
     public function settings_admin_page_callback()
     {
-        $clear_optin_cache_url = add_query_arg('clear-optin-cache', 'true', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE);
-        $args                  = [
+        $clear_optin_cache_url = wp_nonce_url(
+            add_query_arg('clear-optin-cache', 'true', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE),
+            'mo_clear_optin_cache'
+        );
+
+        $args = [
             'general_settings'        => apply_filters('mailoptin_settings_general_settings_page', [
                     'tab_title'                => __('General', 'mailoptin'),
                     'section_title'            => __('General Settings', 'mailoptin'),
@@ -94,8 +98,8 @@ class Settings extends AbstractSettingsPage
             'optin_campaign_settings' => apply_filters('mailoptin_settings_optin_campaign_settings_page', [
                     'tab_title' => __('Optin Campaign', 'mailoptin'),
                     [
-                        'section_title'         => __('Optin Campaign Settings', 'mailoptin'),
-                        'clear_optin_cache'     => [
+                        'section_title'               => __('Optin Campaign Settings', 'mailoptin'),
+                        'clear_optin_cache'           => [
                             'type'        => 'custom_field_block',
                             'label'       => __('Clear Optin Cache', 'mailoptin'),
                             'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear Cache', 'mailoptin') . '</a>',
@@ -107,18 +111,18 @@ class Settings extends AbstractSettingsPage
                                              ) .
                                              '</p>',
                         ],
-                        'disable_impression_tracking'     => [
-                            'type'        => 'checkbox',
-                            'label'       => __('Disable Impression Tracking', 'mailoptin'),
+                        'disable_impression_tracking' => [
+                            'type'           => 'checkbox',
+                            'label'          => __('Disable Impression Tracking', 'mailoptin'),
                             'checkbox_label' => __('Disable', 'mailoptin')
                         ],
-                        'dequeue_google_font'     => [
-                            'type'        => 'checkbox',
-                            'label'       => __('Disable Google Fonts', 'mailoptin'),
+                        'dequeue_google_font'         => [
+                            'type'           => 'checkbox',
+                            'label'          => __('Disable Google Fonts', 'mailoptin'),
                             'checkbox_label' => __('Disable', 'mailoptin'),
-                            'description' => esc_html__('Check to stop us from loading Google Fonts on your site.', 'mailoptin')
+                            'description'    => esc_html__('Check to stop us from loading Google Fonts on your site.', 'mailoptin')
                         ],
-                        'global_cookie'         => [
+                        'global_cookie'               => [
                             'type'        => 'number',
                             'value'       => 0,
                             'label'       => __('Global Interaction Cookie', 'mailoptin'),
@@ -128,7 +132,7 @@ class Settings extends AbstractSettingsPage
                                 'mailoptin'
                             ),
                         ],
-                        'global_success_cookie' => [
+                        'global_success_cookie'       => [
                             'type'        => 'number',
                             'value'       => 0,
                             'label'       => __('Global Success Cookie', 'mailoptin'),
