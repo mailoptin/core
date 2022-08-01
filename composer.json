@@ -31,6 +31,10 @@
   "config": {
     "platform": {
       "php": "7.0.10"
+    },
+    "allow-plugins": {
+      "composer/installers": true,
+      "kylekatarnls/update-helper": true
     }
   },
   "scripts": {
