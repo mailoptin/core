@@ -700,7 +700,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         $script = "<script type=\"text/javascript\">{$this->optin_js_config()}</script>";
 
-        $styles = '<style id="mo-optin-form-stylesheet" type="text/css">';
+        $styles = '<style class="mo-optin-form-stylesheet" type="text/css">';
         if (is_customize_preview()) {
             $styles .= $this->optin_form_css() . $this->global_css();
         } else {
