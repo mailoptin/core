@@ -74,7 +74,7 @@
     });
 
     // handle click of A/B test pause button
-    $('.mo-split-test-pause-start').click(function (e) {
+    $('.mo-split-test-pause-start').on('click', function (e) {
         e.preventDefault();
         var label,
             _this = this,
@@ -107,7 +107,7 @@
     });
 
     // handle click of A/B test end_select_winner button
-    $('.mo-split-test-end-select-winner').click(function (e) {
+    $('.mo-split-test-end-select-winner').on('click', function (e) {
         e.preventDefault();
         var spinner_obj = $(this).next('#mo-split-end-winner-spinner'),
             parent_optin_id = $(this).data('parent-id');

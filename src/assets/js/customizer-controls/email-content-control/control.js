@@ -63,7 +63,7 @@
 
             var cache = $('#customize-preview iframe').contents();
 
-            cache.find(".mo-email-builder-element").click(function (e) {
+            cache.find(".mo-email-builder-element").on('click', function (e) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 var self = this;

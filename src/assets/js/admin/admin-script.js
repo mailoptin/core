@@ -4,7 +4,7 @@
     var field_row_to_clone_id = mo_repeatable_cache.attr('data-repeatable-field');
 
     // add repeatable field group.
-    mo_repeatable_cache.click(function (e) {
+    mo_repeatable_cache.on('click', function (e) {
         e.preventDefault();
         e.stopImmediatePropagation();
 
@@ -50,12 +50,12 @@
         return false;
     });
 
-    $('#mo-metabox-collapse').click(function (e) {
+    $('#mo-metabox-collapse').on('click', function (e) {
         e.preventDefault();
         $('#post-body-content').find('div.postbox').addClass('closed');
     });
 
-    $('#mo-metabox-expand').click(function (e) {
+    $('#mo-metabox-expand').on('click', function (e) {
         e.preventDefault();
         $('#post-body-content').find('div.postbox').removeClass('closed');
     });
@@ -160,7 +160,7 @@
         $('.mailoptin-group-wrapper').hide();
         var option_name = $('div.mailoptin-settings-wrap').data('option-name');
 
-        $('.mailoptin-settings-wrap .nav-tab-wrapper a').click(function (e) {
+        $('.mailoptin-settings-wrap .nav-tab-wrapper a').on('click', function (e) {
             open_tab(this);
             e.preventDefault();
         });

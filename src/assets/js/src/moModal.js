@@ -35,7 +35,7 @@ export default function () {
                 modal_obj.css({top: top});
             }
 
-            $(window).resize(function () {
+            $(window).on('resize', function () {
                 var windowHeight = $(window).height(),
                     modal_obj = $('#' + modal_css_id + '_container'),
                     optinHeight = modal_obj.outerHeight(true);

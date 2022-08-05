@@ -451,7 +451,7 @@
             }).change();
 
             // handles click to select on input readonly fields
-            $('.mo-click-select').click(function () {
+            $('.mo-click-select').on('click', function () {
                 this.select();
             });
 
