@@ -284,6 +284,8 @@ class PostsEmailDigest extends AbstractTriggers
 
         $connection_instance = ConnectionFactory::make($connection_service);
 
+        if ( ! $connection_instance) return;
+
         EmailCampaignMeta::update_meta_data($email_campaign_id, 'last_processed_at', current_time('mysql'));
 
         $response = $connection_instance->send_newsletter(

@@ -9,14 +9,18 @@ class ConnectionFactory
      *
      * @param string $connection
      *
-     * @return ConnectionInterface
+     * @return ConnectionInterface|false
      */
     public static function make($connection)
     {
         /** @var ConnectionInterface $connectClass */
         $connectClass = self::get_fqn_class($connection);
 
-        return $connectClass::get_instance();
+        if (method_exists($connectClass, 'get_instance')) {
+            return $connectClass::get_instance();
+        }
+
+        return false;
     }
 
     /**

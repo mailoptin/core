@@ -229,6 +229,8 @@ class NewPublishPost extends AbstractTriggers
 
         $connection_instance = ConnectionFactory::make($connection_service);
 
+        if ( ! $connection_service) return;
+
         $response = $connection_instance->send_newsletter(
             $email_campaign_id,
             $campaign_log_id,
