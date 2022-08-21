@@ -1321,6 +1321,8 @@ class AjaxHandler
                 break;
         }
 
+        $response = apply_filters('mo_page_targeting_search_response', $response, $search_type, $q);
+
         if (strpos($search_type, 'ch_get_terms') !== false) {
             $param    = explode('|', $search_type);
             $response = ControlsHelpers::get_terms($param[1], $q);
