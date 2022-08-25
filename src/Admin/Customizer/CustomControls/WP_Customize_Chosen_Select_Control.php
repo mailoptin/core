@@ -72,7 +72,13 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
 
     public function render_content()
     {
-        $choices = $this->choices + $this->prepopulation();
+        $choices = $this->choices;
+
+        foreach ($this->prepopulation() as $label => $pre_choice) {
+            foreach ($pre_choice as $post_id => $post_title) {
+                $choices[$label][$post_id] = $post_title;
+            }
+        }
         ?>
         <label>
             <?php if ( ! empty($this->label)) : ?>
