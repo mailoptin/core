@@ -74,9 +74,13 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
     {
         $choices = $this->choices;
 
-        foreach ($this->prepopulation() as $label => $pre_choice) {
-            foreach ($pre_choice as $post_id => $post_title) {
-                $choices[$label][$post_id] = $post_title;
+        $prepopulation = $this->prepopulation();
+
+        if (is_array($prepopulation)) {
+            foreach ($prepopulation as $label => $pre_choice) {
+                foreach ($pre_choice as $post_id => $post_title) {
+                    $choices[$label][$post_id] = $post_title;
+                }
             }
         }
         ?>
