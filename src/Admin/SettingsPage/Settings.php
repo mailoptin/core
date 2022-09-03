@@ -105,7 +105,7 @@ class Settings extends AbstractSettingsPage
                             'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear Cache', 'mailoptin') . '</a>',
                             'description' => '<p class="description">' .
                                              sprintf(
-                                                 __('Each time you create and make changes to your %soptin campaigns%s, MailOptin caches the designs so it doesn\'t hurt your website speed and performance. If for some reasons changes you made to your campaigns are not reflected on your website frontend, use this button to clear the cache.', 'mailoptin'),
+                                                 __('Each time you create and make changes to your %soptin campaigns%s, MailOptin caches the designs so it does not hurt your website speed and performance. If updates to your connected email marketing list or changes to your campaigns are not reflected on your website frontend, use this button to clear the cache.', 'mailoptin'),
                                                  '<a href="' . MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE . '">',
                                                  '</a>'
                                              ) .

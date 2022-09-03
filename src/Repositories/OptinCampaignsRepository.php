@@ -859,6 +859,12 @@ class OptinCampaignsRepository extends AbstractRepository
         foreach ($optin_ids as $optin_id) {
             self::burst_cache($optin_id);
         }
+
+        global $wpdb;
+
+        $wpdb->query(
+            $wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name LIKE '%mo_connection_email%'")
+        );
     }
 
     /**
