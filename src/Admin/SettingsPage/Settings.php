@@ -78,6 +78,18 @@ class Settings extends AbstractSettingsPage
                         'label'       => __('Remove Data on Uninstall', 'mailoptin'),
                         'description' => __('Check this box if you would like MailOptin to completely remove all of its data when uninstalled.', 'mailoptin'),
                     ],
+                    'clear_optin_cache'        => [
+                        'type'        => 'custom_field_block',
+                        'label'       => __('Clear Cache', 'mailoptin'),
+                        'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear Cache', 'mailoptin') . '</a>',
+                        'description' => '<p class="description">' .
+                                         sprintf(
+                                             __('Each time you create and make changes to your %soptin campaigns%s, MailOptin caches the designs so it does not hurt your website speed and performance. If updates to your connected email marketing list or changes to your campaigns are not reflected on your website frontend, use this button to clear the cache.', 'mailoptin'),
+                                             '<a href="' . MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE . '">',
+                                             '</a>'
+                                         ) .
+                                         '</p>',
+                    ],
                     'mailoptin_affiliate_url'  => [
                         'type'        => 'text',
                         'label'       => __('MailOptin Affiliate Link', 'mailoptin'),
@@ -99,18 +111,6 @@ class Settings extends AbstractSettingsPage
                     'tab_title' => __('Optin Campaign', 'mailoptin'),
                     [
                         'section_title'               => __('Optin Campaign Settings', 'mailoptin'),
-                        'clear_optin_cache'           => [
-                            'type'        => 'custom_field_block',
-                            'label'       => __('Clear Optin Cache', 'mailoptin'),
-                            'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear Cache', 'mailoptin') . '</a>',
-                            'description' => '<p class="description">' .
-                                             sprintf(
-                                                 __('Each time you create and make changes to your %soptin campaigns%s, MailOptin caches the designs so it does not hurt your website speed and performance. If updates to your connected email marketing list or changes to your campaigns are not reflected on your website frontend, use this button to clear the cache.', 'mailoptin'),
-                                                 '<a href="' . MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE . '">',
-                                                 '</a>'
-                                             ) .
-                                             '</p>',
-                        ],
                         'disable_impression_tracking' => [
                             'type'           => 'checkbox',
                             'label'          => __('Disable Impression Tracking', 'mailoptin'),
