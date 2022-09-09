@@ -100,11 +100,15 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                'post_author_avatar_url_shortcode' => array(
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'post_meta_shortcode'              => array(
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
-                'acf_shortcode'              => array(
+                'acf_shortcode'                    => array(
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
@@ -606,15 +610,15 @@ class CustomizerSettings extends AbstractCustomizer
     {
         $send_test_email_args = apply_filters(
             "mailoptin_send_test_email_settings", array(
-                'send_test_email' => array(
-                        'type'      => 'option',
-                        'transport' => 'postMessage',
-                ),
-                'send_test_email_input' => array(
-                    'default'   => $this->customizer_defaults['send_test_email_input'],
-                    'type'      => 'option',
-                    'transport' => 'postMessage',
-                )
+            'send_test_email'       => array(
+                'type'      => 'option',
+                'transport' => 'postMessage',
+            ),
+            'send_test_email_input' => array(
+                'default'   => $this->customizer_defaults['send_test_email_input'],
+                'type'      => 'option',
+                'transport' => 'postMessage',
+            )
         ));
 
         foreach ($send_test_email_args as $id => $args) {

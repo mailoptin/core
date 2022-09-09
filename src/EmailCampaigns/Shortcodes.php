@@ -90,6 +90,7 @@ class Shortcodes
         add_shortcode('post-author-name', [$this, 'post_author_name_tag']);
         add_shortcode('post-author-website', [$this, 'post_author_website_tag']);
         add_shortcode('post-author-email', [$this, 'post_author_email_tag']);
+        add_shortcode('post-author-avatar-url', [$this, 'post_author_avatar_url']);
         add_shortcode('post-meta', [$this, 'post_meta_tag']);
         add_shortcode('acf-field', [$this, 'acf_custom_field']);
 
@@ -309,6 +310,20 @@ class Shortcodes
     public function post_author_email_tag()
     {
         return get_user_by('id', $this->wp_post_obj->post_author)->user_email;
+    }
+
+    public function post_author_avatar_url($atts)
+    {
+        if (empty($atts)) $atts = [];
+
+        $atts['size'] = $atts['size'] ?? '512';
+
+        return apply_filters(
+            'mailoptin_post_author_avatar_url',
+            get_avatar_url($this->post_author_email_tag(), $atts),
+            $this->post_author_email_tag(),
+            $this
+        );
     }
 
     public function post_meta_tag($atts)

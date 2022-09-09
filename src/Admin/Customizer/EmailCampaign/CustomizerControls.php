@@ -736,6 +736,17 @@ HTML;
                         'priority' => 130
                     )
                 ),
+                'post_author_avatar_url_shortcode' => new WP_Customize_View_Tags_Shortcode_Content(
+                    $this->wp_customize,
+                    $this->option_prefix . '[post_author_avatar_url_shortcode]',
+                    array(
+                        'label'    => __('Author Profile Picture URL', 'mailoptin'),
+                        'section'  => $this->customizerClassInstance->campaign_view_tags_section_id,
+                        'content'  => '<input type="text" value="[post-author-avatar-url]" style="background-color:#fff;" readonly>',
+                        'settings' => $this->option_prefix . '[post_author_avatar_url_shortcode]',
+                        'priority' => 135
+                    )
+                ),
                 'campaign_tags_header'             => new WP_Customize_Custom_Content(
                     $this->wp_customize,
                     $this->option_prefix . '[campaign_tags_header]',
