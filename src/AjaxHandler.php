@@ -543,7 +543,8 @@ class AjaxHandler
                 array('redirect' => Email_Campaign_List::_campaign_customize_url($email_campaign_id))
             );
         } else {
-            wp_send_json_error();
+            global $wpdb;
+            wp_send_json_error(isset($wpdb->last_error) ? $wpdb->last_error : null);
         }
 
         wp_die();
