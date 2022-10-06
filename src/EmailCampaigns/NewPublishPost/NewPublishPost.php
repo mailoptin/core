@@ -58,9 +58,10 @@ class NewPublishPost extends AbstractTriggers
         // add_action('transition_post_status', array($this, 'new_publish_post'), 1, 3);
 
         add_action('mailoptin_send_scheduled_email_campaign', array($this, 'send_scheduled_email_campaign'), 10, 2);
-        
+
         // Gravity Forms post creation compat
         if (apply_filters('mailoptin_gform_advancedpostcreation_compatibility', false) && class_exists('\GFForms')) {
+
             remove_action('wp_after_insert_post', [$this, 'wp_after_insert_post'], 1);
 
             add_action('gform_advancedpostcreation_post_after_creation', function ($post_id) {
