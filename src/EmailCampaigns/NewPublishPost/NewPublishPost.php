@@ -7,7 +7,6 @@ use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
-use pb_backupbuddy;
 use WP_Post;
 use function MailOptin\Core\moVarObj;
 
@@ -20,13 +19,7 @@ class NewPublishPost extends AbstractTriggers
         // new way post 5.6
         if (function_exists('wp_after_insert_post')) {
             // new hook added in 5.6 triggered after post is published and all post meta data saved.
-            add_action('wp_after_insert_post', function ($post_id, WP_Post $post, $update, $post_before) {
-
-                $old_status = moVarObj($post_before, 'post_status');
-
-                $this->new_publish_post($post->post_status, $old_status, $post);
-
-            }, 1, 4);
+            add_action('wp_after_insert_post', [$this, 'wp_after_insert_post'], 1, 4);
         }
 
         // get called first before save_post and wp_after_insert_post. perfect for saving the previous post status
@@ -39,8 +32,8 @@ class NewPublishPost extends AbstractTriggers
             }
 
             // fix incompatibility with backupbuddy making post content empty.
-            if (class_exists('pb_backupbuddy') && method_exists('pb_backupbuddy', 'remove_action')) {
-                pb_backupbuddy::remove_action(array('save_post', 'save_post_iterate_edits_since_last'));
+            if (class_exists('\pb_backupbuddy') && method_exists('\pb_backupbuddy', 'remove_action')) {
+                \pb_backupbuddy::remove_action(array('save_post', 'save_post_iterate_edits_since_last'));
             }
 
         }, 1, 3);
@@ -65,6 +58,24 @@ class NewPublishPost extends AbstractTriggers
         // add_action('transition_post_status', array($this, 'new_publish_post'), 1, 3);
 
         add_action('mailoptin_send_scheduled_email_campaign', array($this, 'send_scheduled_email_campaign'), 10, 2);
+        
+        // Gravity Forms post creation compat
+        if (apply_filters('mailoptin_gform_advancedpostcreation_compatibility', false) && class_exists('\GFForms')) {
+            remove_action('wp_after_insert_post', [$this, 'wp_after_insert_post'], 1);
+
+            add_action('gform_advancedpostcreation_post_after_creation', function ($post_id) {
+                $post = get_post($post_id);
+                $this->new_publish_post($post->post_status, '', $post);
+            });
+        }
+    }
+
+    public function wp_after_insert_post($post_id, WP_Post $post, $update, $post_before)
+    {
+        $old_status = moVarObj($post_before, 'post_status');
+
+        $this->new_publish_post($post->post_status, $old_status, $post);
+
     }
 
     /**
