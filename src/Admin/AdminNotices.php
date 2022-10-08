@@ -26,6 +26,7 @@ class AdminNotices
             add_action('admin_notices', array($this, 'show_woocommerce_features'));
             add_action('admin_notices', array($this, 'show_edd_features'));
             add_action('admin_notices', array($this, 'show_learndash_features'));
+            add_action('admin_notices', array($this, 'show_lifterlms_features'));
             add_action('admin_notices', array($this, 'show_memberpress_features'));
             add_action('admin_notices', array($this, 'show_wpforms_features'));
             add_action('admin_notices', array($this, 'show_cf7_features'));
@@ -274,6 +275,25 @@ class AdminNotices
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_learndash_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_lifterlms_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_lifterlms_features-forever')) {
+            return;
+        }
+
+        if ( ! function_exists('llms')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/lifterlms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=lifterlms_admin_notice';
+        $notice      = sprintf(__('Did you know you can add LifterLMS students to your email list after registration and enrollment or based on the membership or course they are enrolled in? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_lifterlms_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
