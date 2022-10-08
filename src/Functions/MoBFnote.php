@@ -6,6 +6,11 @@ if ( ! class_exists('\MoBFnote')) {
 
     class MoBFnote
     {
+        private $this_year;
+        private $last_year;
+        private $start;
+        private $end;
+
         public function __construct()
         {
             add_action('mailoptin_admin_notices', function () {
@@ -14,6 +19,11 @@ if ( ! class_exists('\MoBFnote')) {
             add_action('network_admin_notices', array($this, 'admin_notice'));
 
             add_action('admin_init', array($this, 'dismiss_admin_notice'));
+
+            $this->this_year = '2022';
+            $this->last_year = $this->this_year - 1;
+            $this->start     = strtotime('november 25th, ' . $this->this_year);
+            $this->end       = strtotime('december 1st, ' . $this->this_year);
         }
 
         public function dismiss_admin_notice()
@@ -23,9 +33,9 @@ if ( ! class_exists('\MoBFnote')) {
             }
 
             $url = admin_url();
-            update_option('mobfnote_dismiss_adnotice', 'true');
+            update_option('mobfnote_dismiss_adnotice_' . $this->this_year, 'true');
 
-            wp_redirect($url);
+            wp_safe_redirect($url);
             exit;
         }
 
@@ -39,13 +49,19 @@ if ( ! class_exists('\MoBFnote')) {
 
             if ( ! current_user_can('administrator')) return;
 
-            $start = strtotime('november 24th, 2021');
-            $end   = strtotime('december 1st, 2021');
-            $now   = time();
+            $now = time();
 
-            if ($now < $start || $now > $end) return;
+            if ($now < $this->start || $now > $this->end) return;
 
-            if (get_option('mobfnote_dismiss_adnotice', 'false') == 'true') {
+            if ( ! empty(get_option('mobfnote_dismiss_adnotice', 0))) {
+                delete_option('mobfnote_dismiss_adnotice');
+            }
+
+            if ( ! empty(get_option('mobfnote_dismiss_adnotice_' . $this->last_year, 0))) {
+                delete_option('mobfnote_dismiss_adnotice_' . $this->last_year);
+            }
+
+            if (get_option('mobfnote_dismiss_adnotice_' . $this->this_year, 'false') == 'true') {
                 return;
             }
 
@@ -59,7 +75,7 @@ if ( ! class_exists('\MoBFnote')) {
             );
             $this->notice_css();
 
-            $bf_url = 'https://mailoptin.io/pricing/?utm_source=wp-admin&utm_medium=admin-notice&utm_id=bf2021'
+            $bf_url = 'https://mailoptin.io/pricing/?utm_source=wp-admin&utm_medium=admin-notice&utm_campaign=bf' . $this->this_year
 
             ?>
             <div class="mobfnote-admin-notice notice notice-success">
@@ -67,8 +83,8 @@ if ( ! class_exists('\MoBFnote')) {
                     <p>
                         <?php
                         printf(
-                            __('%1$sHuge Black Friday Sale%2$s: Get 40%% off your MailOptin plugin upgrade today with the coupon %3$sBFCM2021%4$s', 'mailoptin'),
-                            '<span class="mobfnote-stylize"><strong>', '</strong></span>', '<code>', '</code>');
+                            __('%1$sHuge Black Friday Sale%2$s: Get 40%% off your MailOptin plugin upgrade today with the coupon %3$sBFCM%4$s', 'mailoptin'),
+                            '<span class="mobfnote-stylize"><strong>', '</strong></span>', '<code>', $this->this_year . '</code>');
                         ?>
                     </p>
                     <p style="text-decoration: underline;font-size: 12px;">Hurry as the deal is expiring soon.</p>
@@ -108,6 +124,7 @@ if ( ! class_exists('\MoBFnote')) {
 
                 .mobfnote-admin-notice .mobfnote-stylize {
                     line-height: 2;
+                    font-size: 16px;
                 }
 
                 .mobfnote-admin-notice .button-primary {
