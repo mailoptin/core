@@ -288,9 +288,7 @@ abstract class AbstractConnect
 
         $response = error_log(current_time('mysql') . ': ' . $message . "\r\n", 3, "{$error_log_folder}{$filename}.log");
 
-        if ( ! apply_filters('mailoptin_disable_send_optin_error_email', false, $optin_campaign_id)) {
-            self::send_optin_error_email($optin_campaign_id, $message);
-        }
+        self::send_optin_error_email($optin_campaign_id, $message);
 
         return $response;
     }
@@ -316,6 +314,10 @@ $footer_content";
 
     public static function send_optin_error_email($optin_campaign_id, $error_message)
     {
+        if (apply_filters('mailoptin_disable_send_optin_error_email', false, $optin_campaign_id)) {
+            return;
+        }
+
         if ( ! isset($optin_campaign_id, $error_message)) return;
 
         $email = apply_filters('mo_optin_campaign_error_email_address', get_option('admin_email'));
