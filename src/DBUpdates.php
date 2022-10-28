@@ -9,7 +9,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 12;
+    const DB_VER = 13;
 
     public function init_options()
     {
@@ -233,6 +233,15 @@ class DBUpdates
         if (function_exists('wp_clear_scheduled_hook')) {
             wp_clear_scheduled_hook('mo_twice_daily_recurring_job');
         }
+    }
+
+    public function update_routine_13()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . Core::email_campaigns_table_name;
+
+        $wpdb->query("ALTER TABLE $table CHANGE name name varchar(200) NOT NULL;");
     }
 
     public static function get_instance()
