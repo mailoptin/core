@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
 // Exit if accessed directly
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use W3Guy\Custom_Settings_Page_Api;
+use function MailOptin\Core\moVar;
 
 if ( ! defined('ABSPATH')) {
     exit;
@@ -54,8 +55,11 @@ class Settings extends AbstractSettingsPage
     {
         // Send an initial check in on settings save
         $old_data = get_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, []);
-        $old_data = @$old_data['mailoptin_affiliate_url'];
-        $new_data = isset($input['mailoptin_affiliate_url']) ? $input['mailoptin_affiliate_url'] : '';
+        if ( ! is_array($old_data)) {
+            $old_data = [];
+        }
+        $old_data = moVar($old_data, 'mailoptin_affiliate_url', '');
+        $new_data = moVar($input, 'mailoptin_affiliate_url', '');
 
         if ($option_name == MAILOPTIN_SETTINGS_DB_OPTION_NAME && $old_data != $new_data) {
             OptinCampaignsRepository::burst_all_cache();

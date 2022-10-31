@@ -52,7 +52,8 @@ class Custom_Settings_Page_Api
 
     protected function __construct($main_content_config = array(), $option_name = '', $page_header = '')
     {
-        $this->db_options          = get_option($option_name, array());
+        $this->db_options          = get_option($option_name, []);
+        $this->db_options          = !is_array($this->db_options) || empty($this->db_options) ? [] : $this->db_options;
         $this->option_name         = $option_name;
         $this->main_content_config = $main_content_config;
         $this->page_header         = $page_header;
