@@ -3,9 +3,11 @@
 namespace MailOptin\Core\Admin\SettingsPage;
 
 // Exit if accessed directly
+use MailOptin\Core\RegisterActivation\CreateDBTables;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use W3Guy\Custom_Settings_Page_Api;
 use function MailOptin\Core\moVar;
+use function MailOptin\Core\moVarGET;
 
 if ( ! defined('ABSPATH')) {
     exit;
@@ -19,6 +21,8 @@ class Settings extends AbstractSettingsPage
         add_action('admin_menu', array($this, 'register_settings_page'));
         add_action('wp_cspa_persist_settings', array($this, 'check_for_mailoptin_affiliate_check'), 10, 2);
         add_action('admin_init', [$this, 'clear_optin_cache']);
+
+        add_action('admin_init', [$this, 'install_missing_db_tables']);
     }
 
     public function register_settings_page()
@@ -73,16 +77,21 @@ class Settings extends AbstractSettingsPage
             'mo_clear_optin_cache'
         );
 
+        $fix_db_url = wp_nonce_url(
+            add_query_arg('mo-install-missing-db', 'true', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE),
+            'mo_install_missing_db_tables'
+        );
+
         $args = [
             'general_settings'        => apply_filters('mailoptin_settings_general_settings_page', [
-                    'tab_title'                => __('General', 'mailoptin'),
-                    'section_title'            => __('General Settings', 'mailoptin'),
-                    'remove_plugin_data'       => [
+                    'tab_title'                 => __('General', 'mailoptin'),
+                    'section_title'             => __('General Settings', 'mailoptin'),
+                    'remove_plugin_data'        => [
                         'type'        => 'checkbox',
                         'label'       => __('Remove Data on Uninstall', 'mailoptin'),
                         'description' => __('Check this box if you would like MailOptin to completely remove all of its data when uninstalled.', 'mailoptin'),
                     ],
-                    'clear_optin_cache'        => [
+                    'clear_optin_cache'         => [
                         'type'        => 'custom_field_block',
                         'label'       => __('Clear Cache', 'mailoptin'),
                         'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear Cache', 'mailoptin') . '</a>',
@@ -94,7 +103,13 @@ class Settings extends AbstractSettingsPage
                                          ) .
                                          '</p>',
                     ],
-                    'mailoptin_affiliate_url'  => [
+                    'switch_customizer_loader'  => [
+                        'type'           => 'checkbox',
+                        'checkbox_label' => __('Enable', 'mailoptin'),
+                        'label'          => __('Switch Customizer Loader Method', 'mailoptin'),
+                        'description'    => __('Check this if you are having problem with Customizer not loading properly.', 'mailoptin'),
+                    ],
+                    'mailoptin_affiliate_url'   => [
                         'type'        => 'text',
                         'label'       => __('MailOptin Affiliate Link', 'mailoptin'),
                         'description' => sprintf(
@@ -103,12 +118,11 @@ class Settings extends AbstractSettingsPage
                             '</a>'
                         ),
                     ],
-                    'switch_customizer_loader' => [
-                        'type'           => 'checkbox',
-                        'checkbox_label' => __('Enable', 'mailoptin'),
-                        'label'          => __('Switch Customizer Loader Method', 'mailoptin'),
-                        'description'    => __('Check this if you are having problem with Customizer not loading properly.', 'mailoptin'),
-                    ],
+                    'install_missing_db_tables' => [
+                        'type'  => 'custom_field_block',
+                        'label' => __('Install Missing DB Tables', 'mailoptin'),
+                        'data'  => "<a href='$fix_db_url' class='button action ppress-confirm-delete'>" . __('Fix Database', 'mailoptin') . '</a>',
+                    ]
                 ]
             ),
             'optin_campaign_settings' => apply_filters('mailoptin_settings_optin_campaign_settings_page', [
@@ -246,6 +260,21 @@ class Settings extends AbstractSettingsPage
             echo '</div>';
 
             do_action('mailoptin_after_settings_page', MAILOPTIN_SETTINGS_DB_OPTION_NAME);
+        }
+    }
+
+    public function install_missing_db_tables()
+    {
+        if (defined('DOING_AJAX')) return;
+
+        if (moVarGET('mo-install-missing-db') == 'true' && current_user_can('manage_options')) {
+
+            check_admin_referer('mo_install_missing_db_tables');
+
+            CreateDBTables::make();
+
+            wp_safe_redirect(add_query_arg('settings-updated', 'true', MAILOPTIN_SETTINGS_SETTINGS_PAGE));
+            exit;
         }
     }
 

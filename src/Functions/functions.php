@@ -386,6 +386,24 @@ function moVarObj($bucket, $key, $default = false, $empty = false)
     return isset($bucket->$key) ? $bucket->$key : $default;
 }
 
+function moVarPOST($key, $default = false, $empty = false)
+{
+    if ($empty) {
+        return ! empty($_POST[$key]) ? $_POST[$key] : $default;
+    }
+
+    return isset($_POST[$key]) ? $_POST[$key] : $default;
+}
+
+function moVarGET($key, $default = false, $empty = false)
+{
+    if ($empty) {
+        return ! empty($_GET[$key]) ? $_GET[$key] : $default;
+    }
+
+    return isset($_GET[$key]) ? $_GET[$key] : $default;
+}
+
 function mo_test_admin_email()
 {
     return apply_filters('mailoptin_email_campaign_test_admin_email', get_option('admin_email'));
