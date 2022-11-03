@@ -328,8 +328,7 @@ function emogrify($content)
     if ( ! class_exists('DOMDocument')) return $content;
 
     try {
-        // doc https://github.com/MyIntervals/emogrifier/tree/f6a5c7d44612d86c3901c93f1592f5440e6b2cd8
-        // version 3.1.0 'cos it's PHP 5.6 and higher.
+
         $content = CssInliner::fromHtml($content)->inlineCss('')->render();
 
     } catch (\Exception $e) {
