@@ -32,7 +32,11 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
         switch ($this->search_type) {
             case 'exclusive_post_types_posts_load':
                 $options = array_reduce($savedValue, function ($carry, $post_id) {
-                    $post_type_label                   = get_post_type_object(get_post_type($post_id))->label;
+                    $post_type_label      = '';
+                    $get_post_type_object = get_post_type_object(get_post_type($post_id));
+                    if (isset($get_post_type_object->label)) {
+                        $post_type_label = $get_post_type_object->label;
+                    }
                     $carry[$post_type_label][$post_id] = get_the_title($post_id);
 
                     return $carry;
