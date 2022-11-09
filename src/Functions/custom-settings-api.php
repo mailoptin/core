@@ -139,7 +139,7 @@ class Custom_Settings_Page_Api
             return $custom;
         ?>
         <div id="postbox-container-1" class="postbox-container">
-            <div class="meta-box-sortables" style="text-align: center; margin: auto">
+            <div class="meta-box-sortables" style="margin: auto">
                 <?php if ( ! empty($this->sidebar_config)): ?>
                     <?php foreach ($this->sidebar_config as $arg) : ?>
                         <div class="postbox">

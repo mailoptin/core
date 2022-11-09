@@ -64,7 +64,6 @@ abstract class AbstractSettingsPage
      * Register mailoptin core settings.
      *
      * @param Custom_Settings_Page_Api $instance
-     * @param bool $remove_sidebar
      */
     public function register_core_settings(Custom_Settings_Page_Api $instance)
     {
@@ -136,22 +135,72 @@ abstract class AbstractSettingsPage
         return $content;
     }
 
-    public function sidebar_support_docs()
+    public function sidebar_args()
     {
+        $sidebar_args = [
+            [
+                'section_title' => esc_html__('Upgrade to Pro', 'peters-login-redirect'),
+                'content'       => self::pro_upsell(),
+            ]
+        ];
+
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+            unset($sidebar_args[0]);
+        }
+
+        return $sidebar_args;
+    }
+
+
+
+    public static function pro_upsell()
+    {
+        $integrations = [
+            'WooCommerce',
+            'Gravity Forms',
+            'WPForms',
+            'LearnDash',
+            'ProfilePress',
+            'MemberPress',
+            'Paid Memberships Pro',
+            'WishList Member',
+            'MemberMouse',
+            'Restrict Content Pro',
+            'LifterLMS',
+            'Easy Digital Downloads',
+            'Tutor LMS',
+            'Ultimate Member',
+            'WP User Frontend',
+            'WP User Manager',
+            'Uncanny Toolkit',
+            'User Registration (WPEverest)',
+            'Theme My Login',
+            'WPML',
+            'Polylang'
+        ];
+
+        $upsell_url = 'https://loginwp.com/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_upsell';
+
         $content = '<p>';
         $content .= sprintf(
-            __('For support, %sreach out to us%s.', 'mailoptin'),
-            '<strong><a href="https://mailoptin.io/support/" target="_blank">', '</a></strong>'
+            esc_html__('Enhance the power of LoginWP with the Pro version featuring integrations with many plugins. %sLearn more%s', 'peters-login-redirect'),
+            '<a target="_blank" href="' . $upsell_url . '">', '</a>'
         );
         $content .= '</p>';
 
-        $content .= '<p>';
-        $content .= sprintf(
-            __('Visit the %s for guidance.', 'mailoptin'),
-            '<strong><a href="https://mailoptin.io/docs/" target="_blank">' . __('Documentation', 'mailoptin') . '</a></strong>'
-        );
+        $content .= '<ul>';
 
-        $content .= '</p>';
+        $content .= sprintf('<li>%s</li>', esc_html__('Redirect only on first time login', 'peters-login-redirect'));
+        $content .= sprintf('<li>%s</li>', esc_html__('Redirect to referrer or previous page', 'peters-login-redirect'));
+        $content .= sprintf('<li>%s</li>', esc_html__('Redirect to currently viewing page', 'peters-login-redirect'));
+
+        foreach ($integrations as $integration) :
+            $content .= sprintf('<li>%s</li>', $integration);
+        endforeach;
+
+        $content .= '</ul>';
+
+        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get LoginWP Pro →', 'peters-login-redirect') . '</a>';
 
         return $content;
     }
@@ -192,23 +241,5 @@ abstract class AbstractSettingsPage
         </div>
         <?php
         return ob_get_clean();
-    }
-
-    public static function mailoptin_pro_ad()
-    {
-        $content = '<a href="https://mailoptin.io/pricing/?discount=10PERCENTOFF&utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_banner" target="_blank">';
-        $content .= '<img width="250" src="' . MAILOPTIN_ASSETS_URL . 'images/mo-pro-upgrade.jpg' . '">';
-        $content .= '</a>';
-
-        return $content;
-    }
-
-    public static function profilepress_ad()
-    {
-        $content = '<a href="https://profilepress.com/pricing/?discount=20PERCENTOFF&ref=mailoptin_settings_page" target="_blank">';
-        $content .= '<img width="250" src="' . MAILOPTIN_ASSETS_URL . 'images/profilepress-ad.jpg' . '">';
-        $content .= '</a>';
-
-        return $content;
     }
 }
