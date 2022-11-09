@@ -143,6 +143,20 @@ trait TemplateTrait
         // remove VC tags and empty paragraphs (<p></p>)
         $post_content = preg_replace(['/\[vc(.*?)\]/', '/<p[^>]*><\\/p[^>]*>/', '/\[\/vc(.*?)\]/'], '', $post_content);
 
+        // prefix any image without http with their website domain
+        $post_content = preg_replace_callback(
+            '/(<img.+src=[\"|\'])([^\s]+)([\"|\'].+>)/',
+            function ($matches) {
+
+                if (isset($matches[2]) && strstr($matches[2], 'http') === false) {
+                    return $matches[1] . home_url() . '/' . ltrim($matches[2], '/\\') . $matches[3];
+                }
+
+                return $matches[0];
+            },
+            $post_content
+        );
+
         if (apply_filters('mo_email_automation_post_content_strip_html', false, $post, $post_content_length)) {
             $post_content = strip_tags($post_content);
         }
@@ -175,15 +189,21 @@ trait TemplateTrait
             return $default_feature_image;
         }
 
+        $feature_image_url = $default_feature_image;
+
         if (has_post_thumbnail($post)) {
             $featured_image_size = apply_filters('mailoptin_email_campaign_featured_image_size', 'full');
             $image_data          = wp_get_attachment_image_src(get_post_thumbnail_id($post), $featured_image_size);
             if ( ! empty($image_data[0])) {
-                return $image_data[0];
+                $feature_image_url = $image_data[0];
             }
         }
 
-        return apply_filters('mo_email_automation_post_feature_image', $default_feature_image, $post, $email_campaign_id, $default_feature_image);
+        if (strstr($feature_image_url, 'http') === false) {
+            $feature_image_url = home_url() . '/' . ltrim($feature_image_url);
+        }
+
+        return apply_filters('mo_email_automation_post_feature_image', $feature_image_url, $post, $email_campaign_id, $default_feature_image);
     }
 
     /**
