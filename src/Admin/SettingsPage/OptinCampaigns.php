@@ -8,6 +8,7 @@ if ( ! defined('ABSPATH')) {
 }
 
 use W3Guy\Custom_Settings_Page_Api;
+use function MailOptin\Core\moVarGET;
 
 class OptinCampaigns extends AbstractSettingsPage
 {
@@ -229,18 +230,20 @@ class OptinCampaigns extends AbstractSettingsPage
 
     public function js_script()
     {
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
-            ?>
-            <script>
-                (function ($) {
-                    $(window).on('load', function () {
-                        if ($('.folded #collapse-button').length > 0) return;
-                        
-                        $('#collapse-button').click();
-                    });
-                })(jQuery)
-            </script>
-            <?php
+        if (moVarGET('page') == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG) {
+            if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+                ?>
+                <script>
+                    (function ($) {
+                        $(window).on('load', function () {
+                            if ($('.folded #collapse-button').length > 0) return;
+
+                            $('#collapse-button').click();
+                        });
+                    })(jQuery)
+                </script>
+                <?php
+            }
         }
     }
 
