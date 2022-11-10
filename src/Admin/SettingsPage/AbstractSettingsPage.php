@@ -139,7 +139,7 @@ abstract class AbstractSettingsPage
     {
         $sidebar_args = [
             [
-                'section_title' => esc_html__('Upgrade to Pro', 'peters-login-redirect'),
+                'section_title' => esc_html__('Upgrade to Pro', 'mailoptin'),
                 'content'       => self::pro_upsell(),
             ]
         ];
@@ -152,94 +152,37 @@ abstract class AbstractSettingsPage
     }
 
 
-
     public static function pro_upsell()
     {
-        $integrations = [
-            'WooCommerce',
-            'Gravity Forms',
-            'WPForms',
-            'LearnDash',
-            'ProfilePress',
-            'MemberPress',
-            'Paid Memberships Pro',
-            'WishList Member',
-            'MemberMouse',
-            'Restrict Content Pro',
-            'LifterLMS',
-            'Easy Digital Downloads',
-            'Tutor LMS',
-            'Ultimate Member',
-            'WP User Frontend',
-            'WP User Manager',
-            'Uncanny Toolkit',
-            'User Registration (WPEverest)',
-            'Theme My Login',
-            'WPML',
-            'Polylang'
+        $features = [
+            esc_html__('Notification Bar optin', 'mailoptin'),
+            esc_html__('Slide-in / Scroll-trigger optin', 'mailoptin'),
+            esc_html__('Optin A/B split testing', 'mailoptin'),
+            esc_html__('Advanced page-level targeting rules', 'mailoptin'),
+            esc_html__('Convert leaving visitors with Exit-Intent', 'mailoptin'),
+            esc_html__('Advanced optin display rules (time on site, page-views, cookie, device, adblock & referrer detection)', 'mailoptin'),
+            esc_html__('Access to saved leads', 'mailoptin'),
         ];
 
-        $upsell_url = 'https://loginwp.com/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_upsell';
+        $upsell_url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_upsell';
 
         $content = '<p>';
         $content .= sprintf(
-            esc_html__('Enhance the power of LoginWP with the Pro version featuring integrations with many plugins. %sLearn more%s', 'peters-login-redirect'),
-            '<a target="_blank" href="' . $upsell_url . '">', '</a>'
+            esc_html__('Save %s with %s when you %supgrade to MailOptin Premium%s which include premium features & more.', 'mailoptin'),
+            '10%', '<code>10PERCENTOFF</code>', '<a style="text-decoration:none" target="_blank" href="' . $upsell_url . '">', '</a>'
         );
         $content .= '</p>';
 
         $content .= '<ul>';
 
-        $content .= sprintf('<li>%s</li>', esc_html__('Redirect only on first time login', 'peters-login-redirect'));
-        $content .= sprintf('<li>%s</li>', esc_html__('Redirect to referrer or previous page', 'peters-login-redirect'));
-        $content .= sprintf('<li>%s</li>', esc_html__('Redirect to currently viewing page', 'peters-login-redirect'));
-
-        foreach ($integrations as $integration) :
-            $content .= sprintf('<li>%s</li>', $integration);
+        foreach ($features as $feature) :
+            $content .= sprintf('<li>%s</li>', $feature);
         endforeach;
 
         $content .= '</ul>';
 
-        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get LoginWP Pro →', 'peters-login-redirect') . '</a>';
+        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get LoginWP Pro →', 'mailoptin') . '</a>';
 
         return $content;
-    }
-
-    public function rate_review_ad()
-    {
-        ob_start();
-        $review_url        = 'https://wordpress.org/support/view/plugin-reviews/mailoptin';
-        $compatibility_url = 'https://wordpress.org/plugins/mailoptin/#compatibility';
-        $twitter_url       = 'https://twitter.com/home?status=I%20love%20this%20WordPress%20plugin!%20https://wordpress.org/plugins/mailoptin/';
-
-        ?>
-        <div style="text-align: center; margin: auto">
-            <ul>
-                <li>
-                    <?php printf(
-                        wp_kses(__('Is this plugin useful for you? Leave a positive review on the plugin\'s <a href="%s" target="_blank">WordPress listing</a>', 'mailoptin'),
-                            array(
-                                'a' => array(
-                                    'href'   => array(),
-                                    'target' => array('_blank'),
-                                ),
-                            )
-                        ),
-                        esc_url($review_url));
-                    ?>
-                </li>
-                <li><?php printf(wp_kses(__('<a href="%s" target="_blank">Share your thoughts on Twitter</a>',
-                        'mailoptin'),
-                        array(
-                            'a' => array(
-                                'href'   => array(),
-                                'target' => array('_blank'),
-                            ),
-                        )),
-                        esc_url($twitter_url)); ?></li>
-            </ul>
-        </div>
-        <?php
-        return ob_get_clean();
     }
 }
