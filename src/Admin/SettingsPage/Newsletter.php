@@ -56,9 +56,10 @@ class Newsletter extends AbstractSettingsPage
         $instance = Custom_Settings_Page_Api::instance();
         $instance->option_name('mailoptin_newsletter');
         $instance->page_header(__('Emails', 'mailoptin'));
+        $instance->sidebar($this->sidebar_args());
         $this->register_core_settings($instance);
         echo '<div class="mailoptin-log-listing">';
-        $instance->build(true);
+        $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
     }
 

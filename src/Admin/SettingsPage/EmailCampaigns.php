@@ -131,7 +131,7 @@ class EmailCampaigns extends AbstractSettingsPage
         $instance->sidebar($this->sidebar_args());
         $this->register_core_settings($instance);
         echo '<div class="mailoptin-data-listing">';
-        $instance->build(false);
+        $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
     }
 

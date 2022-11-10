@@ -46,12 +46,19 @@ abstract class AbstractSettingsPage
                 <img src="<?= $logo_url ?>" alt="">
             </div>
             <div class="mo-admin-banner__helplinks">
+                <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
+                    <span class="dashicons dashicons-star-filled"></span> <?= __('Review', 'mailoptin'); ?>
+                </a>
                 <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
                     <span class="dashicons dashicons-book"></span> <?= __('Documentation', 'mailoptin'); ?>
                 </a>
                 <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
                     <a rel="noopener" href="https://mailoptin.io/submit-ticket/" target="_blank">
                         <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'mailoptin'); ?>
+                    </a>
+                <?php else: ?>
+                    <a rel="noopener" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=topmenu">
+                        <span class="dashicons dashicons-admin-links"></span> <?= __('Premium Upgrade', 'mailoptin'); ?>
                     </a>
                 <?php endif; ?>
             </div>
@@ -162,24 +169,31 @@ abstract class AbstractSettingsPage
             esc_html__('Advanced page-level targeting rules', 'mailoptin'),
             esc_html__('Powerful content locking', 'mailoptin'),
             esc_html__('Convert leaving visitors with Exit-Intent', 'mailoptin'),
-            esc_html__('Advanced optin display rules (time on site, page-views, cookie, device, adblock & referrer detection etc.)', 'mailoptin'),
             esc_html__('Access to saved leads', 'mailoptin'),
-            esc_html__('Advanced analytics & reports', 'mailoptin'),
-            esc_html__('Spam protection with reCAPTCHA', 'mailoptin'),
-            esc_html__('Form plugins integration', 'mailoptin') . ' (Gravity Forms, Contact Form 7, WPForms, Ninja Forms, Elementor forms, Formidable Forms)',
+            esc_html__('Advanced optin display rules (time on site, page-views, cookie, device, adblock & referrer detection etc.)', 'mailoptin'),
+            esc_html__('Display optin based on WooCommerce cart products & total, ordered products etc.', 'mailoptin'),
+            //
             esc_html__('Send emails to list subscribers in Mailchimp, AWeber, Constant Contact, Sendinblue, Zoho etc.', 'mailoptin'),
             esc_html__('Send emails to WooCommerce & subscription customers, membership members', 'mailoptin'),
             esc_html__('Send emails to MemberPress members', 'mailoptin'),
+            //
+            esc_html__('Advanced analytics & reports', 'mailoptin'),
+            esc_html__('Spam protection with reCAPTCHA', 'mailoptin'),
+            esc_html__('Facebook custom audience integration', 'mailoptin'),
+            esc_html__('Form plugins integration', 'mailoptin') . ' (Gravity Forms, Contact Form 7, WPForms, Ninja Forms, Elementor forms, Formidable Forms)',
+            esc_html__('Google Analytics integration', 'mailoptin')
         ];
 
         $upsell_url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_upsell';
 
         $content = '<p>';
         $content .= sprintf(
-            esc_html__('Save %s with %s when you %supgrade to MailOptin Premium%s which include premium features & more.', 'mailoptin'),
+            esc_html__('Save %s with coupon %s when you %supgrade to MailOptin Premium%s which include below features & more.', 'mailoptin'),
             '10%', '<code>10PERCENTOFF</code>', '<a style="text-decoration:none" target="_blank" href="' . $upsell_url . '">', '</a>'
         );
         $content .= '</p>';
+
+        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get MailOptin Premium →', 'mailoptin') . '</a>';
 
         $content .= '<ul>';
 
@@ -189,7 +203,7 @@ abstract class AbstractSettingsPage
 
         $content .= '</ul>';
 
-        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get LoginWP Pro →', 'mailoptin') . '</a>';
+        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get MailOptin Premium →', 'mailoptin') . '</a>';
 
         return $content;
     }
