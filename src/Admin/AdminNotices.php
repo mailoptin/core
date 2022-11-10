@@ -251,8 +251,8 @@ class AdminNotices
 
         if ( ! class_exists('\Easy_Digital_Downloads')) return;
 
-        $upgrade_url = 'https://mailoptin.io/article/edd-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=edd_admin_notice';
-        $notice      = sprintf(__('Did you know you can add Easy Digital Downloads customers to your email list after they purchase any product or based on their purchased product? %sLearn more%s', 'mailoptin'),
+        $upgrade_url = 'https://mailoptin.io/integrations/easy-digital-downloads/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=edd_admin_notice';
+        $notice      = sprintf(__('Did you know you can add Easy Digital Downloads customers to your email list after they purchase any product or based on their purchased product, send newsletters and automated email of new downloads? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_edd_features-forever" class="notice notice-info is-dismissible">';
