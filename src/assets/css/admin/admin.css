@@ -560,8 +560,16 @@ table.optin_forms th#name {
     width: 22%;
 }
 
+.mailoptin-lite table.optin_forms th#name {
+    width: 20%;
+}
+
 table.optin_forms th#uuid {
     width: 15%;
+}
+
+.mailoptin-lite table.optin_forms th#uuid {
+    width: 12%;
 }
 
 form.mo-inline {

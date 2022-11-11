@@ -97,6 +97,12 @@ abstract class AbstractSettingsPage
         if (false !== strpos($current_screen->id, 'mailoptin')) {
             // Leave space on both sides so other plugins do not conflict.
             $classes .= ' mailoptin-admin ';
+
+            if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+                $classes .= ' mailoptin-premium ';
+            } else {
+                $classes .= ' mailoptin-lite ';
+            }
         }
 
         return $classes;
