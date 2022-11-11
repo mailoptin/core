@@ -8,6 +8,7 @@ if ( ! defined('ABSPATH')) {
 }
 
 use W3Guy\Custom_Settings_Page_Api;
+use function MailOptin\Core\moVarGET;
 
 class OptinCampaigns extends AbstractSettingsPage
 {
@@ -22,6 +23,8 @@ class OptinCampaigns extends AbstractSettingsPage
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
+
+        add_action('admin_footer', [$this, 'js_script']);
     }
 
     public function register_settings_page()
@@ -155,9 +158,10 @@ class OptinCampaigns extends AbstractSettingsPage
 
             $instance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
             $instance->page_header(__('Optin Campaigns', 'mailoptin'));
+            $instance->sidebar($this->sidebar_args());
             $this->register_core_settings($instance);
             echo '<div class="mailoptin-data-listing">';
-            $instance->build(true);
+            $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
             echo '</div>';
 
             $this->ab_split_test_form();
@@ -222,6 +226,25 @@ class OptinCampaigns extends AbstractSettingsPage
         $this->optin_forms_instance->display();
 
         return ob_get_clean();
+    }
+
+    public function js_script()
+    {
+        if (moVarGET('page') == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG) {
+            if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+                ?>
+                <script>
+                    (function ($) {
+                        $(window).on('load', function () {
+                            if ($('.folded #collapse-button').length > 0) return;
+
+                            $('#collapse-button').click();
+                        });
+                    })(jQuery)
+                </script>
+                <?php
+            }
+        }
     }
 
     /**

@@ -108,7 +108,7 @@ class Connections extends AbstractSettingsPage
     {
         $boxes = [
             [
-                'title'   => esc_html__('Integration with Form Plugins'),
+                'section_title'   => esc_html__('Integration with Form Plugins'),
                 'content' => sprintf(__('MailOptin integrates with popular WordPress form plugins to help save all contacts and subscribers from your forms submissions to your email marketing software and CRM.
                 <p><a href="%s" target="_blank">Gravity Forms integration</a></p>
                 <p><a href="%s" target="_blank">Contact Form 7 integration</a></p>
@@ -128,7 +128,7 @@ class Connections extends AbstractSettingsPage
                 )
             ],
             [
-                'title'   => esc_html__('Elite WordPress Integrations'),
+                'section_title'   => esc_html__('Elite WordPress Integrations'),
                 'content' => sprintf(__('MailOptin also integrates with the following WordPress features and plugins.
                 <p><a href="%s" target="_blank">WordPress user registration</a></p>
                 <p><a href="%s" target="_blank">MailPoet</a>, <a href="%s" target="_blank">Mailster</a> & <a href="%s" target="_blank">FluentCRM plugins</a></p>
@@ -152,11 +152,13 @@ class Connections extends AbstractSettingsPage
             ]
         ];
 
+        $boxes = array_merge($boxes, $this->sidebar_args());
+
         foreach ($boxes as $box) :
             ?>
             <div class="postbox">
                 <div class="postbox-header">
-                    <h2 class="hndle is-non-sortable"><span><?= $box['title'] ?></span></h2>
+                    <h2 class="hndle is-non-sortable"><span><?= $box['section_title'] ?></span></h2>
                 </div>
                 <div class="inside"><?= $box['content'] ?></div>
             </div>

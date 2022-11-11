@@ -46,12 +46,19 @@ abstract class AbstractSettingsPage
                 <img src="<?= $logo_url ?>" alt="">
             </div>
             <div class="mo-admin-banner__helplinks">
+                <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
+                    <span class="dashicons dashicons-star-filled"></span> <?= __('Review', 'mailoptin'); ?>
+                </a>
                 <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
                     <span class="dashicons dashicons-book"></span> <?= __('Documentation', 'mailoptin'); ?>
                 </a>
                 <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
                     <a rel="noopener" href="https://mailoptin.io/submit-ticket/" target="_blank">
                         <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'mailoptin'); ?>
+                    </a>
+                <?php else: ?>
+                    <a rel="noopener" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=topmenu">
+                        <span class="dashicons dashicons-admin-links"></span> <?= __('Premium Upgrade', 'mailoptin'); ?>
                     </a>
                 <?php endif; ?>
             </div>
@@ -64,7 +71,6 @@ abstract class AbstractSettingsPage
      * Register mailoptin core settings.
      *
      * @param Custom_Settings_Page_Api $instance
-     * @param bool $remove_sidebar
      */
     public function register_core_settings(Custom_Settings_Page_Api $instance)
     {
@@ -91,6 +97,12 @@ abstract class AbstractSettingsPage
         if (false !== strpos($current_screen->id, 'mailoptin')) {
             // Leave space on both sides so other plugins do not conflict.
             $classes .= ' mailoptin-admin ';
+
+            if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+                $classes .= ' mailoptin-premium ';
+            } else {
+                $classes .= ' mailoptin-lite ';
+            }
         }
 
         return $classes;
@@ -136,78 +148,68 @@ abstract class AbstractSettingsPage
         return $content;
     }
 
-    public function sidebar_support_docs()
+    public function sidebar_args()
     {
+        $sidebar_args = [
+            [
+                'section_title' => esc_html__('Upgrade to Pro', 'mailoptin'),
+                'content'       => self::pro_upsell(),
+            ]
+        ];
+
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+            unset($sidebar_args[0]);
+        }
+
+        return $sidebar_args;
+    }
+
+
+    public static function pro_upsell()
+    {
+        $features = [
+            esc_html__('Notification Bar optin', 'mailoptin'),
+            esc_html__('Slide-in / Scroll-trigger optin', 'mailoptin'),
+            esc_html__('Optin A/B split testing', 'mailoptin'),
+            esc_html__('Create user registration form popups', 'mailoptin'),
+            esc_html__('Advanced page-level targeting rules', 'mailoptin'),
+            esc_html__('Powerful content locking', 'mailoptin'),
+            esc_html__('Convert leaving visitors with Exit-Intent', 'mailoptin'),
+            esc_html__('Access to saved leads', 'mailoptin'),
+            esc_html__('Advanced optin display rules (time on site, page-views, cookie, device, adblock & referrer detection etc.)', 'mailoptin'),
+            esc_html__('Display optin based on WooCommerce cart products & total, ordered products etc.', 'mailoptin'),
+            //
+            esc_html__('Send emails to list subscribers in Mailchimp, AWeber, Constant Contact, Sendinblue, Zoho etc.', 'mailoptin'),
+            esc_html__('Send emails to WooCommerce & subscription customers, membership members', 'mailoptin'),
+            esc_html__('Send emails to MemberPress members', 'mailoptin'),
+            //
+            esc_html__('Advanced analytics & reports', 'mailoptin'),
+            esc_html__('Spam protection with reCAPTCHA', 'mailoptin'),
+            esc_html__('Facebook custom audience integration', 'mailoptin'),
+            esc_html__('Form plugins integration', 'mailoptin') . ' (Gravity Forms, Contact Form 7, WPForms, Ninja Forms, Elementor forms, Formidable Forms)',
+            esc_html__('Google Analytics integration', 'mailoptin')
+        ];
+
+        $upsell_url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_upsell';
+
         $content = '<p>';
         $content .= sprintf(
-            __('For support, %sreach out to us%s.', 'mailoptin'),
-            '<strong><a href="https://mailoptin.io/support/" target="_blank">', '</a></strong>'
+            esc_html__('Save %s with coupon %s when you %supgrade to MailOptin Premium%s which include below features & more.', 'mailoptin'),
+            '10%', '<code>10PERCENTOFF</code>', '<a style="text-decoration:none" target="_blank" href="' . $upsell_url . '">', '</a>'
         );
         $content .= '</p>';
 
-        $content .= '<p>';
-        $content .= sprintf(
-            __('Visit the %s for guidance.', 'mailoptin'),
-            '<strong><a href="https://mailoptin.io/docs/" target="_blank">' . __('Documentation', 'mailoptin') . '</a></strong>'
-        );
+        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get MailOptin Premium →', 'mailoptin') . '</a>';
 
-        $content .= '</p>';
+        $content .= '<ul>';
 
-        return $content;
-    }
+        foreach ($features as $feature) :
+            $content .= sprintf('<li>%s</li>', $feature);
+        endforeach;
 
-    public function rate_review_ad()
-    {
-        ob_start();
-        $review_url        = 'https://wordpress.org/support/view/plugin-reviews/mailoptin';
-        $compatibility_url = 'https://wordpress.org/plugins/mailoptin/#compatibility';
-        $twitter_url       = 'https://twitter.com/home?status=I%20love%20this%20WordPress%20plugin!%20https://wordpress.org/plugins/mailoptin/';
+        $content .= '</ul>';
 
-        ?>
-        <div style="text-align: center; margin: auto">
-            <ul>
-                <li>
-                    <?php printf(
-                        wp_kses(__('Is this plugin useful for you? Leave a positive review on the plugin\'s <a href="%s" target="_blank">WordPress listing</a>', 'mailoptin'),
-                            array(
-                                'a' => array(
-                                    'href'   => array(),
-                                    'target' => array('_blank'),
-                                ),
-                            )
-                        ),
-                        esc_url($review_url));
-                    ?>
-                </li>
-                <li><?php printf(wp_kses(__('<a href="%s" target="_blank">Share your thoughts on Twitter</a>',
-                        'mailoptin'),
-                        array(
-                            'a' => array(
-                                'href'   => array(),
-                                'target' => array('_blank'),
-                            ),
-                        )),
-                        esc_url($twitter_url)); ?></li>
-            </ul>
-        </div>
-        <?php
-        return ob_get_clean();
-    }
-
-    public static function mailoptin_pro_ad()
-    {
-        $content = '<a href="https://mailoptin.io/pricing/?discount=10PERCENTOFF&utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sidebar_banner" target="_blank">';
-        $content .= '<img width="250" src="' . MAILOPTIN_ASSETS_URL . 'images/mo-pro-upgrade.jpg' . '">';
-        $content .= '</a>';
-
-        return $content;
-    }
-
-    public static function profilepress_ad()
-    {
-        $content = '<a href="https://profilepress.com/pricing/?discount=20PERCENTOFF&ref=mailoptin_settings_page" target="_blank">';
-        $content .= '<img width="250" src="' . MAILOPTIN_ASSETS_URL . 'images/profilepress-ad.jpg' . '">';
-        $content .= '</a>';
+        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get MailOptin Premium →', 'mailoptin') . '</a>';
 
         return $content;
     }
