@@ -38,7 +38,7 @@ class Templatify implements TemplatifyInterface
         $html = '';
         foreach ($content as $element) {
             $method = $element['type'] . '_block';
-            if (method_exists($template_class_instance, $method)) {
+            if (is_object($template_class_instance) && method_exists($template_class_instance, $method)) {
                 $html .= $template_class_instance->$method($element['id'], $element['settings']);
             }
         }

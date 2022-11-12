@@ -120,7 +120,7 @@ class OptinConversionsRepository extends AbstractRepository
      *
      * @param array $conversion_ids
      *
-     * @return string
+     * @return mixed
      */
     public static function get_conversions_by_ids($conversion_ids)
     {
@@ -140,7 +140,7 @@ class OptinConversionsRepository extends AbstractRepository
      *
      * @param string $email
      *
-     * @return string
+     * @return mixed
      */
     public static function get_conversions_by_email($email)
     {
