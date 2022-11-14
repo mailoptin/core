@@ -39,12 +39,6 @@
       "oAP" : "\/bin",
       "oF" : 0
     },
-    "\/build" : {
-      "ft" : 65536,
-      "oA" : 1,
-      "oAP" : "\/build",
-      "oF" : 0
-    },
     "\/composer.json" : {
       "ft" : 524288,
       "oA" : 1,
@@ -369,19 +363,6 @@
       "oIPL" : 1,
       "opt" : 1,
       "oT" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 100,
-      "rq" : 75
-    },
-    "\/src\/assets\/images\/mo-pro-upgrade.jpg" : {
-      "ft" : 16384,
-      "iS" : 18579,
-      "jF" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/mo-pro-upgrade.jpg",
-      "oF" : 0,
-      "oIPL" : 0,
-      "opt" : 1,
       "ou" : "lpckwebp-none",
       "q" : 100,
       "rq" : 75
@@ -1216,19 +1197,6 @@
       "q" : 100,
       "rq" : 75
     },
-    "\/src\/assets\/images\/profilepress-ad.jpg" : {
-      "ft" : 16384,
-      "iS" : 22672,
-      "jF" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/profilepress-ad.jpg",
-      "oF" : 0,
-      "oIPL" : 0,
-      "opt" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 100,
-      "rq" : 75
-    },
     "\/src\/assets\/images\/spinner.gif" : {
       "ft" : 4194304,
       "iS" : 9926,
@@ -1654,7 +1622,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 686231703.64892697
+    "lastBuiltDate" : 690148129.03208899
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
