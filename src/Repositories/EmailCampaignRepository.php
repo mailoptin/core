@@ -212,12 +212,20 @@ class EmailCampaignRepository extends AbstractRepository
      *
      * @return mixed
      */
-    public static function get_by_email_campaign_type($campaign_type)
+    public static function get_by_email_campaign_type($campaign_type, $limit = 0)
     {
         $table = parent::email_campaigns_table();
 
+        $sql          = "SELECT * FROM $table WHERE campaign_type = '%s'";
+        $replacements = [$campaign_type];
+
+        if ($limit > 0) {
+            $sql            .= " LIMIT %d";
+            $replacements[] = $limit;
+        }
+
         return parent::wpdb()->get_results(
-            parent::wpdb()->prepare("SELECT * FROM $table WHERE campaign_type = '%s'", $campaign_type),
+            parent::wpdb()->prepare($sql, $replacements),
             'ARRAY_A'
         );
     }
