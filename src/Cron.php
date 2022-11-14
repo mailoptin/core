@@ -3,6 +3,7 @@
 namespace MailOptin\Core;
 
 use Carbon\Carbon;
+use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Libsodium\LibsodiumSettingsPage;
 use PAnD as PAnD;
 use stdClass;
@@ -41,6 +42,10 @@ class Cron
         if ( ! PAnD::is_admin_notice_active('catch_late_email_digest_event-7')) {
             return;
         }
+
+        $digest_campaigns = EmailCampaignRepository::get_by_email_campaign_type(EmailCampaignRepository::POSTS_EMAIL_DIGEST, 1);
+
+        if ( ! is_array($digest_campaigns) || empty($digest_campaigns)) return;
 
         $cron = wp_get_scheduled_event('mo_hourly_recurring_job');
 
