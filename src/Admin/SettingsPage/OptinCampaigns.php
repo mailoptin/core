@@ -23,8 +23,6 @@ class OptinCampaigns extends AbstractSettingsPage
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
-
-        add_action('admin_footer', [$this, 'js_script']);
     }
 
     public function register_settings_page()
@@ -226,25 +224,6 @@ class OptinCampaigns extends AbstractSettingsPage
         $this->optin_forms_instance->display();
 
         return ob_get_clean();
-    }
-
-    public function js_script()
-    {
-        if (moVarGET('page') == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG) {
-            if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
-                ?>
-                <script>
-                    (function ($) {
-                        $(window).on('load', function () {
-                            if ($('.folded #collapse-button').length > 0) return;
-
-                            $('#collapse-button').click();
-                        });
-                    })(jQuery)
-                </script>
-                <?php
-            }
-        }
     }
 
     /**
