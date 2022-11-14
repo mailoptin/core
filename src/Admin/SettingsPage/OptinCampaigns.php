@@ -8,7 +8,6 @@ if ( ! defined('ABSPATH')) {
 }
 
 use W3Guy\Custom_Settings_Page_Api;
-use function MailOptin\Core\moVarGET;
 
 class OptinCampaigns extends AbstractSettingsPage
 {

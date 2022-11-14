@@ -674,7 +674,7 @@ form.mo-inline {
 .mailoptin-settings-wrap h2.nav-tab-wrapper {
     flex: 1;
     border-bottom: none;
-    padding: 0;
+    padding: 0 !important;
     background: #f7f8fa;
     border-right: 1px solid #c8d7e1;
 }
