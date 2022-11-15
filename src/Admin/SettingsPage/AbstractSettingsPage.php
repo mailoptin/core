@@ -152,7 +152,7 @@ abstract class AbstractSettingsPage
     {
         $sidebar_args = [
             [
-                'section_title' => esc_html__('Upgrade to Pro', 'mailoptin'),
+                'section_title' => esc_html__('Upgrade to Premium', 'mailoptin'),
                 'content'       => self::pro_upsell(),
             ]
         ];
