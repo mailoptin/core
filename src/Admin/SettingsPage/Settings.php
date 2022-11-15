@@ -248,11 +248,13 @@ class Settings extends AbstractSettingsPage
             settings_errors('wp_csa_notice');
             echo '<div class="wrap">';
             $instance->settings_page_heading();
+            if(!defined('MAILOPTIN_DETACH_LIBSODIUM')) {
             ?>
             <div id="poststuff">
             <div id="post-body" class="metabox-holder columns-2">
             <div id="post-body-content" style="position: relative;">
             <?php
+            }
             echo '<div class="mailoptin-settings-wrap" data-option-name="' . MAILOPTIN_SETTINGS_DB_OPTION_NAME . '">';
             echo '<h2 class="nav-tab-wrapper">' . $nav_tabs . '</h2>';
             echo '<div class="metabox-holder mailoptin-tab-settings">';
@@ -263,6 +265,7 @@ class Settings extends AbstractSettingsPage
             echo '</div>';
             echo '</div>';
             echo '</div>';
+            if(!defined('MAILOPTIN_DETACH_LIBSODIUM')) {
             ?>
             <div id="postbox-container-1" class="postbox-container">
                 <div id="side-sortables" class="meta-box-sortables ui-sortable">
@@ -273,6 +276,7 @@ class Settings extends AbstractSettingsPage
             echo '</div>';
             echo '</div>';
             echo '</div>';
+            }
 
             do_action('mailoptin_after_settings_page', MAILOPTIN_SETTINGS_DB_OPTION_NAME);
         }
