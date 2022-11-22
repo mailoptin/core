@@ -199,7 +199,7 @@ trait TemplateTrait
             }
         }
 
-        if (strstr($feature_image_url, 'http') === false) {
+        if ( ! empty($feature_image_url) && strstr($feature_image_url, 'http') === false) {
             $feature_image_url = home_url() . '/' . ltrim($feature_image_url);
         }
 
