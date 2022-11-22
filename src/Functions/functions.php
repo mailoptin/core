@@ -78,12 +78,42 @@ function limit_text($text, $limit = 150)
 
     if (str_word_count($text, 0) > $limit) {
 
+        $ellipsis = apply_filters('mailoptin_limit_text_ellipsis', '. . .');
+
         $words = str_word_count($text, 2);
         $pos   = array_keys($words);
-        $text  = substr($text, 0, $pos[$limit]) . apply_filters('mailoptin_limit_text_ellipsis', '. . .');
+        $text  = substr($text, 0, $pos[$limit]) . $ellipsis;
+
+        // when truncated text ends with malfunctioned link eg <a href="https://hello.com, <img src="http://hey.com/img.png, remove them
+        $text = preg_replace(sprintf("/<(img|a|em)[^>]+(%s)/", preg_quote($ellipsis, '/')), '$2', $text);
     }
 
+    $text = close_tags($text);
+
     return $text;
+}
+
+function close_tags($content)
+{
+    /** @see https://stackoverflow.com/a/3810341/2648410 */
+    preg_match_all('#<(?!meta|img|br|hr|input\b)\b([a-z]+)(?: .*)?(?<![/|/ ])>#iU', $content, $result);
+    $openedtags = $result[1];
+    preg_match_all('#</([a-z]+)>#iU', $content, $result);
+    $closedtags = $result[1];
+    $len_opened = count($openedtags);
+    if (count($closedtags) == $len_opened) {
+        return $content;
+    }
+    $openedtags = array_reverse($openedtags);
+    for ($i = 0; $i < $len_opened; $i++) {
+        if ( ! in_array($openedtags[$i], $closedtags)) {
+            $content .= '</' . $openedtags[$i] . '>';
+        } else {
+            unset($closedtags[array_search($openedtags[$i], $closedtags)]);
+        }
+    }
+
+    return $content;
 }
 
 /**
