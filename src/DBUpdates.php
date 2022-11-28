@@ -20,7 +20,7 @@ class DBUpdates
     {
         $this->init_options();
 
-        if (get_option('mo_db_ver') >= self::DB_VER) {
+        if (get_option('mo_db_ver', 0) >= self::DB_VER) {
             return;
         }
 
@@ -51,11 +51,11 @@ class DBUpdates
             if (method_exists($this, $update_method)) {
                 call_user_func(array($this, $update_method));
             }
-
-            // update the option in the database, so that this process can always
-            // pick up where it left off
-            update_option('mo_db_ver', $current_db_ver);
         }
+
+        // update the option in the database, so that this process can always
+        // pick up where it left off
+        update_option('mo_db_ver', $current_db_ver);
     }
 
     public function update_routine_1()
