@@ -10,6 +10,7 @@ use MailOptin\Core\Admin\AdminNotices;
 use MailOptin\Core\Admin\SettingsPage\ConversionExport;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
+use MailOptin\Core\Admin\SettingsPage\LicenseUpgrader;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
 use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
@@ -144,6 +145,7 @@ class Base
         AdminNotices::get_instance();
         ConversionExport::get_instance();
         ProUpgrade::get_instance();
+        LicenseUpgrader::get_instance();
         \MoBFnote::instance();
 
         do_action('mailoptin_admin_hooks');

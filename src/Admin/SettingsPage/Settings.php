@@ -51,7 +51,7 @@ class Settings extends AbstractSettingsPage
         ]);
 
         if(!defined('MAILOPTIN_DETACH_LIBSODIUM')) {
-            $tabs[20] = ['id' => 'license', 'url' => add_query_arg(['view'=>'license', MAILOPTIN_SETTINGS_SETTINGS_PAGE]), 'label' => esc_html__('License', 'wp-user-avatar')];
+            $tabs[20] = ['id' => 'license', 'url' => add_query_arg(['view'=>'license'], MAILOPTIN_SETTINGS_SETTINGS_PAGE), 'label' => esc_html__('License', 'wp-user-avatar')];
         }
 
         ksort($tabs);
