@@ -1034,18 +1034,6 @@ form.mo-inline {
     margin: 0 -20px 20px;
 }
 
-.mailoptin-admin .mo-admin-banner__logo img {
-    width: 200px;
-    height: auto;
-    float: left;
-    margin-top: 5px;
-}
-
-.mo-admin-banner__helplinks {
-    float: right;
-    padding: 20px;
-}
-
 .mo-admin-banner__helplinks a {
     color: #ffffffe3;
     text-decoration: none;
@@ -1057,6 +1045,93 @@ form.mo-inline {
     right: 0;
     z-index: 9;
 }
+
+.mailoptin-admin .mo-admin-banner {
+    /*background-color: #326ee0;*/
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    top: 0;
+    width: 100%;
+    padding: 15px;
+}
+
+.mailoptin-admin .mailoptin-admin-wrap {
+    /*margin-bottom: 10px;*/
+}
+
+.mailoptin-admin .mo-admin-banner.mailoptin-pro {
+    padding: 15px 15px 0;
+}
+
+.mailoptin-admin .mo-admin-banner.mailoptin-pro.mailoptin-no-submenu {
+    padding-bottom: 15px
+}
+
+.mailoptin-admin .wrap {
+    padding-left: 20px;
+    margin: 0 20px 0 2px
+}
+
+.mailoptin-admin .mo-admin-banner__logo {
+    padding: 0 0 15px;
+    display: block
+}
+
+.mailoptin-admin .mo-admin-banner__logo img {
+    width: 140px;
+    height: auto;
+    float: left;
+    margin-top: 20px;
+    padding-left: 15px
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks {
+    float: right;
+    padding: 10px 20px 20px;
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks a.mailoptin-active {
+    background: #fff;
+    padding: 5px;
+    color: #326ee0;
+    border-radius: 4px
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks > span {
+    padding-right: 15px
+}
+
+.mailoptin-admin .mailoptin-nav-tab-wrapper {
+    padding: 0;
+    margin: 10px 16px 0;
+    border-bottom: 0
+}
+
+.mailoptin-admin .mailoptin-nav-tab-wrapper .mailoptin-nav-tab {
+    display: block;
+    font-weight: 500;
+    padding: 5px 12px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: rgba(255, 255, 255, .92);
+    margin: 0
+}
+
+.mailoptin-admin .mailoptin-nav-tab-wrapper .mailoptin-nav-tab.mailoptin-nav-active {
+    background-color: #fff;
+    color: #2d3559;
+    border-color: #fff;
+    border-radius: 4px 4px 0 0
+}
+
+.mo-admin-banner.mailoptin-not-pro {
+    padding-bottom: 0
+}
+
+/* end stylish header */
 
 /* add new email */
 .mo-design-gateway {

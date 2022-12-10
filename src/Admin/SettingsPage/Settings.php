@@ -23,6 +23,8 @@ class Settings extends AbstractSettingsPage
         add_action('admin_init', [$this, 'clear_optin_cache']);
 
         add_action('admin_init', [$this, 'install_missing_db_tables']);
+
+        add_action('mailoptin_admin_settings_page_general', [$this, 'settings_admin_page_callback']);
     }
 
     public function register_settings_page()
@@ -33,8 +35,28 @@ class Settings extends AbstractSettingsPage
             __('Settings', 'mailoptin'),
             \MailOptin\Core\get_capability(),
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            array($this, 'settings_admin_page_callback')
+            array($this, 'admin_page_callback')
         );
+    }
+
+    public function default_header_menu()
+    {
+        return 'general';
+    }
+
+    public function header_menu_tabs()
+    {
+        $tabs = apply_filters('mailoptin_settings_header_menu_tabs', [
+            10 => ['id' => 'general', 'url' => MAILOPTIN_SETTINGS_SETTINGS_PAGE, 'label' => esc_html__('General', 'wp-user-avatar')]
+        ]);
+
+        if(!defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+            $tabs[20] = ['id' => 'license', 'url' => add_query_arg(['view'=>'license', MAILOPTIN_SETTINGS_SETTINGS_PAGE]), 'label' => esc_html__('License', 'wp-user-avatar')];
+        }
+
+        ksort($tabs);
+
+        return $tabs;
     }
 
     /**
@@ -243,7 +265,6 @@ class Settings extends AbstractSettingsPage
             }
 
             $instance->persist_plugin_settings();
-            $this->register_core_settings($instance);
             $instance->do_settings_errors();
             settings_errors('wp_csa_notice');
             echo '<div class="wrap">';

@@ -4,6 +4,8 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 // Exit if accessed directly
 use W3Guy\Custom_Settings_Page_Api;
+use function MailOptin\Core\moVar;
+use function MailOptin\Core\moVarGET;
 
 if ( ! defined('ABSPATH')) {
     exit;
@@ -12,6 +14,8 @@ if ( ! defined('ABSPATH')) {
 abstract class AbstractSettingsPage
 {
     protected $option_name;
+
+    public static $parent_menu_url_map = [];
 
     public function init_menu()
     {
@@ -34,38 +38,159 @@ abstract class AbstractSettingsPage
             $this->getMenuIcon()
         );
 
+        do_action('mailoptin_register_menu_page_' . $this->active_menu_tab() . '_' . $this->active_submenu_tab());
+
+        do_action('mailoptin_register_menu_page');
+
         add_filter('admin_body_class', array($this, 'add_admin_body_class'));
     }
 
-    public function stylish_header()
+    /** --------------------------------------------------------------- */
+
+    // commented out to prevent any fatal error
+    //abstract function default_header_menu();
+
+    public function header_menu_tabs()
     {
-        $logo_url = MAILOPTIN_ASSETS_URL . 'images/logo-mailoptin.png';
+        return [];
+    }
+
+    public function header_submenu_tabs()
+    {
+        return [];
+    }
+
+    public function settings_page_header($active_menu = '', $active_submenu = '')
+    {
+        $logo_url       = MAILOPTIN_ASSETS_URL . 'images/logo-mailoptin.png';
+        $submenus_count = count($this->header_menu_tabs());
         ?>
-        <div class="mo-admin-banner">
-            <div class="mo-admin-banner__logo">
-                <img src="<?= $logo_url ?>" alt="">
-            </div>
-            <div class="mo-admin-banner__helplinks">
-                <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
-                    <span class="dashicons dashicons-star-filled"></span> <?= __('Review', 'mailoptin'); ?>
-                </a>
-                <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
-                    <span class="dashicons dashicons-book"></span> <?= __('Documentation', 'mailoptin'); ?>
-                </a>
-                <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
-                    <a rel="noopener" href="https://mailoptin.io/submit-ticket/" target="_blank">
-                        <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'mailoptin'); ?>
+
+        <div class="mailoptin-admin-wrap">
+            <div class="mo-admin-banner<?= defined('MAILOPTIN_SETTINGS_SETTINGS_PAGE') ? ' mailoptin-pro' : ' mailoptin-not-pro' ?><?= $submenus_count < 2 ? ' mailoptin-no-submenu' : '' ?>">
+                <div class="mo-admin-banner__logo">
+                    <img src="<?= $logo_url ?>" alt="">
+                </div>
+                <div class="mo-admin-banner__helplinks">
+                    <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
+                        <span class="dashicons dashicons-star-filled"></span> <?= __('Review', 'mailoptin'); ?>
                     </a>
-                <?php else: ?>
-                    <a rel="noopener" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=topmenu">
-                        <span class="dashicons dashicons-admin-links"></span> <?= __('Premium Upgrade', 'mailoptin'); ?>
+                    <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
+                        <span class="dashicons dashicons-book"></span> <?= __('Documentation', 'mailoptin'); ?>
                     </a>
-                <?php endif; ?>
+                    <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
+                        <a rel="noopener" href="https://mailoptin.io/submit-ticket/" target="_blank">
+                            <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'mailoptin'); ?>
+                        </a>
+                    <?php else: ?>
+                        <a rel="noopener" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=topmenu">
+                            <span class="dashicons dashicons-admin-links"></span> <?= __('Premium Upgrade', 'mailoptin'); ?>
+                        </a>
+                    <?php endif; ?>
+                </div>
+                <div class="clear"></div>
+                <?php $this->settings_page_header_menus($active_menu); ?>
             </div>
-            <div class="clear"></div>
+            <?php
+
+            $submenus = $this->header_submenu_tabs();
+
+            if ( ! empty($submenus) && count($submenus) > 1) {
+                $this->settings_page_header_sub_menus($active_menu, $active_submenu);
+            }
+            ?>
+        </div>
+        <?php
+        do_action('mailoptin_settings_page_header', $active_menu, $active_submenu);
+    }
+
+    public function settings_page_header_menus($active_menu)
+    {
+        $menus = $this->header_menu_tabs();
+
+        if (count($menus) < 2) return;
+        ?>
+        <div class="mailoptin-header-menus">
+            <nav class="mailoptin-nav-tab-wrapper nav-tab-wrapper">
+                <?php foreach ($menus as $menu) : ?>
+                    <?php
+                    $id                             = sanitize_text_field(moVar($menu, 'id', ''));
+                    $url                            = esc_url_raw(! empty($menu['url']) ? $menu['url'] : add_query_arg('view', $id));
+                    self::$parent_menu_url_map[$id] = $url;
+                    ?>
+                    <a href="<?php echo esc_url(remove_query_arg(wp_removable_query_args(), $url)); ?>" class="mailoptin-nav-tab nav-tab<?= $id == $active_menu ? ' mailoptin-nav-active' : '' ?>">
+                        <?php echo sanitize_text_field($menu['label']) ?>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
         </div>
         <?php
     }
+
+    public function settings_page_header_sub_menus($active_menu, $active_submenu)
+    {
+        $submenus = $this->header_submenu_tabs();
+
+        if (count($submenus) < 2) return;
+
+        $active_menu_url = self::$parent_menu_url_map[$active_menu];
+
+        $submenus = wp_list_filter($submenus, ['parent' => $active_menu]);
+
+        echo '<ul class="subsubsub">';
+
+        foreach ($submenus as $submenu) {
+
+            printf(
+                '<li><a href="%s"%s>%s</a></li>',
+                esc_url(add_query_arg('section', $submenu['id'], $active_menu_url)),
+                $active_submenu == $submenu['id'] ? ' class="mailoptin-current"' : '',
+                $submenu['label']
+            );
+        }
+        echo '</ul>';
+    }
+
+    public function active_menu_tab()
+    {
+        if (strpos(moVarGET('page'), 'mailoptin') !== false) {
+            return isset($_GET['view']) ? sanitize_text_field($_GET['view']) : $this->default_header_menu();
+        }
+
+        return false;
+    }
+
+    public function active_submenu_tab()
+    {
+        if (strpos(moVarGET('page'), 'pp') !== false) {
+
+            $active_menu = $this->active_menu_tab();
+
+            $submenu_tabs      = wp_list_filter($this->header_submenu_tabs(), ['parent' => $active_menu]);
+            $first_submenu_tab = '';
+            if ( ! empty($submenu_tabs)) {
+                $first_submenu_tab = array_values($submenu_tabs)[0]['id'];
+            }
+
+            return isset($_GET['section']) && moVarGET('view', 'general', true) == $active_menu ? sanitize_text_field($_GET['section']) : $first_submenu_tab;
+        }
+
+        return false;
+    }
+
+    public function admin_page_callback()
+    {
+        $active_menu = $this->active_menu_tab();
+
+        $active_submenu = $this->active_submenu_tab();
+
+        $this->settings_page_header($active_menu, $active_submenu);
+
+        do_action('mailoptin_admin_settings_page_' . $active_menu);
+
+        do_action('mailoptin_admin_settings_submenu_page_' . $active_menu . '_' . $active_submenu);
+    }
+    /** --------------------------------------------------------------- */
 
     /**
      * Register mailoptin core settings.
@@ -76,7 +201,7 @@ abstract class AbstractSettingsPage
     {
         $instance->tab($this->tab_args());
 
-        $this->stylish_header();
+        $this->settings_page_header();
     }
 
     /**
