@@ -3,6 +3,8 @@
 namespace MailOptin\Core\EmailCampaigns;
 
 
+use function MailOptin\Core\moVar;
+
 class VideoToImageLink
 {
     protected $subject;
@@ -26,7 +28,7 @@ class VideoToImageLink
         $return = preg_replace_callback(
             [
                 // [^=][^"] is there so as not to match when used in a link on element attribute
-                '/[^=][^"]https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([a-z0-9\-_]+)/i', // placed first to avoid recursion
+                '/(?!.*(?:"))https:\/\/(?:www.)?youtube(?:-nocookie)?.com\/\watch\?v=([a-z0-9\-_]+)/i', // placed first to avoid recursion
                 '/<iframe.*src="(?:.+)?youtube(?:-nocookie)?.com\/(?:embed|\?)?\/([a-z0-9\-_]+).+".+<\/iframe>/i'
             ],
             function ($matches) {
@@ -45,8 +47,8 @@ class VideoToImageLink
     {
         $return = preg_replace_callback(
             [
-                // [^=][^"] is there so as not to match when used in a link on element attribute
-                '/[^=][^"]https:\/\/(?:www .)?vimeo.com\/([\d]+)/',
+                // (?!.*(?:")) is there so as not to match when used in a link on element attribute
+                '/(?!.*(?:"))https:\/\/(?:www .)?vimeo.com\/([\d]+)/',
                 '/<iframe.*src="(?:.+)?player.vimeo.com\/video\/(\d+).+".+<\/iframe>/'
             ],
             function ($matches) {
@@ -67,11 +69,14 @@ class VideoToImageLink
         $image_url = MAILOPTIN_ASSETS_URL . 'images/video-placeholder.png';
 
         if ( ! is_wp_error($result)) {
+
             $response = json_decode(wp_remote_retrieve_body($result), true);
 
-            $thumbnail = isset($response['thumbnail_url_with_play_button']) ? $response['thumbnail_url_with_play_button'] : $response['thumbnail_url'];
+            $thumbnail = isset($response['thumbnail_url_with_play_button']) ? $response['thumbnail_url_with_play_button'] : moVar($response, 'thumbnail_url', '');
 
-            $image_url = $this->url_upload_to_media($thumbnail, basename($response['thumbnail_url']));
+            if ( ! empty($thumbnail)) {
+                $image_url = $this->url_upload_to_media($thumbnail, basename($response['thumbnail_url']));
+            }
         }
 
         return sprintf('<div style="margin-top:5px;margin-bottom:5px"><a href="https://vimeo.com/%d" target="_blank"><img src="%s"></a></div>', $id, $image_url);
