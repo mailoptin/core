@@ -41,7 +41,7 @@ class Settings extends AbstractSettingsPage
 
     public function default_header_menu()
     {
-        return 'license';
+        return apply_filters('mailoptin_settings_default_header_menu', 'general');
     }
 
     public function header_menu_tabs()
@@ -49,10 +49,6 @@ class Settings extends AbstractSettingsPage
         $tabs = apply_filters('mailoptin_settings_header_menu_tabs', [
             10 => ['id' => 'general', 'url' => MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE, 'label' => esc_html__('Settings', 'wp-user-avatar')]
         ]);
-
-        if(!defined('MAILOPTIN_DETACH_LIBSODIUM')) {
-            $tabs[5] = ['id' => 'license', 'url' => add_query_arg(['view'=>'license'], MAILOPTIN_SETTINGS_SETTINGS_PAGE), 'label' => esc_html__('License', 'wp-user-avatar')];
-        }
 
         ksort($tabs);
 

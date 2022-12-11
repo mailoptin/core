@@ -8,16 +8,34 @@ class LicenseUpgrader
 {
     public function __construct()
     {
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+        add_action('plugins_loaded', function () {
 
-            add_action('mailoptin_admin_settings_page_license', [$this, 'admin_page']);
 
-            add_action('admin_enqueue_scripts', [$this, 'settings_enqueues']);
+            if ( ! class_exists('\MailOptin\Libsodium\Libsodium', false)) {
 
-            add_action('wp_ajax_mailoptin_connect_url', array($this, 'generate_url'));
-        }
+                add_filter('mailoptin_settings_header_menu_tabs', [$this, 'add_menu']);
 
-        add_action('wp_ajax_nopriv_mailoptin_connect_process', array($this, 'process'));
+                add_action('mailoptin_admin_settings_page_license', [$this, 'admin_page']);
+
+                add_action('admin_enqueue_scripts', [$this, 'settings_enqueues']);
+
+                add_action('wp_ajax_mailoptin_connect_url', array($this, 'generate_url'));
+
+                add_filter('mailoptin_settings_default_header_menu', function () {
+                    return 'license';
+                });
+            }
+
+            add_action('wp_ajax_nopriv_mailoptin_connect_process', [$this, 'process']);
+
+        });
+    }
+
+    public function add_menu($tabs)
+    {
+        $tabs[-1] = ['id' => 'license', 'url' => add_query_arg(['view' => 'license'], MAILOPTIN_SETTINGS_SETTINGS_PAGE), 'label' => esc_html__('License', 'wp-user-avatar')];
+
+        return $tabs;
     }
 
     public function admin_page()
@@ -187,7 +205,7 @@ class LicenseUpgrader
                         </li>
                     </ul>
 
-                    <a href="https://mailoptin.io/pricing/?discount=10PPOFF&utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page" class="button button-primary button-large mailoptin-upgrade-btn mailoptin-upgrade-btn-large" target="_blank" rel="noopener noreferrer">
+                    <a href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page" class="button button-primary button-large mailoptin-upgrade-btn mailoptin-upgrade-btn-large" target="_blank" rel="noopener noreferrer">
                         <?php esc_html_e('Upgrade to MailOptin Premium', 'wp-user-avatar'); ?>
                     </a>
                 </div>
@@ -255,20 +273,8 @@ class LicenseUpgrader
             wp_send_json_error(['message' => esc_html__('Please enter your license key to connect.', 'wp-user-avatar')]);
         }
 
-        if (ExtensionManager::is_premium()) {
+        if (class_exists('\MailOptin\Libsodium\Libsodium', false)) {
             wp_send_json_error(['message' => esc_html__('Only the Lite version can be upgraded.', 'wp-user-avatar')]);
-        }
-
-        $active = activate_plugin('profilepress-pro/profilepress-pro.php', false, false, true);
-
-        if ( ! is_wp_error($active)) {
-
-            update_option('mailoptin_license_key', $key);
-
-            wp_send_json_success([
-                'message' => \esc_html__('You already have MailOptin Pro installed! Activating it now', 'wp-user-avatar'),
-                'reload'  => true,
-            ]);
         }
 
         $oth = hash('sha512', wp_rand());
@@ -276,9 +282,9 @@ class LicenseUpgrader
         update_option('mailoptin_connect_token', $oth);
         update_option('mailoptin_license_key', $key);
 
-        $version  = PPRESS_VERSION_NUMBER;
+        $version  = MAILOPTIN_VERSION_NUMBER;
         $endpoint = admin_url('admin-ajax.php');
-        $redirect = PPRESS_SETTINGS_SETTING_GENERAL_PAGE;
+        $redirect = MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE;
         $url      = add_query_arg(
             [
                 'key'      => $key,
@@ -290,7 +296,7 @@ class LicenseUpgrader
                 'redirect' => rawurldecode(base64_encode($redirect)), // phpcs:ignore
                 'v'        => 1,
             ],
-            'https://upgrade.profilepress.com'
+            'https://upgrade.mailoptin.io'
         );
 
         wp_send_json_success(['url' => $url]);
@@ -302,7 +308,7 @@ class LicenseUpgrader
             sprintf(
             /* translators: %1$s Opening anchor tag, do not translate. %2$s Closing anchor tag, do not translate. */
                 __(
-                    'Oops! We could not automatically install an upgrade. Please download the plugin from profilepress.com and install it manually.',
+                    'Oops! We could not automatically install an upgrade. Please download the plugin from my.mailoptin.io and install it manually.',
                     'wp-user-avatar'
                 )
             ),
@@ -336,24 +342,13 @@ class LicenseUpgrader
         delete_option('mailoptin_connect_token');
 
         // Set the current screen to avoid undefined notices.
-        set_current_screen('profilepress_page_mailoptin-config');
+        set_current_screen('toplevel_page_mailoptin-settings');
 
-        $url = PPRESS_SETTINGS_SETTING_GENERAL_PAGE;
+        $url = MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE;
 
         // Verify pro not activated.
-        if (ExtensionManager::is_premium()) {
+        if (class_exists('\MailOptin\Libsodium\Libsodium', false)) {
             wp_send_json_success(esc_html__('Plugin installed & activated.', 'wp-user-avatar'));
-        }
-
-        // Verify pro not installed.
-        $active = activate_plugin('profilepress-pro/profilepress-pro.php', $url, false, true);
-
-        if ( ! is_wp_error($active)) {
-
-            wp_send_json_success([
-                'message'  => esc_html__('Plugin installed & activated.', 'wp-user-avatar'),
-                'code_err' => '3.5'
-            ]);
         }
 
         $creds = request_filesystem_credentials($url, '', false, false, null);
@@ -371,7 +366,7 @@ class LicenseUpgrader
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
         // Create the plugin upgrader with our custom skin.
-        $installer = new PluginSilentUpgrader(new PluginSilentUpgraderSkin());
+        $installer = $installer = new \Plugin_Upgrader(new \WP_Ajax_Upgrader_Skin());
 
         // Error check.
         if ( ! method_exists($installer, 'install')) {
@@ -385,7 +380,7 @@ class LicenseUpgrader
             ]);
         }
 
-        $installer->install($post_url);
+        $installer->install($post_url, ['overwrite_package' => true]);
 
         // Flush the cache and return the newly installed plugin basename.
         wp_cache_flush();
