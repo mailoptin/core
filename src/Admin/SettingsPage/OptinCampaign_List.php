@@ -428,7 +428,7 @@ class OptinCampaign_List extends \WP_List_Table
             'activated'  => __('Activated', 'mailoptin'),
             'impression' => __('Impression', 'mailoptin'),
             'conversion' => __('Subscribers', 'mailoptin'),
-            'percent'    => __('% Conversion', 'mailoptin'),
+            'percent'    => __('Conversion', 'mailoptin'),
         );
 
         return $columns;

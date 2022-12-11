@@ -67,26 +67,34 @@ abstract class AbstractSettingsPage
         ?>
 
         <div class="mailoptin-admin-wrap">
-            <div class="mo-admin-banner<?= defined('MAILOPTIN_SETTINGS_SETTINGS_PAGE') ? ' mailoptin-pro' : ' mailoptin-not-pro' ?><?= $submenus_count < 2 ? ' mailoptin-no-submenu' : '' ?>">
+            <div class="mo-admin-banner<?= defined('MAILOPTIN_DETACH_LIBSODIUM') ? ' mailoptin-pro' : ' mailoptin-not-pro' ?><?= $submenus_count < 2 ? ' mailoptin-no-submenu' : '' ?>">
                 <div class="mo-admin-banner__logo">
                     <img src="<?= $logo_url ?>" alt="">
                 </div>
                 <div class="mo-admin-banner__helplinks">
-                    <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
-                        <span class="dashicons dashicons-star-filled"></span> <?= __('Review', 'mailoptin'); ?>
-                    </a>
-                    <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
-                        <span class="dashicons dashicons-book"></span> <?= __('Documentation', 'mailoptin'); ?>
-                    </a>
                     <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
-                        <a rel="noopener" href="https://mailoptin.io/submit-ticket/" target="_blank">
-                            <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'mailoptin'); ?>
-                        </a>
+                        <span>
+                            <a rel="noopener" href="https://mailoptin.io/submit-ticket/" target="_blank">
+                                <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'mailoptin'); ?>
+                            </a>
+                        </span>
                     <?php else: ?>
-                        <a rel="noopener" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=topmenu">
-                            <span class="dashicons dashicons-admin-links"></span> <?= __('Premium Upgrade', 'mailoptin'); ?>
-                        </a>
+                        <span>
+                            <a class="mailoptin-right-nav-active" rel="noopener" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=topmenu">
+                                <span class="dashicons dashicons-admin-links"></span> <?= __('Premium Upgrade', 'mailoptin'); ?>
+                            </a>
+                        </span>
                     <?php endif; ?>
+                    <span>
+                        <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
+                            <span class="dashicons dashicons-book"></span> <?= __('Documentation', 'mailoptin'); ?>
+                        </a>
+                    </span>
+                    <span>
+                        <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
+                            <span class="dashicons dashicons-star-filled"></span> <?= __('Review', 'mailoptin'); ?>
+                        </a>
+                    </span>
                 </div>
                 <div class="clear"></div>
                 <?php $this->settings_page_header_menus($active_menu); ?>
@@ -323,8 +331,6 @@ abstract class AbstractSettingsPage
             '10%', '<code>10PERCENTOFF</code>', '<a style="text-decoration:none" target="_blank" href="' . $upsell_url . '">', '</a>'
         );
         $content .= '</p>';
-
-        $content .= '<a href="' . $upsell_url . '" target="__blank" class="button-primary">' . esc_html__('Get MailOptin Premium →', 'mailoptin') . '</a>';
 
         $content .= '<ul>';
 

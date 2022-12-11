@@ -792,7 +792,7 @@ HTML;
                         'settings'    => $this->option_prefix . '[company_name_shortcode]',
                         'description' => sprintf(
                             __('Your company name as defined in <a target="_blank" href="%s">settings</a>', 'mailoptin'),
-                            MAILOPTIN_SETTINGS_SETTINGS_PAGE . '#email_campaign_settings'
+                            MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#email_campaign_settings'
                         ),
                         'priority'    => 170
                     )
@@ -807,7 +807,7 @@ HTML;
                         'settings'    => $this->option_prefix . '[company_address_shortcode]',
                         'description' => sprintf(
                             __('Your company address as defined in <a target="_blank" href="%s">settings</a>', 'mailoptin'),
-                            MAILOPTIN_SETTINGS_SETTINGS_PAGE . '#email_campaign_settings'
+                            MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#email_campaign_settings'
                         ),
                         'priority'    => 180
                     )
@@ -822,7 +822,7 @@ HTML;
                         'settings'    => $this->option_prefix . '[company_address_2_shortcode]',
                         'description' => sprintf(
                             __('Company address 2 defined in <a target="_blank" href="%s">settings</a>', 'mailoptin'),
-                            MAILOPTIN_SETTINGS_SETTINGS_PAGE . '#email_campaign_settings'
+                            MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#email_campaign_settings'
                         ),
                         'priority'    => 180
                     )
@@ -837,7 +837,7 @@ HTML;
                         'settings'    => $this->option_prefix . '[company_city_shortcode]',
                         'description' => sprintf(
                             __('Your company city as defined in <a target="_blank" href="%s">settings</a>', 'mailoptin'),
-                            MAILOPTIN_SETTINGS_SETTINGS_PAGE . '#email_campaign_settings'
+                            MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#email_campaign_settings'
                         ),
                         'priority'    => 190
                     )
@@ -852,7 +852,7 @@ HTML;
                         'settings'    => $this->option_prefix . '[company_state_shortcode]',
                         'description' => sprintf(
                             __('Your company state as defined in <a target="_blank" href="%s">settings</a>', 'mailoptin'),
-                            MAILOPTIN_SETTINGS_SETTINGS_PAGE . '#email_campaign_settings'
+                            MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#email_campaign_settings'
                         ),
                         'priority'    => 200
                     )
@@ -867,7 +867,7 @@ HTML;
                         'settings'    => $this->option_prefix . '[company_zip_shortcode]',
                         'description' => sprintf(
                             __('Zip or postal code as defined in <a target="_blank" href="%s">settings</a>', 'mailoptin'),
-                            MAILOPTIN_SETTINGS_SETTINGS_PAGE . '#email_campaign_settings'
+                            MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#email_campaign_settings'
                         ),
                         'priority'    => 210
                     )
@@ -882,7 +882,7 @@ HTML;
                         'settings'    => $this->option_prefix . '[company_country_shortcode]',
                         'description' => sprintf(
                             __('Your company country defined in <a target="_blank" href="%s">settings</a>', 'mailoptin'),
-                            MAILOPTIN_SETTINGS_SETTINGS_PAGE . '#email_campaign_settings'
+                            MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#email_campaign_settings'
                         ),
                         'priority'    => 220
                     )

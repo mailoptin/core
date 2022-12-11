@@ -1015,7 +1015,11 @@ form.mo-inline {
     position: relative;
     top: 0;
     width: 100%;
-    padding: 15px;
+    padding: 0;
+}
+
+.mo-admin-banner.mailoptin-no-submenu {
+    padding-bottom: 15px;
 }
 
 .mailoptin-admin .wrap {
@@ -1035,7 +1039,7 @@ form.mo-inline {
 }
 
 .mo-admin-banner__helplinks a {
-    color: #ffffffe3;
+    color: rgba(255,255,255,.92);
     text-decoration: none;
     padding-right: 15px;
 }
@@ -1044,17 +1048,6 @@ form.mo-inline {
     position: absolute;
     right: 0;
     z-index: 9;
-}
-
-.mailoptin-admin .mo-admin-banner {
-    /*background-color: #326ee0;*/
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    overflow: hidden;
-    position: relative;
-    top: 0;
-    width: 100%;
-    padding: 15px;
 }
 
 .mailoptin-admin .mailoptin-admin-wrap {
@@ -1089,7 +1082,7 @@ form.mo-inline {
 
 .mailoptin-admin .mo-admin-banner__helplinks {
     float: right;
-    padding: 10px 20px 20px;
+    padding: 15px 20px 20px;
 }
 
 .mailoptin-admin .mo-admin-banner__helplinks a.mailoptin-active {
@@ -1101,6 +1094,13 @@ form.mo-inline {
 
 .mailoptin-admin .mo-admin-banner__helplinks > span {
     padding-right: 15px
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks a.mailoptin-right-nav-active {
+    background: #fff;
+    padding: 5px;
+    color: #098fe2;
+    border-radius: 4px;
 }
 
 .mailoptin-admin .mailoptin-nav-tab-wrapper {
@@ -1125,10 +1125,6 @@ form.mo-inline {
     color: #2d3559;
     border-color: #fff;
     border-radius: 4px 4px 0 0
-}
-
-.mo-admin-banner.mailoptin-not-pro {
-    padding-bottom: 0
 }
 
 /* end stylish header */
