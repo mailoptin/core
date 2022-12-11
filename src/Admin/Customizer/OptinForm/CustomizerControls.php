@@ -1002,7 +1002,7 @@ class CustomizerControls
                             'label'       => __('Remove MailOptin Branding', 'mailoptin'),
                             'description' => sprintf(
                                 __('%sSet your affiliate link%s and make money with branding.', 'mailoptin'),
-                                '<a href="' . MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#mailoptin_affiliate_url_row" target="_blank">',
+                                '<a href="' . MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#general_settings?mailoptin_affiliate_url_row" target="_blank">',
                                 '</a>'
                             ),
                             'section'     => $this->customizerClassInstance->configuration_section_id,

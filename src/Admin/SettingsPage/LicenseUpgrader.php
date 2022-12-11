@@ -136,7 +136,9 @@ class LicenseUpgrader
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('Advanced Page-level Targeting', 'mailoptin'); ?>
+                            <a href="https://mailoptin.io/lead-generation-wordpress/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page#display-rules" target="_blank" rel="noopener noreferrer">
+                                <?php esc_html_e('Advanced Display Rules', 'mailoptin'); ?>
+                            </a>
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
@@ -152,19 +154,20 @@ class LicenseUpgrader
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('WooCommerce Display Rules', 'mailoptin'); ?>
+                            <a href="https://mailoptin.io/integrations/woocommerce/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page" target="_blank" rel="noopener noreferrer">
+                                <?php esc_html_e('WooCommerce Display Rules', 'mailoptin'); ?>
+                            </a>
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('Email to List Subscribers', 'mailoptin'); ?>
+                            <a href="https://mailoptin.io/email-automation/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page" target="_blank" rel="noopener noreferrer">
+                                <?php esc_html_e('Email List Subscribers', 'mailoptin'); ?>
+                            </a>
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('Emails MemberPress members', 'mailoptin'); ?>
-                        </li>
-                        <li>
-                            <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('Advanced analytics &amp; reports', 'mailoptin'); ?>
+
+                            <?php esc_html_e('Advanced Analytics & Reports', 'mailoptin'); ?>
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
@@ -176,15 +179,11 @@ class LicenseUpgrader
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('Form plugins integration', 'mailoptin'); ?>
+                            <?php esc_html_e('Form plugins Integration', 'mailoptin'); ?>
                         </li>
                         <li>
                             <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('Google Analytics integration', 'mailoptin'); ?>
-                        </li>
-                        <li>
-                            <div class="dashicons dashicons-yes"></div>
-                            <?php esc_html_e('And lots more', 'mailoptin'); ?>
+                            <?php esc_html_e('Google Analytics Integration', 'mailoptin'); ?>
                         </li>
                     </ul>
 
