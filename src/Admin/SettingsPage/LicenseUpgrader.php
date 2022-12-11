@@ -252,7 +252,7 @@ class LicenseUpgrader
         wp_enqueue_script(
             'mailoptin-license-connect',
             MAILOPTIN_ASSETS_URL . "/js/admin/license.js",
-            ['jquery'],
+            ['jquery', 'wp-util'],
             MAILOPTIN_VERSION_NUMBER,
             true
         );
