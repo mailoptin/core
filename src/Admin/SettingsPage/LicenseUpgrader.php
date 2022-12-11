@@ -366,7 +366,7 @@ class LicenseUpgrader
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
         // Create the plugin upgrader with our custom skin.
-        $installer = $installer = new \Plugin_Upgrader(new \WP_Ajax_Upgrader_Skin());
+        $installer = new \Plugin_Upgrader(new \WP_Ajax_Upgrader_Skin());
 
         // Error check.
         if ( ! method_exists($installer, 'install')) {
