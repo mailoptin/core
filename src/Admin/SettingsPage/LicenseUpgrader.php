@@ -280,7 +280,7 @@ class LicenseUpgrader
         $oth = hash('sha512', wp_rand());
 
         update_option('mailoptin_connect_token', $oth);
-        update_option('mailoptin_license_key', $key);
+        update_option('mo_license_key', $key);
 
         $version  = MAILOPTIN_VERSION_NUMBER;
         $endpoint = admin_url('admin-ajax.php');
@@ -363,6 +363,18 @@ class LicenseUpgrader
         // Do not allow WordPress to search/download translations, as this will break JS output.
         remove_action('upgrader_process_complete', ['Language_Pack_Upgrader', 'async_upgrade'], 20);
 
+        $upgrader = ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+
+        if ( ! file_exists($upgrader)) {
+            wp_send_json_error(
+                array(
+                    'message' => $error,
+                )
+            );
+        }
+
+        require_once $upgrader;
+
         // Create the plugin upgrader with our custom skin.
         $installer = new \Plugin_Upgrader(new \WP_Ajax_Upgrader_Skin());
 
@@ -371,7 +383,7 @@ class LicenseUpgrader
             wp_send_json_error(['message' => $error, 'code_err' => '5']);
         }
 
-        $license = get_option('mailoptin_license_key', '');
+        $license = get_option('mo_license_key', '');
 
         if (empty($license)) {
             wp_send_json_error([

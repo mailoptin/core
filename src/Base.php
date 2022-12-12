@@ -91,6 +91,13 @@ class Base
 
         add_filter('wpmu_drop_tables', [$this, 'wpmu_drop_tables']);
 
+        // handles edge case where register activation isn't triggered especially after upgrader
+        add_action('admin_init', function () {
+            if (get_option('mo_plugin_activated') != 'true') {
+                RegisterActivation\Base::run_install();
+            }
+        });
+
         RegisterScripts::get_instance();
         AjaxHandler::get_instance();
         Cron::get_instance();
