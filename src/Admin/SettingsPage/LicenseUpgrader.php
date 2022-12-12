@@ -203,6 +203,18 @@ class LicenseUpgrader
                             <div class="dashicons dashicons-yes"></div>
                             <?php esc_html_e('Google Analytics Integration', 'mailoptin'); ?>
                         </li>
+                        <li>
+                            <div class="dashicons dashicons-yes"></div>
+                            <a href="https://mailoptin.io/lead-generation-wordpress/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page" target="_blank" rel="noopener noreferrer">
+                                <?php esc_html_e('More Lead Generation Features', 'mailoptin'); ?>
+                            </a>
+                        </li>
+                        <li>
+                            <div class="dashicons dashicons-yes"></div>
+                            <a href="https://mailoptin.io/email-automation/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page" target="_blank" rel="noopener noreferrer">
+                                <?php esc_html_e('More Email Automation Features', 'mailoptin'); ?>
+                            </a>
+                        </li>
                     </ul>
 
                     <a href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page" class="button button-primary button-large mailoptin-upgrade-btn mailoptin-upgrade-btn-large" target="_blank" rel="noopener noreferrer">
