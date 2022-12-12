@@ -323,8 +323,6 @@ class LicenseUpgrader
         $post_oth = ! empty($_REQUEST['oth']) ? sanitize_text_field($_REQUEST['oth']) : '';
         $post_url = ! empty($_REQUEST['file']) ? esc_url_raw($_REQUEST['file']) : '';
 
-        $license = get_option('mailoptin_license_key', '');
-
         if (empty($post_oth) || empty($post_url)) {
             wp_send_json_error(['message' => $error, 'code_err' => '1']);
         }
@@ -372,6 +370,8 @@ class LicenseUpgrader
         if ( ! method_exists($installer, 'install')) {
             wp_send_json_error(['message' => $error, 'code_err' => '5']);
         }
+
+        $license = get_option('mailoptin_license_key', '');
 
         if (empty($license)) {
             wp_send_json_error([
