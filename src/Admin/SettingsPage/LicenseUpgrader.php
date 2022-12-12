@@ -401,6 +401,8 @@ class LicenseUpgrader
 
         if ($plugin_basename) {
 
+            update_option('mo_upgrader_success_flag', 'true');
+
             // Activate the plugin silently.
             $activated = activate_plugin($plugin_basename, '', false, true);
 

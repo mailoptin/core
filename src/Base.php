@@ -19,6 +19,7 @@ use MailOptin\Core\OptinForms\FrontEndOutput;
 use MailOptin\Core\OptinForms\InPost;
 use MailOptin\Core\OptinForms\Recaptcha;
 use MailOptin\Core\OptinForms\Shortcodes;
+use MailOptin\Libsodium\LibsodiumSettingsPage;
 
 define('MAILOPTIN_OAUTH_URL', 'https://auth.mailoptin.io');
 
@@ -95,6 +96,12 @@ class Base
         add_action('admin_init', function () {
             if (get_option('mo_plugin_activated') != 'true') {
                 RegisterActivation\Base::run_install();
+            }
+
+            if (get_option('mo_upgrader_success_flag') == 'true') {
+                delete_option('mo_upgrader_success_flag');
+                if (class_exists('\MailOptin\Libsodium\LibsodiumSettingsPage'))
+                    LibsodiumSettingsPage::activate_license(get_option('mo_license_key', ''));
             }
         });
 
