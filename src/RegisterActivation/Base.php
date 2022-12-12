@@ -4,7 +4,7 @@ namespace MailOptin\Core\RegisterActivation;
 
 class Base
 {
-    public static function run_install($networkwide)
+    public static function run_install($networkwide = false)
     {
         if (is_multisite() && $networkwide) {
 

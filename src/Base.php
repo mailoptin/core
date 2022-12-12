@@ -10,6 +10,7 @@ use MailOptin\Core\Admin\AdminNotices;
 use MailOptin\Core\Admin\SettingsPage\ConversionExport;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
+use MailOptin\Core\Admin\SettingsPage\LicenseUpgrader;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
 use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
@@ -18,6 +19,7 @@ use MailOptin\Core\OptinForms\FrontEndOutput;
 use MailOptin\Core\OptinForms\InPost;
 use MailOptin\Core\OptinForms\Recaptcha;
 use MailOptin\Core\OptinForms\Shortcodes;
+use MailOptin\Libsodium\LibsodiumSettingsPage;
 
 define('MAILOPTIN_OAUTH_URL', 'https://auth.mailoptin.io');
 
@@ -62,6 +64,7 @@ define('MAILOPTIN_LEAD_BANK_SETTINGS_SLUG', 'mailoptin-lead-bank');
 define('MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG', 'mailoptin-statistics');
 
 define('MAILOPTIN_SETTINGS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_SETTINGS_SETTINGS_SLUG));
+define('MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE', add_query_arg(['view' => 'general'], MAILOPTIN_SETTINGS_SETTINGS_PAGE));
 define('MAILOPTIN_CONNECTIONS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_CONNECTIONS_SETTINGS_SLUG));
 define('MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE', admin_url('admin.php?page=' . MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG));
 define('MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE', add_query_arg('view', MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE));
@@ -88,6 +91,19 @@ class Base
         add_action('activate_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
 
         add_filter('wpmu_drop_tables', [$this, 'wpmu_drop_tables']);
+
+        // handles edge case where register activation isn't triggered especially after upgrader
+        add_action('admin_init', function () {
+            if (get_option('mo_plugin_activated') != 'true') {
+                RegisterActivation\Base::run_install();
+            }
+
+            if (get_option('mo_upgrader_success_flag') == 'true') {
+                delete_option('mo_upgrader_success_flag');
+                if (class_exists('\MailOptin\Libsodium\LibsodiumSettingsPage'))
+                    LibsodiumSettingsPage::activate_license(get_option('mo_license_key', ''));
+            }
+        });
 
         RegisterScripts::get_instance();
         AjaxHandler::get_instance();
@@ -144,6 +160,7 @@ class Base
         AdminNotices::get_instance();
         ConversionExport::get_instance();
         ProUpgrade::get_instance();
+        LicenseUpgrader::get_instance();
         \MoBFnote::instance();
 
         do_action('mailoptin_admin_hooks');

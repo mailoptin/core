@@ -1015,7 +1015,11 @@ form.mo-inline {
     position: relative;
     top: 0;
     width: 100%;
-    padding: 15px;
+    padding: 0;
+}
+
+.mo-admin-banner.mailoptin-no-submenu {
+    padding-bottom: 15px;
 }
 
 .mailoptin-admin .wrap {
@@ -1034,20 +1038,8 @@ form.mo-inline {
     margin: 0 -20px 20px;
 }
 
-.mailoptin-admin .mo-admin-banner__logo img {
-    width: 200px;
-    height: auto;
-    float: left;
-    margin-top: 5px;
-}
-
-.mo-admin-banner__helplinks {
-    float: right;
-    padding: 20px;
-}
-
 .mo-admin-banner__helplinks a {
-    color: #ffffffe3;
+    color: rgba(255,255,255,.92);
     text-decoration: none;
     padding-right: 15px;
 }
@@ -1057,6 +1049,85 @@ form.mo-inline {
     right: 0;
     z-index: 9;
 }
+
+.mailoptin-admin .mailoptin-admin-wrap {
+    /*margin-bottom: 10px;*/
+}
+
+.mailoptin-admin .mo-admin-banner.mailoptin-pro {
+    padding: 15px 15px 0;
+}
+
+.mailoptin-admin .mo-admin-banner.mailoptin-pro.mailoptin-no-submenu {
+    padding-bottom: 15px
+}
+
+.mailoptin-admin .wrap {
+    padding-left: 20px;
+    margin: 0 20px 0 2px
+}
+
+.mailoptin-admin .mo-admin-banner__logo {
+    padding: 0 0 15px;
+    display: block
+}
+
+.mailoptin-admin .mo-admin-banner__logo img {
+    width: 140px;
+    height: auto;
+    float: left;
+    margin-top: 25px;
+    padding-left: 15px
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks {
+    float: right;
+    padding: 15px 20px 20px;
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks a.mailoptin-active {
+    background: #fff;
+    padding: 5px;
+    color: #326ee0;
+    border-radius: 4px
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks > span {
+    padding-right: 15px
+}
+
+.mailoptin-admin .mo-admin-banner__helplinks a.mailoptin-right-nav-active {
+    background: #fff;
+    padding: 5px;
+    color: #098fe2;
+    border-radius: 4px;
+}
+
+.mailoptin-admin .mailoptin-nav-tab-wrapper {
+    padding: 0;
+    margin: 10px 16px 0;
+    border-bottom: 0
+}
+
+.mailoptin-admin .mailoptin-nav-tab-wrapper .mailoptin-nav-tab {
+    display: block;
+    font-weight: 500;
+    padding: 5px 12px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: rgba(255, 255, 255, .92);
+    margin: 0
+}
+
+.mailoptin-admin .mailoptin-nav-tab-wrapper .mailoptin-nav-tab.mailoptin-nav-active {
+    background-color: #fff;
+    color: #2d3559;
+    border-color: #fff;
+    border-radius: 4px 4px 0 0
+}
+
+/* end stylish header */
 
 /* add new email */
 .mo-design-gateway {
@@ -1467,4 +1538,142 @@ form.mo-inline {
     -webkit-mask-repeat: no-repeat;
     mask-position: left;
     -webkit-mask-position: left;
+}
+
+/*lite license page */
+.mailoptin-lite-license-wrap .mailoptin-license-field {
+    display: flex;
+    align-items: center;
+}
+
+.wp-core-ui .mailoptin-lite-license-wrap .button.mailoptin-license-button.button-secondary {
+    font-size: 1rem;
+    line-height: 1;
+    margin: 0 8px;
+    padding: 13px;
+}
+
+.mailoptin-lite-license-wrap .mailoptin-license-message {
+    font-size: 15px;
+    margin-top: 8px;
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade {
+    margin-top: 20px;
+    padding: 1px;
+    position: relative;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 20%), 0 5px 10px rgb(0 0 0 / 10%);
+    max-width: 680px;
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade__inner {
+    text-align: center;
+    margin: 0;
+    padding: 30px;
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade h3 {
+    line-height: 1.5;
+    font-size: 22px;
+    margin: 0 0 1.5rem;
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade ul {
+    margin: 1.5rem 0 calc(1.5rem - 6px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center
+}
+
+@media screen and (min-width: 782px) {
+    .mailoptin-lite-license-wrap .mailoptin-settings-upgrade ul {
+        margin-left: 4rem;
+        margin-right: 4rem
+    }
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade li {
+    font-size: 15px;
+    margin: 6px 0;
+    width: 100%
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade li a {
+    color: #3c434a;
+    text-decoration: none
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade li a:hover {
+    color: var(--wp-admin-theme-color);
+    text-decoration: underline
+}
+
+@media screen and (min-width: 782px) {
+    .mailoptin-lite-license-wrap .mailoptin-settings-upgrade li {
+        text-align: left;
+        width: 50%
+    }
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade .button.button-large {
+    font-size: 17px;
+    line-height: 30px;
+    padding: 10px 20px
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade .mailoptin-upgrade-btn-subtext {
+    text-align: center;
+    margin: 0;
+    padding: 30px 20px 20px;
+    background-color: #fcf9e8;
+    border: 1px solid #edeac9;
+    border-width: 1px 0 0;
+    position: relative;
+    border-radius: 0;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    color: #3c434a;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+@media screen and (min-width: 782px) {
+    .mailoptin-lite-license-wrap .mailoptin-settings-upgrade .mailoptin-upgrade-btn-subtext {
+        padding-left: 4rem;
+        padding-right: 4rem
+    }
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade .mailoptin-upgrade-btn-subtext svg {
+    background: #00a32a;
+    fill: #fff;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    box-shadow: 0 0 0 1px #edeac9;
+    width: 28px;
+    height: 28px;
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    margin-left: -18px
+}
+
+.mailoptin-lite-license-wrap .mailoptin-upgrade-btn-subtext a {
+    text-decoration: none;
+    display: block;
+    margin-top: 6px;
+    font-weight: bold;
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade .mailoptin-upgrade-btn-subtext a {
+    font-weight: normal;
+    display: inline-block;
+}
+
+.mailoptin-lite-license-wrap .mailoptin-settings-upgrade .mailoptin-upgrade-btn-subtext u {
+    text-decoration: none;
+    font-weight: bold;
+    color: #00a32a;
 }

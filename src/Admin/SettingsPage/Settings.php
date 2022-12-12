@@ -23,6 +23,8 @@ class Settings extends AbstractSettingsPage
         add_action('admin_init', [$this, 'clear_optin_cache']);
 
         add_action('admin_init', [$this, 'install_missing_db_tables']);
+
+        add_action('mailoptin_admin_settings_page_general', [$this, 'settings_admin_page_callback']);
     }
 
     public function register_settings_page()
@@ -33,8 +35,24 @@ class Settings extends AbstractSettingsPage
             __('Settings', 'mailoptin'),
             \MailOptin\Core\get_capability(),
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            array($this, 'settings_admin_page_callback')
+            array($this, 'admin_page_callback')
         );
+    }
+
+    public function default_header_menu()
+    {
+        return apply_filters('mailoptin_settings_default_header_menu', 'general');
+    }
+
+    public function header_menu_tabs()
+    {
+        $tabs = apply_filters('mailoptin_settings_header_menu_tabs', [
+            10 => ['id' => 'general', 'url' => MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE, 'label' => esc_html__('Settings', 'wp-user-avatar')]
+        ]);
+
+        ksort($tabs);
+
+        return $tabs;
     }
 
     /**
@@ -47,7 +65,7 @@ class Settings extends AbstractSettingsPage
         if (isset($_GET['clear-optin-cache']) && $_GET['clear-optin-cache'] == 'true' && \MailOptin\Core\current_user_has_privilege()) {
             check_admin_referer('mo_clear_optin_cache');
             OptinCampaignsRepository::burst_all_cache();
-            wp_safe_redirect(add_query_arg('optin-cache', 'cleared', MAILOPTIN_SETTINGS_SETTINGS_PAGE));
+            wp_safe_redirect(add_query_arg('optin-cache', 'cleared', MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE));
             exit;
         }
     }
@@ -243,18 +261,10 @@ class Settings extends AbstractSettingsPage
             }
 
             $instance->persist_plugin_settings();
-            $this->register_core_settings($instance);
             $instance->do_settings_errors();
             settings_errors('wp_csa_notice');
             echo '<div class="wrap">';
             $instance->settings_page_heading();
-            if(!defined('MAILOPTIN_DETACH_LIBSODIUM')) {
-            ?>
-            <div id="poststuff">
-            <div id="post-body" class="metabox-holder columns-2">
-            <div id="post-body-content" style="position: relative;">
-            <?php
-            }
             echo '<div class="mailoptin-settings-wrap" data-option-name="' . MAILOPTIN_SETTINGS_DB_OPTION_NAME . '">';
             echo '<h2 class="nav-tab-wrapper">' . $nav_tabs . '</h2>';
             echo '<div class="metabox-holder mailoptin-tab-settings">';
@@ -265,18 +275,6 @@ class Settings extends AbstractSettingsPage
             echo '</div>';
             echo '</div>';
             echo '</div>';
-            if(!defined('MAILOPTIN_DETACH_LIBSODIUM')) {
-            ?>
-            <div id="postbox-container-1" class="postbox-container">
-                <div id="side-sortables" class="meta-box-sortables ui-sortable">
-                    <?php $this->sidebar_metaboxes(); ?>
-                </div>
-            </div>
-            <?php
-            echo '</div>';
-            echo '</div>';
-            echo '</div>';
-            }
 
             do_action('mailoptin_after_settings_page', MAILOPTIN_SETTINGS_DB_OPTION_NAME);
         }
@@ -308,7 +306,7 @@ class Settings extends AbstractSettingsPage
 
             CreateDBTables::make();
 
-            wp_safe_redirect(add_query_arg('settings-updated', 'true', MAILOPTIN_SETTINGS_SETTINGS_PAGE));
+            wp_safe_redirect(add_query_arg('settings-updated', 'true', MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE));
             exit;
         }
     }

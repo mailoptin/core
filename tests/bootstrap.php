@@ -43,4 +43,4 @@ if (!defined('MAILOPTIN_SYSTEM_FILE_PATH')) {
 }
 
 MailOptin\Core\Core::get_instance();
-MailOptin\Core\RegisterActivation\Base::run_install();
+MailOptin\Core\RegisterActivation\Base::run_install(false);
