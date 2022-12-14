@@ -226,14 +226,16 @@ abstract class AbstractConnect
      * return link to email service/connect specific optin error log.
      *
      * @param string $filename log file name.
+     * @param bool $raw_url
      *
      * @return string
      */
-    public static function get_optin_error_log_link($filename = 'error')
+    public static function get_optin_error_log_link($filename = 'error', $raw_url = false)
     {
         if ( ! self::has_optin_error_log($filename)) {
-            return;
+            return '';
         }
+
 
         $url = esc_url(
             add_query_arg(
@@ -242,6 +244,8 @@ abstract class AbstractConnect
                 admin_url('admin-ajax.php?action=mailoptin_view_error_log&file=' . $filename)
             )
         );
+
+        if ($raw_url) return $url;
 
         return sprintf(
             __('%sView Error Log%s', 'mailoptin'),
