@@ -25,7 +25,7 @@ class Cron
     {
         if ( ! wp_next_scheduled('mo_hourly_recurring_job')) {
             // we are adding 10 mins to give room for timestamp/hourly checking to be correct.
-            $tz = Carbon::now(0)->endOfHour()->addMinute(10)->timestamp;
+            $tz = Carbon::now('UTC')->endOfHour()->addMinute(10)->timestamp;
 
             wp_schedule_event($tz, 'hourly', 'mo_hourly_recurring_job');
         }
