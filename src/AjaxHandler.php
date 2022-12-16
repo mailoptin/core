@@ -1156,7 +1156,7 @@ class AjaxHandler
             stripslashes(sanitize_text_field($_POST['custom_fields'])), true
         );
 
-        $custom_fields['system_fields'] = \MailOptin\Core\system_form_fields();
+        $custom_fields['system_fields'] = system_form_fields();
 
         $merge_fields = ConnectionFactory::make($connection)->get_optin_fields($list_id);
 

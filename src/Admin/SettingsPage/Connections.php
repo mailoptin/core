@@ -281,8 +281,8 @@ class Connections extends AbstractSettingsPage
     {
         // handle oauth errors.
         if (isset($_GET['mo-oauth-provider'], $_GET['mo-oauth-error'])) {
-            $provider      = ucfirst(sanitize_text_field($_GET['mo-oauth-provider']));
-            $error_message = strtolower(sanitize_text_field($_GET['mo-oauth-error']));
+            $provider      = ucfirst(esc_html($_GET['mo-oauth-provider']));
+            $error_message = strtolower(esc_html($_GET['mo-oauth-error']));
 
             echo '<div id="message" class="updated notice is-dismissible">';
             echo '<p>';

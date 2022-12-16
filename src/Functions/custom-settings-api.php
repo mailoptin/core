@@ -585,7 +585,7 @@ class Custom_Settings_Page_Api
     {
         $key         = sanitize_key($key);
         $label       = esc_attr($args['label']);
-        $defvalue    = sanitize_text_field(@$args['value']);
+        $defvalue    = esc_html(@$args['value']);
         $description = @$args['description'];
         $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
         $option_name = $this->option_name;
@@ -665,7 +665,7 @@ class Custom_Settings_Page_Api
     {
         $key         = esc_attr($key);
         $label       = esc_attr($args['label']);
-        $defvalue    = sanitize_text_field(@$args['value']);
+        $defvalue    = esc_attr(@$args['value']);
         $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
         $description = @$args['description'];
         $option_name = $this->option_name;
@@ -699,7 +699,7 @@ class Custom_Settings_Page_Api
     {
         $key         = esc_attr($key);
         $label       = esc_attr($args['label']);
-        $defvalue    = sanitize_text_field(@$args['value']);
+        $defvalue    = esc_html(@$args['value']);
         $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
         $disabled    = isset($args['disabled']) && $args['disabled'] === true ? 'disabled="disabled"' : '';
         $description = @$args['description'];
@@ -941,7 +941,7 @@ class Custom_Settings_Page_Api
         $label          = esc_attr($args['label']);
         $description    = @$args['description'];
         $tr_id          = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
-        $checkbox_label = ! empty($args['checkbox_label']) ? sanitize_text_field($args['checkbox_label']) : __('Activate', 'mailoptin');
+        $checkbox_label = ! empty($args['checkbox_label']) ? esc_html($args['checkbox_label']) : __('Activate', 'mailoptin');
         $value          = ! empty($args['value']) ? esc_attr($args['value']) : 'true';
         $option_name    = $this->option_name;
         ob_start();

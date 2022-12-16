@@ -657,7 +657,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
             $atts
         );
 
-        $tag = sanitize_text_field($atts['tag']);
+        $tag = esc_html($atts['tag']);
 
         $class = "mo-optin-form-headline " . esc_attr($atts['class']);
 
@@ -1036,11 +1036,11 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                 foreach ($saved_values as $index => $field) {
                     $optin_css_id = $this->optin_css_id;
-                    $field_type   = empty($field['field_type']) ? 'text' : sanitize_text_field($field['field_type']);
+                    $field_type   = empty($field['field_type']) ? 'text' : esc_html($field['field_type']);
                     $field_styles = $this->custom_field_styles($field);
 
-                    $field_id    = sanitize_text_field($field['cid']);
-                    $placeholder = isset($field['placeholder']) ? sanitize_text_field($field['placeholder']) : '';
+                    $field_id    = esc_html($field['cid']);
+                    $placeholder = isset($field['placeholder']) ? esc_html($field['placeholder']) : '';
 
                     $style = esc_attr($atts['style']);
                     $style = "$field_styles $style";

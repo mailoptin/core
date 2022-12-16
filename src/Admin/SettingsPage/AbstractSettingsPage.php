@@ -122,12 +122,12 @@ abstract class AbstractSettingsPage
             <nav class="mailoptin-nav-tab-wrapper nav-tab-wrapper">
                 <?php foreach ($menus as $menu) : ?>
                     <?php
-                    $id                             = sanitize_text_field(moVar($menu, 'id', ''));
+                    $id                             = esc_attr(moVar($menu, 'id', ''));
                     $url                            = esc_url_raw(! empty($menu['url']) ? $menu['url'] : add_query_arg('view', $id));
                     self::$parent_menu_url_map[$id] = $url;
                     ?>
                     <a href="<?php echo esc_url(remove_query_arg(wp_removable_query_args(), $url)); ?>" class="mailoptin-nav-tab nav-tab<?= $id == $active_menu ? ' mailoptin-nav-active' : '' ?>">
-                        <?php echo sanitize_text_field($menu['label']) ?>
+                        <?php echo esc_attr($menu['label']) ?>
                     </a>
                 <?php endforeach; ?>
             </nav>
