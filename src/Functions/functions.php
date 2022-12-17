@@ -245,20 +245,40 @@ function array_flatten($zarray, $ignore_index = false)
 
 function get_ip_address()
 {
-    $ip = '127.0.0.1';
+    $user_ip = '127.0.0.1';
 
-    if ( ! empty($_SERVER['HTTP_CLIENT_IP'])) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif ( ! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } elseif ( ! empty($_SERVER['REMOTE_ADDR'])) {
-        $ip = $_SERVER['REMOTE_ADDR'];
+    $keys = array(
+        'HTTP_CLIENT_IP',
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_X_FORWARDED',
+        'HTTP_X_CLUSTER_CLIENT_IP',
+        'HTTP_FORWARDED_FOR',
+        'HTTP_FORWARDED',
+        'REMOTE_ADDR',
+    );
+
+    foreach ($keys as $key) {
+        // Bail if the key doesn't exists.
+        if ( ! isset($_SERVER[$key])) {
+            continue;
+        }
+
+        if ($key == 'HTTP_X_FORWARDED_FOR' && ! empty($_SERVER[$key])) {
+            //to check ip is pass from proxy
+            // can include more than 1 ip, first is the public one
+            $_SERVER[$key] = explode(',', $_SERVER[$key]);
+            $_SERVER[$key] = $_SERVER[$key][0];
+        }
+
+        // Bail if the IP is not valid.
+        if ( ! filter_var(wp_unslash(trim($_SERVER[$key])), FILTER_VALIDATE_IP)) {
+            continue;
+        }
+
+        $user_ip = str_replace('::1', '127.0.0.1', $_SERVER[$key]);
     }
 
-    // Fix potential CSV returned from $_SERVER variables
-    $ip_array = array_map('trim', explode(',', $ip));
-
-    return $ip_array[0] != '::1' ? $ip_array[0] : '';
+    return apply_filters('ppress_get_ip', $user_ip);
 }
 
 /**
