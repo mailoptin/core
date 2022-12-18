@@ -304,6 +304,8 @@ class Settings extends AbstractSettingsPage
 
             check_admin_referer('mo_install_missing_db_tables');
 
+            delete_option('mo_db_ver');
+
             CreateDBTables::make();
 
             wp_safe_redirect(add_query_arg('settings-updated', 'true', MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE));
