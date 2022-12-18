@@ -304,22 +304,21 @@ abstract class AbstractSettingsPage
             esc_html__('Notification Bar optin', 'mailoptin'),
             esc_html__('Slide-in / Scroll-trigger optin', 'mailoptin'),
             esc_html__('Optin A/B split testing', 'mailoptin'),
-            esc_html__('Create user registration form popups', 'mailoptin'),
             esc_html__('Advanced page-level targeting rules', 'mailoptin'),
             esc_html__('Powerful content locking', 'mailoptin'),
             esc_html__('Convert leaving visitors with Exit-Intent', 'mailoptin'),
             esc_html__('Access to saved leads', 'mailoptin'),
             esc_html__('Advanced optin display rules (time on site, page-views, cookie, device, adblock & referrer detection etc.)', 'mailoptin'),
-            esc_html__('Display optin based on WooCommerce cart products & total, ordered products etc.', 'mailoptin'),
+            esc_html__('Display optin based on WooCommerce cart, order total & products etc.', 'mailoptin'),
             //
-            esc_html__('Send emails to list subscribers in Mailchimp, AWeber, Constant Contact, Sendinblue, Zoho etc.', 'mailoptin'),
-            esc_html__('Send emails to WooCommerce & subscription customers, membership members', 'mailoptin'),
-            esc_html__('Send emails to MemberPress members', 'mailoptin'),
+            esc_html__('Send emails to subscribers in Constant Contact, Mailchimp, AWeber etc.', 'mailoptin'),
+            esc_html__('Send emails to WooCommerce, subscription & membership customers', 'mailoptin'),
+            esc_html__('Email LearnDash & MemberPress users', 'mailoptin'),
             //
             esc_html__('Advanced analytics & reports', 'mailoptin'),
             esc_html__('Spam protection with reCAPTCHA', 'mailoptin'),
             esc_html__('Facebook custom audience integration', 'mailoptin'),
-            esc_html__('Form plugins integration', 'mailoptin') . ' (Gravity Forms, Contact Form 7, WPForms, Ninja Forms, Elementor forms, Formidable Forms)',
+            esc_html__('Form plugins integration', 'mailoptin') . ' (Gravity Forms, Contact Form 7, WPForms, Ninja Forms, Elementor & Formidable forms)',
             esc_html__('Google Analytics integration', 'mailoptin')
         ];
 
@@ -327,7 +326,7 @@ abstract class AbstractSettingsPage
 
         $content = '<p>';
         $content .= sprintf(
-            esc_html__('Save %s with coupon %s when you %supgrade to MailOptin Premium%s which include below features & more.', 'mailoptin'),
+            esc_html__('Save %s with coupon %s when you %supgrade to MailOptin Premium%s.', 'mailoptin'),
             '10%', '<code>10PERCENTOFF</code>', '<a style="text-decoration:none" target="_blank" href="' . $upsell_url . '">', '</a>'
         );
         $content .= '</p>';
