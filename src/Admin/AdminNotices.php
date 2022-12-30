@@ -165,6 +165,8 @@ class AdminNotices
      */
     public function review_plugin_notice()
     {
+        if ( ! current_user_can('manage_options')) return;
+
         if ( ! PAnD::is_admin_notice_active('review-plugin-notice-forever')) return;
 
         if (get_option('mo_dismiss_leave_review_forever', false)) return;
