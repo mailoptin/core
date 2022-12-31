@@ -100,8 +100,9 @@ class Base
 
             if (get_option('mo_upgrader_success_flag') == 'true') {
                 delete_option('mo_upgrader_success_flag');
-                if (class_exists('\MailOptin\Libsodium\LibsodiumSettingsPage'))
-                    LibsodiumSettingsPage::activate_license(get_option('mo_license_key', ''));
+                if (class_exists('\MailOptin\Libsodium\LibsodiumSettingsPage')) {
+                    LibsodiumSettingsPage::activate_license(get_option('mo_license_key', ''), true);
+                }
             }
         });
 
