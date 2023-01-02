@@ -281,7 +281,7 @@ abstract class AbstractConnect
      *
      * @return bool
      */
-    public static function save_optin_error_log($message, $filename = 'error', $optin_campaign_id = null)
+    public static function save_optin_error_log($message, $filename = 'error', $optin_campaign_id = null, $optin_campaign_type = null)
     {
         $error_log_folder = MAILOPTIN_OPTIN_ERROR_LOG;
 
@@ -292,7 +292,7 @@ abstract class AbstractConnect
 
         $response = error_log(current_time('mysql') . ': ' . $message . "\r\n", 3, "{$error_log_folder}{$filename}.log");
 
-        self::send_optin_error_email($optin_campaign_id, $message);
+        self::send_optin_error_email($optin_campaign_id, $message, $optin_campaign_type);
 
         return $response;
     }
@@ -316,7 +316,7 @@ abstract class AbstractConnect
 $footer_content";
     }
 
-    public static function send_optin_error_email($optin_campaign_id, $error_message)
+    public static function send_optin_error_email($optin_campaign_id, $error_message, $optin_campaign_type = '')
     {
         if (apply_filters('mailoptin_disable_send_optin_error_email', false, $optin_campaign_id)) {
             return;
@@ -327,6 +327,10 @@ $footer_content";
         $email = apply_filters('mo_optin_campaign_error_email_address', get_option('admin_email'));
 
         $optin_campaign_name = OptinCampaignsRepository::get_optin_campaign_name($optin_campaign_id);
+
+        if (intval($optin_campaign_id) === 0) {
+            $optin_campaign_name = $optin_campaign_type;
+        }
 
         $subject = apply_filters(
             'mo_optin_form_email_error_email_subject',

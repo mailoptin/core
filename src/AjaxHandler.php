@@ -955,6 +955,7 @@ class AjaxHandler
 
         $extras                          = $conversion_data->payload;
         $extras['optin_campaign_id']     = $optin_campaign_id;
+        $extras['optin_campaign_type']   = $conversion_data->optin_campaign_type;
         $extras['connection_service']    = $connection_service;
         $extras['connection_email_list'] = $connection_email_list;
         // useful for third party integration to specify custom fields.
