@@ -953,6 +953,12 @@ class AjaxHandler
             return AbstractConnect::ajax_failure($no_email_provider_or_list_error);
         }
 
+        $conversion_data->email = trim(isset($conversion_data->email) ? $conversion_data->email : '');
+
+        if (empty($conversion_data->email)) {
+            return AbstractConnect::ajax_failure(__('Email address field is empty. Please try again.', 'mailoptin'));
+        }
+
         $extras                          = $conversion_data->payload;
         $extras['optin_campaign_id']     = $optin_campaign_id;
         $extras['optin_campaign_type']   = $conversion_data->optin_campaign_type;
