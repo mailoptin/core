@@ -955,8 +955,8 @@ class AjaxHandler
 
         $conversion_data->email = trim(isset($conversion_data->email) ? $conversion_data->email : '');
 
-        if (empty($conversion_data->email)) {
-            return AbstractConnect::ajax_failure(__('Email address field is empty. Please try again.', 'mailoptin'));
+        if (empty($conversion_data->email) || ! is_email($conversion_data->email)) {
+            return AbstractConnect::ajax_failure(__('Email address is not valid. Please try again.', 'mailoptin'));
         }
 
         $extras                          = $conversion_data->payload;
