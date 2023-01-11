@@ -197,7 +197,7 @@ class Email_Campaign_List extends \WP_List_Table
     function column_cb($item)
     {
         return sprintf(
-            '<input type="checkbox" name="email_campaign_ids[]" value="%s" />', $item['id']
+            '<input type="checkbox" name="email_campaign_ids[]" value="%s" />', esc_attr($item['id'])
         );
     }
 

@@ -39,12 +39,12 @@ class WP_Customize_Font_Stack_Control extends \WP_Customize_Control
                                 if ($key == $google_font_optgroup_label) {
                                     $option_value = str_replace(' ', '+', $font2);
                                 }
-                                printf('<option value="%s" %s>%s</option>', $option_value, selected($this->value(), $option_value, false), $font2);
+                                printf('<option value="%s" %s>%s</option>', esc_attr($option_value), selected($this->value(), $option_value, false), $font2);
                             }
 
                             echo '</optgroup>';
                         } else {
-                            printf('<option value="%s" %s>%s</option>', $font, selected($this->value(), $font, false), $font);
+                            printf('<option value="%s" %s>%s</option>', esc_attr($font), selected($this->value(), $font, false), $font);
                         }
                     }
                     ?>

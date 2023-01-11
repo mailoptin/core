@@ -444,7 +444,7 @@ class OptinCampaign_List extends \WP_List_Table
     function column_cb($item)
     {
         return sprintf(
-            '<input type="checkbox" name="optin_campaign_id[]" value="%s" />', $item['id']
+            '<input type="checkbox" name="optin_campaign_id[]" value="%s" />', esc_attr($item['id'])
         );
     }
 

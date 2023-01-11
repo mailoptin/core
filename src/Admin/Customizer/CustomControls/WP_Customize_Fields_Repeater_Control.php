@@ -102,13 +102,13 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                             if ($key == $google_font_optgroup_label) {
                                 $option_value = str_replace(' ', '+', $font2);
                             }
-                            printf('<option value="%s" %s>%s</option>', $option_value, selected($field_value, $option_value, false), $font2);
+                            printf('<option value="%s" %s>%s</option>', esc_attr($option_value), selected($field_value, $option_value, false), $font2);
                         }
 
                         echo '</optgroup>';
 
                     } else {
-                        printf('<option value="%s" %s>%s</option>', $font, selected($field_value, $font, false), $font);
+                        printf('<option value="%s" %s>%s</option>', esc_attr($font), selected($field_value, $font, false), $font);
                     }
                 }
                 ?>

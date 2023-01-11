@@ -191,7 +191,7 @@ class Customizer
 
         $switch = sprintf(
             '<input id="mo-automation-activate-switch" type="checkbox" class="tgl tgl-light" value="%s" %s />',
-            $input_value,
+            esc_attr($input_value),
             $checked
         );
 
@@ -211,7 +211,7 @@ class Customizer
         $title = EmailCampaignRepository::get_email_campaign_name($this->email_campaign_id);
         ?>
         <div id="mo-change-name-html" style="display: none">
-            <input id="motitleinput" type="text" value="<?= $title ?>">
+            <input id="motitleinput" type="text" value="<?= esc_attr($title) ?>">
             <input type="submit" id="mosavetitle" class="button button-primary" data-processing-label="<?= esc_html__('Updating...', 'mailoptin') ?>" value="<?= esc_html__('Update', 'mailoptin'); ?>">
         </div>
         <?php

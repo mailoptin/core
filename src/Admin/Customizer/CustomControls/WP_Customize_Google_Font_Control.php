@@ -34,7 +34,7 @@ class WP_Customize_Google_Font_Control extends \WP_Customize_Control
 
                     foreach ($fonts as $v) {
                         $option_value = str_replace(' ', '+', $v);
-                        printf('<option value="%s" %s>%s</option>', $option_value, selected($this->value(), $option_value, false), $v);
+                        printf('<option value="%s" %s>%s</option>', esc_attr($option_value), selected($this->value(), $option_value, false), $v);
                     }
                     ?>
                 </select>

@@ -345,7 +345,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
         echo '<div class="customize-control-content">';
         echo '<label><span class="screen-reader-text">' . $label . '</span>';
 
-        echo '<input name="' . $name . '" class="mo-color-picker-hex" type="text" maxlength="7" value="' . $saved_value . '" placeholder="' . $defaultValue . '"' . $defaultValueAttr . '/>';
+        echo '<input name="' . $name . '" class="mo-color-picker-hex" type="text" maxlength="7" value="' . esc_attr($saved_value) . '" placeholder="' . $defaultValue . '"' . $defaultValueAttr . '/>';
         echo '</label>';
         echo '</div>';
         if ($description) {
@@ -376,7 +376,7 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
                     printf('<option value="inherit" %s>%s</option>', selected($this->value(), 'inherit', false), __('Inherit from Theme', 'mailoptin'));
                     foreach ($fonts as $v) {
                         $option_value = str_replace(' ', '+', $v);
-                        printf('<option value="%s" %s>%s</option>', $option_value, selected($saved_value, $option_value, false), $v);
+                        printf('<option value="%s" %s>%s</option>', esc_attr($option_value), selected($saved_value, $option_value, false), $v);
                     }
                     ?>
                 </select>

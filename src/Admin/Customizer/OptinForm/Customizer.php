@@ -188,7 +188,7 @@ class Customizer
         $title = OptinCampaignsRepository::get_optin_campaign_name($this->optin_campaign_id);
         ?>
         <div id="mo-change-name-html" style="display: none">
-            <input id="motitleinput" type="text" value="<?= $title ?>">
+            <input id="motitleinput" type="text" value="<?= esc_attr($title) ?>">
             <input type="submit" id="mosavetitle" class="button button-primary" data-processing-label="<?= esc_html__('Updating...', 'mailoptin') ?>" value="<?= esc_html__('Update', 'mailoptin'); ?>">
         </div>
         <?php

@@ -32,7 +32,7 @@ class WP_Customize_Controls_Tab_Toggle extends WP_Customize_Control
                     type="radio"
                     name="<?= $name; ?>"
                     style="display: none"
-                    value="<?php echo $key ?>"
+                    value="<?php echo esc_attr($key) ?>"
                 <?php checked('general', $key); ?>
             />
             <div class="mo-toggle-tab-wrapper mo-<?= $key; ?>">
