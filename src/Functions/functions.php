@@ -278,7 +278,7 @@ function get_ip_address()
         $user_ip = str_replace('::1', '127.0.0.1', $_SERVER[$key]);
     }
 
-    return apply_filters('ppress_get_ip', $user_ip);
+    return apply_filters('mailoptin_get_ip', $user_ip);
 }
 
 /**
