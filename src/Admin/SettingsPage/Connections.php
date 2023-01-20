@@ -162,7 +162,7 @@ class Connections extends AbstractSettingsPage
                 <p><a href="%s" target="_blank">MailPoet</a>, <a href="%s" target="_blank">Mailster</a> & <a href="%s" target="_blank">FluentCRM plugins</a></p>
                 <p><a href="%s" target="_blank">WooCommerce, memberships & subscriptions plugins</a></p>
                 <p><a href="%s" target="_blank">Easy Digital Downloads plugin</a></p>
-                <p><a href="%s" target="_blank">MemberPress plugin</a></p>
+                <p><a href="%s" target="_blank">MemberPress</a> & <a href="%s" target="_blank">Paid Memberships Pro</a> plugins</a></p>
                 <p><a href="%s" target="_blank">LearnDash</a>, <a href="%s" target="_blank">LifterLMS plugins</a></p>
                 <p><a href="%s" target="_blank">Polylang, WPML & Weglot for multilingual support</a></p>
                 '),
@@ -173,6 +173,7 @@ class Connections extends AbstractSettingsPage
                     'https://mailoptin.io/integrations/woocommerce/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=woocommerce',
                     'https://mailoptin.io/integrations/easy-digital-downloads/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=edd',
                     'https://mailoptin.io/integrations/memberpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=memberpress',
+                    'https://mailoptin.io/integrations/paid-memberships-pro/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=pmpro',
                     'https://mailoptin.io/integrations/learndash/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=learndash',
                     'https://mailoptin.io/integrations/lifterlms/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=lifterlms',
                     'https://mailoptin.io/article/create-multilingual-optin-campaigns/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=multilingual'
