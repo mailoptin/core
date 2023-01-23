@@ -350,6 +350,7 @@ HTML;
       height: auto;
       padding-bottom: 10px;
       display: block;
+      margin: 0 auto;
     }
     
     .email-body figure {
