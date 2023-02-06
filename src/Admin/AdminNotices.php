@@ -293,8 +293,11 @@ class AdminNotices
         if ( ! function_exists('llms')) return;
 
         $upgrade_url = 'https://mailoptin.io/article/lifterlms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=lifterlms_admin_notice';
-        $notice      = sprintf(__('Did you know you can add LifterLMS students to your email list after registration and enrollment or based on the membership or course they are enrolled in? %sLearn more%s', 'mailoptin'),
-            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        $notice      = sprintf(__('Did you know you can %1$sadd LifterLMS students to your email list%2$s after enrollment or based on the membership/course they are enrolled %3$sand send emails to students%2$s at anytime? %4$sLearn more%2$s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">',
+            '</a>',
+            '<a href="https://mailoptin.io/article/send-wordpress-emails-lifterlms-students/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=lifterlms_admin_notice" target="_blank">',
+            '<a href="https://mailoptin.io/integrations/lifterlms/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=lifterlms_admin_notice" target="_blank">'
         );
         echo '<div data-dismissible="show_lifterlms_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
