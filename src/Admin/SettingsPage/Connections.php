@@ -162,7 +162,7 @@ class Connections extends AbstractSettingsPage
                 <p><a href="%s" target="_blank">MailPoet</a>, <a href="%s" target="_blank">Mailster</a> & <a href="%s" target="_blank">FluentCRM plugins</a></p>
                 <p><a href="%s" target="_blank">WooCommerce, memberships & subscriptions plugins</a></p>
                 <p><a href="%s" target="_blank">Easy Digital Downloads plugin</a></p>
-                <p><a href="%s" target="_blank">MemberPress</a> & <a href="%s" target="_blank">Paid Memberships Pro</a> plugins</a></p>
+                <p><a href="%s" target="_blank">MemberPress</a> & <a href="%s" target="_blank">Paid Memberships Pro</a></a></p>
                 <p><a href="%s" target="_blank">LearnDash</a>, <a href="%s" target="_blank">LifterLMS plugins</a></p>
                 <p><a href="%s" target="_blank">Polylang, WPML & Weglot for multilingual support</a></p>
                 '),
