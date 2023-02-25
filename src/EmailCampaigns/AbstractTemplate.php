@@ -416,6 +416,9 @@ CSS;
             <?php do_action('mo_get_preview_structure_before_closing_head'); ?>
         </head>
         <body>
+        <div style="display: none;max-height:0;overflow: hidden;color:transparent;font-size:1px;line-height: 1px;max-width:0; opacity:0;">
+            <?php echo ER::get_merged_customizer_value($this->email_campaign_id, 'email_campaign_preheader') ?>
+        </div>
         <?php echo do_shortcode($this->get_body()); ?>
         <?php echo $this->branding_attribute(); ?>
         </body>

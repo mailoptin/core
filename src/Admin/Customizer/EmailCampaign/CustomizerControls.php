@@ -461,6 +461,7 @@ class CustomizerControls
 
         if (ER::is_code_your_own_template($this->customizerClassInstance->email_campaign_id)) {
             unset($campaign_settings_controls['post_content_type']);
+            unset($campaign_settings_controls['email_campaign_preheader']);
         }
 
         if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
