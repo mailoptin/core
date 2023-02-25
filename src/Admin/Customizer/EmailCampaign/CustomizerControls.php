@@ -427,7 +427,7 @@ class CustomizerControls
         if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false) && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
 
             $content2 = sprintf(
-                __('%sUpgrade your MailOptin plan%s to send email campaigns directly to your list in Mailchimp, Campaign Monitor, AWeber, Constant Contact, Drip, MailerLite, ActiveCampaign etc. and to customers/users in WooCommerce, MemberPress, LearnDash, Paid Memberships Pro, Easy Digital Downloads, LifterLMS.', 'mailoptin'),
+                __('%sUpgrade your MailOptin plan%s to send email campaigns directly to your list in Mailchimp, Campaign Monitor, AWeber, Constant Contact, Drip, MailerLite, ActiveCampaign etc. and to customers/users in WooCommerce, MemberPress, LearnDash, Paid Memberships Pro, Easy Digital Downloads, GiveWP, LifterLMS.', 'mailoptin'),
                 '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=new_post_campaign_settings2">',
                 '</a>',
                 '<strong>',

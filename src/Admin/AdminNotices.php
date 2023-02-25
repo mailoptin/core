@@ -26,6 +26,7 @@ class AdminNotices
             add_action('admin_notices', array($this, 'show_woocommerce_features'));
             add_action('admin_notices', array($this, 'show_edd_features'));
             add_action('admin_notices', array($this, 'show_learndash_features'));
+            add_action('admin_notices', array($this, 'show_givewp_features'));
             add_action('admin_notices', array($this, 'show_lifterlms_features'));
             add_action('admin_notices', array($this, 'show_memberpress_features'));
             add_action('admin_notices', array($this, 'show_pmpro_features'));
@@ -278,6 +279,27 @@ class AdminNotices
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_learndash_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_givewp_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_givewp_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('\Give')) return;
+
+        $notice = sprintf(__('Did you know you can %1$sadd GiveWP donors to your email list%2$s after they have donated or based on the donation form they donated through %3$sand send emails to donors%2$s at anytime? %4$sLearn more%2$s', 'mailoptin'),
+            '<a href="https://mailoptin.io/article/givewp-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=givewp_admin_notice" target="_blank">',
+            '</a>',
+            '<a href="https://mailoptin.io/article/send-emails-givewp-donors-wordpress/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=givewp_admin_notice" target="_blank">',
+            '<a href="https://mailoptin.io/integrations/givewp/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=givewp_admin_notice" target="_blank">'
+        );
+        echo '<div data-dismissible="show_givewp_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
