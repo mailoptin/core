@@ -194,6 +194,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ],
+                'email_campaign_preheader'          => [
+                    'default'   => $this->customizer_defaults['email_campaign_preheader'],
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ],
                 'item_number'                     => [
                     'default'           => $this->customizer_defaults['item_number'],
                     'type'              => 'option',
