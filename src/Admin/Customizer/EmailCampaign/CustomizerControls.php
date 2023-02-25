@@ -175,6 +175,18 @@ class CustomizerControls
                     ]
                 )
             ),
+            'email_campaign_preheader'  => new WP_Customize_Custom_Input_Control(
+                $this->wp_customize,
+                'email_campaign_preheader',
+                apply_filters('mailoptin_customizer_settings_campaign_preheader_args', [
+                        'label'       => __('Preview Text (Preheader)', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->campaign_settings_section_id,
+                        'settings'    => $this->option_prefix . '[email_campaign_preheader]',
+                        'description' => __("Think of it as a subtitle for your subject line. Typically displayed after the email subject.", 'mailoptin'),
+                        'priority'    => 22
+                    ]
+                )
+            ),
             'item_number'               => new WP_Customize_Range_Value_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[item_number]',
@@ -449,6 +461,7 @@ class CustomizerControls
 
         if (ER::is_code_your_own_template($this->customizerClassInstance->email_campaign_id)) {
             unset($campaign_settings_controls['post_content_type']);
+            unset($campaign_settings_controls['email_campaign_preheader']);
         }
 
         if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
