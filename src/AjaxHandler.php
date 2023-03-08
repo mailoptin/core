@@ -1003,8 +1003,8 @@ class AjaxHandler
             return;
         }
 
-        $payload           = sanitize_data($_REQUEST['stat_data']);
-        $optin_uuid        = $payload['optin_uuid'];
+        $payload           = sanitize_data(moVar($_REQUEST, 'stat_data', []));
+        $optin_uuid        = moVar($payload, 'optin_uuid', '');
         $optin_campaign_id = OptinCampaignsRepository::get_optin_campaign_id_by_uuid($optin_uuid);
         $stat_type         = 'impression';
         (new OptinCampaignStat($optin_campaign_id))->save($stat_type);
