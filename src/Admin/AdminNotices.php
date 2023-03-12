@@ -29,6 +29,7 @@ class AdminNotices
             add_action('admin_notices', array($this, 'show_givewp_features'));
             add_action('admin_notices', array($this, 'show_lifterlms_features'));
             add_action('admin_notices', array($this, 'show_memberpress_features'));
+            add_action('admin_notices', array($this, 'show_restrict_content_pro_features'));
             add_action('admin_notices', array($this, 'show_pmpro_features'));
             add_action('admin_notices', array($this, 'show_wpforms_features'));
             add_action('admin_notices', array($this, 'show_cf7_features'));
@@ -343,6 +344,27 @@ class AdminNotices
             '<a href="https://mailoptin.io/integrations/memberpress/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=memberpress_admin_notice" target="_blank">'
         );
         echo '<div data-dismissible="show_memberpress_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_restrict_content_pro_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_restrict_content_pro_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('\Restrict_Content_Pro')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/restrict-content-pro-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=restrict_content_pro_admin_notice';
+        $notice      = sprintf(__('Did you know you can %1$sadd Restrict Content Pro members to your email list%2$s after membership subscription %3$sand send emails to members%2$s at anytime? %4$sLearn more%2$s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>',
+            '<a href="https://mailoptin.io/article/send-wordpress-emails-restrict-content-pro-members/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=restrict_content_pro_admin_notice" target="_blank">',
+            '<a href="https://mailoptin.io/integrations/restrict-content-pro/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=restrict_content_pro_admin_notice" target="_blank">'
+        );
+        echo '<div data-dismissible="show_restrict_content_pro_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
