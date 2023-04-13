@@ -15,7 +15,7 @@
       "uuidString" : "A37598BB-52C3-4652-8A10-5BABEB9FAA63"
     }
   ],
-  "creatorBuild" : "34359",
+  "creatorBuild" : "34472",
   "files" : {
     "\/.gitignore" : {
       "cB" : 0,
@@ -2144,6 +2144,10 @@
         "active" : 0,
         "optionString" : "'always', {exceptAfterSingleLine: false}"
       },
+      "logical-assignment-operators" : {
+        "active" : 0,
+        "optionString" : "'always',  {'enforceForIfStatements': false}"
+      },
       "max-classes-per-file" : {
         "active" : 0,
         "optionString" : "1"
@@ -2304,6 +2308,9 @@
       "no-empty-pattern" : {
         "active" : 1
       },
+      "no-empty-static-block" : {
+        "active" : 0
+      },
       "no-eq-null" : {
         "active" : 0
       },
@@ -2335,7 +2342,8 @@
         "active" : 1
       },
       "no-fallthrough" : {
-        "active" : 1
+        "active" : 1,
+        "optionString" : "{'allowEmptyCase': false}"
       },
       "no-floating-decimal" : {
         "active" : 0
@@ -2443,6 +2451,9 @@
       "no-new-func" : {
         "active" : 0
       },
+      "no-new-native-nonconstructor" : {
+        "active" : 0
+      },
       "no-new-object" : {
         "active" : 0
       },
@@ -2497,7 +2508,8 @@
         "optionString" : "'event', 'fdescribe'"
       },
       "no-restricted-imports" : {
-        "active" : 0
+        "active" : 0,
+        "optionString" : ""
       },
       "no-restricted-properties" : {
         "active" : 0,
@@ -3125,6 +3137,7 @@
       "createDeclarationFile" : 0,
       "jsxMode" : 0,
       "minifierStyle" : 0,
+      "moduleDetectionType" : 0,
       "moduleResolutionType" : 0,
       "moduleType" : 2,
       "removeComments" : 0,
@@ -3183,6 +3196,7 @@
       "ENVIRONMENT:::$NODE_ENV"
     ],
     "rollupTreeshakingEnabled" : 1,
+    "rollupTreeshakingModuleSideEffects" : 1,
     "skippedFoldersString" : "\/tests,\/src\/assets\/chosen,\/src\/assets\/fancybox,\/vendor,\/build,\/src\/repositories,\/storage\/framework\/sessions,node_modules,.idea,cache,\/src\/registeractivation,\/src\/connections,\/src\/assets\/toastr,\/src\/admin,\/bin,log,\/src\/logging,\/src\/pluginsettings,\/src\/emailcampaigns,\/src\/functions,\/src\/assets\/css,_cache,\/src\/optinforms,\/src\/assets\/js\/admin,logs,\/src\/assets\/tooltipster,_logs,\/src\/assets\/js\/customizer-controls",
     "sourceFolderName" : "source",
     "susyVersion" : 3,
@@ -3257,7 +3271,7 @@
       },
       "comments" : {
         "active" : 0,
-        "flagValue" : -1
+        "flagValue" : 1
       },
       "comparisons" : {
         "active" : 1,
