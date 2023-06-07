@@ -15,6 +15,7 @@ use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
+use MailOptin\Core\EmailCampaigns\NewPublishPost\Templatify;
 use MailOptin\Core\OptinForms\ConversionDataBuilder;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\ConnectionsRepository;
@@ -64,6 +65,7 @@ class AjaxHandler
             'customizer_set_template'                  => false,
             'ecb_fetch_post_type_posts'                => false,
             'list_subscription_integration_lists'      => false,
+            'preview_post_as_email'                    => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -1361,6 +1363,27 @@ class AjaxHandler
         wp_send_json_success($email_list);
 
         wp_die();
+    }
+
+    public function preview_post_as_email() {
+        $postID = sanitize_text_field($_POST['post_id']);
+        $post = get_post($postID);
+        $email_campaign_id = false;
+        foreach (EmailCampaignRepository::get_email_campaign_ids() as $id){
+            $campaignSettings = EmailCampaignRepository::get_settings_by_id($id);
+            if (!EmailCampaignRepository::is_campaign_active($id)) {
+                continue;
+            }
+            if (isset($campaignSettings['custom_post_type']) && $campaignSettings['custom_post_type'] === $post->post_type) {
+                $email_campaign_id = intval($id);
+            }
+            $email_campaign_id = intval($id);
+
+        }
+        if ($email_campaign_id) {
+            $template = new Templatify($email_campaign_id, $post);
+            echo($template->forge());
+        }
     }
 
     /**
