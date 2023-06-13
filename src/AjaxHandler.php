@@ -65,7 +65,7 @@ class AjaxHandler
             'customizer_set_template'                  => false,
             'ecb_fetch_post_type_posts'                => false,
             'list_subscription_integration_lists'      => false,
-            'preview_post_as_email'                    => false,
+            'get_campaigns'                            => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -176,8 +176,10 @@ class AjaxHandler
             return;
         }
 
-        $email_campaign_id = absint($_REQUEST['email_campaign_id']);
-        $admin_email       = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
+        $postID = $_POST['post_id'] ?? false;
+        $email_campaign_id = absint($_POST['email_campaign_id']);
+        $admin_email = $_POST['email'] ?? '';
+        if (empty($admin_email)) $admin_email = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
         if (empty($admin_email)) $admin_email = mo_test_admin_email();
 
         $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
@@ -194,7 +196,7 @@ class AjaxHandler
         $headers         = ["Content-Type: text/html", "From: $from_name <$from_email>"];
 
         /** call appropriate method to get template preview. Eg @see self::new_publish_post_preview() */
-        $data = $this->{"{$campaign_type}_preview"}($email_campaign_id, $campaign_subject);
+        $data = $this->{"{$campaign_type}_preview"}($email_campaign_id, $campaign_subject, $postID);
 
         $content_html            = $data[0];
         $formatted_email_subject = $data[1];
@@ -214,15 +216,18 @@ class AjaxHandler
      *
      * @param int $email_campaign_id
      * @param string $email_campaign_subject
+     * @param int|false $preview_post_id
      *
      * @return array index0 is content_html index1 is email campaign subject.
      */
-    public function new_publish_post_preview($email_campaign_id, $email_campaign_subject)
+    public function new_publish_post_preview($email_campaign_id, $email_campaign_subject, int|false $preview_post_id = false)
     {
         $post             = new \stdClass();
         $post->post_title = SolitaryDummyContent::title();
 
-        $preview_post_id = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'post_as_preview');
+        if (empty($preview_post_id)) {
+            $preview_post_id = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'post_as_preview');
+        }
 
         if ( ! empty($preview_post_id)) {
             $post = get_post($preview_post_id);
@@ -1365,25 +1370,22 @@ class AjaxHandler
         wp_die();
     }
 
-    public function preview_post_as_email() {
+    public function get_campaigns() {
         $postID = sanitize_text_field($_POST['post_id']);
         $post = get_post($postID);
-        $email_campaign_id = false;
+        $email_campaign_ids = [];
         foreach (EmailCampaignRepository::get_email_campaign_ids() as $id){
             $campaignSettings = EmailCampaignRepository::get_settings_by_id($id);
             if (!EmailCampaignRepository::is_campaign_active($id)) {
                 continue;
             }
-            if (isset($campaignSettings['custom_post_type']) && $campaignSettings['custom_post_type'] === $post->post_type) {
-                $email_campaign_id = intval($id);
+            $campaign = EmailCampaignRepository::get_email_campaign_by_id($id);
+            $campaignPostType = $campaignSettings['custom_post_type'] ?? 'post';
+            if ($campaign['campaign_type'] === 'new_publish_post' && $campaignPostType === $post->post_type) {
+                $email_campaign_ids[] = ['id' => $id, 'name' => $campaign['name']];
             }
-            $email_campaign_id = intval($id);
-
         }
-        if ($email_campaign_id) {
-            $template = new Templatify($email_campaign_id, $post);
-            echo($template->forge());
-        }
+        wp_send_json(json_encode($email_campaign_ids));
     }
 
     /**

@@ -4,13 +4,6 @@ namespace MailOptin\Core\Admin\PostListMenu;
 
 // Exit if accessed directly
 
-use MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory;
-use MailOptin\Core\Admin\Customizer\EmailCampaign\NewPublishPostTemplatePreview;
-use MailOptin\Core\Admin\Customizer\EmailCampaign\NewsletterTemplatePreview;
-use MailOptin\Core\Admin\Customizer\EmailCampaign\PostsEmailDigestTemplatePreview;
-use MailOptin\Core\Admin\SettingsPage\Email_Campaign_List;
-use MailOptin\Core\Admin\SettingsPage\Newsletter;
-use MailOptin\Core\EmailCampaigns\NewPublishPost\Templatify;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 if (!defined('ABSPATH')) {
@@ -23,9 +16,26 @@ class PostPreview {
     }
 
     public function modify_list_row_actions($actions, $post) {
-        add_thickbox();
-        $actions[] = sprintf('<a href="#TB_inline?width=600&height=550&inlineId=modal-window-id" class="thickbox" data-postID="%d">Preview As Email</a>', $post->ID);
+        if($this->check_post_campaigns($post)) {
+            add_thickbox();
+            $actions[] = sprintf('<a href="#TB_inline?width=200&height=200&inlineId=email-modal" class="thickbox" data-postID="%d" data-nonce="%s">Send Test Email</a> ', $post->ID, wp_create_nonce('mailoptin-send-test-email-nonce'));
+        }
         return $actions;
+    }
+
+    private function check_post_campaigns($post): bool {
+        foreach (EmailCampaignRepository::get_email_campaign_ids() as $id) {
+            $campaignSettings = EmailCampaignRepository::get_settings_by_id($id);
+            if (!EmailCampaignRepository::is_campaign_active($id)) {
+                continue;
+            }
+            $campaign = EmailCampaignRepository::get_email_campaign_by_id($id);
+            $campaignPostType = $campaignSettings['custom_post_type'] ?? 'post';
+            if ($campaign['campaign_type'] === 'new_publish_post' && $campaignPostType === $post->post_type) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
