@@ -12,7 +12,7 @@ class FuseWP
     private $config = array(
         'lite_plugin'       => 'fusewp/fusewp.php',
         'lite_download_url' => 'https://downloads.wordpress.org/plugin/fusewp.latest-stable.zip',
-        'fusewp_settings'   => 'admin.php?page=fusewp-forms',
+        'fusewp_settings'   => 'admin.php?page=fusewp-sync',
     );
 
     private $output_data = array();
@@ -66,7 +66,7 @@ class FuseWP
         // Prepare variables.
         $url = esc_url_raw(
             add_query_arg(
-                ['page' => 'mailoptin-redirections'],
+                ['page' => 'mailoptin-settings'],
                 admin_url('admin.php')
             )
         );
@@ -555,7 +555,7 @@ class FuseWP
             esc_url(MAILOPTIN_ASSETS_URL . 'images/' . $step['icon']),
             esc_attr__('Step 2', 'mailoptin'),
             esc_html__('Set Up FuseWP', 'mailoptin'),
-            esc_html__('Configure and create your first login form.', 'mailoptin'),
+            esc_html__('Configure and create your first sync rule.', 'mailoptin'),
             esc_attr($step['button_class']),
             esc_url(admin_url($this->config['fusewp_settings'])),
             esc_html($step['button_text'])

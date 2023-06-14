@@ -1,8 +1,8 @@
-/* global loginwp_pluginlanding, loginwp_installer_globals */
+/* global mailoptin_pluginlanding, mailoptin_installer_globals */
 
 'use strict';
 
-var LoginWPPagesProfilePress = window.LoginWPPagesProfilePress || (function (document, window, $) {
+var MailOptinPagesFuseWP = window.MailOptinPagesFuseWP || (function (document, window, $) {
 
     var el = {};
 
@@ -51,13 +51,13 @@ var LoginWPPagesProfilePress = window.LoginWPPagesProfilePress || (function (doc
 
             switch (action) {
                 case 'activate':
-                    ajaxAction = 'loginwp_activate_plugin';
-                    $btn.text(loginwp_pluginlanding.activating);
+                    ajaxAction = 'mailoptin_activate_plugin';
+                    $btn.text(mailoptin_pluginlanding.activating);
                     break;
 
                 case 'install':
-                    ajaxAction = 'loginwp_install_plugin';
-                    $btn.text(loginwp_pluginlanding.installing);
+                    ajaxAction = 'mailoptin_install_plugin';
+                    $btn.text(mailoptin_pluginlanding.installing);
                     break;
 
                 case 'goto-url':
@@ -73,7 +73,7 @@ var LoginWPPagesProfilePress = window.LoginWPPagesProfilePress || (function (doc
 
             var data = {
                 action: ajaxAction,
-                nonce: loginwp_installer_globals.nonce,
+                nonce: mailoptin_installer_globals.nonce,
                 plugin: plugin,
                 type: 'plugin',
             };
@@ -94,12 +94,12 @@ var LoginWPPagesProfilePress = window.LoginWPPagesProfilePress || (function (doc
 
             if (res.success) {
                 el.$stepInstallNum.attr('src', el.$stepInstallNum.attr('src').replace('step-1.', 'step-complete.'));
-                $btn.addClass('grey').text(loginwp_pluginlanding.activated);
+                $btn.addClass('grey').text(mailoptin_pluginlanding.activated);
                 app.stepInstallPluginStatus();
             } else {
-                var url = 'install' === action ? loginwp_pluginlanding.manual_install_url : loginwp_pluginlanding.manual_activate_url,
-                    msg = 'install' === action ? loginwp_pluginlanding.error_could_not_install : loginwp_pluginlanding.error_could_not_activate,
-                    btn = 'install' === action ? loginwp_pluginlanding.download_now : loginwp_pluginlanding.plugins_page;
+                var url = 'install' === action ? mailoptin_pluginlanding.manual_install_url : mailoptin_pluginlanding.manual_activate_url,
+                    msg = 'install' === action ? mailoptin_pluginlanding.error_could_not_install : mailoptin_pluginlanding.error_could_not_activate,
+                    btn = 'install' === action ? mailoptin_pluginlanding.download_now : mailoptin_pluginlanding.plugins_page;
 
                 $btn.removeClass('grey disabled').text(btn).attr('data-action', 'goto-url').attr('data-url', url);
                 $btn.after('<p class="error">' + msg + '</p>');
@@ -112,8 +112,8 @@ var LoginWPPagesProfilePress = window.LoginWPPagesProfilePress || (function (doc
         stepInstallPluginStatus: function () {
 
             var data = {
-                action: 'loginwp_profilepress_page_check_plugin_status',
-                nonce: loginwp_installer_globals.nonce,
+                action: 'mailoptin_fusewp_page_check_plugin_status',
+                nonce: mailoptin_installer_globals.nonce,
             };
             $.post(ajaxurl, data)
                 .done(app.stepInstallPluginStatusDone);
@@ -134,7 +134,7 @@ var LoginWPPagesProfilePress = window.LoginWPPagesProfilePress || (function (doc
 
             if (res.data.setup_status > 0) {
                 el.$stepSetupNum.attr('src', el.$stepSetupNum.attr('src').replace('step-2.svg', 'step-complete.svg'));
-                el.$stepSetupBtn.text(loginwp_pluginlanding.smtp_settings_button);
+                el.$stepSetupBtn.text(mailoptin_pluginlanding.smtp_settings_button);
             }
         },
 
@@ -175,4 +175,4 @@ var LoginWPPagesProfilePress = window.LoginWPPagesProfilePress || (function (doc
 }(document, window, jQuery));
 
 // Initialize.
-LoginWPPagesProfilePress.init();
+MailOptinPagesFuseWP.init();
