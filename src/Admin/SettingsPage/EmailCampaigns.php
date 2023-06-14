@@ -19,7 +19,7 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'));
+        add_action('admin_menu', array($this, 'register_settings_page'), 20);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_email_campaign_per_page', array($this, 'set_screen'), 10, 3);

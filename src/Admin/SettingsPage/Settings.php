@@ -18,7 +18,7 @@ class Settings extends AbstractSettingsPage
     public function __construct()
     {
         $this->init_menu();
-        add_action('admin_menu', array($this, 'register_settings_page'));
+        add_action('admin_menu', array($this, 'register_settings_page'), 10);
         add_action('wp_cspa_persist_settings', array($this, 'check_for_mailoptin_affiliate_check'), 10, 2);
         add_action('admin_init', [$this, 'clear_optin_cache']);
 
