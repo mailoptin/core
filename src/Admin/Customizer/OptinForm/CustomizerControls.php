@@ -37,6 +37,8 @@ class CustomizerControls
     /** @var string default image URL for form_background_image partial */
     private $default_form_background_image;
 
+    private $optin_campaign_id;
+
     /**
      * @param \WP_Customize_Manager $wp_customize
      * @param string $option_prefix
