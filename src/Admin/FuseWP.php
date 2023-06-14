@@ -60,9 +60,8 @@ class FuseWP
             wp_send_json_error($error);
         }
 
-        /** @todo */
         // Set the current screen to avoid undefined notices.
-        set_current_screen('fusewp_page_mailoptin-fusewp');
+        set_current_screen('mailoptin_page_mailoptin-fusewp');
 
         // Prepare variables.
         $url = esc_url_raw(
@@ -228,7 +227,7 @@ class FuseWP
         return array(
             'installing'               => esc_html__('Installing...', 'mailoptin'),
             'activating'               => esc_html__('Activating...', 'mailoptin'),
-            'activated'                => esc_html__('ProfilePress Installed & Activated', 'mailoptin'),
+            'activated'                => esc_html__('FuseWP Installed & Activated', 'mailoptin'),
             'install_now'              => esc_html__('Install Now', 'mailoptin'),
             'activate_now'             => esc_html__('Activate Now', 'mailoptin'),
             'download_now'             => esc_html__('Download Now', 'mailoptin'),
@@ -237,7 +236,7 @@ class FuseWP
             'error_could_not_activate' => $error_could_not_activate,
             'manual_install_url'       => $this->config['lite_download_url'],
             'manual_activate_url'      => admin_url('plugins.php'),
-            'fusewp_settings_button'   => esc_html__('Go to ProfilePress Settings', 'mailoptin'),
+            'fusewp_settings_button'   => esc_html__('Go to FuseWP Settings', 'mailoptin'),
         );
     }
 
@@ -280,6 +279,8 @@ class FuseWP
 
             #mailoptin-admin-fusewp .top img {
                 margin-bottom: 38px;
+                width: 480px;
+                height: auto;
             }
 
             #mailoptin-admin-fusewp .top h1 {
@@ -471,9 +472,9 @@ class FuseWP
 				<p>%4$s</p>
 			</section>',
             esc_url(MAILOPTIN_ASSETS_URL . 'images/mailoptinXfusewp.png'),
-            esc_attr__('ProfilePress ♥ ProfilePress', 'mailoptin'),
-            esc_html__('Modern Custom Login Forms & Membership Plugin', 'mailoptin'),
-            esc_html__('ProfilePress lets you create beautiful frontend custom login forms, registration forms, member directories and user profiles. You can also protect sensitive contents and control user access.', 'mailoptin')
+            esc_attr__('MailOptin ♥ FuseWP', 'mailoptin'),
+            esc_html__('WordPress User Sync & Automation Plugin', 'mailoptin'),
+            esc_html__('FuseWP connect WordPress to your email marketing platform and CRM so you can automatically sync users & profile updates to your email list.', 'mailoptin')
         );
     }
 
@@ -486,22 +487,10 @@ class FuseWP
             '<section class="screenshot">
 				<div class="cont">
 					<img src="%1$s" alt="%2$s"/>
-				</div>
-				<ul style="text-align: left">
-					<li>%3$s</li>
-					<li>%4$s</li>
-					<li>%5$s</li>
-					<li>%6$s</li>
-					<li>%7$s</li>
-				</ul>			
+				</div>	
 			</section>',
-            MAILOPTIN_ASSETS_URL . 'images/fusewp-login-form.png',
-            esc_attr__('ProfilePress screenshot', 'mailoptin'),
-            esc_html__('Beautiful templates for login, registration, password reset & edit profile edit forms.', 'mailoptin'),
-            esc_html__('Fine-grained control over what content your users can see based on your protection rules.', 'mailoptin'),
-            esc_html__('Restrict access to pages, posts, custom post types, categories, tags and custom taxonomies.', 'mailoptin'),
-            esc_html__('Add beautiful user profiles to your site that can be customised to your specific requirements.', 'mailoptin'),
-            esc_html__('Create searchable and filterable member directories with avatars and user info allowing users to find each other.', 'mailoptin')
+            MAILOPTIN_ASSETS_URL . 'images/fusewp-user-sync-edit-screen.png',
+            esc_attr__('FuseWP screenshot', 'mailoptin')
         );
     }
 
@@ -530,8 +519,8 @@ class FuseWP
 			</section>',
             esc_url(MAILOPTIN_ASSETS_URL . 'images/' . $step['icon']),
             esc_attr__('Step 1', 'mailoptin'),
-            esc_html__('Install and Activate ProfilePress', 'mailoptin'),
-            esc_html__('Install ProfilePress from the WordPress.org plugin repository.', 'mailoptin'),
+            esc_html__('Install and Activate FuseWP', 'mailoptin'),
+            esc_html__('Install FuseWP from the WordPress.org plugin repository.', 'mailoptin'),
             esc_attr($step['button_class']),
             esc_attr($step['plugin']),
             esc_attr($step['button_action']),
@@ -565,7 +554,7 @@ class FuseWP
             esc_attr($step['section_class']),
             esc_url(MAILOPTIN_ASSETS_URL . 'images/' . $step['icon']),
             esc_attr__('Step 2', 'mailoptin'),
-            esc_html__('Set Up ProfilePress', 'mailoptin'),
+            esc_html__('Set Up FuseWP', 'mailoptin'),
             esc_html__('Configure and create your first login form.', 'mailoptin'),
             esc_attr($step['button_class']),
             esc_url(admin_url($this->config['fusewp_settings'])),
@@ -587,7 +576,7 @@ class FuseWP
 
         if ( ! $this->output_data['plugin_installed']) {
             $step['icon']          = 'step-1.svg';
-            $step['button_text']   = esc_html__('Install ProfilePress', 'mailoptin');
+            $step['button_text']   = esc_html__('Install FuseWP', 'mailoptin');
             $step['button_class']  = '';
             $step['button_action'] = 'install';
             $step['plugin']        = $this->config['lite_download_url'];
@@ -595,7 +584,7 @@ class FuseWP
             $this->output_data['plugin_activated'] = $this->is_activated();
             $this->output_data['plugin_setup']     = $this->is_configured();
             $step['icon']                          = $this->output_data['plugin_activated'] ? 'step-complete.svg' : 'step-1.svg';
-            $step['button_text']                   = $this->output_data['plugin_activated'] ? esc_html__('ProfilePress Installed & Activated', 'mailoptin') : esc_html__('Activate ProfilePress', 'mailoptin');
+            $step['button_text']                   = $this->output_data['plugin_activated'] ? esc_html__('FuseWP Installed & Activated', 'mailoptin') : esc_html__('Activate FuseWP', 'mailoptin');
             $step['button_class']                  = $this->output_data['plugin_activated'] ? 'grey disabled' : '';
             $step['button_action']                 = $this->output_data['plugin_activated'] ? '' : 'activate';
             $step['plugin']                        = $this->config['lite_plugin'];
@@ -619,7 +608,7 @@ class FuseWP
         if ($this->output_data['plugin_setup']) {
             $step['icon']          = 'step-complete.svg';
             $step['section_class'] = '';
-            $step['button_text']   = esc_html__('Go to ProfilePress settings', 'mailoptin');
+            $step['button_text']   = esc_html__('Go to FuseWP settings', 'mailoptin');
         } else {
             $step['button_class'] = $this->output_data['plugin_activated'] ? '' : 'grey disabled';
         }
@@ -661,7 +650,7 @@ class FuseWP
     }
 
     /**
-     * Whether ProfilePress plugin configured or not.
+     * Whether FuseWP plugin configured or not.
      */
     protected function is_configured()
     {
@@ -669,11 +658,11 @@ class FuseWP
     }
 
     /**
-     * Whether ProfilePress plugin active or not.
+     * Whether FuseWP plugin active or not.
      */
     protected function is_activated()
     {
-        return class_exists('\ProfilePress\Core\Base');
+        return class_exists('\FuseWP\Core\Base');
     }
 
     public function redirect_to_fusewp_settings()
