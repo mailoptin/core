@@ -10,7 +10,7 @@ class AdvanceAnalytics extends AbstractSettingsPage
     public function __construct()
     {
         add_action('plugins_loaded', function () {
-            add_action('admin_menu', array($this, 'register_settings_page'));
+            add_action('admin_menu', array($this, 'register_settings_page'), 35);
         }, 20);
     }
 
