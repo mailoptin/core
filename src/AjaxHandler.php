@@ -15,7 +15,6 @@ use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
-use MailOptin\Core\EmailCampaigns\NewPublishPost\Templatify;
 use MailOptin\Core\OptinForms\ConversionDataBuilder;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\ConnectionsRepository;
@@ -65,7 +64,6 @@ class AjaxHandler
             'customizer_set_template'                  => false,
             'ecb_fetch_post_type_posts'                => false,
             'list_subscription_integration_lists'      => false,
-            'get_campaigns'                            => false,
         );
 
         foreach ($ajax_events as $ajax_event => $nopriv) {
@@ -208,7 +206,7 @@ class AjaxHandler
             $response = wp_mail($admin_email, $formatted_email_subject, $content_html, $headers);
         }
 
-        wp_send_json(array('success' => (bool)$response));
+        wp_send_json(array('success' => (bool)$response, 'post' => $content_html));
     }
 
     /**
@@ -1368,24 +1366,6 @@ class AjaxHandler
         wp_send_json_success($email_list);
 
         wp_die();
-    }
-
-    public function get_campaigns() {
-        $postID = sanitize_text_field($_POST['post_id']);
-        $post = get_post($postID);
-        $email_campaign_ids = [];
-        foreach (EmailCampaignRepository::get_email_campaign_ids() as $id){
-            $campaignSettings = EmailCampaignRepository::get_settings_by_id($id);
-            if (!EmailCampaignRepository::is_campaign_active($id)) {
-                continue;
-            }
-            $campaign = EmailCampaignRepository::get_email_campaign_by_id($id);
-            $campaignPostType = $campaignSettings['custom_post_type'] ?? 'post';
-            if ($campaign['campaign_type'] === 'new_publish_post' && $campaignPostType === $post->post_type) {
-                $email_campaign_ids[] = ['id' => $id, 'name' => $campaign['name']];
-            }
-        }
-        wp_send_json(json_encode($email_campaign_ids));
     }
 
     /**
