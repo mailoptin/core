@@ -31,7 +31,6 @@ class PostPreview {
         foreach ($this->get_campaigns() as $campaign) {
             $campaignsHTML .= '<option value="'.$campaign['id'].'">'.$campaign['name'].'</option>';
         }
-        the_post();
         echo '<div id="email-modal" style="display: none;">
             <form id="email-form" style="display: flex; flex-direction: column; justify-content: center; margin-left: 10%; margin-right: 10%;">
                 <h2>Send Test Email</h2>
