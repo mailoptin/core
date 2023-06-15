@@ -20,7 +20,7 @@
                     function () {
                         console.log(postID);
                         $('#mailoptin-success').fadeIn().delay(3000).fadeOut();
-                        event.currentTarget.submit();
+                        location.reload();
                     }, "json");
             })
         });

@@ -19,7 +19,7 @@ class PostPreview {
     }
 
     public function modify_list_row_actions($actions, $post) {
-        if (count($this->get_campaigns()) > 0 && $post->post_status === 'draft') {
+        if (count($this->get_campaigns()) > 0 && $post->post_status !== 'publish') {
             add_thickbox();
             $actions[] = sprintf('<a href="#TB_inline?width=200&height=200&inlineId=email-modal" class="thickbox" data-postID="%d">Send Test Email</a> ', $post->ID);
         }
