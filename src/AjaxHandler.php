@@ -1370,6 +1370,24 @@ class AjaxHandler
         wp_die();
     }
 
+    public function get_campaigns() {
+        $postID = sanitize_text_field($_POST['post_id']);
+        $post = get_post($postID);
+        $email_campaign_ids = [];
+        foreach (EmailCampaignRepository::get_email_campaign_ids() as $id){
+            $campaignSettings = EmailCampaignRepository::get_settings_by_id($id);
+            if (!EmailCampaignRepository::is_campaign_active($id)) {
+                continue;
+            }
+            $campaign = EmailCampaignRepository::get_email_campaign_by_id($id);
+            $campaignPostType = $campaignSettings['custom_post_type'] ?? 'post';
+            if ($campaign['campaign_type'] === 'new_publish_post' && $campaignPostType === $post->post_type) {
+                $email_campaign_ids[] = ['id' => $id, 'name' => $campaign['name']];
+            }
+        }
+        wp_send_json(json_encode($email_campaign_ids));
+    }
+
     /**
      * @return AjaxHandler
      */
