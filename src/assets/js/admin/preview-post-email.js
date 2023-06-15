@@ -18,7 +18,6 @@
                         security: $('#mailoptin-send-test-email-nonce').val()
                     },
                     function () {
-                        console.log(postID);
                         $('#mailoptin-success').fadeIn().delay(3000).fadeOut();
                         location.reload();
                     }, "json");

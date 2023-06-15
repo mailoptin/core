@@ -206,7 +206,7 @@ class AjaxHandler
             $response = wp_mail($admin_email, $formatted_email_subject, $content_html, $headers);
         }
 
-        wp_send_json(array('success' => (bool)$response, 'post' => $content_html));
+        wp_send_json(array('success' => (bool) $response));
     }
 
     /**
@@ -232,7 +232,7 @@ class AjaxHandler
         }
 
         return [
-            (new NewPublishPostTemplatePreview($email_campaign_id))->forge(),
+            (new NewPublishPostTemplatePreview($email_campaign_id, $preview_post_id))->forge(),
             NewPublishPost::format_campaign_subject($email_campaign_subject, $post)
         ];
     }
