@@ -1,22 +1,30 @@
 (function ($) {
     $(window).on('load', function () {
+        let emailForm = `
+        <div id="email-modal" style="display: none;">
+            <form id="email-form" style="display: flex; flex-direction: column; justify-content: center; margin-left: 10%; margin-right: 10%;">
+                <h2>Send Test Email</h2>
+                <div style="padding-bottom: 10px">
+                    <label for="campaigns">Choose a campaign:</label>
+                    <select name="campaigns" id="campaigns" required></select>
+                </div>
+                <div style="padding-bottom: 10px">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" name="email" required/>
+                </div>
+                <div>
+                    <input id="email-preview" type="submit"/>
+                </div>
+                <div>
+                    <span id="mailoptin-success" style="display:none;">Email sent. Go check your message.</span>
+                </div>
+            </form>
+            </div>`;
+        $('#wpbody').append(emailForm);
+
         $('[data-postid]').on('click', function (e) {
             e.preventDefault();
             const postID = $(this).data('postid');
-            const nonce = $(this).data('nonce');
-            let emailForm = `<div id="email-modal" style="display: none;">
-                <span id="mailoptin-success" style="display:none;">Email sent. Go check your message.</span>
-                <form id="email-form">
-                    <label for="campaigns">Choose a campaign</label>
-                    <select name="campaigns" id="campaigns" required></select>
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" required/>
-                    <input id="email-preview" type="submit"/>
-                </form>
-                <input id="mailoptin-send-test-email-nonce" type="hidden" value="${nonce}"/>
-            </div>`;
-            $('#wpbody').append(emailForm);
-
             $.post(
                 ajaxurl,
                 {
@@ -32,6 +40,11 @@
                         }));
                     })
                 }, "json");
+
+            const nonce = $(this).data('nonce');
+            const nonceHTML = `<input id="mailoptin-send-test-email-nonce" type="hidden" value="${nonce}"/>`;
+            $('#email-form').append(nonceHTML);
+
 
             $('#email-form').on('submit', (e) => {
                 e.preventDefault();
