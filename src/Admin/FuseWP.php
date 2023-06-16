@@ -164,10 +164,15 @@ class FuseWP
 
     public function register_settings_page()
     {
+        $newIndicator     = sprintf(
+            '<span class="mailoptin-menu-new-indicator">&nbsp;%s</span>',
+            __( 'NEW', 'mailoptin' )
+        );
+
         add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             'User Sync',
-            esc_html__('User Sync', 'mailoptin'),
+            esc_html__('User Sync', 'mailoptin') . $newIndicator,
             'manage_options',
             self::SLUG,
             array($this, 'output')
@@ -303,7 +308,7 @@ class FuseWP
             #mailoptin-admin-fusewp .cont {
                 display: inline-block;
                 position: relative;
-                width: 80%;
+                width: 100%;
                 padding: 5px;
                 background-color: #ffffff;
                 -webkit-box-shadow: 0px 2px 5px 0px rgb(0 0 0 / 5%);

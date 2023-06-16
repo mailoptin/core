@@ -130,9 +130,7 @@ class Base
         Recaptcha::get_instance();
 
         add_action('plugins_loaded', function () {
-            if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
-                FuseWP::get_instance();
-            }
+            FuseWP::get_instance();
         }, 99);
 
         add_action('widgets_init', ['MailOptin\Core\OptinForms\SidebarWidgets', 'widget_registration']);
