@@ -25,3 +25,9 @@
 #adminmenu li[class*="mailoptin-"] ul.wp-submenu-wrap li {
     clear: both
 }
+
+.mailoptin-menu-new-indicator {
+    color: #f18200;
+    vertical-align: super;
+    font-size: 9px
+}
