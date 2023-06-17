@@ -456,7 +456,7 @@ class AdminNotices
         if ( ! class_exists('GFForms')) return;
 
         $upgrade_url = 'https://mailoptin.io/article/gravity-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=gravity_forms_admin_notice';
-        $notice      = sprintf(__('Did you know with MailOptin, you can connect Gravity Forms to your email marketing software and CRM including Mailchimp, Sendinblue, MailerLite, Ontraport, GetResponse? %sLearn more%s', 'mailoptin'),
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect Gravity Forms to your email marketing software and CRM including Mailchimp, Brevo (Sendinblue), MailerLite, Ontraport, GetResponse? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_gravity_forms_features-forever" class="notice notice-info is-dismissible">';
@@ -475,7 +475,7 @@ class AdminNotices
         if ( ! class_exists('WPForms\WPForms')) return;
 
         $upgrade_url = 'https://mailoptin.io/article/wpforms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=wpforms_admin_notice';
-        $notice      = sprintf(__('Did you know with MailOptin, you can connect WPForms to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Sendinblue? %sLearn more%s', 'mailoptin'),
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect WPForms to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Brevo (Sendinblue)? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_wpforms_features-forever" class="notice notice-info is-dismissible">';

@@ -18,7 +18,7 @@ class OptinCampaigns extends AbstractSettingsPage
 
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'));
+        add_action('admin_menu', array($this, 'register_settings_page'), 25);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
@@ -26,7 +26,6 @@ class OptinCampaigns extends AbstractSettingsPage
 
     public function register_settings_page()
     {
-
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Optin Campaigns - MailOptin', 'mailoptin'),

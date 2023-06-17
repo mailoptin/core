@@ -85,10 +85,11 @@ class VideoToImageLink
     protected function convertYoutube($id)
     {
         //$youtube_play_button_overlay = MAILOPTIN_ASSETS_URL . 'images/youtube-play-button-overlay.png';
-
         //if (defined('W3GUY_LOCAL')) $youtube_play_button_overlay = 'https://i.imgur.com/QH1IyIm.png';
 
         $youtube_play_button_overlay = 'https://i.imgur.com/QH1IyIm.png';
+        // vimeocdn now only allow overlay play button from their domain.
+        $youtube_play_button_overlay = 'https://f.vimeocdn.com/images_v6/share/play_icon_overlay.png';
 
         $result = wp_remote_get(sprintf('https://www.youtube.com/oembed?format=json&url=https://youtube.com/watch?v=%s', $id));
 
@@ -101,7 +102,6 @@ class VideoToImageLink
                 // you could use https://web-extract.constantcontact.com/v1/thumbnail?url=https://i.ytimg.com/vi/K4ubA4Ucij4/hqdefault.jpg
                 // if vimeo start failing tomorrow
                 $thumbnail = sprintf('https://i.vimeocdn.com/filter/overlay?src0=%s&src1=%s', $response['thumbnail_url'], $youtube_play_button_overlay);
-
 
                 $image_url = $this->url_upload_to_media($thumbnail, basename($thumbnail));
             }

@@ -1068,7 +1068,7 @@ var mailoptin_optin = {
 
         var cookie = optin_js_config.cookie;
         if (type == 'success') {
-            var cookie = optin_js_config.success_cookie;
+            cookie = optin_js_config.success_cookie;
         }
 
         // if type is exit cookie, return empty. if it's success, it get appended to 'mo_' when setting cookie key.

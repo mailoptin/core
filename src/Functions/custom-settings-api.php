@@ -234,7 +234,7 @@ class Custom_Settings_Page_Api
             return;
         }
 
-        $sanitize_callable = apply_filters('wp_cspa_sanitize_callback', 'self::sanitize_data');
+        $sanitize_callable = apply_filters('wp_cspa_sanitize_callback', [self::class, 'sanitize_data']);
 
         $sanitized_data = apply_filters(
             'wp_cspa_santized_data',

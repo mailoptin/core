@@ -20,6 +20,7 @@
       "src/Functions/custom-settings-api.php",
       "src/Functions/functions.php",
       "src/Functions/php-html-css-js-minifier.php",
+      "src/Functions/FuseWPAdminNotice.php",
       "src/Functions/MoBFnote.php"
     ]
   },

@@ -14,7 +14,7 @@ class Connections extends AbstractSettingsPage
 {
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'));
+        add_action('admin_menu', array($this, 'register_settings_page'), 15);
 
         add_action('mailoptin_admin_notices', function () {
             add_action('admin_notices', array($this, 'admin_notices'));

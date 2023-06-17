@@ -1,5 +1,6 @@
 #adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-integrations"]:after,
-#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-emails"]:after
+#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-emails"]:after,
+#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-fusewp"]:after
 {
     border-bottom: 1px solid hsla(0,0%,100%,.2);
     display: block;
@@ -23,4 +24,10 @@
 
 #adminmenu li[class*="mailoptin-"] ul.wp-submenu-wrap li {
     clear: both
+}
+
+.mailoptin-menu-new-indicator {
+    color: #f18200;
+    vertical-align: super;
+    font-size: 9px
 }

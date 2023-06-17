@@ -15,6 +15,12 @@ class AbstractCustomizer
     /** @var int Optin campaign ID */
     protected $optin_campaign_id;
 
+    protected $optin_campaign_uuid;
+
+    protected $optin_campaign_type;
+
+    protected $optin_campaign_class;
+
     /**
      * AbstractCustomizer constructor.
      *

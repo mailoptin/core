@@ -17,6 +17,11 @@ class PostsEmailDigest extends AbstractTriggers
         parent::__construct();
 
         add_action('mo_hourly_recurring_job', [$this, 'run_job']);
+        add_action('admin_init', function () {
+            if (isset($_GET['mo_ped_debug'])) {
+                $this->run_job();
+            }
+        });
     }
 
     public function last_processed_at($email_campaign_id)
@@ -194,7 +199,6 @@ class PostsEmailDigest extends AbstractTriggers
         $postDigests = EmailCampaignRepository::get_by_email_campaign_type(ER::POSTS_EMAIL_DIGEST);
 
         if (empty($postDigests)) return;
-
 
         foreach ($postDigests as $postDigest) {
 

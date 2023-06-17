@@ -16,6 +16,10 @@ class AbstractCustomizer
 
     public $email_campaign_id;
 
+    protected $email_campaign_type;
+
+    protected $email_campaign_class;
+
     /**
      * AbstractCustomizer constructor.
      *

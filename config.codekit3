@@ -138,7 +138,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/close@2x.png" : {
@@ -151,7 +151,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/email-builder-elements\/button.svg" : {
@@ -174,7 +174,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/email-builder-elements\/divider.svg" : {
@@ -271,7 +271,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/forminator-addon-icon.png" : {
@@ -284,7 +284,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/forminator-addon-icon@2x.png" : {
@@ -297,7 +297,20 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/fusewp-user-sync-edit-screen.png" : {
+      "ft" : 32768,
+      "iS" : 344570,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/fusewp-user-sync-edit-screen.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/index.php" : {
@@ -318,7 +331,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/lockicon.png" : {
@@ -331,7 +344,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/logo-mailoptin.png" : {
@@ -344,7 +357,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/mailoptin-blue.png" : {
@@ -357,7 +370,20 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
+      "rq" : 75
+    },
+    "\/src\/assets\/images\/mailoptinXfusewp.png" : {
+      "ft" : 32768,
+      "iS" : 65187,
+      "oA" : 0,
+      "oAP" : "\/src\/assets\/images\/mailoptinXfusewp.png",
+      "oF" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/mo-optin-brand.png" : {
@@ -370,7 +396,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/mo.png" : {
@@ -383,7 +409,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/alyssum\/alyssum-inpost-sidebar.png" : {
@@ -396,7 +422,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/alyssum\/alyssum-lightbox.png" : {
@@ -409,7 +435,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/alyssum\/alyssum-slidein.png" : {
@@ -422,7 +448,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/alyssum\/custom-arrow.png" : {
@@ -435,7 +461,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/alyssum\/intro-icon.png" : {
@@ -448,7 +474,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/bannino\/bannino-inpost.png" : {
@@ -461,7 +487,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/bannino\/bannino-lightbox.png" : {
@@ -474,7 +500,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/bannino\/close.png" : {
@@ -487,7 +513,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/bannino\/index.php" : {
@@ -508,7 +534,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/baremetal-inpost.png" : {
@@ -521,7 +547,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/baremetal-lightbox.png" : {
@@ -534,7 +560,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/boldy-inpost.png" : {
@@ -547,7 +573,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/boldy-lightbox.png" : {
@@ -560,7 +586,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/boldy-sidebar.png" : {
@@ -573,7 +599,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/boldy-slidein.png" : {
@@ -586,7 +612,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/columbine-inpost.png" : {
@@ -599,7 +625,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/dahlia-bar.png" : {
@@ -612,7 +638,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/daisy-lightbox.png" : {
@@ -625,7 +651,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/dashdot-bar.png" : {
@@ -638,7 +664,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/elegance-close.png" : {
@@ -651,7 +677,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/elegance-inpost.png" : {
@@ -664,7 +690,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/elegance-lightbox.png" : {
@@ -677,7 +703,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/gridgum-inpost.png" : {
@@ -690,7 +716,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/gridgum-lightbox.png" : {
@@ -703,7 +729,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/gridgum-sidebar-slidein.png" : {
@@ -716,7 +742,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/hosta\/bg-image.png" : {
@@ -729,7 +755,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/hosta\/hosta-inpost.png" : {
@@ -742,7 +768,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/hosta\/hosta-lightbox.png" : {
@@ -755,7 +781,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/hosta\/hosta-sidebar.png" : {
@@ -768,7 +794,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/index.php" : {
@@ -789,7 +815,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/letterbox-lightbox.png" : {
@@ -802,7 +828,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/letterbox-sidebar.png" : {
@@ -815,7 +841,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/letterbox-slidein.png" : {
@@ -828,7 +854,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/liatris\/index.php" : {
@@ -849,7 +875,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/liatris\/liatris-lightbox.png" : {
@@ -862,7 +888,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/liatris\/liatris-sidebar.png" : {
@@ -875,7 +901,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/liatris\/liatris-slidein.png" : {
@@ -888,7 +914,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/liatris\/profile.jpg" : {
@@ -914,7 +940,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/mimosa-slidein.png" : {
@@ -927,7 +953,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/muscari-bar.png" : {
@@ -940,7 +966,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/pansy-inpost-sidebar.png" : {
@@ -953,7 +979,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/pansy-lightbox.png" : {
@@ -966,7 +992,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/pansy-sidebar.png" : {
@@ -979,7 +1005,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/primrose-sidebar.png" : {
@@ -992,7 +1018,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/promo-lightbox-inpost-sidebar.png" : {
@@ -1005,7 +1031,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/quince\/bg-gradient.jpg" : {
@@ -1049,7 +1075,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/quince\/quince-lightbox.png" : {
@@ -1062,7 +1088,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/rescript-inpost.png" : {
@@ -1075,7 +1101,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/rescript-lightbox.png" : {
@@ -1088,7 +1114,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/rescript-sidebar.png" : {
@@ -1101,7 +1127,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/rescript-slidein.png" : {
@@ -1114,7 +1140,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/scilla\/index.php" : {
@@ -1135,7 +1161,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/scilla\/style-2.png" : {
@@ -1148,7 +1174,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/solidago-optin.png" : {
@@ -1161,7 +1187,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/ursinia-inpost-sidebar.png" : {
@@ -1174,7 +1200,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/optin-themes\/ursinia-lightbox.png" : {
@@ -1187,7 +1213,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/premium-theme.png" : {
@@ -1200,7 +1226,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/spinner.gif" : {
@@ -1213,6 +1239,36 @@
       "ou" : "lpckwebp-none",
       "rq" : 75
     },
+    "\/src\/assets\/images\/step-1.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/assets\/images\/step-1.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/src\/assets\/images\/step-2.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/assets\/images\/step-2.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/src\/assets\/images\/step-complete.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/assets\/images\/step-complete.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
     "\/src\/assets\/images\/video-placeholder.png" : {
       "ft" : 32768,
       "iS" : 1203,
@@ -1223,7 +1279,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/wpforms-mo.png" : {
@@ -1236,7 +1292,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/images\/youtube-play-button-overlay.png" : {
@@ -1249,7 +1305,7 @@
       "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
-      "q" : 100,
+      "q" : 95,
       "rq" : 75
     },
     "\/src\/assets\/index.php" : {
@@ -1628,7 +1684,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 690148129.03208899
+    "lastBuiltDate" : 708706297.20239997
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -3053,7 +3109,7 @@
       "autoOutputPathReplace2" : "",
       "autoOutputPathStyle" : 0,
       "optimizerType" : 1,
-      "quality" : 100,
+      "quality" : 95,
       "webpOptimizationPresetUUID" : "lpckwebp-none",
       "webpRGBQuality" : 75
     },
