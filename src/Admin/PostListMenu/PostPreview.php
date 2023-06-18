@@ -21,7 +21,7 @@ class PostPreview {
     public function modify_list_row_actions($actions, $post) {
         if (count($this->get_campaigns()) > 0 && $post->post_status !== 'publish') {
             add_thickbox();
-            $actions[] = sprintf('<a href="#TB_inline?width=200&height=200&inlineId=email-modal" class="thickbox" data-postID="%d">Send Test Email</a> ', $post->ID);
+            $actions[] = sprintf('<a name="Send %s as a test email" href="#TB_inline?width=200&height=200&inlineId=email-modal" class="thickbox" data-postID="%d">Send Test Email</a> ', get_the_title($post->ID),$post->ID);
         }
         return $actions;
     }
@@ -59,7 +59,7 @@ class PostPreview {
     public function get_campaigns(): array {
         if (!isset($this->campaigns)) {
             $email_campaign_ids = [];
-            foreach (EmailCampaignRepository::get_email_campaign_ids() as $id){
+            foreach (EmailCampaignRepository::get_email_campaign_ids() as $id) {
                 $campaignSettings = EmailCampaignRepository::get_settings_by_id($id);
                 if (!EmailCampaignRepository::is_campaign_active($id)) {
                     continue;
