@@ -1,7 +1,9 @@
 (function ($) {
     $(window).on('load', function () {
-        $('#mailoptin-send-mail').on('click', function (e) {
+        $(document).on('click', '#mailoptin-send-mail', function (e) {
             e.preventDefault();
+            e.stopImmediatePropagation();
+
             $('#mailoptin-spinner').fadeIn();
             $.post(
                 ajaxurl,
