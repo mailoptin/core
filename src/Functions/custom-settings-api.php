@@ -585,6 +585,7 @@ class Custom_Settings_Page_Api
     {
         $key         = sanitize_key($key);
         $label       = esc_attr($args['label']);
+        $placeholder       = esc_attr($args['placeholder'] ?? '');
         $defvalue    = esc_html(@$args['value']);
         $description = @$args['description'];
         $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
@@ -601,7 +602,7 @@ class Custom_Settings_Page_Api
             <th scope="row"><label for="<?php echo $key; ?>"><?php echo $label; ?></label></th>
             <td>
                 <?php do_action('wp_cspa_before_text_field', $db_options, $option_name, $key, $args); ?>
-                <?php $this->_text_field($key, $name_attr, $value); ?>
+                <?php $this->_text_field($key, $name_attr, $value, 'regular-text', $placeholder); ?>
                 <?php do_action('wp_cspa_after_text_field', $db_options, $option_name, $key, $args); ?>
                 <p class="description"><?php echo $description; ?></p>
             </td>
