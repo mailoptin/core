@@ -252,12 +252,12 @@ trait CustomizerTrait
     public function js_script()
     {
         $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
-        $ck_label          = __('ConvertKit Forms', 'mailoptin');
-        $drip_label        = __('Drip Campaigns', 'mailoptin');
-        $gr_label          = __('GetResponse Campaigns', 'mailoptin');
-        $zohocrm_label     = __('ZohoCRM Modules', 'mailoptin');
-        $fbca_label        = __('Custom Audience', 'mailoptin');
-        $jilt_label        = __('Select Linked Store', 'mailoptin');
+        $salesforce_label  = __('Select Salesforce Object', 'mailoptin');
+        $ck_label          = __('Select ConvertKit Form', 'mailoptin');
+        $drip_label        = __('Select Drip Campaign', 'mailoptin');
+        $gr_label          = __('Select GetResponse Campaign', 'mailoptin');
+        $zohocrm_label     = __('Select ZohoCRM Module', 'mailoptin');
+        $fbca_label        = __('Select Custom Audience', 'mailoptin');
         $webhook_label     = __('Request Method', 'mailoptin');
         $default_label     = __('Select Email List', 'mailoptin');
         ?>
@@ -278,6 +278,10 @@ trait CustomizerTrait
                             title_obj.text('<?php echo $ck_label; ?>');
                         }
 
+                        if (connection_service === 'SalesforceConnect') {
+                            title_obj.text('<?php echo $salesforce_label; ?>');
+                        }
+
                         if (connection_service === 'DripConnect') {
                             title_obj.text('<?php echo $drip_label; ?>');
                         }
@@ -288,10 +292,6 @@ trait CustomizerTrait
 
                         if (connection_service === 'FacebookCustomAudienceConnect') {
                             title_obj.text('<?php echo $fbca_label; ?>');
-                        }
-
-                        if (connection_service === 'JiltConnect') {
-                            title_obj.text('<?php echo $jilt_label; ?>');
                         }
 
                         if (connection_service === 'WebHookConnect') {
@@ -319,6 +319,10 @@ trait CustomizerTrait
                                     title_obj.text('<?php echo $ck_label; ?>');
                                 }
 
+                                if (connection_service === 'SalesforceConnect') {
+                                    title_obj.text('<?php echo $salesforce_label; ?>');
+                                }
+
                                 if (connection_service === 'DripConnect') {
                                     title_obj.text('<?php echo $drip_label; ?>');
                                 }
@@ -329,10 +333,6 @@ trait CustomizerTrait
 
                                 if (connection_service === 'FacebookCustomAudienceConnect') {
                                     title_obj.text('<?php echo $fbca_label; ?>');
-                                }
-
-                                if (connection_service === 'JiltConnect') {
-                                    title_obj.text('<?php echo $jilt_label; ?>');
                                 }
 
                                 if (connection_service === 'WebHookConnect') {
@@ -357,6 +357,10 @@ trait CustomizerTrait
                                 title_obj.text('<?php echo $ck_label; ?>');
                             }
 
+                            if (connection_service === 'SalesforceConnect') {
+                                title_obj.text('<?php echo $salesforce_label; ?>');
+                            }
+
                             if (connection_service === 'DripConnect') {
                                 title_obj.text('<?php echo $drip_label; ?>');
                             }
@@ -367,10 +371,6 @@ trait CustomizerTrait
 
                             if (connection_service === 'FacebookCustomAudienceConnect') {
                                 title_obj.text('<?php echo $fbca_label; ?>');
-                            }
-
-                            if (connection_service === 'JiltConnect') {
-                                title_obj.text('<?php echo $jilt_label; ?>');
                             }
 
                             if (connection_service === 'WebHookConnect') {
