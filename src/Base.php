@@ -132,10 +132,10 @@ class Base
 
         add_action('plugins_loaded', function () {
             FuseWP::get_instance();
-
+            if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+                LoginWP::get_instance();
+            }
         }, 99);
-
-        LoginWP::get_instance();
 
         add_action('widgets_init', ['MailOptin\Core\OptinForms\SidebarWidgets', 'widget_registration']);
 
