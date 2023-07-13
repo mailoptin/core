@@ -662,7 +662,7 @@ class LoginWP
      */
     protected function is_activated()
     {
-        return class_exists('\LoginWP\Core\Base');
+        return class_exists('\LoginWP\Core\Core');
     }
 
     public function redirect_to_loginwp_settings()
