@@ -946,7 +946,7 @@ var mailoptin_optin = {
 
         var process_form = function (e) {
             e.preventDefault();
-            e.stopPropagation();
+            e.stopImmediatePropagation();
 
             optin_container = $(this).parents('.moOptinForm');
             $optin_uuid = optin_container.attr('id');
