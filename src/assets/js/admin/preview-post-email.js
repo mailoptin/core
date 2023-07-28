@@ -1,13 +1,12 @@
 (function ($) {
     $(window).on('load', function () {
         $('[data-postid]').on('click', function (e) {
-            const postID = $(this).data('postid');
-            $('#email-form').on('submit', (event) => {
+            var postID = $(this).data('postid');
+            $('#email-form').on('submit', function (event) {
                 event.preventDefault();
-                const formData = $(event.currentTarget).serializeArray();
-                console.log(formData);
-                const email_address = formData[1].value;
-                const mailoptin_email_campaign_id = formData[0].value;
+                var formData = $(event.currentTarget).serializeArray();
+                var email_address = formData[1].value;
+                var mailoptin_email_campaign_id = formData[0].value;
                 $.post(
                     ajaxurl,
                     {
@@ -21,7 +20,7 @@
                         $('#mailoptin-success').fadeIn().delay(3000).fadeOut();
                         location.reload();
                     }, "json");
-            })
+            });
         });
     });
 })(jQuery);

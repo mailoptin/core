@@ -69,7 +69,7 @@ class RegisterScripts
 
             do_action('mo_admin_js_enqueue');
         }
-        if (str_contains($base_text, 'edit')) {
+        if (strstr($base_text, 'edit')) {
             wp_enqueue_script('mailoptin-preview-post-email', MAILOPTIN_ASSETS_URL . 'js/admin/preview-post-email.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
         }
     }
