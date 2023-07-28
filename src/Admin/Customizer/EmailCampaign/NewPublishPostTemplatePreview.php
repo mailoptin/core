@@ -8,9 +8,11 @@ use MailOptin\Core\Repositories\EmailCampaignRepository;
 
 class NewPublishPostTemplatePreview extends Templatify
 {
-    public function __construct($email_campaign_id)
+    public function __construct($email_campaign_id, $preview_post_id = false)
     {
-        $preview_post_id = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'post_as_preview');
+        if (empty($preview_post_id)) {
+            $preview_post_id = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'post_as_preview');
+        }
 
         $post = $this->postMockObject();
 

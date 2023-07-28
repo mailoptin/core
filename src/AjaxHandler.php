@@ -174,8 +174,10 @@ class AjaxHandler
             return;
         }
 
-        $email_campaign_id = absint($_REQUEST['email_campaign_id']);
-        $admin_email       = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
+        $postID            = $_POST['post_id'] ?? false;
+        $email_campaign_id = absint($_POST['email_campaign_id']);
+        $admin_email       = $_POST['email'] ?? '';
+        if (empty($admin_email)) $admin_email = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
         if (empty($admin_email)) $admin_email = mo_test_admin_email();
 
         $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
@@ -192,7 +194,7 @@ class AjaxHandler
         $headers         = ["Content-Type: text/html", "From: $from_name <$from_email>"];
 
         /** call appropriate method to get template preview. Eg @see self::new_publish_post_preview() */
-        $data = $this->{"{$campaign_type}_preview"}($email_campaign_id, $campaign_subject);
+        $data = $this->{"{$campaign_type}_preview"}($email_campaign_id, $campaign_subject, $postID);
 
         $content_html            = $data[0];
         $formatted_email_subject = $data[1];
@@ -212,22 +214,25 @@ class AjaxHandler
      *
      * @param int $email_campaign_id
      * @param string $email_campaign_subject
+     * @param int|false $preview_post_id
      *
      * @return array index0 is content_html index1 is email campaign subject.
      */
-    public function new_publish_post_preview($email_campaign_id, $email_campaign_subject)
+    public function new_publish_post_preview($email_campaign_id, $email_campaign_subject, $preview_post_id = false)
     {
         $post             = new \stdClass();
         $post->post_title = SolitaryDummyContent::title();
 
-        $preview_post_id = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'post_as_preview');
+        if (empty($preview_post_id)) {
+            $preview_post_id = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'post_as_preview');
+        }
 
         if ( ! empty($preview_post_id)) {
             $post = get_post($preview_post_id);
         }
 
         return [
-            (new NewPublishPostTemplatePreview($email_campaign_id))->forge(),
+            (new NewPublishPostTemplatePreview($email_campaign_id, $preview_post_id))->forge(),
             NewPublishPost::format_campaign_subject($email_campaign_subject, $post)
         ];
     }
