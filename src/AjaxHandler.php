@@ -174,9 +174,9 @@ class AjaxHandler
             return;
         }
 
-        $postID = $_POST['post_id'] ?? false;
+        $postID            = $_POST['post_id'] ?? false;
         $email_campaign_id = absint($_POST['email_campaign_id']);
-        $admin_email = $_POST['email'] ?? '';
+        $admin_email       = $_POST['email'] ?? '';
         if (empty($admin_email)) $admin_email = EmailCampaignRepository::get_customizer_value($email_campaign_id, 'send_test_email_input');
         if (empty($admin_email)) $admin_email = mo_test_admin_email();
 
@@ -206,7 +206,7 @@ class AjaxHandler
             $response = wp_mail($admin_email, $formatted_email_subject, $content_html, $headers);
         }
 
-        wp_send_json(array('success' => (bool) $response));
+        wp_send_json(array('success' => (bool)$response));
     }
 
     /**
@@ -218,7 +218,7 @@ class AjaxHandler
      *
      * @return array index0 is content_html index1 is email campaign subject.
      */
-    public function new_publish_post_preview($email_campaign_id, $email_campaign_subject, int|false $preview_post_id = false)
+    public function new_publish_post_preview($email_campaign_id, $email_campaign_subject, $preview_post_id = false)
     {
         $post             = new \stdClass();
         $post->post_title = SolitaryDummyContent::title();
