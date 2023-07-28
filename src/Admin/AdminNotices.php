@@ -29,6 +29,7 @@ class AdminNotices
             add_action('admin_notices', array($this, 'show_givewp_features'));
             add_action('admin_notices', array($this, 'show_lifterlms_features'));
             add_action('admin_notices', array($this, 'show_memberpress_features'));
+            add_action('admin_notices', array($this, 'show_woocommerce_memberships_features'));
             add_action('admin_notices', array($this, 'show_restrict_content_pro_features'));
             add_action('admin_notices', array($this, 'show_pmpro_features'));
             add_action('admin_notices', array($this, 'show_wpforms_features'));
@@ -344,6 +345,26 @@ class AdminNotices
             '<a href="https://mailoptin.io/integrations/memberpress/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=memberpress_admin_notice" target="_blank">'
         );
         echo '<div data-dismissible="show_memberpress_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_woocommerce_memberships_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_woocommerce_memberships_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('\WC_Memberships_Loader')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/woocommerce-memberships-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=woocommerce_memberships_admin_notice';
+        $notice      = sprintf(__('Did you know you can %1$sadd members in WooCommerce memberships to your email list%2$s after membership subscription %3$sand send emails to members%2$s at anytime?', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>',
+            '<a href="https://mailoptin.io/article/send-emails-woocommerce-memberships/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=woocommerce_memberships_admin_notice" target="_blank">',
+        );
+        echo '<div data-dismissible="show_woocommerce_memberships_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
