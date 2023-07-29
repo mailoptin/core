@@ -76,7 +76,7 @@ class DBUpdates
 
     public function update_routine_3()
     {
-        $db_options                       = get_option(MAILOPTIN_CONNECTIONS_DB_OPTION_NAME);
+        $db_options                       = get_option(MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, []);
         $db_options['elementor_activate'] = 'true';
         update_option(MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, $db_options);
     }
