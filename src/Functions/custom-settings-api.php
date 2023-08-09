@@ -183,7 +183,7 @@ class Custom_Settings_Page_Api
     public static function sanitize_data($data)
     {
         if (is_string($data)) {
-            return esc_html($data);
+            return esc_html(trim($data));
         }
 
         $sanitized_data = array();
@@ -197,7 +197,7 @@ class Custom_Settings_Page_Api
             if (is_array($data[$key])) {
                 $sanitized_data[$key] = self::sanitize_data($data[$key]);
             } else {
-                $sanitized_data[$key] = esc_html(stripslashes($data[$key]));
+                $sanitized_data[$key] = esc_html(stripslashes(trim($data[$key])));
             }
         }
 
