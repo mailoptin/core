@@ -47,7 +47,7 @@ if ( ! class_exists('\MoBFnote')) {
 
             if (defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
 
-            if ( ! current_user_can('administrator')) return;
+            if ( ! current_user_can('manage_options')) return;
 
             $now = time();
 
