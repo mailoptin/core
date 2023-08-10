@@ -984,13 +984,13 @@ class AjaxHandler
             $extras['is_double_optin'] = $conversion_data->is_double_optin;
         }
 
-        do_action_ref_array('mailoptin_before_optin_subscription', $extras);
+        do_action('mailoptin_before_optin_subscription', $extras, $conversion_data);
 
         $instance = ConnectionFactory::make($connection_service);
 
         $response = $instance->subscribe($conversion_data->email, $conversion_data->name, $connection_email_list, $extras);
 
-        do_action_ref_array('mailoptin_after_optin_subscription', $extras);
+        do_action('mailoptin_after_optin_subscription', $extras, $conversion_data);
 
         return $response;
     }
