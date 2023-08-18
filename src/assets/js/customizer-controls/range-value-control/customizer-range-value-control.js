@@ -30,6 +30,7 @@
 
     var rangeSlider = function () {
 
+        valueFormatter();
         $(document).on('input', '.range-slider__range', function () {
             valueFormatter();
             var suffix = ($(this).attr('suffix')) ? $(this).attr('suffix') : '';
