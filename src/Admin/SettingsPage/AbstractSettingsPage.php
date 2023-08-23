@@ -313,7 +313,7 @@ abstract class AbstractSettingsPage
             //
             esc_html__('Send emails to subscribers in Constant Contact, Mailchimp, AWeber etc.', 'mailoptin'),
             esc_html__('Send emails to WooCommerce, subscription & membership customers', 'mailoptin'),
-            esc_html__('Email LearnDash, MemberPress, LifterLMS, GiveWP, Restrict Content Pro & Paid Memberships Pro users', 'mailoptin'),
+            esc_html__('Email LearnDash, MemberPress, LifterLMS, Tutor LMS, GiveWP, Restrict Content Pro & Paid Memberships Pro users', 'mailoptin'),
             //
             esc_html__('Advanced analytics & reports', 'mailoptin'),
             esc_html__('Spam protection with reCAPTCHA', 'mailoptin'),

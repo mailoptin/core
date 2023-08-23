@@ -163,7 +163,7 @@ class Connections extends AbstractSettingsPage
                 <p><a href="%s" target="_blank">WooCommerce, memberships & subscriptions plugins</a></p>
                 <p><a href="%s" target="_blank">Easy Digital Downloads plugin</a></p>
                 <p><a href="%s" target="_blank">MemberPress</a>, <a href="%s" target="_blank">Restrict Content Pro</a> & <a href="%s" target="_blank">Paid Memberships Pro</a></a></p>
-                <p><a href="%s" target="_blank">LearnDash</a>, <a href="%s" target="_blank">LifterLMS</a>, <a href="%s" target="_blank">GiveWP</a></p>
+                <p><a href="%s" target="_blank">LearnDash</a>, <a href="%s" target="_blank">LifterLMS</a>, <a href="%s" target="_blank">Tutor LMS</a>, <a href="%s" target="_blank">GiveWP</a></p>
                 <p><a href="%s" target="_blank">Polylang, WPML & Weglot for multilingual support</a></p>
                 '),
                     'https://mailoptin.io/article/create-wordpress-user-registration-form/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=wp_user_registration',
@@ -177,6 +177,7 @@ class Connections extends AbstractSettingsPage
                     'https://mailoptin.io/integrations/paid-memberships-pro/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=pmpro',
                     'https://mailoptin.io/integrations/learndash/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=learndash',
                     'https://mailoptin.io/integrations/lifterlms/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=lifterlms',
+                    'https://mailoptin.io/integrations/tutor-lms/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=tutor-lms',
                     'https://mailoptin.io/integrations/givewp/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=givewp',
                     'https://mailoptin.io/article/create-multilingual-optin-campaigns/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=multilingual'
                 )

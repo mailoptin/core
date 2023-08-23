@@ -26,6 +26,7 @@ class AdminNotices
             add_action('admin_notices', array($this, 'show_woocommerce_features'));
             add_action('admin_notices', array($this, 'show_edd_features'));
             add_action('admin_notices', array($this, 'show_learndash_features'));
+            add_action('admin_notices', array($this, 'show_tutorlms_features'));
             add_action('admin_notices', array($this, 'show_givewp_features'));
             add_action('admin_notices', array($this, 'show_lifterlms_features'));
             add_action('admin_notices', array($this, 'show_memberpress_features'));
@@ -281,6 +282,25 @@ class AdminNotices
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_learndash_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_tutorlms_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_tutorlms_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('\TUTOR\Tutor')) return;
+
+        $upgrade_url = 'https://mailoptin.io/integrations/tutor-lms/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=tutorlms_admin_notice';
+        $notice      = sprintf(__('Did you know you can add Tutor LMS students to your email list after enrollment to any course and send automated emails and broadcasts to enrolled students? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_tutorlms_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
