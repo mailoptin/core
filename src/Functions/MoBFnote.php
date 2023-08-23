@@ -32,6 +32,8 @@ if ( ! class_exists('\MoBFnote')) {
                 return;
             }
 
+            if ( ! current_user_can('manage_options')) return;
+
             $url = admin_url();
             update_option('mobfnote_dismiss_adnotice_' . $this->this_year, 'true');
 
