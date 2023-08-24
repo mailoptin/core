@@ -955,8 +955,17 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
             }
         }
 
+        $input_attr = apply_filters('mo_optin_form_name_field_attributes', ['autocomplete' => 'on'], $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
+
+        $attributes = [];
+        foreach ($input_attr as $i => $v) {
+            $attributes[] = "$i='$v'";
+        }
+
+        $attributeString = implode(' ', $attributes);
+
         $html = apply_filters('mo_optin_form_before_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
-        $html .= "<input id=\"{$optin_css_id}_name_field\" class=\"$class\" style='$style' type=\"text\" placeholder=\"$name_field_placeholder\" name=\"mo-name\" autocomplete=\"on\" value=\"$value\">";
+        $html .= "<input id=\"{$optin_css_id}_name_field\" class=\"$class\" style='$style' type=\"text\" placeholder=\"$name_field_placeholder\" name=\"mo-name\" value=\"$value\" $attributeString>";
         $html .= apply_filters('mo_optin_form_after_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
 
         return $html;
@@ -997,8 +1006,17 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
             }
         }
 
+        $input_attr = apply_filters('mo_optin_form_email_field_attributes', ['autocomplete' => 'on'], $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
+
+        $attributes = [];
+        foreach ($input_attr as $i => $v) {
+            $attributes[] = "$i='$v'";
+        }
+
+        $attributeString = implode(' ', $attributes);
+
         $html = apply_filters('mo_optin_form_before_form_name_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
-        $html .= "<input id=\"{$optin_css_id}_email_field\" class=\"$class\" style=\"$style\" type=\"email\" placeholder=\"$email_field_placeholder\" name=\"mo-email\" autocomplete=\"on\" value=\"$value\">";
+        $html .= "<input id=\"{$optin_css_id}_email_field\" class=\"$class\" style=\"$style\" type=\"email\" placeholder=\"$email_field_placeholder\" name=\"mo-email\" value=\"$value\" $attributeString>";
         $html .= apply_filters('mo_optin_form_after_form_email_field', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
 
         return $html;
@@ -1062,27 +1080,36 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                     $html .= apply_filters('mo_optin_form_custom_field_output', '', $field_type, $field, $atts);
 
+                    $input_attr = apply_filters('mo_optin_form_custom_field_attributes', [], $field_type, $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
+
+                    $attributes = [];
+                    foreach ($input_attr as $i => $v) {
+                        $attributes[] = "$i='$v'";
+                    }
+
+                    $attributeString = implode(' ', $attributes);
+
                     switch ($field_type) {
                         case 'text':
                         case 'date':
                             $html .= $atts['tag_start'];
-                            $html .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"$style\" type=\"text\" placeholder=\"$placeholder\" name=\"$field_id\">";
+                            $html .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"$style\" type=\"text\" placeholder=\"$placeholder\" name=\"$field_id\" $attributeString>";
                             $html .= $atts['tag_end'];
                             break;
                         case 'hidden':
                             $value = moVar($field, 'hidden_value', '', true);
                             $html  .= $atts['tag_start'];
-                            $html  .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"display:none\" type=\"hidden\" value=\"$value\" name=\"$field_id\">";
+                            $html  .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"display:none\" type=\"hidden\" value=\"$value\" name=\"$field_id\" $attributeString>";
                             $html  .= $atts['tag_end'];
                             break;
                         case 'password':
                             $html .= $atts['tag_start'];
-                            $html .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"$style\" type=\"password\" placeholder=\"$placeholder\" name=\"$field_id\">";
+                            $html .= "<input $data_attr id=\"$id\" class=\"$class\" style=\"$style\" type=\"password\" placeholder=\"$placeholder\" name=\"$field_id\" $attributeString>";
                             $html .= $atts['tag_end'];
                             break;
                         case 'textarea':
                             $html .= $atts['tag_start'];
-                            $html .= "<textarea $data_attr id=\"$id\" class=\"$class\" style=\"$style\" placeholder=\"$placeholder\" name=\"$field_id\"></textarea>";
+                            $html .= "<textarea $data_attr id=\"$id\" class=\"$class\" style=\"$style\" placeholder=\"$placeholder\" name=\"$field_id\" $attributeString></textarea>";
                             $html .= $atts['tag_end'];
                             break;
                         case 'checkbox':
@@ -1090,19 +1117,19 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                             $html .= "<div $data_attr class=\"$class\" style=\"$style\" id=\"$id\">";
                             if (count($options) < 2) {
                                 $value = empty($options) ? 'true' : esc_attr(trim($options[0]));
-                                $html  .= "<input type=\"hidden\" value=\"false\" name=\"{$field_id}\"><label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}\"><span>$placeholder</span></label>";
+                                $html  .= "<input type=\"hidden\" value=\"false\" name=\"{$field_id}\"><label><input type=\"checkbox\" value=\"$value\" name=\"{$field_id}\" $attributeString><span>$placeholder</span></label>";
                             } else {
                                 $html .= "<div class='mo-checkbox-title'>$placeholder</div>";
                                 foreach ($options as $option) {
-                                    $option_value = esc_attr( $option );
-                                    $option_label = esc_html( $option );
-                                    
-                                    if ( false !== strpos( $option, '|' ) ) {
-                                        list( $label, $value ) = explode( '|', $option );
+                                    $option_value = esc_attr($option);
+                                    $option_label = esc_html($option);
+
+                                    if (false !== strpos($option, '|')) {
+                                        list($label, $value) = explode('|', $option);
                                         $option_value = esc_attr($value);
                                         $option_label = esc_html($label);
                                     }
-                                    $html   .= "<label><input type=\"checkbox\" value=\"$option_value\" name=\"{$field_id}[]\"><span>$option_label</span></label>";
+                                    $html .= "<label><input type=\"checkbox\" value=\"$option_value\" name=\"{$field_id}[]\" $attributeString><span>$option_label</span></label>";
                                 }
                             }
                             $html .= '</div>';
@@ -1114,33 +1141,33 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
                             //Display options
                             foreach ($options as $option) {
-                                $option_value = esc_attr( $option );
-                                $option_label = esc_html( $option );
-    
-                                if ( false !== strpos( $option, '|' ) ) {
-                                    list( $label, $value ) = explode( '|', $option );
+                                $option_value = esc_attr($option);
+                                $option_label = esc_html($option);
+
+                                if (false !== strpos($option, '|')) {
+                                    list($label, $value) = explode('|', $option);
                                     $option_value = esc_attr($value);
                                     $option_label = esc_html($label);
                                 }
                                 if (empty ($option_label)) {
                                     continue;
                                 }
-                                $html .= "<label><input type=\"radio\" value=\"$option_value\" name=\"$field_id\"><span>$option_label</span></label>";
+                                $html .= "<label><input type=\"radio\" value=\"$option_value\" name=\"$field_id\" $attributeString><span>$option_label</span></label>";
                             }
                             $html .= "</div>" . $atts['tag_end'];
                             break;
                         case 'select':
                             $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
                             $html        .= $atts['tag_start'];
-                            $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                            $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\" $attributeString>";
                             $html        .= "<option value='' selected='selected'>$placeholder</option>";
                             //Display options
                             foreach ($options as $option) {
-                                $option_value = esc_attr( $option );
-                                $option_label = esc_html( $option );
-    
-                                if ( false !== strpos( $option, '|' ) ) {
-                                    list( $label, $value ) = explode( '|', $option );
+                                $option_value = esc_attr($option);
+                                $option_label = esc_html($option);
+
+                                if (false !== strpos($option, '|')) {
+                                    list($label, $value) = explode('|', $option);
                                     $option_value = esc_attr($value);
                                     $option_label = esc_html($label);
                                 }
@@ -1162,7 +1189,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                     $countries_lists = \MailOptin\Core\countries_array();
                                     if (is_array($countries_lists) && ! empty($countries_lists)) {
                                         $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
-                                        $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                                        $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\" $attributeString>";
                                         $html        .= "<option value='' selected='selected'>$placeholder</option>";
 
                                         foreach ($countries_lists as $key => $countries_list) {
@@ -1175,7 +1202,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
                                     $countries_lists = \MailOptin\Core\countries_array('alpha-3');
                                     if (is_array($countries_lists) && ! empty($countries_lists)) {
                                         $placeholder = ! empty($placeholder) ? $placeholder : esc_html__('Select...', 'mailoptin');
-                                        $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\">";
+                                        $html        .= "<select name=\"$field_id\" $data_attr class=\"$class\" id=\"$id\" style=\"$style\" $attributeString>";
                                         $html        .= "<option value='' selected='selected'>$placeholder</option>";
 
                                         foreach ($countries_lists as $key => $countries_list) {
