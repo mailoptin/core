@@ -106,7 +106,7 @@ trait TemplateTrait
             $post = get_post($post);
         }
 
-        // shim for DIVI builder so conent are parsed.
+        // shim for DIVI builder so content are parsed.
         if (function_exists('et_builder_init_global_settings')) {
 
             if ( ! did_action('et_builder_ready')) {
