@@ -405,8 +405,8 @@
       "oA" : 0,
       "oAP" : "\/src\/assets\/images\/mailoptin-fluentforms.png",
       "oF" : 0,
-      "oIPL" : 0,
-      "opt" : 0,
+      "oIPL" : 1,
+      "opt" : 1,
       "oT" : 1,
       "ou" : "lpckwebp-none",
       "q" : 95,
@@ -1723,7 +1723,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 714494525.962394
+    "lastBuiltDate" : 716711959.58826804
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
