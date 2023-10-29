@@ -213,7 +213,7 @@ class Connections extends AbstractSettingsPage
             $first_comp  = isset($a["section_title_without_status"]) ? $a["section_title_without_status"] : $a["section_title"];
             $second_comp = isset($b["section_title_without_status"]) ? $b["section_title_without_status"] : $b["section_title"];
 
-            return strcmp($first_comp, $second_comp);
+            return strcasecmp($first_comp, $second_comp);
         });
 
         $nav_tabs         = '';
