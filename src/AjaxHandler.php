@@ -823,6 +823,13 @@ class AjaxHandler
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') || ! self::is_leadbank_disabled()) {
             // capture optin lead / conversion
             $conversionRepoResponse = OptinConversionsRepository::add($lead_data);
+
+            $email  = base64_encode($lead_data['email']);
+            $bucket = get_option('mo_leadbank_unsubscribers', []);
+
+            $a = array_diff($bucket, [$email]);
+
+            update_option('mo_leadbank_unsubscribers', $a);
         }
 
         // kick-in if only lead bank should be used
