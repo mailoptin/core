@@ -59,7 +59,7 @@ class Cron
             esc_html__('One or more MailOptin\'s cron events have missed their schedule. This might cause your scheduled emails and tasks to stop working.', 'mailoptin'),
             'https://mailoptin.io/article/fix-cron-events-missing-schedules/',
             esc_html__('Learn more', 'mailoptin'),
-            '<strong>' . esc_html('Important:', 'mailoptin') . '</strong>'
+            '<strong>' . esc_html__('Important:', 'mailoptin') . '</strong>'
         );
     }
 
