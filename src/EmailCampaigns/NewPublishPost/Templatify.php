@@ -59,7 +59,11 @@ class Templatify implements TemplatifyInterface
             apply_filters('mo_new_publish_post_meta', $this->post_meta($this->post), $this->post, $this->email_campaign_id)
         ];
 
-        return apply_filters('mo_new_post_notification_post_content_forge', str_replace($search, $replace, $preview_structure));
+        return apply_filters(
+            'mo_new_post_notification_post_content_forge',
+            str_replace($search, $replace, $preview_structure),
+            $this->post, $this->email_campaign_id, $this
+        );
     }
 
     /**

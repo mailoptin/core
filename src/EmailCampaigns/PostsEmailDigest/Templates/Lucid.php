@@ -185,8 +185,9 @@ class Lucid extends AbstractTemplate
             <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
             {{post.meta}}
             <img class"mo-imgix" src="{{post.feature.image}}">
-        <?php endif; ?>
-
+        <?php endif;
+        do_action('mailoptin_email_campaign_lucid_before_post_content');
+        ?>
         {{post.content}}
         <!-- Action -->
         <table class="body-action mo-content-remove-ellipsis-button" width="100%" cellpadding="0" cellspacing="0">

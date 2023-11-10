@@ -204,6 +204,8 @@ class Lucid extends AbstractTemplate
 
         $content_ellipsis_button_background_color = $this->content_ellipsis_button_background_color();
 
+        $before_post_content = apply_filters('mailoptin_email_campaign_lucid_npp_before_post_content', '', $this);
+
         $body = <<<HTML
   <table class="email-wrapper mo-page-bg-color" width="100%" cellpadding="0" cellspacing="0">
     <tr>
@@ -226,6 +228,7 @@ class Lucid extends AbstractTemplate
                   <td class="content-cell mo-content-text-color" style="width: 570px;max-width: 570px;">
                   <div class="mo-before-main-content">$before_main_content</div>
                     $post_title_feature_img
+                    $before_post_content
                     {{post.content}}
                     <!-- Action -->
                     <table class="body-action mo-content-remove-ellipsis-button" width="100%" cellpadding="0" cellspacing="0">
