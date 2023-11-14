@@ -31,6 +31,8 @@ class Newsletter extends AbstractTriggers
 
         $content_html = (new Templatify($email_campaign_id))->forge();
 
+        do_action('mo_newsletter_before_send');
+
         $campaign_id = $this->save_campaign_log(
             $email_campaign_id,
             $email_subject,
@@ -48,6 +50,8 @@ class Newsletter extends AbstractTriggers
      */
     public function send_campaign($email_campaign_id, $campaign_log_id)
     {
+        do_action('mo_newsletter_before_send_campaign', $email_campaign_id, $campaign_log_id);
+
         $campaign           = $this->CampaignLogRepository->getById($campaign_log_id);
         $connection_service = $this->connection_service($email_campaign_id);
 

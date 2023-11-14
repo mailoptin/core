@@ -174,6 +174,8 @@ class AjaxHandler
             return;
         }
 
+        do_action('mo_email_campaign_before_send_test_email');
+
         $postID            = $_POST['post_id'] ?? false;
         $email_campaign_id = absint($_POST['email_campaign_id']);
         $admin_email       = $_POST['email'] ?? '';

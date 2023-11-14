@@ -233,6 +233,8 @@ class NewPublishPost extends AbstractTriggers
      */
     public function send_campaign($email_campaign_id, $campaign_log_id)
     {
+        do_action('mo_new_publish_post_before_send_campaign', $email_campaign_id, $campaign_log_id);
+
         $campaign = $this->CampaignLogRepository->getById($campaign_log_id);
 
         if ( ! $campaign) return;

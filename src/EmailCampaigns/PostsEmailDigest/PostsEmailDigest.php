@@ -283,6 +283,8 @@ class PostsEmailDigest extends AbstractTriggers
      */
     public function send_campaign($email_campaign_id, $campaign_log_id)
     {
+        do_action('mo_posts_email_digest_before_send_campaign', $email_campaign_id, $campaign_log_id);
+
         $campaign           = $this->CampaignLogRepository->getById($campaign_log_id);
         $connection_service = $this->connection_service($email_campaign_id);
 
