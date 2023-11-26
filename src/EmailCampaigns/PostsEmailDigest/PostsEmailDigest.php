@@ -54,41 +54,39 @@ class PostsEmailDigest extends AbstractTriggers
 
         $custom_post_type = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
 
-        if ($custom_post_type != 'post') {
-            $parameters['post_type'] = $custom_post_type;
+        $parameters['post_type'] = $custom_post_type;
 
-            $custom_post_type_settings = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type_settings');
+        $custom_post_type_settings = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type_settings');
 
-            if ( ! empty($custom_post_type_settings)) {
+        if ( ! empty($custom_post_type_settings)) {
 
-                $custom_post_type_settings = json_decode($custom_post_type_settings, true);
+            $custom_post_type_settings = json_decode($custom_post_type_settings, true);
 
-                if (is_array($custom_post_type_settings)) {
+            if (is_array($custom_post_type_settings) && ! empty($custom_post_type_settings)) {
 
-                    $parameters['tax_query'] = [];
+                $parameters['tax_query'] = [];
 
-                    foreach ($custom_post_type_settings as $taxonomy => $digest_terms) {
-                        if ( ! empty($digest_terms)) {
-                            $parameters['tax_query'][] = [
-                                'taxonomy' => $taxonomy,
-                                'field'    => 'term_id',
-                                'terms'    => array_map('absint', $digest_terms)
-                            ];
-                        }
+                foreach ($custom_post_type_settings as $taxonomy => $digest_terms) {
+                    if ( ! empty($digest_terms)) {
+                        $parameters['tax_query'][] = [
+                            'taxonomy' => $taxonomy,
+                            'field'    => 'term_id',
+                            'terms'    => array_map('absint', $digest_terms)
+                        ];
                     }
                 }
             }
-        } else {
-            $categories = ER::get_merged_customizer_value($email_campaign_id, 'post_categories');
-            $tags       = ER::get_merged_customizer_value($email_campaign_id, 'post_tags');
+        }
 
-            if ( ! empty($categories)) {
-                $parameters['category'] = implode(',', array_map('trim', $categories));
-            }
+        $categories = ER::get_merged_customizer_value($email_campaign_id, 'post_categories');
+        $tags       = ER::get_merged_customizer_value($email_campaign_id, 'post_tags');
 
-            if ( ! empty($tags)) {
-                $parameters['tag_id'] = implode(',', array_map('trim', $tags));
-            }
+        if ( ! empty($categories)) {
+            $parameters['category'] = implode(',', array_map('trim', $categories));
+        }
+
+        if ( ! empty($tags)) {
+            $parameters['tag_id'] = implode(',', array_map('trim', $tags));
         }
 
         return $parameters;

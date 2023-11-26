@@ -141,35 +141,35 @@
                 if (typeof val === 'undefined') return;
 
                 if (val === 'post') {
-                    $('li[id*="custom_post_type_settings"]').hide();
+                    //$('li[id*="custom_post_type_settings"]').hide();
                     $('li[id*="post_categories"], li[id*="post_tags"]').show();
                 } else {
                     $('li[id*="post_categories"], li[id*="post_tags"]').hide();
-                    if (flag === false) {
-                        $('li[id*="custom_post_type_settings"]').hide();
-                        add_spinner(this);
+                }
+                if (flag === false) {
+                    $('li[id*="custom_post_type_settings"]').hide();
+                    add_spinner(this);
 
-                        $.post(ajaxurl, {
-                                action: 'mailoptin_customizer_email_automation_get_taxonomy',
-                                custom_post_type: val,
-                                security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
-                            },
-                            function (response) {
-                                if (_.isObject(response) && 'success' in response && 'data' in response) {
-                                    var cache = $('li[id*="custom_post_type_settings"]');
-                                    cache.find('.mo-ea-cpt-setting-container').html(response.data);
-                                    cache.show();
-                                    $('.mo-ea-cpt-setting-container .mailoptin-chosen').chosen({
-                                        inherit_select_classes: true,
-                                        width: "100%"
-                                    });
+                    $.post(ajaxurl, {
+                            action: 'mailoptin_customizer_email_automation_get_taxonomy',
+                            custom_post_type: val,
+                            security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
+                        },
+                        function (response) {
+                            if (_.isObject(response) && 'success' in response && 'data' in response) {
+                                var cache = $('li[id*="custom_post_type_settings"]');
+                                cache.find('.mo-ea-cpt-setting-container').html(response.data);
+                                cache.show();
+                                $('.mo-ea-cpt-setting-container .mailoptin-chosen').chosen({
+                                    inherit_select_classes: true,
+                                    width: "100%"
+                                });
 
-                                    $('.mo-ea-cpt-setting-container .mailoptin-chosen .search-field input').attr('placeholder', mailoptin_globals.chosen_search_placeholder);
-                                }
+                                $('.mo-ea-cpt-setting-container .mailoptin-chosen .search-field input').attr('placeholder', mailoptin_globals.chosen_search_placeholder);
+                            }
 
-                                remove_spinner();
-                            });
-                    }
+                            remove_spinner();
+                        });
                 }
             };
 
@@ -178,12 +178,10 @@
             cpt_settings_contextual_display('', true, custom_post_type_obj.val());
             custom_post_type_obj.on('change', cpt_settings_contextual_display);
 
-
             function add_spinner(placement) {
                 var spinner_html = $('<img class="mo-spinner fetch-email-list" src="' + mailoptin_globals.admin_url + 'images/spinner.gif">');
                 $(placement).after(spinner_html);
             }
-
 
             function remove_spinner() {
                 $('.mo-spinner.fetch-email-list').remove();

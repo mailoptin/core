@@ -28,6 +28,11 @@ trait WP_Customize_EA_CPT_Control_Trait
                 unset($taxonomies['pa_size']);
             }
 
+            if ($custom_post_type == 'post') {
+                unset($taxonomies['category']);
+                unset($taxonomies['post_tag']);
+            }
+
             foreach ($taxonomies as $key => $value) {
                 $this->select_markup(
                     $saved_value,
