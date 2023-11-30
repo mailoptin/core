@@ -335,7 +335,8 @@ $footer_content";
         $subject = apply_filters(
             'mo_optin_form_email_error_email_subject',
             sprintf(__('Warning! "%s" Optin Campaign Is Not Working', 'mailoptin'), $optin_campaign_name),
-            $optin_campaign_id
+            $optin_campaign_id,
+            $error_message
         );
 
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
