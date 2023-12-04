@@ -7,7 +7,6 @@ use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
-use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
 class PostsEmailDigest extends AbstractTriggers
@@ -36,7 +35,7 @@ class PostsEmailDigest extends AbstractTriggers
 
     public function post_collect_query($email_campaign_id)
     {
-        $item_count = EmailCampaignRepository::get_merged_customizer_value($email_campaign_id, 'item_number');
+        $item_count = ER::get_merged_customizer_value($email_campaign_id, 'item_number');
 
         $parameters = [
             'posts_per_page' => $item_count,
@@ -120,7 +119,8 @@ class PostsEmailDigest extends AbstractTriggers
         return apply_filters('mo_post_email_digest_post_collection',
             get_posts(apply_filters('mo_post_digest_get_posts_args', $parameters, $email_campaign_id)),
             $email_campaign_id,
-            $this
+            $this,
+            $parameters
         );
     }
 
@@ -194,7 +194,7 @@ class PostsEmailDigest extends AbstractTriggers
     {
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
 
-        $postDigests = EmailCampaignRepository::get_by_email_campaign_type(ER::POSTS_EMAIL_DIGEST);
+        $postDigests = ER::get_by_email_campaign_type(ER::POSTS_EMAIL_DIGEST);
 
         if (empty($postDigests)) return;
 
