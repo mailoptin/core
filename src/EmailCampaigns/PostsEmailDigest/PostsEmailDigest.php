@@ -190,6 +190,9 @@ class PostsEmailDigest extends AbstractTriggers
         return $carbon;
     }
 
+    /**
+     * @return void|null
+     */
     public function run_job()
     {
         if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
@@ -216,6 +219,11 @@ class PostsEmailDigest extends AbstractTriggers
             $carbon_today = $this->carbon_set_week_start_end(Carbon::today($timezone));
 
             $schedule_hour = $carbon_today->hour($schedule_time);
+
+            if (isset($_GET['mo_ped_debug'])) {
+                $this->create_and_send_campaign($email_campaign_id);
+                return;
+            }
 
             switch ($schedule_interval) {
                 case 'every_day':
