@@ -66,7 +66,7 @@ class PostsEmailDigest extends AbstractTriggers
                 $parameters['tax_query'] = [];
 
                 foreach ($custom_post_type_settings as $taxonomy => $digest_terms) {
-                    if ( ! empty($digest_terms)) {
+                    if ( ! empty($digest_terms) && taxonomy_exists($taxonomy)) {
                         $parameters['tax_query'][] = [
                             'taxonomy' => $taxonomy,
                             'field'    => 'term_id',

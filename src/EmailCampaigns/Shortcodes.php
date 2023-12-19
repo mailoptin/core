@@ -117,8 +117,10 @@ class Shortcodes
                 if (empty($result)) continue;
             }
 
-            if (isset($atts['tax'], $atts['values'])) {
+            if (isset($atts['tax'], $atts['values']) && taxonomy_exists($atts['tax'])) {
                 $post_terms = wp_get_object_terms($post->ID, sanitize_text_field($atts['tax']), ['fields' => 'id=>slug']);
+
+                if ( ! is_array($post_terms)) $post_terms = [];
 
                 $term_slugs = array_map(
                     'sanitize_text_field',
