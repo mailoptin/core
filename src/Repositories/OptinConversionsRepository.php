@@ -227,6 +227,18 @@ class OptinConversionsRepository extends AbstractRepository
     }
 
     /**
+     * Delete all conversion record.
+     *
+     * @return false|int
+     */
+    public static function deleteAll()
+    {
+        $table = parent::conversions_table();
+
+        return parent::wpdb()->query("DELETE FROM $table");
+    }
+
+    /**
      * Return count of optin conversion made today.
      *
      * @return null|string
