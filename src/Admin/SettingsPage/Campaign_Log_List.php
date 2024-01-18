@@ -104,6 +104,16 @@ class Campaign_Log_List extends \WP_List_Table
     }
 
     /**
+     * Delete all campaign log record.
+     *
+     * @return false|int
+     */
+    public function delete_all_campaign_log()
+    {
+        return $this->wpdb->query("DELETE FROM $this->table");
+    }
+
+    /**
      * Get email campaign ID from campaign log ID
      *
      * @param int $campaign_log_id
@@ -326,7 +336,8 @@ class Campaign_Log_List extends \WP_List_Table
     public function get_bulk_actions()
     {
         $actions = array(
-            'bulk-delete' => __('Delete', 'mailoptin'),
+            'bulk-delete'     => __('Delete', 'mailoptin'),
+            'bulk-delete-all' => __('Delete All Log', 'mailoptin'),
         );
 
         return $actions;
@@ -398,6 +409,16 @@ class Campaign_Log_List extends \WP_List_Table
             foreach ($delete_ids as $id) {
                 self::delete_a_campaign_log($id);
             }
+            wp_safe_redirect(esc_url_raw(add_query_arg()));
+            exit;
+        }
+
+        /**
+         * @see WP_List_Table::display_tablenav()
+         */
+        if ('bulk-delete-all' === $this->current_action()) {
+            check_admin_referer('bulk-campaign_logs');
+            self::delete_all_campaign_log();
             wp_safe_redirect(esc_url_raw(add_query_arg()));
             exit;
         }
