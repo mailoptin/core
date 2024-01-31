@@ -119,7 +119,7 @@ class Lucid extends AbstractTemplate
      *
      * @param array $content_controls
      * @param \WP_Customize_Manager $wp_customize
-     * @param string $option_prefix MailOptin\Core\Admin\Customizer\EmailCampaign
+     * @param string $option_prefix
      * @param \MailOptin\Core\Admin\Customizer\EmailCampaign\Customizer $customizerClassInstance
      *
      * @return array

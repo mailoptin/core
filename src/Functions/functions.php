@@ -522,3 +522,10 @@ function system_form_fields()
         )
     );
 }
+
+function is_http_code_success($code)
+{
+    $code = intval($code);
+
+    return $code >= 200 && $code <= 299;
+}
