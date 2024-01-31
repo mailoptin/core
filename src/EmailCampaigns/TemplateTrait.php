@@ -120,14 +120,21 @@ trait TemplateTrait
         $post_content = $post->post_content;
 
         if (ER::get_merged_customizer_value($this->email_campaign_id, 'post_content_type') == 'post_excerpt') {
+
+            $extendedArgs = get_extended($post_content);
+
+            // a post without more tag has extended array value empty.
+            // https://stackoverflow.com/q/24560902/2648410
+            if ( ! empty($extendedArgs['extended']) && ! empty($extendedArgs['main'])) {
+                $post_content = $extendedArgs['main'];
+            }
+
             if ( ! empty($post->post_excerpt)) {
                 $post_content = $post->post_excerpt;
             }
         }
 
-        $post_content = do_shortcode(
-            apply_filters('mo_email_automation_post_content', $post_content, $post, $this->email_campaign_id)
-        );
+        $post_content = do_shortcode(apply_filters('mo_email_automation_post_content', $post_content, $post, $this->email_campaign_id));
 
         $post_content_length = is_null($post_content_length) ? ER::get_merged_customizer_value($this->email_campaign_id, 'post_content_length') : $post_content_length;
 
