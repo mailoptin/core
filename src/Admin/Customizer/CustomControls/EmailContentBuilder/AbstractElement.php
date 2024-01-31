@@ -100,8 +100,14 @@ abstract class AbstractElement implements ElementInterface
 
     public static function get_instance()
     {
+        static $cache = [];
+
         $class = get_called_class();
 
-        return new $class();
+        if ( ! isset($cache[$class])) {
+            $cache[$class] = new $class();
+        }
+
+        return $cache[$class];
     }
 }
