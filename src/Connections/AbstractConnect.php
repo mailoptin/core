@@ -8,6 +8,7 @@ use MailOptin\Core\EmailCampaigns\TemplateTrait;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
+
 use function MailOptin\Core\is_valid_data;
 use function MailOptin\Core\moVar;
 
@@ -485,6 +486,50 @@ $footer_content";
         );
     }
 
+    protected static function increment_oauth_refresh_error_count($integration_id)
+    {
+        $refresh_count_option_key = "mailoptin_oauth_refresh_count_" . $integration_id;
+        $refresh_time_option_key  = "mailoptin_oauth_refresh_time_" . $integration_id;
+
+        $count = (int)get_option($refresh_count_option_key, 0);
+
+        \update_option($refresh_count_option_key, $count + 1);
+        \update_option($refresh_time_option_key, time());
+    }
+
+    protected static function delete_oauth_refresh_error_count($integration_id)
+    {
+        \delete_option("mailoptin_oauth_refresh_count_" . $integration_id);
+        \delete_option("mailoptin_oauth_refresh_time_" . $integration_id);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    protected static function is_rate_limit_exceeded($integration_id)
+    {
+        $count     = (int)\get_option("mailoptin_oauth_refresh_count_" . $integration_id, 0);
+        $timestamp = (int)\get_option("mailoptin_oauth_refresh_time_" . $integration_id, 0);
+
+        $error_message = sprintf('%s: %s', $integration_id, esc_html__('rate limit exceeded', 'mailoptin'));
+
+        if ($count > 3 && time() < ($timestamp + (6 * HOUR_IN_SECONDS))) {
+            throw new \Exception($error_message);
+        }
+
+        if ($count > 6 && time() < ($timestamp + (12 * HOUR_IN_SECONDS))) {
+            throw new \Exception($error_message);
+        }
+
+        if ($count > 12 && time() < ($timestamp + (HOUR_IN_SECONDS))) {
+            throw new \Exception($error_message);
+        }
+
+        if ($count > 24 && time() < ($timestamp + (DAY_IN_SECONDS))) {
+            throw new \Exception($error_message);
+        }
+    }
+
     /**
      * Created this method because a need arose where we needed to call statically a method to refresh token
      *
@@ -497,27 +542,38 @@ $footer_content";
      */
     public static function static_oauth_token_refresh($integration, $refresh_token, $args = [])
     {
-        $url = sprintf(MAILOPTIN_OAUTH_URL . '/%s/?refresh_token=%s', $integration, $refresh_token);
+        self::is_rate_limit_exceeded($integration);
 
-        if ( ! empty($args)) {
-            $url = add_query_arg($args, $url);
+        try {
+
+            $url = sprintf(MAILOPTIN_OAUTH_URL . '/%s/?refresh_token=%s', $integration, $refresh_token);
+
+            if ( ! empty($args)) {
+                $url = add_query_arg($args, $url);
+            }
+
+            $response = wp_remote_get($url);
+
+            if (is_wp_error($response)) {
+                throw new \Exception($response->get_error_message());
+            }
+
+            $response_body = wp_remote_retrieve_body($response);
+
+            $result = \json_decode($response_body, true);
+
+            if ( ! isset($result['success']) || $result['success'] !== true) {
+                throw new \Exception('Error failed to refresh ' . $response_body);
+            }
+
+            return $result;
+
+        } catch (\Exception $e) {
+
+            self::increment_oauth_refresh_error_count($integration);
+
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
-
-        $response = wp_remote_get($url);
-
-        if (is_wp_error($response)) {
-            throw new \Exception($response->get_error_message());
-        }
-
-        $response_body = wp_remote_retrieve_body($response);
-
-        $result = \json_decode($response_body, true);
-
-        if ( ! isset($result['success']) || $result['success'] !== true) {
-            throw new \Exception('Error failed to refresh ' . $response_body);
-        }
-
-        return $result;
     }
 
     /**
