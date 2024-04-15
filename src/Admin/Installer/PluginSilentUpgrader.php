@@ -584,7 +584,7 @@ class PluginSilentUpgrader extends \Plugin_Upgrader {
 
 		$result = parent::install( $package, $args );
 		if ( true === $result ) {
-			do_action( 'loginwp_plugin_installed', $package );
+			do_action( 'mailoptin_plugin_installed', $package );
 		}
 
 		return $result;

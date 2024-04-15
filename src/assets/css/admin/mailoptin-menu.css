@@ -1,7 +1,6 @@
 #adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-integrations"]:after,
 #adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-emails"]:after,
-#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-fusewp"]:after,
-#adminmenu ul>li a[href$="page=mailoptin-loginwp"]:before
+#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-fusewp"]:after
 {
     border-bottom: 1px solid hsla(0,0%,100%,.2);
     display: block;
@@ -9,11 +8,6 @@
     margin: 13px -15px 8px;
     content: "";
     width: calc(100% + 30px)
-}
-
-#adminmenu ul>li a[href$="page=mailoptin-loginwp"]:before
-{
-    margin-top: 8px;
 }
 
 @media screen and (max-width: 782px) {
