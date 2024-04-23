@@ -74,7 +74,7 @@ class LeadBank extends AbstractSettingsPage
                     <h1><?php _e('Leads are Locked', 'mailoptin'); ?></h1>
                     <p>
                         <?php printf(
-                            __('Leads are all subscribers that sign up on your site.', 'mailoptin'),
+                            __('Leads are all subscribers that sign up to your email list on your site.', 'mailoptin'),
                             '<strong>',
                             '</strong>');
                         ?>

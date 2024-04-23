@@ -475,11 +475,13 @@ class FuseWP
 				<img class="img-top" src="%1$s" alt="%2$s"/>
 				<h1>%3$s</h1>
 				<p>%4$s</p>
+				<p>%5$s</p>
 			</section>',
             esc_url(MAILOPTIN_ASSETS_URL . 'images/mailoptinXfusewp.png'),
             esc_attr__('MailOptin ♥ FuseWP', 'mailoptin'),
             esc_html__('WordPress User Sync & Automation Plugin', 'mailoptin'),
-            esc_html__('FuseWP connect WordPress to your email marketing platform and CRM so you can automatically sync users & profile updates to your email list.', 'mailoptin')
+            esc_html__('FuseWP connect WordPress to your email marketing platform and CRM so you can automatically sync users & profile updates to your email list.', 'mailoptin'),
+            esc_html__('Also supports syncing WooCommerce, WooCommerce Memberships & Subscriptions, MemberPress, Paid Memberships Pro, LearnDash, LifterLMS, ProfilePress, Ultimate Member, Restrict Content Pro etc.', 'mailoptin')
         );
     }
 
