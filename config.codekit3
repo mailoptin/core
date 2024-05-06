@@ -347,32 +347,6 @@
       "q" : 95,
       "rq" : 75
     },
-    "\/src\/assets\/images\/loginwp-redirect-rule-screen.png" : {
-      "ft" : 32768,
-      "iS" : 24667,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/loginwp-redirect-rule-screen.png",
-      "oF" : 0,
-      "oIPL" : 1,
-      "opt" : 1,
-      "oT" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 95,
-      "rq" : 75
-    },
-    "\/src\/assets\/images\/loginwp-x-mailoptin.png" : {
-      "ft" : 32768,
-      "iS" : 79386,
-      "oA" : 0,
-      "oAP" : "\/src\/assets\/images\/loginwp-x-mailoptin.png",
-      "oF" : 0,
-      "oIPL" : 1,
-      "opt" : 1,
-      "oT" : 1,
-      "ou" : "lpckwebp-none",
-      "q" : 95,
-      "rq" : 75
-    },
     "\/src\/assets\/images\/logo-mailoptin.png" : {
       "ft" : 32768,
       "iS" : 13393,

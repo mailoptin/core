@@ -193,11 +193,17 @@ trait CustomizerTrait
             }
 
             if (class_exists('Astra_Customizer') && method_exists('Astra_Customizer', 'print_footer_scripts')) {
-                remove_action('customize_controls_print_footer_scripts', [\Astra_Customizer::get_instance(), 'print_footer_scripts']);
+                remove_action('customize_controls_print_footer_scripts', [
+                    \Astra_Customizer::get_instance(),
+                    'print_footer_scripts'
+                ]);
             }
 
             if (class_exists('Astra_Customizer') && method_exists('Astra_Customizer', 'enqueue_customizer_scripts')) {
-                remove_action('customize_controls_enqueue_scripts', [\Astra_Customizer::get_instance(), 'enqueue_customizer_scripts'], 999);
+                remove_action('customize_controls_enqueue_scripts', [
+                    \Astra_Customizer::get_instance(),
+                    'enqueue_customizer_scripts'
+                ], 999);
             }
 
             // flatbase theme compat
@@ -209,8 +215,14 @@ trait CustomizerTrait
 
             // compatibility with easy google font plugin
             if (class_exists('EGF_Customize_Manager')) {
-                remove_action('customize_controls_enqueue_scripts', [\EGF_Customize_Manager::get_instance(), 'easy-google-fonts-customize-controls-js']);
-                remove_action('customize_register', [\EGF_Customize_Manager::get_instance(), 'register_font_control_type']);
+                remove_action('customize_controls_enqueue_scripts', [
+                    \EGF_Customize_Manager::get_instance(),
+                    'easy-google-fonts-customize-controls-js'
+                ]);
+                remove_action('customize_register', [
+                    \EGF_Customize_Manager::get_instance(),
+                    'register_font_control_type'
+                ]);
             }
 
             add_action('customize_controls_enqueue_scripts', array($this, 'mo_customizer_js'));
@@ -254,6 +266,7 @@ trait CustomizerTrait
         $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
         $salesforce_label  = __('Select Salesforce Object', 'mailoptin');
         $ck_label          = __('Select ConvertKit Form', 'mailoptin');
+        $beehiiv_label     = __('Select beehiiv Tier', 'mailoptin');
         $drip_label        = __('Select Drip Campaign', 'mailoptin');
         $gr_label          = __('Select GetResponse Campaign', 'mailoptin');
         $zohocrm_label     = __('Select ZohoCRM Module', 'mailoptin');
@@ -276,6 +289,10 @@ trait CustomizerTrait
 
                         if (connection_service === 'ConvertKitConnect') {
                             title_obj.text('<?php echo $ck_label; ?>');
+                        }
+
+                        if (connection_service === 'BeehiivConnect') {
+                            title_obj.text('<?php echo $beehiiv_label; ?>');
                         }
 
                         if (connection_service === 'SalesforceConnect') {
@@ -319,6 +336,10 @@ trait CustomizerTrait
                                     title_obj.text('<?php echo $ck_label; ?>');
                                 }
 
+                                if (connection_service === 'BeehiivConnect') {
+                                    title_obj.text('<?php echo $beehiiv_label; ?>');
+                                }
+
                                 if (connection_service === 'SalesforceConnect') {
                                     title_obj.text('<?php echo $salesforce_label; ?>');
                                 }
@@ -355,6 +376,10 @@ trait CustomizerTrait
 
                             if (connection_service === 'ConvertKitConnect') {
                                 title_obj.text('<?php echo $ck_label; ?>');
+                            }
+
+                            if (connection_service === 'BeehiivConnect') {
+                                title_obj.text('<?php echo $beehiiv_label; ?>');
                             }
 
                             if (connection_service === 'SalesforceConnect') {
