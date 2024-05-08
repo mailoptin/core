@@ -193,8 +193,8 @@ var mailoptin_optin = {
         $.fn.extend({
             animateOptin: function (animationName) {
                 var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
-                this.addClass('MOanimated ' + animationName).one(animationEnd, function () {
-                    $(this).removeClass('MOanimated ' + animationName);
+                this.addClass('MOanimate__animated ' + animationName).one(animationEnd, function () {
+                    $(this).removeClass('MOanimate__animated ' + animationName);
                 });
             }
         });
@@ -442,8 +442,7 @@ var mailoptin_optin = {
                     if (Cookies.get(cookie_name) === cookie_value) {
                         cookie_is_display = true;
                     }
-                }
-                else if (mailoptin_optin.is_defined_not_empty(cookie_name)) {
+                } else if (mailoptin_optin.is_defined_not_empty(cookie_name)) {
                     if (typeof Cookies.get(cookie_name) !== 'undefined') {
                         cookie_is_display = true;
                     }
@@ -457,8 +456,7 @@ var mailoptin_optin = {
                     if (Cookies.get(cookie_name) === cookie_value) {
                         cookie_is_display = false;
                     }
-                }
-                else if (mailoptin_optin.is_defined_not_empty(cookie_name)) {
+                } else if (mailoptin_optin.is_defined_not_empty(cookie_name)) {
                     if (typeof Cookies.get(cookie_name) !== 'undefined') {
                         cookie_is_display = false;
                     }
@@ -918,7 +916,13 @@ var mailoptin_optin = {
      * Animate optin form display
      */
     animate_optin_display: function (effects) {
+
         if ((effects !== '') || (typeof effects !== 'undefined')) {
+
+            effects = effects.replace(/\bMOshake\b/, 'MOheadShake')
+                .replace(/\bMOlightSpeedIn\b/, 'MOlightSpeedInRight')
+                .replace('MO', 'MOanimate__');
+
             this.find('.mo-optin-form-wrapper').animateOptin(effects);
         }
     },

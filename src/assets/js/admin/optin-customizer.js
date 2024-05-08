@@ -3,8 +3,8 @@
     $.fn.extend({
         animateOptin: function (animationName) {
             var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
-            this.addClass('MOanimated ' + animationName).one(animationEnd, function () {
-                $(this).removeClass('MOanimated ' + animationName);
+            this.addClass('MOanimate__animated ' + animationName).one(animationEnd, function () {
+                $(this).removeClass('MOanimate__animated ' + animationName);
             });
         }
     });
@@ -258,7 +258,8 @@
 
     wp.customize(mailoptin_optin_option_prefix + '[' + mailoptin_optin_campaign_id + '][modal_effects]', function (value) {
         value.bind(function (to) {
-            $('.mo-optin-form-wrapper').animateOptin(to);
+            to = to.replace(/\bMOshake\b/, 'MOheadShake').replace(/\bMOlightSpeedIn\b/, 'MOlightSpeedInRight');
+            $('.mo-optin-form-wrapper').animateOptin(to.replace('MO', 'MOanimate__'));
         });
     });
 
