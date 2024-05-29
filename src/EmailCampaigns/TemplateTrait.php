@@ -107,7 +107,9 @@ trait TemplateTrait
         }
 
         // shim for DIVI builder so content are parsed.
-        if (function_exists('et_builder_init_global_settings')) {
+        if (
+            function_exists('et_builder_init_global_settings') &&
+            ! apply_filters('mo_email_automation_post_content_disable_divi_shim', false)) {
 
             if ( ! did_action('et_builder_ready')) {
                 et_builder_init_global_settings();
