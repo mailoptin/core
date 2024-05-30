@@ -917,7 +917,7 @@ var mailoptin_optin = {
      */
     animate_optin_display: function (effects) {
 
-        if ((effects !== '') || (typeof effects !== 'undefined')) {
+        if (typeof effects !== 'undefined' && effects !== '') {
 
             effects = effects.replace(/\bMOshake\b/, 'MOheadShake')
                 .replace(/\bMOlightSpeedIn\b/, 'MOlightSpeedInRight')
