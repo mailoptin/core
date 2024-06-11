@@ -1,6 +1,4 @@
 {
-  "name": "mailoptin",
-  "version": "0.1.0",
   "main": "build/index.js",
   "devDependencies": {
     "@wordpress/scripts": "^24.1.2"
