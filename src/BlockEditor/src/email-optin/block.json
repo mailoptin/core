@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "mailoptin/email-optin",
+	"version": "0.1.0",
+	"title": "MailOptin Optin",
+	"category": "widgets",
+	"icon": "smiley",
+	"description": "Display embeddable optin campaign",
+	"example": {},
+	"supports": {
+		"html": false
+	},
+	"textdomain": "mailoptin",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php"
+}

@@ -129,6 +129,8 @@ class Base
         Shortcodes::get_instance();
         Recaptcha::get_instance();
 
+        BlockEditor\Init::get_instance();
+
         add_action('plugins_loaded', function () {
             FuseWP::get_instance();
         }, 99);
