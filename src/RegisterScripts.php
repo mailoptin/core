@@ -18,7 +18,7 @@ class RegisterScripts
         add_action('wp_enqueue_scripts', array($this, 'public_css'));
         add_action('wp_enqueue_scripts', array($this, 'public_js'));
 
-        add_action('enqueue_block_editor_assets', [$this, 'gutenberg_js']);
+        //add_action('enqueue_block_editor_assets', [$this, 'gutenberg_js']);
     }
 
     public function fancybox_assets()
@@ -153,9 +153,9 @@ class RegisterScripts
 
         wp_localize_script('mailoptin-gutenberg', 'MailOptinBlocks', $localizations);
 
-        register_block_type('mailoptin/email-optin', array(
-            'editor_script' => 'mailoptin-gutenberg',
-        ));
+//        register_block_type('mailoptin/email-optin', array(
+//            'editor_script' => 'mailoptin-gutenberg',
+//        ));
     }
 
     /**

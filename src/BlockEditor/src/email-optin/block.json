@@ -8,6 +8,11 @@
 	"icon": "smiley",
 	"description": "Display embeddable optin campaign",
 	"example": {},
+	"attributes": {
+		"id": {
+			"type": "string"
+		}
+	},
 	"supports": {
 		"html": false
 	},
