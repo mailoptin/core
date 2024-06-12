@@ -1,7 +1,4 @@
 (function (blocks, editor, __, element, components, wp, $) {
-    var el = element.createElement;
-    var InspectorControls = editor.InspectorControls;
-    var SelectControl = components.SelectControl;
     var Toggle = components.ToggleControl;
     var Panel = components.Panel;
     var PanelBody = components.PanelBody;
@@ -9,51 +6,6 @@
     var withSelect = wp.data.withSelect;
     var withDispatch = wp.data.withDispatch;
     var compose = wp.compose.compose;
-
-    blocks.registerBlockType('mailoptin/email-optin', {
-        title: __('MailOptin', 'mailoptin'),
-        icon: MailOptinBlocks.icon,
-        category: 'embed',
-        attributes: {
-            id: {
-                type: 'number',
-                default: MailOptinBlocks.defaultForm,
-            },
-        },
-        edit: function (props) {
-
-            var attributes = props.attributes;
-
-            return [
-                el(InspectorControls, {key: 'controls'},
-                    el(SelectControl, {
-                        value: attributes.id,
-                        label: __('Select Form', 'mailoptin'),
-                        type: 'select',
-                        options: MailOptinBlocks.formOptions,
-                        onChange: function (value) {
-                            props.setAttributes({id: value});
-                        }
-                    }),
-                ),
-
-                el('div', {
-                    className: props.className,
-                    dangerouslySetInnerHTML: {__html: MailOptinBlocks.templates[attributes.id].template},
-                })
-            ]
-        },
-
-        save: function (props) {
-            var id = props.attributes.id;
-            return el('div', {
-                    className: props.className
-                },
-                MailOptinBlocks.templates[id].value
-            )
-
-        },
-    });
 
     $(function () {
 
@@ -71,8 +23,8 @@
             withDispatch(function (dispatch) {
                 return {
                     setMetaFieldValue: function (field, value) {
-                        var toEdit = {meta: {}}
-                        toEdit.meta[field] = value
+                        var toEdit = {meta: {}};
+                        toEdit.meta[field] = value;
                         dispatch('core/editor').editPost(toEdit);
                     }
                 }
@@ -86,6 +38,7 @@
                         metas['_mo_disable_npp'] : false
                 }
             })
+
         )(function (props) {
 
             //Toggle disable notifications

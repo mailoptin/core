@@ -15,6 +15,10 @@ class Init
 
     public function register_blocks()
     {
+        if ( ! function_exists('register_block_type')) {
+            return;
+        }
+
         register_block_type(__DIR__ . '/build/email-optin');
     }
 
@@ -22,8 +26,7 @@ class Init
     {
         static $optin_bucket = null;
 
-        if(is_null($optin_bucket)) {
-
+        if (is_null($optin_bucket)) {
             $optins = OptinCampaignsRepository::get_optin_campaigns_by_types(["sidebar", "inpost"]);
 
             $optin_bucket = [];
