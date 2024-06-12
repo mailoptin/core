@@ -4,16 +4,16 @@ import {
     Notice,
     Panel,
     PanelBody,
-    PanelRow
+    PanelRow,
+    Spinner
 } from '@wordpress/components';
 
 import {
     useBlockProps,
-    ColorPalette,
     InspectorControls,
 } from '@wordpress/block-editor';
 
-import './editor.scss';
+import ServerSideRender from '@wordpress/server-side-render';
 
 const optin_options = Object.entries(moBlockOptinCampaigns.optins).map(([id, label]) => {
     return {label, value: id}
@@ -46,12 +46,18 @@ function OptinSelectField({attributes, setAttributes}) {
 export default function Edit({attributes, setAttributes}) {
     return (
         <div {...useBlockProps()}>
-            <InspectorControls key="setting"> <Panel> <PanelBody initialOpen={true} title={__('Optin Campaign', 'mailoptin')}>
-                <PanelRow> <OptinSelectField attributes={attributes} setAttributes={setAttributes}/> </PanelRow>
-            </PanelBody> </Panel> </InspectorControls> {
+            <InspectorControls key="setting"> <Panel>
+                <PanelBody initialOpen={true} title={__('Optin Campaign', 'mailoptin')}> <PanelRow>
+                    <OptinSelectField attributes={attributes} setAttributes={setAttributes}/> </PanelRow> </PanelBody>
+            </Panel> </InspectorControls>
+            {
             (optin_options.length === 0 || !attributes.id) ?
                 <EditorContent setAttributes={setAttributes} attributes={attributes}/> :
-                'hello'
+                <ServerSideRender
+                    LoadingResponsePlaceholder={Spinner}
+                    block="mailoptin/email-optin"
+                    attributes={attributes}
+                />
         }
         </div>
     );

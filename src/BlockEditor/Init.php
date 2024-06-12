@@ -20,14 +20,17 @@ class Init
 
     public function enqueue_editor_assets()
     {
-        $optins = OptinCampaignsRepository::get_optin_campaigns_by_types(
-            ["sidebar", "inpost"]
-        );
+        static $optin_bucket = null;
 
-        $optin_bucket = [];
+        if(is_null($optin_bucket)) {
 
-        foreach ($optins as $optin) {
-            $optin_bucket[$optin->id] = $optin->name;
+            $optins = OptinCampaignsRepository::get_optin_campaigns_by_types(["sidebar", "inpost"]);
+
+            $optin_bucket = [];
+
+            foreach ($optins as $optin) {
+                $optin_bucket[$optin->id] = $optin->name;
+            }
         }
 
         wp_localize_script(
