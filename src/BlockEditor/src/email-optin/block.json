@@ -3,7 +3,7 @@
 	"apiVersion": 3,
 	"name": "mailoptin/email-optin",
 	"version": "0.1.0",
-	"title": "MailOptin Optin",
+	"title": "MailOptin",
 	"category": "widgets",
 	"icon": "smiley",
 	"description": "Display embeddable optin campaign",
