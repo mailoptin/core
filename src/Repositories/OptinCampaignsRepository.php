@@ -395,6 +395,24 @@ class OptinCampaignsRepository extends AbstractRepository
     }
 
     /**
+     * Get optin campaigns by type
+     *
+     * @param array $optin_types
+     *
+     * @return array
+     */
+    public static function get_optin_campaigns_by_types($optin_types)
+    {
+        $table = parent::campaigns_table();
+
+        return parent::wpdb()->get_results(
+            parent::wpdb()->prepare("SELECT * FROM $table WHERE optin_type IN(" . implode(', ', array_fill(0, count($optin_types), '%s')) . ")",
+                array_map('sanitize_text_field', $optin_types)
+            )
+        );
+    }
+
+    /**
      * Array of sidebar optin campaign IDs
      *
      * @return array

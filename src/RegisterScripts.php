@@ -17,8 +17,6 @@ class RegisterScripts
         add_action('admin_enqueue_scripts', [$this, 'fancybox_assets']);
         add_action('wp_enqueue_scripts', array($this, 'public_css'));
         add_action('wp_enqueue_scripts', array($this, 'public_js'));
-
-        add_action('enqueue_block_editor_assets', [$this, 'gutenberg_js']);
     }
 
     public function fancybox_assets()
@@ -72,90 +70,6 @@ class RegisterScripts
         if (strstr($base_text, 'edit')) {
             wp_enqueue_script('mailoptin-preview-post-email', MAILOPTIN_ASSETS_URL . 'js/admin/preview-post-email.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
         }
-    }
-
-    /**
-     * Gutenberg JS
-     */
-    public function gutenberg_js()
-    {
-        // Skip block registration if Gutenberg is not enabled/merged.
-        if ( ! function_exists('register_block_type') || ! apply_filters('mailoptin_enqueue_block_editor_assets', true)) {
-            return;
-        }
-
-        $default   = 0;
-        $templates = array(
-            '0' => array(
-                'template' => sprintf(
-                    __('%s You currently have no inpost or sidebar/widget optin created or activated. Please create one first. %s ', 'mailoptin'),
-                    '<div style="background-color: #fff8e1;border: 1px solid #FFE082;padding: 10px;">',
-                    '<div>'),
-                'value'    => sprintf(
-                    __('%s You currently have no inpost or sidebar/widget optin created or activated. Please create one first. %s ', 'mailoptin'),
-                    '<div style="background-color: #fff8e1;border: 1px solid #FFE082;padding: 10px;">',
-                    '<div>')
-            )
-        );
-        $modified  = array();
-        $campaigns = OptinCampaignsRepository::get_optin_campaigns();
-        if ( ! is_array($campaigns)) {
-            $campaigns = array();
-        }
-
-        foreach ($campaigns as $campaign) {
-            if ($campaign['optin_type'] != 'sidebar' && $campaign['optin_type'] != 'inpost') {
-                continue;
-            }
-
-            $id = $campaign['id'];
-
-            $modified[] = array(
-                'label' => $campaign['name'],
-                'value' => $id,
-            );
-
-            $templates[$campaign['id']] = array(
-                'template' => do_shortcode("[mo-optin-form id=$id]"),
-                'value'    => "[mo-optin-form id=$id]"
-            );
-        }
-
-        if ( ! empty($modified)) {
-            $default = $modified[0]['value'];
-        }
-
-
-        wp_register_script(
-            'mailoptin-gutenberg',
-            MAILOPTIN_ASSETS_URL . 'js/admin/optin-block.js',
-            array(
-                'wp-blocks',
-                'wp-i18n',
-                'wp-element',
-                'wp-components',
-                'wp-plugins',
-                'wp-edit-post',
-                'wp-data',
-                'wp-compose'
-            ),
-            MAILOPTIN_VERSION_NUMBER,
-            true
-        );
-
-        //Localize gutenberg
-        $localizations = array(
-            'defaultForm' => $default,
-            'formOptions' => $modified,
-            'icon'        => 'email',
-            'templates'   => $templates,
-        );
-
-        wp_localize_script('mailoptin-gutenberg', 'MailOptinBlocks', $localizations);
-
-        register_block_type('mailoptin/email-optin', array(
-            'editor_script' => 'mailoptin-gutenberg',
-        ));
     }
 
     /**
@@ -304,7 +218,6 @@ class RegisterScripts
             //Ensure this is a post edit screen to save resources
             if (isset($screen->is_block_editor) && $screen->is_block_editor && post_can_new_post_notification($post)) {
                 $localize_strings['sidebar']                   = 1;
-                $localize_strings['disable_notifications']     = get_post_meta($post->ID, '_mo_disable_npp', true);
                 $localize_strings['disable_notifications_txt'] = __('Disable MailOptin new post notification for this post.', 'mailoptin');
             }
         }

@@ -1584,6 +1584,12 @@
       "oAP" : "\/src\/Base.php",
       "oF" : 1
     },
+    "\/src\/BlockEditor" : {
+      "ft" : 65536,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor",
+      "oF" : 0
+    },
     "\/src\/Connections" : {
       "ft" : 65536,
       "oA" : 1,
@@ -1697,7 +1703,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 738775779.756742
+    "lastBuiltDate" : 739973743.97714198
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
@@ -3263,7 +3269,7 @@
     ],
     "rollupTreeshakingEnabled" : 1,
     "rollupTreeshakingModuleSideEffects" : 1,
-    "skippedFoldersString" : "\/tests,\/src\/assets\/chosen,\/src\/assets\/fancybox,\/vendor,\/build,\/src\/repositories,\/storage\/framework\/sessions,node_modules,.idea,cache,\/src\/registeractivation,\/src\/connections,\/src\/assets\/toastr,\/src\/admin,\/bin,log,\/src\/logging,\/src\/pluginsettings,\/src\/emailcampaigns,\/src\/functions,\/src\/assets\/css,_cache,\/src\/optinforms,\/src\/assets\/js\/admin,logs,\/src\/assets\/tooltipster,_logs,\/src\/assets\/js\/customizer-controls",
+    "skippedFoldersString" : "\/src\/optinforms,_logs,\/src\/blockeditor,\/src\/assets\/toastr,.idea,\/src\/assets\/tooltipster,\/src\/repositories,\/src\/connections,node_modules,\/bin,\/src\/logging,\/src\/functions,\/src\/emailcampaigns,_cache,\/src\/assets\/js\/admin,logs,cache,\/tests,\/vendor,\/src\/assets\/fancybox,\/src\/registeractivation,log,\/src\/pluginsettings,\/src\/assets\/css,\/storage\/framework\/sessions,\/src\/admin,\/src\/assets\/chosen,\/build,\/src\/assets\/js\/customizer-controls",
     "sourceFolderName" : "source",
     "susyVersion" : 3,
     "tsAllowArbitraryExtensions" : 0,

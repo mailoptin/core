@@ -112,9 +112,6 @@ class Base
         Cron::get_instance();
 
         $this->admin_hooks();
-        if ( ! is_admin()) {
-            Admin\SettingsPage\EmailCampaigns::get_instance();
-        }
         Admin\Customizer\EmailCampaign\Customizer::instance();
         Admin\Customizer\OptinForm\Customizer::instance();
         PreviewCampaignLog::get_instance();
@@ -128,6 +125,8 @@ class Base
         InPost::get_instance();
         Shortcodes::get_instance();
         Recaptcha::get_instance();
+
+        BlockEditor\Init::get_instance();
 
         add_action('plugins_loaded', function () {
             FuseWP::get_instance();
