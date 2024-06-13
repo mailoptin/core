@@ -58,7 +58,6 @@ class Init
             ['optins' => $optin_bucket]
         );
 
-
         $deps_asset_file = include dirname(__FILE__) . '/build/disable-email-plugin-sidebar/index.asset.php';
 
         wp_enqueue_script(
