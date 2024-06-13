@@ -38,12 +38,10 @@ class EmailCampaigns extends AbstractSettingsPage
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
         add_action('save_post', [$this, 'save_new_publish_post_exclude']);
-        add_action('init', [$this, 'register_post_meta']);
     }
 
     public function register_settings_page()
     {
-
         $hook = add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Emails - MailOptin', 'mailoptin'),
@@ -56,7 +54,6 @@ class EmailCampaigns extends AbstractSettingsPage
         add_action("load-$hook", array($this, 'screen_option'));
 
         do_action("mailoptin_register_email_campaign_settings_page", $hook);
-
     }
 
     /**
@@ -83,7 +80,6 @@ class EmailCampaigns extends AbstractSettingsPage
     public function screen_option()
     {
         if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! isset($_GET['view'])) {
-
             $option = 'per_page';
             $args   = array(
                 'label'   => __('Email Automation', 'mailoptin'),
@@ -137,7 +133,10 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function add_new_email_campaign()
     {
-        if (isset($_GET['view']) && in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast'])) return;
+        if (isset($_GET['view']) && in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast']
+            )) {
+            return;
+        }
 
         $url = add_query_arg('view', 'add-new', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
         echo "<a class=\"add-new-h2\" href=\"$url\">" . __('Add New', 'mailoptin') . '</a>';
@@ -170,7 +169,9 @@ class EmailCampaigns extends AbstractSettingsPage
     public function new_publish_post_exclude_metabox($post)
     {
         //Maybe abort early
-        if ( ! Core\post_can_new_post_notification($post)) return;
+        if ( ! Core\post_can_new_post_notification($post)) {
+            return;
+        }
 
         ?>
         <div style="text-align: left;margin: 10px;">
@@ -186,11 +187,11 @@ class EmailCampaigns extends AbstractSettingsPage
 
             ?>
             <input type="hidden" name="mo-disable-npp" value="no">
-            <input name="mo-disable-npp" id="mo-disable-npp" type="checkbox" class="tgl tgl-light" value="yes" <?php checked($val, 'yes'); ?>>
+            <input name="mo-disable-npp" id="mo-disable-npp" type="checkbox" class="tgl tgl-light" value="yes" <?php
+            checked($val, 'yes'); ?>>
             <label for="mo-disable-npp" style="display:inline-block;" class="tgl-btn"></label>
         </div>
         <?php
-
     }
 
     public function save_new_publish_post_exclude($post_id)
@@ -215,11 +216,10 @@ class EmailCampaigns extends AbstractSettingsPage
             if ( ! current_user_can('edit_page', $post_id)) {
                 return;
             }
-        } else {
+        }
 
-            if ( ! current_user_can('edit_post', $post_id)) {
-                return;
-            }
+        if ( ! current_user_can('edit_post', $post_id)) {
+            return;
         }
 
         // Make sure that it is set.
@@ -233,31 +233,6 @@ class EmailCampaigns extends AbstractSettingsPage
         // Update the meta field in the database.
         update_post_meta($post_id, '_mo_disable_npp', $val);
     }
-
-    /**
-     * Registers our custom post meta so that it is available during REST calls
-     */
-    public function register_post_meta()
-    {
-        if (function_exists('register_post_meta')) {
-            register_post_meta('', '_mo_disable_npp', array(
-                'show_in_rest'  => true,
-                'single'        => true,
-                'type'          => 'string',
-                'auth_callback' => array($this, 'can_edit_meta')
-            ));
-        }
-
-    }
-
-    /**
-     * Checks whether the current user can edit meta fields
-     */
-    public function can_edit_meta()
-    {
-        return current_user_can('edit_posts');
-    }
-
 
     /**
      * @return EmailCampaigns

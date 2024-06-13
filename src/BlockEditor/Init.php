@@ -4,6 +4,8 @@ namespace MailOptin\Core\BlockEditor;
 
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
+define('MAILOPTIN_BLOCK_EDITOR_URL', wp_normalize_path(MAILOPTIN_ASSETS_URL . '../BlockEditor/'));
+
 class Init
 {
     public function __construct()
@@ -20,6 +22,20 @@ class Init
         }
 
         register_block_type(__DIR__ . '/build/email-optin');
+
+        if (function_exists('register_post_meta')) {
+            /**
+             * Registers our custom post meta so that it is available during REST calls
+             */
+            register_post_meta('', '_mo_disable_npp', array(
+                'show_in_rest'  => true,
+                'single'        => true,
+                'type'          => 'string',
+                'auth_callback' => function () {
+                    return current_user_can('edit_posts');
+                }
+            ));
+        }
     }
 
     public function enqueue_editor_assets()
@@ -41,8 +57,17 @@ class Init
             'moBlockOptinCampaigns',
             ['optins' => $optin_bucket]
         );
-    }
 
+
+        $deps_asset_file = include dirname(__FILE__) . '/build/disable-email-plugin-sidebar/index.asset.php';
+
+        wp_enqueue_script(
+            'mailoptin-disable-email-plugin-sidebar',
+            MAILOPTIN_BLOCK_EDITOR_URL . 'build/disable-email-plugin-sidebar/index.js',
+            $deps_asset_file['dependencies'],
+            $deps_asset_file['version']
+        );
+    }
 
     /**
      * @return self

@@ -2,6 +2,14 @@
   "AAInfo" : "This is a CodeKit 3 project config file. EDITING THIS FILE IS A POOR LIFE DECISION. Doing so may cause CodeKit to crash and\/or corrupt your project. Several critical values in this file are 64-bit integers, which JavaScript JSON parsers do not support because JavaScript cannot handle 64-bit integers. These values will be corrupted if the file is parsed with JavaScript. This file is not backwards-compatible with CodeKit 1 or 2. For details, see https:\/\/codekitapp.com\/",
   "buildSteps" : [
     {
+      "name" : "New \"Run Script\" Step",
+      "scriptSourceString" : "cd .\/src\/BlockEditor\n",
+      "scriptType" : 1,
+      "scriptUUIDString" : "0BC58464-C7F0-4EA9-A441-D99EBC09166C",
+      "stepType" : 2,
+      "uuidString" : "D45033E5-B535-4449-AE38-DC143400A048"
+    },
+    {
       "itemsToProcess" : [
         "\/src\/assets\/js\/src\/mailoptin.js"
       ],
@@ -1583,6 +1591,174 @@
       "oA" : 1,
       "oAP" : "\/src\/Base.php",
       "oF" : 1
+    },
+    "\/src\/BlockEditor\/build\/disable-email-plugin-sidebar\/block.json" : {
+      "ft" : 524288,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/build\/disable-email-plugin-sidebar\/block-min.json",
+      "oF" : 0,
+      "oO" : 1,
+      "oS" : 1
+    },
+    "\/src\/BlockEditor\/build\/disable-email-plugin-sidebar\/index.asset.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/build\/disable-email-plugin-sidebar\/index.asset.php",
+      "oF" : 0
+    },
+    "\/src\/BlockEditor\/build\/disable-email-plugin-sidebar\/index.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/build\/disable-email-plugin-sidebar\/index.min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/src\/BlockEditor\/build\/email-optin\/block.json" : {
+      "ft" : 524288,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/build\/email-optin\/block-min.json",
+      "oF" : 0,
+      "oO" : 1,
+      "oS" : 1
+    },
+    "\/src\/BlockEditor\/build\/email-optin\/index.asset.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/build\/email-optin\/index.asset.php",
+      "oF" : 0
+    },
+    "\/src\/BlockEditor\/build\/email-optin\/index.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/build\/email-optin\/index.min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/src\/BlockEditor\/build\/email-optin\/render.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/build\/email-optin\/render.php",
+      "oF" : 0
+    },
+    "\/src\/BlockEditor\/index.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/index.php",
+      "oF" : 0
+    },
+    "\/src\/BlockEditor\/Init.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/Init.php",
+      "oF" : 0
+    },
+    "\/src\/BlockEditor\/node_modules" : {
+      "ft" : 65536,
+      "oA" : 2,
+      "oAP" : "\/src\/BlockEditor\/node_modules",
+      "oF" : 0
+    },
+    "\/src\/BlockEditor\/package-lock.json" : {
+      "ft" : 524288,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/package-lock-min.json",
+      "oF" : 0,
+      "oO" : 1,
+      "oS" : 1
+    },
+    "\/src\/BlockEditor\/package.json" : {
+      "ft" : 524288,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/package-min.json",
+      "oF" : 0,
+      "oO" : 1,
+      "oS" : 1
+    },
+    "\/src\/BlockEditor\/src\/disable-email-plugin-sidebar\/block.json" : {
+      "ft" : 524288,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/src\/disable-email-plugin-sidebar\/block-min.json",
+      "oF" : 0,
+      "oO" : 1,
+      "oS" : 1
+    },
+    "\/src\/BlockEditor\/src\/disable-email-plugin-sidebar\/index.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/src\/disable-email-plugin-sidebar\/index.min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/src\/BlockEditor\/src\/email-optin\/block.json" : {
+      "ft" : 524288,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/src\/email-optin\/block-min.json",
+      "oF" : 0,
+      "oO" : 1,
+      "oS" : 1
+    },
+    "\/src\/BlockEditor\/src\/email-optin\/edit.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/src\/email-optin\/edit.min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/src\/BlockEditor\/src\/email-optin\/index.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/src\/email-optin\/index.min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/src\/BlockEditor\/src\/email-optin\/render.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/BlockEditor\/src\/email-optin\/render.php",
+      "oF" : 0
+    },
+    "\/src\/BlockEditor\/src\/email-optin\/save.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 1,
+      "oAP" : "\/src\/BlockEditor\/src\/email-optin\/save.min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
     },
     "\/src\/Connections" : {
       "ft" : 65536,
