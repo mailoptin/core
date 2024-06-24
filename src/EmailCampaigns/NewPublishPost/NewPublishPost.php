@@ -8,6 +8,7 @@ use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use WP_Post;
+
 use function MailOptin\Core\moVarObj;
 
 class NewPublishPost extends AbstractTriggers
@@ -75,7 +76,7 @@ class NewPublishPost extends AbstractTriggers
     {
         $old_status = moVarObj($post_before, 'post_status');
 
-        $this->new_publish_post($post->post_status, $old_status, $post);
+        $this->new_publish_post($post->post_status, $old_status, $post, $update);
     }
 
     /**
@@ -110,10 +111,17 @@ class NewPublishPost extends AbstractTriggers
      * @param string $new_status New post status.
      * @param string $old_status Old post status.
      * @param WP_Post $post Post object.
+     * @param bool|null $update True if this is an existing post being updated.
      */
-    public function new_publish_post($new_status, $old_status, $post)
+    public function new_publish_post($new_status, $old_status, $post, $update = null)
     {
-        if ($new_status == 'publish' && $old_status != 'publish') {
+        $condition_check = apply_filters(
+            'mo_new_publish_post_condition_check',
+            $new_status == 'publish' && $old_status != 'publish',
+            $new_status, $old_status, $post, $update
+        );
+
+        if ($condition_check) {
 
             if (get_post_meta($post->ID, '_mo_disable_npp', true) == 'yes') return;
 
