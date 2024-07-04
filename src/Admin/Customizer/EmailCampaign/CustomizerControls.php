@@ -109,17 +109,20 @@ class CustomizerControls
     public function selective_control_modifications()
     {
         add_filter('mailoptin_customizer_settings_email_campaign_subject_description', function ($description, $campaign_type) {
-                $placeholders = [];
-                    if ($campaign_type === ER::NEW_PUBLISH_POST) {
-                        $placeholders[] = '<br><strong>{{title}}</strong>: ' . __('Title of the new published post.', 'mailoptin');
-                    }
-            
-                $placeholders[] = '<br><strong>{{date}}</strong>: ' . __('Date the email is sent out. Accepts PHP date format like this: {{date format="l jS"}}', 'mailoptin');
-            
-                $description = __('Available placeholders for use in the subject line:', 'mailoptin') . implode(' ', $placeholders);
-            
-                return $description;
-                }, 10, 2);
+
+            $placeholders = [];
+
+            if ($campaign_type === ER::NEW_PUBLISH_POST) {
+                $placeholders[] = '<br><strong>{{title}}</strong>: ' . __('Title of the new published post.', 'mailoptin');
+            }
+
+            $placeholders[] = '<br><strong>{{date}}</strong>: ' . __('Date the email is sent out. Accepts PHP date format like this: {{date format="l jS"}}', 'mailoptin');
+
+            $description = __('Available placeholders for use in the subject line:', 'mailoptin') . implode(' ', $placeholders);
+
+            return $description;
+
+        }, 10, 2);
     }
 
     public function campaign_settings_controls()
