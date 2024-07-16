@@ -36,7 +36,7 @@ class Settings
 
     public function from_email()
     {
-        return apply_filters('mo_email_campaign_from_email', $this->settings_data['from_email']);
+        return apply_filters('mo_email_campaign_from_email', trim($this->settings_data['from_email']));
     }
 
     public function reply_to()
@@ -47,7 +47,7 @@ class Settings
             $reply_to = $this->settings_data['from_email'];
         }
 
-        return apply_filters('mo_email_campaign_reply_to_email', $reply_to);
+        return apply_filters('mo_email_campaign_reply_to_email', trim($reply_to));
     }
 
     /**
