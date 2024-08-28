@@ -4,6 +4,8 @@ namespace MailOptin\Core\Admin\Customizer;
 
 use MailOptin\Core\PluginSettings\Settings;
 
+use function MailOptin\Core\_remove_class_action;
+
 trait CustomizerTrait
 {
     public function modify_customizer_publish_button()
@@ -211,6 +213,11 @@ trait CustomizerTrait
 
             if (function_exists('td_customize_js')) {
                 remove_action('customize_controls_print_footer_scripts', 'td_customize_js');
+            }
+
+            if (class_exists('\OceanWP_Customizer')) {
+                _remove_class_action('customize_controls_print_footer_scripts', 'OceanWP_Customizer', 'customize_panel_init');
+                _remove_class_action('customize_controls_enqueue_scripts', 'OceanWP_Customizer', 'custom_customize_enqueue');
             }
 
             // compatibility with easy google font plugin
