@@ -119,6 +119,15 @@ trait TemplateTrait
             $post->post_content = apply_filters('the_content', $post->post_content);
         }
 
+        $wc_price = '';
+
+        if (class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
+            $product = wc_get_product($post->ID);
+            if (false !== $product && is_object($product)) {
+                $wc_price = sprintf('<p class="mo-wc-price">%s</p>', $product->get_price_html());
+            }
+        }
+
         $post_content = $post->post_content;
 
         if (ER::get_merged_customizer_value($this->email_campaign_id, 'post_content_type') == 'post_excerpt') {
@@ -170,7 +179,7 @@ trait TemplateTrait
             $post_content = strip_tags($post_content);
         }
 
-        return wpautop($post_content);
+        return wpautop($wc_price . $post_content);
     }
 
     /**
