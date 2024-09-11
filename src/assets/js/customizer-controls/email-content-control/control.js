@@ -68,7 +68,7 @@
                 e.stopImmediatePropagation();
                 var self = this;
 
-                wp.customize.section('mailoptin_newsletter_content').focus({
+                wp.customize.section('mailoptin_newsletter_content').on('focus', {
                     completeCallback: function () {
                         var id = typeof $(self).attr('id') === 'undefined' ? $(self).data('id') : $(self).attr('id');
                         $(document).find('.element-bar[data-element-id="' + id + '"] .mo-email-content-widget-title').click();

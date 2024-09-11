@@ -38,7 +38,7 @@
         $(this).parent().parent().remove();
     });
 
-    $('form#mo-clear-stat').submit(function (e) {
+    $('form#mo-clear-stat').on('submit', function (e) {
         e.stopImmediatePropagation();
 
         var response = confirm(mailoptin_globals.js_clear_stat_text);

@@ -8,7 +8,7 @@
 
             toggle_connect_service_email_list_field();
 
-            $("select[data-customize-setting-link*='connection_service']").change(function (e) {
+            $("select[data-customize-setting-link*='connection_service']").on('change', function (e) {
 
                 var connect_service = $(this).val();
 

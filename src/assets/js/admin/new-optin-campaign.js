@@ -4,7 +4,7 @@
             e.preventDefault();
             var optin_campaign_title_obj = $('#mailoptin-add-optin-campaign-title');
             // remove input field error on change.
-            optin_campaign_title_obj.change(function () {
+            optin_campaign_title_obj.on('change', function () {
                 optin_campaign_title_obj.removeClass('mailoptin-input-error');
             });
 

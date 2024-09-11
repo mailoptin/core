@@ -14,7 +14,7 @@
         $('.mailoptin-email-template').on('click', function (e) {
             var campaign_title_obj = $('#mailoptin-add-campaign-title');
             // remove input field error on change.
-            campaign_title_obj.change(function () {
+            campaign_title_obj.on('change', function () {
                 campaign_title_obj.removeClass('mailoptin-input-error');
             });
 
