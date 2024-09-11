@@ -336,7 +336,7 @@ class Shortcodes
 
         if (empty($key)) return '';
 
-        return get_post_meta($this->wp_post_obj->ID, $key, true);
+        return wp_kses_post(get_post_meta($this->wp_post_obj->ID, $key, true));
     }
 
     public function acf_custom_field($atts)
