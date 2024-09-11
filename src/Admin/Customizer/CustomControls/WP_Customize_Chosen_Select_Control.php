@@ -20,7 +20,10 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
         wp_enqueue_script('jquery');
         wp_enqueue_style('mailoptin-customizer-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.min.css');
         wp_enqueue_script('mailoptin-customizer-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', array('jquery'), MAILOPTIN_VERSION_NUMBER);
-        wp_enqueue_script('mailoptin-customizer-chosen-control', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/chosen.js', array('jquery', 'mailoptin-customizer-chosen'), MAILOPTIN_VERSION_NUMBER);
+        wp_enqueue_script('mailoptin-customizer-chosen-control', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/chosen.js', array(
+            'jquery',
+            'mailoptin-customizer-chosen'
+        ), MAILOPTIN_VERSION_NUMBER);
     }
 
     public function prepopulation()
@@ -32,7 +35,7 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
         switch ($this->search_type) {
             case 'exclusive_post_types_posts_load':
                 $options = array_reduce($savedValue, function ($carry, $post_id) {
-                    $post_type_label      = '';
+                    $post_type_label = '';
                     $get_post_type_object = get_post_type_object(get_post_type($post_id));
                     if (isset($get_post_type_object->label)) {
                         $post_type_label = $get_post_type_object->label;
@@ -84,7 +87,7 @@ class WP_Customize_Chosen_Select_Control extends WP_Customize_Control
             foreach ($prepopulation as $label => $pre_choice) {
                 if (is_array($pre_choice)) {
                     foreach ($pre_choice as $post_id => $post_title) {
-                        if(!empty($post_id) && !empty($post_title)) {
+                        if ( ! empty($post_id) && ! empty($label) && ! empty($post_title)) {
                             $choices[$label][$post_id] = $post_title;
                         }
                     }
