@@ -158,6 +158,9 @@ trait TemplateTrait
             );
         }
 
+        // remove redundant DIVI tags
+        $post_content = preg_replace(['/\[et_.+\]/', '/\[\/et_.+\]/'], '', $post_content);
+
         // remove VC tags and empty paragraphs (<p></p>)
         $post_content = preg_replace(['/\[vc(.*?)\]/', '/<p[^>]*><\\/p[^>]*>/', '/\[\/vc(.*?)\]/'], '', $post_content);
 
