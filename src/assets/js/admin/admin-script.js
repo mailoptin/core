@@ -151,7 +151,7 @@
                 active_tab += '-tab';
             }
             else {
-                active_tab = $('.mailoptin-settings-wrap .nav-tab-wrapper a:first')
+                active_tab = $('.mailoptin-settings-wrap .nav-tab-wrapper a').first()
             }
 
             open_tab(active_tab);

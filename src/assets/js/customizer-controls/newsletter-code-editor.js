@@ -85,7 +85,7 @@
 
         $(document).on('click', '#newsletter_editor_content_btn', function (e) {
             e.preventDefault();
-            $('.mo-automation-code-toolbar-btn.mo-newsletter-editor').click();
+            $('.mo-automation-code-toolbar-btn.mo-newsletter-editor').trigger('click');
         });
 
         $(document).on('click', '.mo-automation-code-toolbar-btn', function (e) {

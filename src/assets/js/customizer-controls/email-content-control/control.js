@@ -71,7 +71,7 @@
                 wp.customize.section('mailoptin_newsletter_content').focus( {
                     completeCallback: function () {
                         var id = typeof $(self).attr('id') === 'undefined' ? $(self).data('id') : $(self).attr('id');
-                        $(document).find('.element-bar[data-element-id="' + id + '"] .mo-email-content-widget-title').click();
+                        $(document).find('.element-bar[data-element-id="' + id + '"] .mo-email-content-widget-title').trigger('click');
                     }
                 });
             });
@@ -252,7 +252,7 @@
             _this.range_field_init();
             _this.select2_field_init();
             _this.save_changes_on_dirty();
-            $('.mo-email-content-modal-motabs .motabs .motab').eq(0).click();
+            $('.mo-email-content-modal-motabs .motabs .motab').eq(0).trigger('click');
         },
 
         toggle_settings_tab: function () {

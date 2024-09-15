@@ -491,7 +491,7 @@
             jQuery('#save').on('click', function (e) {
 
                 if ($('.mo-optin-map-custom-field-settings-content:visible').length > 0) {
-                    $('.mo-optin-map-custom-field-close').click();
+                    $('.mo-optin-map-custom-field-close').trigger('click');
                 }
             });
 
@@ -568,7 +568,7 @@
                                 e.preventDefault();
 
                                 //Save changes
-                                $('#save').click();
+                                $('#save').trigger('click');
 
                                 //Display the loader
                                 $(switchThemesPopup)
