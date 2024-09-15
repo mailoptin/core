@@ -742,7 +742,7 @@ var mailoptin_optin = {
             });
 
             // init
-            $(window).resize();
+            $(window).trigger('resize');
         }
 
         this.show();

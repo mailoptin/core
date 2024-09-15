@@ -68,7 +68,7 @@
 
             var options = {
                 onclick: function () {
-                    $('#mo-optin-activate-switch').click();
+                    $('#mo-optin-activate-switch').trigger('click');
                     // delay to allow ajax for optin activate to have completed.
                     _.delay(function () {
                         nt.dismiss_ajax('optinNotActive');

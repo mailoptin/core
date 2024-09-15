@@ -48,7 +48,7 @@
             session.setValue(textarea_val);
         }
         editor.on('change', function () {
-            $("input[data-customize-setting-link*='[code_your_own]']").val(session.getValue()).change();
+            $("input[data-customize-setting-link*='[code_your_own]']").val(session.getValue()).trigger('change');
         });
 
         // remove the temporary iframe hide css.

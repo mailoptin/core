@@ -16,7 +16,7 @@ jQuery(window).on('load', function () {
             session.setValue(jQuery('textarea#' + editor_id + '-textarea').val());
 
             editor.on('change', function () {
-                jQuery('textarea#' + editor_id + '-textarea').val(session.getValue()).change();
+                jQuery('textarea#' + editor_id + '-textarea').val(session.getValue()).trigger('change');
             });
         });
 

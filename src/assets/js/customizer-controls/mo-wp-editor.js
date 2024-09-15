@@ -122,7 +122,7 @@ jQuery.fn.mo_wp_editor = function (options) {
 
 
         jQuery.each(options.mceInit, function (key, value) {
-            if (jQuery.type(value) === 'string') {
+            if (typeof value === 'string') {
                 options.mceInit[key] = value.replace(id_regexp, current_id);
             }
         });
@@ -179,7 +179,7 @@ jQuery.fn.mo_wp_editor = function (options) {
 
             event.preventDefault();
 
-            elem.blur();
+            elem.trigger('blur');
 
             if (elem.hasClass('gallery')) {
                 options.state = 'gallery';

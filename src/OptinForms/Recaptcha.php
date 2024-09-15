@@ -166,7 +166,7 @@ $("input.mo-recaptcha-type").on("change", function() {
    else {
        $("#recaptcha_score_row").hide();
    }
-}).change();
+}).trigger("change");
 });
 </script>';
 

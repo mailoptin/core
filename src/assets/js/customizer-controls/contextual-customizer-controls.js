@@ -442,13 +442,13 @@
 
                 api.section('mo_success_section').active(!this.checked);
 
-            }).change();
+            }).trigger('change');
 
             $('select[data-customize-setting-link*=who_see_optin]').on('change', function () {
                 var value = $(this).val();
                 $('li[id*=show_to_roles]').toggle(value === 'show_to_roles');
                 $('li[id*=prefill_logged_user_data]').toggle(value !== 'show_non_logged_in');
-            }).change();
+            }).trigger('change');
 
             // handles click to select on input readonly fields
             $('.mo-click-select').on('click', function () {
@@ -485,7 +485,7 @@
                 }
 
                 $('li[id*=optin_custom_sound]').toggle(value === 'custom');
-            }).change();
+            }).trigger('change');
 
             // handle situations when field mapping view is showing and save button is clicked.
             jQuery('#save').on('click', function (e) {

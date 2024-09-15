@@ -68,7 +68,7 @@
                 e.stopImmediatePropagation();
                 var self = this;
 
-                wp.customize.section('mailoptin_newsletter_content').on('focus', {
+                wp.customize.section('mailoptin_newsletter_content').focus( {
                     completeCallback: function () {
                         var id = typeof $(self).attr('id') === 'undefined' ? $(self).data('id') : $(self).attr('id');
                         $(document).find('.element-bar[data-element-id="' + id + '"] .mo-email-content-widget-title').click();
@@ -119,7 +119,7 @@
                 }
             });
 
-            $('#mo-email-content-save-field').val(JSON.stringify(settings)).change();
+            $('#mo-email-content-save-field').val(JSON.stringify(settings)).trigger('change');
         },
 
         save_changes_on_apply: function (e) {
@@ -139,7 +139,7 @@
 
             settings = _.sortBy(settings, 'sortID');
 
-            $('#mo-email-content-save-field').val(JSON.stringify(settings)).change();
+            $('#mo-email-content-save-field').val(JSON.stringify(settings)).trigger('change');
         },
 
         sortable_init: function () {
@@ -168,7 +168,7 @@
             data.id = _this.generate_unique_id();
             settings.push(data);
 
-            $('#mo-email-content-save-field').val(JSON.stringify(settings)).change();
+            $('#mo-email-content-save-field').val(JSON.stringify(settings)).trigger('change');
 
             _this.render_saved_elements();
 
@@ -185,7 +185,7 @@
                 return settings.id === element_id;
             });
 
-            $('#mo-email-content-save-field').val(JSON.stringify(data)).change();
+            $('#mo-email-content-save-field').val(JSON.stringify(data)).trigger('change');
 
             _this.render_saved_elements();
 
@@ -205,7 +205,7 @@
                 'settings': mo_email_content_builder_elements_defaults[type]
             });
 
-            $('#mo-email-content-save-field').val(JSON.stringify(data)).change();
+            $('#mo-email-content-save-field').val(JSON.stringify(data)).trigger('change');
 
             _this.render_saved_elements();
 
@@ -381,7 +381,7 @@
 
             frame.on('select', function () {
                 let attachment = frame.state().get('selection').first().toJSON();
-                _this.parents('.mo-email-content-blocks').find('.mo-select-image-field input').val(attachment.url).change();
+                _this.parents('.mo-email-content-blocks').find('.mo-select-image-field input').val(attachment.url).trigger('change');
 
             });
 
@@ -402,7 +402,7 @@
                 range_input = range.parent().children('.mo-range-input');
                 value = range.val();
 
-                range_input.val(value).change();
+                range_input.val(value).trigger('change');
             });
 
             // Auto correct the number input
@@ -463,7 +463,7 @@
                 input_default = this_input.data('reset_value');
 
                 this_input.val(input_default);
-                this_input.change();
+                this_input.trigger('change');
 
             });
         },
@@ -497,7 +497,7 @@
                 var currentFieldValue = $(this).val();
 
                 $(this).parent().parent('.mo-border-wrapper').find('.connected').each(function (key, value) {
-                    $(this).val(currentFieldValue).change();
+                    $(this).val(currentFieldValue).trigger('change');
                 });
 
             });

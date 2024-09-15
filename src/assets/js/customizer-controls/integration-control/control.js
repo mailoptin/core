@@ -44,7 +44,7 @@
             var toggleAllWidget = function (e) {
                 e.preventDefault();
                 var $button = $(this);
-                $button.blur();
+                $button.trigger('blur');
 
                 $('.mo-integration-widget').each(function () {
                     var parent = $(this);
@@ -218,17 +218,17 @@
             var parent = $(this).parents('.mo-integration-widget');
 
             $('.mo-integration-widget-advanced-settings-wrap', parent).slideToggle(300, function () {
-                $(e.target).toggleClass('opened').blur();
+                $(e.target).toggleClass('opened').trigger('blur');
             });
         },
 
         color_picker_init: function () {
             $('.mo-color-picker-hex').wpColorPicker({
                 change: function () {
-                    $(this).val($(this).wpColorPicker('color')).change();
+                    $(this).val($(this).wpColorPicker('color')).trigger('change');
                 },
                 clear: function () {
-                    $(this).val('').change();
+                    $(this).val('').trigger('change');
                 }
             });
         },

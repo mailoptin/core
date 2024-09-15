@@ -53,7 +53,7 @@
             data_store[index][objKey] = $(this).val();
         });
 
-        $("input[data-customize-setting-link*='[custom_field_mappings]']").val(JSON.stringify(data_store)).change();
+        $("input[data-customize-setting-link*='[custom_field_mappings]']").val(JSON.stringify(data_store)).trigger('change');
     };
 
     $(function () {

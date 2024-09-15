@@ -8,6 +8,6 @@
 
         storage = JSON.stringify(storage);
 
-        $(this).parents('li[id*="custom_post_type_settings"]').find('.mo-ea-cpt-control').val(storage).change();
+        $(this).parents('li[id*="custom_post_type_settings"]').find('.mo-ea-cpt-control').val(storage).trigger('change');
     });
 })(jQuery);
