@@ -566,6 +566,8 @@ $footer_content";
                 throw new \Exception('Error failed to refresh ' . $response_body);
             }
 
+            self::delete_oauth_refresh_error_count($integration);
+
             return $result;
 
         } catch (\Exception $e) {
