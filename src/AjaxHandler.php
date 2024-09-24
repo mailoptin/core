@@ -800,9 +800,9 @@ class AjaxHandler
 
         if (is_array($form_custom_fields) && ! empty($form_custom_fields)) {
             foreach ($form_custom_fields as $custom_field) {
-                $field_key = $custom_field['cid'];
-                $title     = $custom_field['placeholder'];
-                if ( ! empty($conversion_data->payload[$field_key])) {
+                $field_key = $custom_field['cid'] ?? '';
+                $title     = $custom_field['placeholder'] ?? '';
+                if ( ! empty($conversion_data->payload[$field_key]) && ! empty($title)) {
                     $lead_custom_fields_data[$title] = $conversion_data->payload[$field_key];
                 }
             }
