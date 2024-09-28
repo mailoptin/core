@@ -146,6 +146,7 @@ class Connections extends AbstractSettingsPage
                 <p><a href="%s" target="_blank">Forminator integration</a></p>
                 <p><a href="%s" target="_blank">Formidable Forms integration</a></p>
                 <p><a href="%s" target="_blank">Fluent Forms integration</a></p>
+                <p><a href="%s" target="_blank">WS Form integration</a></p>
                 '),
                     'https://mailoptin.io/article/gravity-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=gravity_forms',
                     'https://mailoptin.io/article/contact-form-7-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=cf7',
@@ -154,7 +155,8 @@ class Connections extends AbstractSettingsPage
                     'https://mailoptin.io/article/elementor-form-integration/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=elementor_forms',
                     'https://mailoptin.io/article/forminator-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=forminator',
                     'https://mailoptin.io/article/formidable-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=formidable_forms',
-                    'https://mailoptin.io/article/fluent-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=fluent_forms'
+                    'https://mailoptin.io/article/fluent-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=fluent_forms',
+                    'https://mailoptin.io/article/ws-form-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=ws_form'
                 )
             ],
             [

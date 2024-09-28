@@ -318,7 +318,7 @@ abstract class AbstractSettingsPage
             esc_html__('Advanced analytics & reports', 'mailoptin'),
             esc_html__('Spam protection with reCAPTCHA', 'mailoptin'),
             esc_html__('Facebook custom audience integration', 'mailoptin'),
-            esc_html__('Form plugins integration', 'mailoptin') . ' (Gravity Forms, Contact Form 7, WPForms, Ninja Forms, Elementor & Formidable forms)',
+            esc_html__('Form plugins integration', 'mailoptin') . ' (Gravity Forms, Contact Form 7, WPForms, Ninja Forms, Elementor, Formidable forms etc)',
             esc_html__('Google Analytics integration', 'mailoptin')
         ];
 

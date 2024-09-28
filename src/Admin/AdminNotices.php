@@ -38,6 +38,9 @@ class AdminNotices
             add_action('admin_notices', array($this, 'show_forminator_features'));
             add_action('admin_notices', array($this, 'show_ninja_forms_features'));
             add_action('admin_notices', array($this, 'show_gravity_forms_features'));
+            add_action('admin_notices', array($this, 'show_fluent_forms_features'));
+            add_action('admin_notices', array($this, 'show_formidable_forms_features'));
+            add_action('admin_notices', array($this, 'show_ws_form_features'));
 
             add_filter('removable_query_args', array($this, 'removable_query_args'));
         });
@@ -497,7 +500,7 @@ class AdminNotices
         if ( ! class_exists('GFForms')) return;
 
         $upgrade_url = 'https://mailoptin.io/article/gravity-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=gravity_forms_admin_notice';
-        $notice      = sprintf(__('Did you know with MailOptin, you can connect Gravity Forms to your email marketing software and CRM including Mailchimp, Brevo (Sendinblue), MailerLite, Ontraport, GetResponse? %sLearn more%s', 'mailoptin'),
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect Gravity Forms to your email marketing software and CRM including Mailchimp, Brevo, MailerLite, Ontraport, GetResponse? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_gravity_forms_features-forever" class="notice notice-info is-dismissible">';
@@ -516,10 +519,67 @@ class AdminNotices
         if ( ! class_exists('WPForms\WPForms')) return;
 
         $upgrade_url = 'https://mailoptin.io/article/wpforms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=wpforms_admin_notice';
-        $notice      = sprintf(__('Did you know with MailOptin, you can connect WPForms to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Brevo (Sendinblue)? %sLearn more%s', 'mailoptin'),
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect WPForms to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Brevo? %sLearn more%s', 'mailoptin'),
             '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="show_wpforms_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_fluent_forms_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_fluent_forms_features-forever')) {
+            return;
+        }
+
+        if ( ! function_exists('FluentCrmApi')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/fluent-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=fluent_forms_admin_notice';
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect Fluent Forms to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Brevo? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_fluent_forms_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_formidable_forms_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_formidable_forms_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('FrmHooksController')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/formidable-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=formidable_forms_admin_notice';
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect Formidable Forms to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Brevo? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_formidable_forms_features-forever" class="notice notice-info is-dismissible">';
+        echo "<p>$notice</p>";
+        echo '</div>';
+    }
+
+    public function show_ws_form_features()
+    {
+        if ( ! $this->is_admin_notice_show()) return;
+
+        if ( ! PAnD::is_admin_notice_active('show_ws_form_features-forever')) {
+            return;
+        }
+
+        if ( ! class_exists('WS_Form')) return;
+
+        $upgrade_url = 'https://mailoptin.io/article/ws-form-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=ws_form_admin_notice';
+        $notice      = sprintf(__('Did you know with MailOptin, you can connect WS Form to major email marketing software such as Mailchimp, ConvertKit, MailerLite, HubSpot, Brevo? %sLearn more%s', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">', '</a>'
+        );
+        echo '<div data-dismissible="show_ws_form_features-forever" class="notice notice-info is-dismissible">';
         echo "<p>$notice</p>";
         echo '</div>';
     }
