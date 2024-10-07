@@ -19,7 +19,7 @@ class WP_Customize_Chosen_Single_Select_Control extends WP_Customize_Control
 
     public function attributes()
     {
-        echo "data-chosen-attr='" . esc_attr(json_encode($this->attributes)) . "'";
+        echo "data-chosen-attr='" . esc_attr(wp_json_encode($this->attributes)) . "'";
     }
 
     public function render_content()

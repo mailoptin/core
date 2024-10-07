@@ -68,13 +68,13 @@ trait TemplateTrait
         foreach ($post_metas as $meta) {
             switch ($meta) {
                 case 'author':
-                    $bucket[] = sprintf('<span>%s</span>', strip_tags(get_the_author_meta('display_name', $post->post_author)));
+                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_author_meta('display_name', $post->post_author)));
                     break;
                 case 'date':
                     $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option('date_format'), $post));
                     break;
                 case 'category':
-                    $bucket[] = sprintf('<span>%s</span>', strip_tags(get_the_term_list($post->ID, 'category', '', ', ')));
+                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_term_list($post->ID, 'category', '', ', ')));
                     break;
             }
         }
@@ -179,7 +179,7 @@ trait TemplateTrait
         );
 
         if (apply_filters('mo_email_automation_post_content_strip_html', false, $post, $post_content_length)) {
-            $post_content = strip_tags($post_content);
+            $post_content = wp_strip_all_tags($post_content);
         }
 
         return wpautop($wc_price . $post_content);

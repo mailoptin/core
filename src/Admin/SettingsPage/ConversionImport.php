@@ -4,7 +4,6 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 
 use League\Csv\Reader;
-use League\Csv\Statement;
 use MailOptin\Core\Repositories\OptinConversionsRepository;
 use function MailOptin\Core\moVar;
 
@@ -27,7 +26,7 @@ class ConversionImport
 
         $target_dir = wp_get_upload_dir();
 
-        $new_file_path = $target_dir['path'] . '/' . rand(1, 9999) . '-' . $file_name;
+        $new_file_path = $target_dir['path'] . '/' . wp_rand(1, 9999) . '-' . $file_name;
 
         if ( ! empty($file_name) && in_array($file_type, $csv_mines)) {
 
@@ -89,7 +88,7 @@ class ConversionImport
 
             if ($conversionRepoResponse !== false) {
                 //remove the file path
-                unlink($file_path);
+                wp_delete_file($file_path);
 
                 //delete the path saved in wp_options table
                 delete_option($this->conversion_data);

@@ -519,7 +519,7 @@ class Customizer
      */
     public function include_optin_form_customizer_template()
     {
-        if (is_customize_preview() && wp_verify_nonce($_REQUEST['_wpnonce'], 'mailoptin-preview-optin-form')) {
+        if (is_customize_preview() && isset($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'mailoptin-preview-optin-form')) {
             include(MAILOPTIN_SRC . 'Admin/Customizer/OptinForm/optin-form-preview.php');
             exit;
         }

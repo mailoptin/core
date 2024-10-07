@@ -32,7 +32,7 @@ abstract class AbstractTriggers implements TriggerInterface
     public function __call($name, $arguments)
     {
         $email_campaign_id = absint($arguments[0]);
-        if (!method_exists($this, $name)) {
+        if ( ! method_exists($this, $name)) {
             return ER::get_merged_customizer_value($email_campaign_id, $name);
         }
     }
@@ -55,9 +55,9 @@ abstract class AbstractTriggers implements TriggerInterface
         $campaign = new CampaignLog(
             array(
                 'email_campaign_id' => $email_campaign_id,
-                'title' => $subject,
-                'content_html' => $content_html,
-                'content_text' => $content_text,
+                'title'             => $subject,
+                'content_html'      => $content_html,
+                'content_text'      => $content_text,
             )
         );
 
@@ -67,6 +67,14 @@ abstract class AbstractTriggers implements TriggerInterface
         return absint($campaign_id);
     }
 
+    public function convert_to_local_time($utcTimestamp)
+    {
+        $dateTime = new \DateTime("@$utcTimestamp");
+
+        $dateTime->setTimezone(wp_timezone());
+
+        return $dateTime->format('Y-m-d H:i:s');
+    }
 
     /**
      * Update campaign status and time.
@@ -79,7 +87,7 @@ abstract class AbstractTriggers implements TriggerInterface
     {
         $this->CampaignLogRepository->updateStatus($campaign_id, $status);
 
-        $status_time = !is_null($status_time) ? date("Y-m-d H:i:s", $status_time) : current_time('mysql');
+        $status_time = ! is_null($status_time) ? $this->convert_to_local_time($status_time) : current_time('mysql');
         $this->CampaignLogRepository->updateStatusTime($campaign_id, $status_time);
     }
 }

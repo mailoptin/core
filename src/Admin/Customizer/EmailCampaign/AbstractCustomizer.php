@@ -426,7 +426,7 @@ HTML;
         ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
 
         $blog_name    = \MailOptin\Core\site_title();
-        $current_year = date("Y");
+        $current_year = gmdate("Y");
 
         $defaults                            = [];
         $defaults['activate_email_campaign'] = apply_filters('mailoptin_customizer_email_campaign_activate', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);

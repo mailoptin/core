@@ -137,8 +137,8 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
 
         ?>
         <script type="text/javascript">
-            var mo_connections_with_custom_field_support = <?php echo json_encode($connections_with_custom_field_support); ?>;
-            var mo_connections_with_advance_settings_support = <?php echo json_encode($connections_with_advance_settings_support); ?>;
+            var mo_connections_with_custom_field_support = <?php echo wp_json_encode($connections_with_custom_field_support); ?>;
+            var mo_connections_with_advance_settings_support = <?php echo wp_json_encode($connections_with_advance_settings_support); ?>;
         </script>
         <?php
     }

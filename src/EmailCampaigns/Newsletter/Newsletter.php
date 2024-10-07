@@ -23,6 +23,8 @@ class Newsletter extends AbstractTriggers
 
         if ( ! isset($_GET['action']) || $_GET['action'] != 'mailoptin_send_newsletter') return;
 
+        if ( ! isset($_GET['id'])) return;
+
         check_admin_referer('mailoptin-send-newsletter');
 
         $email_campaign_id = absint($_GET['id']);

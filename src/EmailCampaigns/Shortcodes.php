@@ -173,7 +173,7 @@ class Shortcodes
         $atts = shortcode_atts(['format' => ''], $atts);
 
         if ( ! empty($atts['format'])) {
-            return date($atts['format'], strtotime_utc($this->wp_post_obj->post_date));
+            return gmdate($atts['format'], strtotime_utc($this->wp_post_obj->post_date));
         }
 
         return $this->wp_post_obj->post_date;
@@ -184,7 +184,7 @@ class Shortcodes
         $atts = shortcode_atts(['format' => ''], $atts);
 
         if ( ! empty($atts['format'])) {
-            return date($atts['format'], strtotime_utc($this->wp_post_obj->post_date_gmt));
+            return gmdate($atts['format'], strtotime_utc($this->wp_post_obj->post_date_gmt));
         }
 
         return $this->wp_post_obj->post_date_gmt;
@@ -259,7 +259,7 @@ class Shortcodes
         $categories = get_the_term_list($this->wp_post_obj->ID, 'category', '', ', ');
 
         if ( ! is_wp_error($categories)) {
-            $output = $atts['link'] == 'true' ? $categories : strip_tags($categories);
+            $output = $atts['link'] == 'true' ? $categories : wp_strip_all_tags($categories);
         }
 
         return $output;
@@ -278,7 +278,7 @@ class Shortcodes
             $terms = get_the_term_list($this->wp_post_obj->ID, $tax, '', ', ');
 
             if ( ! is_wp_error($terms)) {
-                $output = $atts['link'] == 'true' ? $terms : strip_tags($terms);
+                $output = $atts['link'] == 'true' ? $terms : wp_strip_all_tags($terms);
             }
         }
 

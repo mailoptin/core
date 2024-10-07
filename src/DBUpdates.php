@@ -157,7 +157,7 @@ class DBUpdates
                 }
             }
 
-            $all_optin_settings[$optin_campaign_id]['integrations'] = json_encode($new_integration_data);
+            $all_optin_settings[$optin_campaign_id]['integrations'] = wp_json_encode($new_integration_data);
         }
 
         OptinCampaignsRepository::updateSettings($all_optin_settings);
