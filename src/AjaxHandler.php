@@ -869,7 +869,7 @@ class AjaxHandler
 
         if ( ! $integrations || ! is_array($integrations) || empty($integrations)) {
 
-            AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error);
+            AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error, $optin_campaign_type);
 
             return AbstractConnect::ajax_failure($no_email_provider_or_list_error);
         }
@@ -959,7 +959,7 @@ class AjaxHandler
         $no_email_provider_or_list_error = self::no_email_provider_or_list_error();
 
         if ( ! is_valid_data($connection_service) || ! is_valid_data($connection_email_list)) {
-            AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error);
+            AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error, $conversion_data->optin_campaign_type);
 
             return AbstractConnect::ajax_failure($no_email_provider_or_list_error);
         }
