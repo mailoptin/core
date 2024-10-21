@@ -266,13 +266,13 @@ trait CustomizerTrait
     }
 
     /**
-     * Change the label from "Email Provider List" to "ConvertKit Form" on convertkit selected as email provider.
+     * Change the label from "Email Provider List" to "Kit (ConvertKit) Form" on convertkit selected as email provider.
      */
     public function js_script()
     {
         $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
         $salesforce_label  = __('Select Salesforce Object', 'mailoptin');
-        $ck_label          = __('Select ConvertKit Form', 'mailoptin');
+        $ck_label          = __('Select Kit (ConvertKit) Form', 'mailoptin');
         $beehiiv_label     = __('Select beehiiv Tier', 'mailoptin');
         $drip_label        = __('Select Drip Campaign', 'mailoptin');
         $zohocrm_label     = __('Select ZohoCRM Module', 'mailoptin');
