@@ -159,22 +159,24 @@ class NewPublishPost extends AbstractTriggers
 
                     if (is_array($custom_post_type_settings)) {
                         foreach ($custom_post_type_settings as $taxonomy => $npp_terms) {
-                            if (taxonomy_exists($taxonomy) && ! empty($npp_terms)) {
+                            if ( ! in_array($taxonomy, ['category', 'post_tag'])) {
+                                if (taxonomy_exists($taxonomy) && ! empty($npp_terms)) {
 
-                                $npp_terms = array_map('absint', $npp_terms);
+                                    $npp_terms = array_map('absint', $npp_terms);
 
-                                $post_terms       = [];
-                                $post_terms_array = wp_get_object_terms($post->ID, $taxonomy, ['fields' => 'ids']);
+                                    $post_terms       = [];
+                                    $post_terms_array = wp_get_object_terms($post->ID, $taxonomy, ['fields' => 'ids']);
 
-                                if (is_array($post_terms_array) && ! empty($post_terms_array)) {
-                                    $post_terms = array_map('absint', $post_terms_array);
-                                }
+                                    if (is_array($post_terms_array) && ! empty($post_terms_array)) {
+                                        $post_terms = array_map('absint', $post_terms_array);
+                                    }
 
-                                // do not check if $post_terms is empty because if no term is on the post, wp_get_object_terms return empty array
-                                // so we can use the empty to check against if NPP requires certain term(s)
-                                if (is_array($npp_terms) && ! empty($npp_terms)) {
-                                    $result = array_intersect($post_terms, $npp_terms);
-                                    if (empty($result)) continue 2;
+                                    // do not check if $post_terms is empty because if no term is on the post, wp_get_object_terms return empty array
+                                    // so we can use the empty to check against if NPP requires certain term(s)
+                                    if (is_array($npp_terms) && ! empty($npp_terms)) {
+                                        $result = array_intersect($post_terms, $npp_terms);
+                                        if (empty($result)) continue 2;
+                                    }
                                 }
                             }
                         }
