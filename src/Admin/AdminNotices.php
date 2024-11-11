@@ -59,6 +59,7 @@ class AdminNotices
         $args[] = 'email-campaign-error';
         $args[] = 'optin-cache';
         $args[] = 'settings-updated';
+        $args[] = 'license';
         $args[] = 'license-settings-updated';
         $args[] = 'failed-campaign';
         $args[] = 'fbca';
