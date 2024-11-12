@@ -235,11 +235,11 @@ class RegisterScripts
     {
         $screen = get_current_screen();
 
-        $base_text = $screen->base;
+        $base_text = $screen->base ?? '';
 
         wp_enqueue_style('mailoptin-menu', MAILOPTIN_ASSETS_URL . 'css/admin/mailoptin-menu.css', [], filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/mailoptin-menu.css'));
 
-        if (strpos($base_text, 'mailoptin') !== false || is_customize_preview()) {
+        if ( ! empty($base_text) && (strpos($base_text, 'mailoptin') !== false) || is_customize_preview()) {
 
             wp_enqueue_style('mailoptin-admin-tooltipster', MAILOPTIN_ASSETS_URL . 'tooltipster/bundle.min.css', [], MAILOPTIN_VERSION_NUMBER);
             wp_enqueue_style('mailoptin-admin-tooltipster-borderless', MAILOPTIN_ASSETS_URL . 'tooltipster/borderless.min.css', [], MAILOPTIN_VERSION_NUMBER);
