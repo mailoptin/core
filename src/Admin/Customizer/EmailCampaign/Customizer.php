@@ -2,15 +2,12 @@
 
 namespace MailOptin\Core\Admin\Customizer\EmailCampaign;
 
-use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Submit_Button_Control;
 use MailOptin\Core\Admin\Customizer\CustomizerTrait;
 use MailOptin\Core\Admin\Customizer\UpsellCustomizerSection;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
-use MailOptin\Core\Repositories\OptinCampaignsRepository;
-use function MailOptin\Core\mo_test_admin_email;
 
 class Customizer
 {
