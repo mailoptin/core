@@ -730,3 +730,7 @@ li[id*="code_your_own"] + .customize-control {
 .mo-integration-block .mo-webhook-add-btn-wrap {
     padding: 5px 0 0;
 }
+
+.wp-customizer .accordion-section-title button.accordion-trigger {
+    height: auto !important;
+}
