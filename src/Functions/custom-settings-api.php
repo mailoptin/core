@@ -26,8 +26,6 @@
 
 namespace W3Guy;
 
-ob_start();
-
 class Custom_Settings_Page_Api
 {
     /** @var mixed|void database saved data. */
@@ -257,8 +255,14 @@ class Custom_Settings_Page_Api
 
             do_action('wp_cspa_after_persist_settings', $sanitized_data, $this->option_name);
 
-            wp_safe_redirect(esc_url_raw(add_query_arg('settings-updated', 'true')));
-            exit;
+            $redirect_url = esc_url_raw(add_query_arg('settings-updated', 'true'));
+
+            if(!headers_sent()) {
+                wp_safe_redirect($redirect_url);
+                exit;
+            }
+
+            ppress_content_http_redirect($redirect_url);
         }
     }
 
