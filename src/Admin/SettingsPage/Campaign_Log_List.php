@@ -83,8 +83,7 @@ class Campaign_Log_List extends \WP_List_Table
             NL::get_instance()->send_campaign($email_campaign_id, $campaign_log_id);
         }
 
-        wp_safe_redirect(add_query_arg('failed-campaign', 'retried', MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
-        exit;
+        \MailOptin\Core\do_admin_redirect(add_query_arg('failed-campaign', 'retried', MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
     }
 
     /**
@@ -380,8 +379,7 @@ class Campaign_Log_List extends \WP_List_Table
                 self::delete_a_campaign_log(absint($_GET['campaign-log-id']));
                 // esc_url_raw() is used to prevent converting ampersand in url to "#038;"
                 // add_query_arg() return the current url
-                wp_safe_redirect(MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE);
-                exit;
+                \MailOptin\Core\do_admin_redirect(MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE);
             }
         }
 
@@ -394,8 +392,7 @@ class Campaign_Log_List extends \WP_List_Table
                 self::resend_email_campaign(absint($_GET['campaign-log-id']));
                 // esc_url_raw() is used to prevent converting ampersand in url to "#038;"
                 // add_query_arg() return the current url
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
             }
         }
 
@@ -409,8 +406,7 @@ class Campaign_Log_List extends \WP_List_Table
             foreach ($delete_ids as $id) {
                 self::delete_a_campaign_log($id);
             }
-            wp_safe_redirect(esc_url_raw(add_query_arg()));
-            exit;
+            \MailOptin\Core\do_admin_redirect(esc_url_raw(add_query_arg()));
         }
 
         /**
@@ -419,8 +415,7 @@ class Campaign_Log_List extends \WP_List_Table
         if ('bulk-delete-all' === $this->current_action()) {
             check_admin_referer('bulk-campaign_logs');
             self::delete_all_campaign_log();
-            wp_safe_redirect(esc_url_raw(add_query_arg()));
-            exit;
+            \MailOptin\Core\do_admin_redirect(esc_url_raw(add_query_arg()));
         }
     }
 

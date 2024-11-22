@@ -257,12 +257,7 @@ class Custom_Settings_Page_Api
 
             $redirect_url = esc_url_raw(add_query_arg('settings-updated', 'true'));
 
-            if(!headers_sent()) {
-                wp_safe_redirect($redirect_url);
-                exit;
-            }
-
-            ppress_content_http_redirect($redirect_url);
+            \MailOptin\Core\do_admin_redirect($redirect_url);
         }
     }
 

@@ -33,8 +33,7 @@ class ConversionImport
             if (is_uploaded_file($file_temp_name) && move_uploaded_file($file_temp_name, $new_file_path)) {
                 //save csv
                 if (update_option($this->conversion_data, $new_file_path)) {
-                    wp_safe_redirect(add_query_arg('step', '2', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
-                    exit;
+                    \MailOptin\Core\do_admin_redirect(add_query_arg('step', '2', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
                 }
 
                 return __('There was an error. Could not save the csv file path', 'mailoptin');
@@ -92,8 +91,7 @@ class ConversionImport
 
                 //delete the path saved in wp_options table
                 delete_option($this->conversion_data);
-                wp_safe_redirect(add_query_arg('step', '3', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(add_query_arg('step', '3', MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE));
             }
         } catch (\Exception $e) {
             return $e->getMessage();
@@ -107,8 +105,7 @@ class ConversionImport
         $file_path = get_option('mo_conversion_csv_path');
 
         if (empty($file_path)) {
-            wp_safe_redirect(MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE);
-            exit;
+            \MailOptin\Core\do_admin_redirect(MAILOPTIN_LEAD_IMPORT_CSV_SETTINGS_PAGE);
         }
 
         $reader = Reader::createFromPath($file_path, 'r');

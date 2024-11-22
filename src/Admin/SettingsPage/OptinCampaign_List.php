@@ -740,8 +740,7 @@ class OptinCampaign_List extends \WP_List_Table
                 OptinCampaignsRepository::delete_optin_campaign($optin_campaign_id);
                 // esc_url_raw() is used to prevent converting ampersand in url to "#038;"
                 // add_query_arg() return the current url
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -754,8 +753,7 @@ class OptinCampaign_List extends \WP_List_Table
                 wp_nonce_ays('mailoptin_clone_optin_campaign');
             } else {
                 (new CloneOptinCampaign($optin_campaign_id))->forge();
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -767,8 +765,7 @@ class OptinCampaign_List extends \WP_List_Table
                 wp_nonce_ays('mailoptin_activate_optin_campaign');
             } else {
                 OptinCampaignsRepository::activate_campaign($optin_campaign_id);
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -780,8 +777,7 @@ class OptinCampaign_List extends \WP_List_Table
                 wp_nonce_ays('mailoptin_deactivate_optin_campaign');
             } else {
                 OptinCampaignsRepository::deactivate_campaign($optin_campaign_id);
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -793,8 +789,7 @@ class OptinCampaign_List extends \WP_List_Table
                 wp_nonce_ays('mailoptin_reset_stat_campaign');
             } else {
                 (new OptinCampaignStat($optin_campaign_id))->reset_stat();
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -807,8 +802,7 @@ class OptinCampaign_List extends \WP_List_Table
             } else {
                 OptinCampaignsRepository::enable_test_mode($optin_campaign_id);
                 OptinCampaignsRepository::burst_cache($optin_campaign_id);
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -821,8 +815,7 @@ class OptinCampaign_List extends \WP_List_Table
             } else {
                 OptinCampaignsRepository::disable_test_mode($optin_campaign_id);
                 OptinCampaignsRepository::burst_cache($optin_campaign_id);
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -833,8 +826,7 @@ class OptinCampaign_List extends \WP_List_Table
                 wp_nonce_ays('mailoptin_clear_cookies');
             } else {
                 self::clear_cookie($optin_campaign_id);
-                wp_safe_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
-                exit;
+                \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
             }
         }
 
@@ -848,8 +840,7 @@ class OptinCampaign_List extends \WP_List_Table
 
             do_action('mo_optin_after_bulk_delete', $delete_ids);
 
-            wp_safe_redirect(esc_url_raw(add_query_arg()));
-            exit;
+            \MailOptin\Core\do_admin_redirect(esc_url_raw(add_query_arg()));
         }
 
         if ('bulk-clear-cookies' === $this->current_action()) {
@@ -859,8 +850,7 @@ class OptinCampaign_List extends \WP_List_Table
             foreach ($ids as $id) {
                 self::clear_cookie($id);
             }
-            wp_safe_redirect(esc_url_raw(add_query_arg()));
-            exit;
+            \MailOptin\Core\do_admin_redirect(esc_url_raw(add_query_arg()));
         }
     }
 
