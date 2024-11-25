@@ -122,6 +122,8 @@ class Base
 
         BlockEditor\Init::get_instance();
 
+        Shogun::get_instance();
+
         add_action('plugins_loaded', function () {
             FuseWP::get_instance();
         }, 99);
