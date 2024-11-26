@@ -31,6 +31,14 @@ if ( ! class_exists('\ProperP_Shogun')) {
 
         public function add_plugin_favs($plugin_slug, $res)
         {
+            if ( ! function_exists('is_plugin_active')) {
+                require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            }
+
+            $plugin_main_file = $plugin_slug . '/' . $plugin_slug . '.php';
+
+            if (is_plugin_active($plugin_main_file)) return $res;
+
             if ( ! empty($res->plugins) && is_array($res->plugins)) {
                 foreach ($res->plugins as $plugin) {
                     if (is_object($plugin) && ! empty($plugin->slug) && $plugin->slug == $plugin_slug) {
@@ -40,7 +48,9 @@ if ( ! class_exists('\ProperP_Shogun')) {
             }
 
             if ($plugin_info = get_transient('yolo-plugin-info-' . $plugin_slug)) {
-                array_unshift($res->plugins, $plugin_info);
+                if (is_array($res->plugins)) {
+                    array_unshift($res->plugins, $plugin_info);
+                }
             } else {
                 $plugin_info = plugins_api('plugin_information', array(
                     'slug'   => $plugin_slug,
@@ -54,7 +64,7 @@ if ( ! class_exists('\ProperP_Shogun')) {
                         'short_description' => true,
                     )
                 ));
-                if ( ! is_wp_error($plugin_info)) {
+                if ( ! is_wp_error($plugin_info) && isset($res->plugins) && is_array($res->plugins)) {
                     $res->plugins[] = $plugin_info;
                     set_transient('yolo-plugin-info-' . $plugin_slug, $plugin_info, DAY_IN_SECONDS * 7);
                 }
