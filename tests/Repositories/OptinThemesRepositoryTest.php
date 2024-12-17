@@ -61,13 +61,4 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
 
         $this->assertEquals($this->kick_theme, $data);
     }
-
-    public function testDeleteByName()
-    {
-        OptinThemesRepository::add($this->kick_theme);
-
-        OptinThemesRepository::delete_by_name('Kick');
-
-        $this->assertNull(OptinThemesRepository::get_by_type('kick'));
-    }
 }

@@ -102,22 +102,4 @@ class EmailTemplatesRepository extends AbstractRepository
         self::defaultTemplate();
         self::$email_templates[] = $data;
     }
-
-    /**
-     * Delete email template from stack.
-     *
-     * @param mixed $template_name
-     *
-     * @return void
-     */
-    public static function delete_by_name($template_name)
-    {
-        self::defaultTemplate();
-
-        foreach (self::$email_templates as $index => $email_template) {
-            if ($email_template['name'] == $template_name) {
-                unset(self::$email_templates[$index]);
-            }
-        }
-    }
 }

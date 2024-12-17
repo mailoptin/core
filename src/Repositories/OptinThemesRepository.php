@@ -590,22 +590,4 @@ class OptinThemesRepository extends AbstractRepository
         self::defaultThemes();
         self::$optin_themes[] = $data;
     }
-
-    /**
-     * Delete optin theme from stack.
-     *
-     * @param mixed $optin_theme_name
-     *
-     * @return void
-     */
-    public static function delete_by_name($optin_theme_name)
-    {
-        self::defaultThemes();
-
-        foreach (self::$optin_themes as $index => $optin_theme) {
-            if ($optin_theme['name'] == $optin_theme_name) {
-                unset(self::$optin_themes[$index]);
-            }
-        }
-    }
 }
