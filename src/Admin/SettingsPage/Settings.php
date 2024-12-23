@@ -6,6 +6,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
 use MailOptin\Core\RegisterActivation\CreateDBTables;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use W3Guy\Custom_Settings_Page_Api;
+
 use function MailOptin\Core\moVar;
 use function MailOptin\Core\moVarGET;
 
@@ -126,6 +127,12 @@ class Settings extends AbstractSettingsPage
                         'checkbox_label' => __('Enable', 'mailoptin'),
                         'label'          => __('Switch Customizer Loader Method', 'mailoptin'),
                         'description'    => __('Check this if you are having problem with Customizer not loading properly.', 'mailoptin'),
+                    ],
+                    'enable_safe_mode'          => [
+                        'type'           => 'checkbox',
+                        'checkbox_label' => __('Enable', 'mailoptin'),
+                        'label'          => __('Safe Mode', 'mailoptin'),
+                        'description'    => __('Check this if you are having problem with Customizer and enabling "Switch Customizer Loader Method" did not fix the issue.', 'mailoptin'),
                     ],
                     'mailoptin_affiliate_url'   => [
                         'type'        => 'text',

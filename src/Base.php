@@ -7,6 +7,7 @@ if ( ! defined('ABSPATH')) {
 }
 
 use MailOptin\Core\Admin\AdminNotices;
+use MailOptin\Core\Admin\Customizer\SafeModeMUInstaller;
 use MailOptin\Core\Admin\FuseWP;
 use MailOptin\Core\Admin\SettingsPage\ConversionExport;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
@@ -29,7 +30,7 @@ define('MAILOPTIN_ROOT', wp_normalize_path(plugin_dir_path(MAILOPTIN_SYSTEM_FILE
 define('MAILOPTIN_URL', plugin_dir_url(MAILOPTIN_SYSTEM_FILE_PATH));
 define('MAILOPTIN_ASSETS_DIR', wp_normalize_path(dirname(__FILE__) . '/assets/'));
 
-define('MAILOPTIN_ASSETS_URL', plugins_url('assets/',__FILE__));
+define('MAILOPTIN_ASSETS_URL', plugins_url('assets/', __FILE__));
 
 if ( ! defined('EDD_MO_ITEM_ID')) {
     define('EDD_MO_ITEM_ID', '8');
@@ -121,6 +122,8 @@ class Base
         Recaptcha::get_instance();
 
         BlockEditor\Init::get_instance();
+
+        new SafeModeMUInstaller();
 
         \ProperP_Shogun::get_instance();
 

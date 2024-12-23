@@ -6,6 +6,7 @@ namespace MailOptin\Core\PluginSettings;
  * @method string remove_plugin_data()
  * @method string mailoptin_affiliate_url()
  * @method string switch_customizer_loader()
+ * @method string safe_mode()
  * @method string company_name()
  * @method string company_address()
  * @method string company_address_2()
