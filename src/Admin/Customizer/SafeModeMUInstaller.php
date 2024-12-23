@@ -87,7 +87,7 @@ class MailOptinCustomizerIntegration
     {
         return (
             is_admin() &&
-            isset($_GET[\'mailoptin_optin_campaign_id\']) &&
+            (isset($_GET[\'mailoptin_optin_campaign_id\']) || isset($_GET[\'mailoptin_email_campaign_id\'])) &&
             isset($_SERVER[\'SCRIPT_FILENAME\']) &&
             basename($_SERVER[\'SCRIPT_FILENAME\']) === \'customize.php\' &&
             (get_option(\'mailoptin_settings\', [])[\'enable_safe_mode\'] ?? \'\') === \'true\'
