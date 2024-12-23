@@ -113,12 +113,11 @@ class Custom_Settings_Page_Api
         if (empty($args)) return;
 
         echo '<h2 class="nav-tab-wrapper">';
-        if ( ! empty($args)) {
             foreach ($args as $arg) {
-                $url              = esc_url_raw(@$arg['url']);
-                $label            = esc_html(@$arg['label']);
-                $class            = esc_attr(@$arg['class']);
-                $style            = esc_attr(@$arg['style']);
+                $url              = esc_url_raw($arg['url'] ?? '');
+                $label            = esc_html($arg['label'] ?? '');
+                $class            = esc_attr($arg['class'] ?? '');
+                $style            = esc_attr($arg['style'] ?? '');
                 $active           = null;
                 $current_page_url = $this->current_page_url();
                 if (strpos($current_page_url, $url) !== false) {
@@ -126,7 +125,6 @@ class Custom_Settings_Page_Api
                 }
                 echo "<a href=\"$url\" class=\"$class nav-tab{$active}\" style='$style'>$label</a>";
             }
-        }
 
         echo '</h2>';
     }
@@ -188,14 +186,14 @@ class Custom_Settings_Page_Api
         foreach ($data as $key => $value) {
             // skip sanitation. useful for fields that expects html
             if (apply_filters('wp_cspa_sanitize_skip', false, $key, $value)) {
-                $sanitized_data[$key] = $data[$key];
+                $sanitized_data[$key] = $value;
                 continue;
             }
 
-            if (is_array($data[$key])) {
-                $sanitized_data[$key] = self::sanitize_data($data[$key]);
+            if (is_array($value)) {
+                $sanitized_data[$key] = self::sanitize_data($value);
             } else {
-                $sanitized_data[$key] = esc_html(stripslashes(trim($data[$key])));
+                $sanitized_data[$key] = esc_html(stripslashes(trim($value)));
             }
         }
 
@@ -205,7 +203,7 @@ class Custom_Settings_Page_Api
     /**
      * Persist the form data to database.
      *
-     * @return \WP_Error|Void
+     * @return Void
      */
     public function persist_plugin_settings()
     {
@@ -442,7 +440,7 @@ class Custom_Settings_Page_Api
             $html .= $this->_header($args['section_title'], $args);
         }
 
-        $disable_submit_button = isset($args['disable_submit_button']) ? true : false;
+        $disable_submit_button = isset($args['disable_submit_button']);
 
         // remove section title from array to make the argument keys be arrays so it can work with foreach loop
         if (isset($args['section_title'])) {
@@ -455,8 +453,8 @@ class Custom_Settings_Page_Api
 
         foreach ($args as $key => $value) {
 
-            $field_type = '_' . $args[$key]['type'];
-            $html       .= $this->{$field_type}($db_options, $key, $args[$key]);
+            $field_type = '_' . $value['type'];
+            $html       .= $this->{$field_type}($db_options, $key, $value);
         }
 
         if ($disable_submit_button) {
@@ -481,9 +479,9 @@ class Custom_Settings_Page_Api
     {
         $key         = sanitize_key($key);
         $label       = esc_attr($args['label']);
-        $description = @$args['description'];
+        $description = $args['description'] ?? '';
         $option_name = $this->option_name;
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
 
         $fields = (array)$args['fields'];
 
@@ -507,9 +505,9 @@ class Custom_Settings_Page_Api
                         <tr class="<?php echo $key; ?>_fields_row mo_repeatable_fields_row">
                             <?php foreach ($fields as $field)  : ?>
                                 <?php $field_name = $field['name']; ?>
-                                <?php $field_value = is_array($repeatable_field) ? @$repeatable_field[$field_name] : ''; ?>
+                                <?php $field_value = $repeatable_field[$field_name] ?? ''; ?>
                                 <?php $field_type = $field['type'] == 'text' ? '_text_field' : ''; ?>
-                                <?php $field_placeholder = isset($field['placeholder']) ? $field['placeholder'] : ''; ?>
+                                <?php $field_placeholder = $field['placeholder'] ?? ''; ?>
                                 <?php $name_attr = $option_name . '[' . $key . ']' . '[' . $index . ']' . '[' . $field_name . ']'; ?>
                                 <td><?php $this->$field_type("{$key}_{$field_name}", $name_attr, $field_value, 'all-options', $field_placeholder, $index); ?></td>
                             <?php endforeach; ?>
@@ -564,9 +562,9 @@ class Custom_Settings_Page_Api
      */
     public function _arbitrary($db_options, $key, $args)
     {
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
-        $data        = @$args['data'];
-        $description = @$args['description'];
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
+        $data        = $args['data'] ?? '';
+        $description = $args['description'] ?? '';
 
         return "<tr id=\"$tr_id\"><td colspan=\"5\" style='margin:0;padding:0;'>" . $data . $description . '</td></tr>';
     }
@@ -585,9 +583,9 @@ class Custom_Settings_Page_Api
         $key         = sanitize_key($key);
         $label       = esc_attr($args['label']);
         $placeholder       = esc_attr($args['placeholder'] ?? '');
-        $defvalue    = esc_html(@$args['value']);
-        $description = @$args['description'];
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $defvalue    = esc_html($args['value'] ?? '');
+        $description = $args['description'] ?? '';
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
         $option_name = $this->option_name;
         $name_attr   = $option_name . '[' . $key . ']';
         $value       = ! empty($db_options[$key]) ? $db_options[$key] : $defvalue;
@@ -631,12 +629,12 @@ class Custom_Settings_Page_Api
     public function _custom_field_block($db_options, $key, $args)
     {
         $key         = sanitize_key($key);
-        $label       = esc_attr(@$args['label']);
-        $description = @$args['description'];
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $label       = esc_attr($args['label'] ?? '');
+        $description = $args['description'] ?? '';
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
         $option_name = $this->option_name;
 
-        $data = @$args['data'];
+        $data = $args['data'] ?? '';
 
         ob_start(); ?>
         <tr id="<?php echo $tr_id; ?>">
@@ -665,9 +663,9 @@ class Custom_Settings_Page_Api
     {
         $key         = esc_attr($key);
         $label       = esc_attr($args['label']);
-        $defvalue    = esc_attr(@$args['value']);
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
-        $description = @$args['description'];
+        $defvalue    = esc_attr($args['value'] ?? '');
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
+        $description = $args['description'] ?? '';
         $option_name = $this->option_name;
         $value       = ! empty($db_options[$key]) ? $db_options[$key] : $defvalue;
         ob_start(); ?>
@@ -699,10 +697,10 @@ class Custom_Settings_Page_Api
     {
         $key         = esc_attr($key);
         $label       = esc_attr($args['label']);
-        $defvalue    = esc_html(@$args['value']);
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $defvalue    = esc_html($args['value'] ?? '');
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
         $disabled    = isset($args['disabled']) && $args['disabled'] === true ? 'disabled="disabled"' : '';
-        $description = @$args['description'];
+        $description = $args['description'] ?? '';
         $option_name = $this->option_name;
         $value       = ! empty($db_options[$key]) ? $db_options[$key] : $defvalue;
         ob_start(); ?>
@@ -734,7 +732,7 @@ class Custom_Settings_Page_Api
     {
         $key         = esc_attr($key);
         $label       = esc_attr($args['label']);
-        $description = @$args['description'];
+        $description = $args['description'] ?? '';
         $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
         $option_name = $this->option_name;
         /**
@@ -769,12 +767,12 @@ class Custom_Settings_Page_Api
     {
         $key         = esc_attr($key);
         $label       = esc_attr($args['label']);
-        $description = @$args['description'];
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $description = $args['description'] ?? '';
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
         $rows        = ! empty($args['rows']) ? $args['rows'] : 5;
         $cols        = ! empty($args['column']) ? $args['column'] : '';
         $option_name = $this->option_name;
-        $value       = ! empty($db_options[$key]) ? stripslashes($db_options[$key]) : @$args['value'];
+        $value       = ! empty($db_options[$key]) ? stripslashes($db_options[$key]) : ($args['value'] ?? '');
         ob_start();
         ?>
         <tr id="<?php echo $tr_id; ?>">
@@ -806,10 +804,10 @@ class Custom_Settings_Page_Api
     {
         $key         = esc_attr($key);
         $label       = esc_attr($args['label']);
-        $description = @$args['description'];
-        $tr_id       = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $description = $args['description'] ?? '';
+        $tr_id       = $args['tr_id'] ?? "{$key}_row";
         $option_name = $this->option_name;
-        $value       = ! empty($db_options[$key]) ? stripslashes($db_options[$key]) : @$args['value'];
+        $value       = ! empty($db_options[$key]) ? stripslashes($db_options[$key]) : ($args['value'] ?? '');
         $settings    = ! empty($args['settings']) ? $args['settings'] : [];
 
         $settings = array_replace(['textarea_name' => $option_name . '[' . $key . ']'], $settings);
@@ -843,11 +841,11 @@ class Custom_Settings_Page_Api
     {
         $key                  = esc_attr($key);
         $label                = esc_attr($args['label']);
-        $description          = @$args['description'];
+        $description          = $args['description'] ?? '';
         $tr_id                = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
         $disabled             = isset($args['disabled']) && $args['disabled'] === true ? 'disabled="disabled"' : '';
         $options              = $args['options'];
-        $default_select_value = @$args['value'];
+        $default_select_value = $args['value'] ?? '';
         $option_name          = $this->option_name;
         ob_start() ?>
         <tr id="<?php echo $tr_id; ?>">
@@ -884,11 +882,11 @@ class Custom_Settings_Page_Api
     {
         $key                  = esc_attr($key);
         $label                = esc_attr($args['label']);
-        $description          = @$args['description'];
-        $tr_id                = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $description          = $args['description'] ?? '';
+        $tr_id                = $args['tr_id'] ?? "{$key}_row";
         $disabled             = isset($args['disabled']) && $args['disabled'] === true ? 'disabled="disabled"' : '';
         $options              = $args['options'];
-        $default_select_value = @$args['value'];
+        $default_select_value = $args['value'] ?? '';
         $option_name          = $this->option_name;
         ob_start() ?>
         <tr id="<?php echo $tr_id; ?>">
@@ -939,8 +937,8 @@ class Custom_Settings_Page_Api
     {
         $key            = esc_attr($key);
         $label          = esc_attr($args['label']);
-        $description    = @$args['description'];
-        $tr_id          = isset($args['tr_id']) ? $args['tr_id'] : "{$key}_row";
+        $description    = $args['description'] ?? '';
+        $tr_id          = $args['tr_id'] ?? "{$key}_row";
         $checkbox_label = ! empty($args['checkbox_label']) ? esc_html($args['checkbox_label']) : __('Activate', 'mailoptin');
         $value          = ! empty($args['value']) ? esc_attr($args['value']) : 'true';
         $option_name    = $this->option_name;
@@ -1042,8 +1040,8 @@ public function _header($section_title, $args = array())
 
         if ( ! empty($settings_args)) {
             foreach ($settings_args as $key => $settings_arg) {
-                $tab_title     = @$settings_arg['tab_title'];
-                $section_title = @$settings_arg['section_title'];
+                $tab_title     = $settings_arg['tab_title'] ?? '';
+                $section_title = $settings_arg['section_title'] ?? '';
                 unset($settings_arg['tab_title']);
                 unset($settings_arg['section_title']);
                 $nav_tabs .= sprintf('<a href="#%1$s" class="nav-tab" id="%1$s-tab"><span class="dashicons dashicons-admin-generic"></span> %2$s</a>', $key, $tab_title);
