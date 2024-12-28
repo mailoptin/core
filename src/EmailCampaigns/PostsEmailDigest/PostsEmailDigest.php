@@ -8,6 +8,7 @@ use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
+use WP_Post;
 
 class PostsEmailDigest extends AbstractTriggers
 {
@@ -91,6 +92,11 @@ class PostsEmailDigest extends AbstractTriggers
         return $parameters;
     }
 
+    /**
+     * @param $email_campaign_id
+     *
+     * @return WP_Post[]
+     */
     public function post_collection($email_campaign_id)
     {
         $newer_than_timestamp = EmailCampaignMeta::get_meta_data($email_campaign_id, 'created_at');
@@ -271,6 +277,8 @@ class PostsEmailDigest extends AbstractTriggers
         $post_collection = $this->post_collection($email_campaign_id);
 
         if (empty($post_collection)) return false;
+
+        $email_subject = apply_filters('mailoptin_email_campaign_subject', $email_subject, $email_campaign_id, $post_collection);
 
         $content_html = (new Templatify($email_campaign_id, $post_collection))->forge();
 
