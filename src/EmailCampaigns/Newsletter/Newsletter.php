@@ -33,11 +33,11 @@ class Newsletter extends AbstractTriggers
 
         $content_html = (new Templatify($email_campaign_id))->forge();
 
-        do_action('mo_newsletter_before_send');
+        do_action('mo_newsletter_before_send', $email_campaign_id, $email_subject, $content_html);
 
         $campaign_id = $this->save_campaign_log(
             $email_campaign_id,
-            $email_subject,
+            apply_filters('mailoptin_newsletter_email_campaign_subject', $email_subject, $email_campaign_id),
             $content_html
         );
 
