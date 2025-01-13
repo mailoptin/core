@@ -228,7 +228,6 @@ class PostsEmailDigest extends AbstractTriggers
 
             if (isset($_GET['mo_ped_debug'])) {
                 $this->create_and_send_campaign($email_campaign_id);
-
                 return;
             }
 
