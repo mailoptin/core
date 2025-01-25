@@ -49,8 +49,8 @@ abstract class AbstractConnect
         $optin_campaign_id = isset($this->extras['optin_campaign_id']) ? absint($this->extras['optin_campaign_id']) : '';
         $defaults          = (new AbstractCustomizer($optin_campaign_id))->customizer_defaults['integrations'];
 
-        $data   = is_valid_data($default) ? $default : @$defaults[$data_key];
-        $bucket = is_array($integration_data) && ! empty($integration_data) ? $integration_data : @$this->extras['integration_data'];
+        $data   = is_valid_data($default) ? $default : ($defaults[$data_key] ?? '');
+        $bucket = is_array($integration_data) && ! empty($integration_data) ? $integration_data : ($this->extras['integration_data'] ?? []);
 
         if (isset($bucket[$data_key]) && is_valid_data($bucket[$data_key])) {
             $data = $bucket[$data_key];

@@ -426,78 +426,78 @@ class WP_Customize_Integration_Repeater_Control extends WP_Customize_Control
                 case 'text':
                     $this->text_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description'],
-                        @$control_arg['placeholder'],
-                        @$control_arg['type']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
+                        $control_arg['placeholder'] ?? '',
+                        $control_arg['type'] ?? ''
                     );
                     break;
                 case 'textarea':
                     $this->textarea_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description'],
-                        @$control_arg['placeholder']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
+                        $control_arg['placeholder'] ?? ''
                     );
                     break;
                 case 'select':
                     $this->select_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['choices'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['choices'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? ''
                     );
                     break;
                 case 'chosen_select':
                     $this->chosen_select_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['choices'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['choices'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? ''
                     );
                     break;
                 case 'mc_group_select':
                     $this->mc_group_select(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['choices'],
-                        @$control_arg['class']
+                        $control_arg['name'] ?? '',
+                        $control_arg['choices'] ?? '',
+                        $control_arg['class'] ?? ''
                     );
                     break;
                 case 'color':
                     $this->color_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? ''
                     );
                     break;
                 case 'font':
                     $this->font_fields(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description'],
-                        @$control_arg['count']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
+                        $control_arg['count'] ?? ''
                     );
                     break;
                 case 'toggle':
                     $this->toggle_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? ''
                     );
                     break;
                 case 'custom_content':

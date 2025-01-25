@@ -560,7 +560,7 @@ CSS;
                     <tbody>
                     <tr>
                         <td style="width:550px;">
-                            <img class="mo-email-builder-element" alt="<?= $this->feature_image_alt($post) ?>" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, @$settings['default_image_url']) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
+                            <img class="mo-email-builder-element" alt="<?= $this->feature_image_alt($post) ?>" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, ($settings['default_image_url'] ?? '')) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
                         </td>
                     </tr>
                     </tbody>
