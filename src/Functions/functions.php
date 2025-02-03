@@ -69,13 +69,14 @@ function html_to_text($content)
  */
 function limit_text($text, $limit = 150)
 {
-    $limit = ! is_int($limit) || 0 === $limit ? 150 : $limit;
+    $limit = !is_int($limit) || 0 === $limit ? 150 : $limit;
 
     // <p> not included cos it sometimes break layout and besides wpautop adds it back
     $tags = apply_filters('mo_limit_text_tags', '<style><a><img><em><i><code><ins><del><strong><blockquote><ul><ol><li><h1><h2><h3><h4><h5><h6><b><div><span>');
 
     $text = strip_shortcodes(strip_tags(stripslashes($text), $tags));
 
+    // Truncate text if it exceeds the word limit
     if (str_word_count($text, 0) > $limit) {
 
         $ellipsis = apply_filters('mailoptin_limit_text_ellipsis', '. . .');
@@ -84,13 +85,36 @@ function limit_text($text, $limit = 150)
         $pos   = array_keys($words);
         $text  = substr($text, 0, $pos[$limit]) . $ellipsis;
 
-        // when truncated text ends with malfunctioned link eg <a href="https://hello.com, <img src="http://hey.com/img.png, remove them
-        $text = preg_replace(sprintf("/<(img|a|em|hr|div)[^>]+(%s)/", preg_quote($ellipsis, '/')), '$2', $text);
+        // Use DOMDocument to ensure valid HTML structure
+        $text = ensure_valid_html($text);
     }
 
-    $text = close_tags($text);
-
     return $text;
+}
+
+/**
+ * Ensure valid HTML structure using DOMDocument.
+ *
+ * @param string $content
+ * @return string
+ */
+function ensure_valid_html($content)
+{
+    // Use the global DOMDocument class
+    $dom = new \DOMDocument();
+
+    libxml_use_internal_errors(true);
+
+    // Load the content into DOMDocument
+    $dom->loadHTML('<?xml encoding="UTF-8"><div>' . $content . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+    // Clear any errors
+    libxml_clear_errors();
+
+    $content = $dom->saveHTML($dom->getElementsByTagName('div')->item(0));
+    $content = str_replace(['<div>', '</div>'], '', $content);
+
+    return $content;
 }
 
 function close_tags($content)
