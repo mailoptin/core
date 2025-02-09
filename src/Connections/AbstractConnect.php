@@ -25,6 +25,8 @@ abstract class AbstractConnect
     const OPTIN_CAMPAIGN_SUPPORT = 'optin_campaign';
     const OPTIN_CUSTOM_FIELD_SUPPORT = 'optin_custom_field';
     const EMAIL_CAMPAIGN_SUPPORT = 'email_campaign';
+    /** @var string by default only custom fields are mappable excluding name and email field. this flag now include name and email in field mapping UI */
+    const FULL_FIELDS_MAPPING_SUPPORT = 'full_fields_mapping';
 
     public $extras = [];
 

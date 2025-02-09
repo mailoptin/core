@@ -728,7 +728,7 @@ class OptinCampaign_List extends \WP_List_Table
             return;
         }
 
-        $optin_campaign_id = ! empty($_GET['optin-form']) ? @absint($_GET['optin-form']) : @absint($_GET['optin-campaign']);
+        $optin_campaign_id = ! empty($_GET['optin-form']) ? absint($_GET['optin-form']) : absint($_GET['optin-campaign'] ?? '');
 
         // Detect when a bulk action is being triggered...
         if ('delete' === $this->current_action()) {

@@ -18,17 +18,23 @@
     };
 
     var ajax_get_custom_fields = function (parent) {
-        $.post(ajaxurl, {
-                action: 'mailoptin_customizer_optin_map_custom_field',
-                optin_campaign_id: mailoptin_optin_campaign_id,
-                custom_field_mappings: $("input[data-customize-setting-link*='[custom_field_mappings]']").val(),
-                integration_index: parent.data('integration-index'),
-                connect_service: $("select[name='connection_service']", parent).val(),
-                list_id: $("select[name='connection_email_list']", parent).val(),
-                custom_fields: $('.mo-fields-save-field').val(),
-                security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
-            },
-            function (response) {
+        var payload = {
+            action: 'mailoptin_customizer_optin_map_custom_field',
+            optin_campaign_id: mailoptin_optin_campaign_id,
+            custom_field_mappings: $("input[data-customize-setting-link*='[custom_field_mappings]']").val(),
+            integration_index: parent.data('integration-index'),
+            connect_service: $("select[name='connection_service']", parent).val(),
+            list_id: $("select[name='connection_email_list']", parent).val(),
+            custom_fields: $('.mo-fields-save-field').val(),
+            security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
+        };
+
+        $('.mo-integration-block:visible .mo-optin-integration-field', parent).each(function () {
+            var obj = $(this);
+            payload[obj.attr('name')] = obj.val();
+        });
+
+        $.post(ajaxurl, payload, function (response) {
 
                 if (_.isObject(response) && 'data' in response) {
                     $('.mo-optin-map-custom-field-settings', parent).show();

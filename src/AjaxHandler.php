@@ -1157,28 +1157,29 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        current_user_has_privilege() || exit;
+        if (!current_user_has_privilege()) {
+            exit;
+        }
 
-        $connection            = sanitize_text_field($_POST['connect_service']);
-        $list_id               = sanitize_text_field($_POST['list_id']);
-        $custom_field_mappings = stripslashes(sanitize_text_field($_POST['custom_field_mappings']));
-        $integration_index     = sanitize_text_field($_POST['integration_index']);
+        $connection = sanitize_text_field($_POST['connect_service']);
+        $list_id = sanitize_text_field($_POST['list_id']);
+        $custom_field_mappings = json_decode(stripslashes(sanitize_text_field($_POST['custom_field_mappings'])), true);
+        $integration_index = sanitize_text_field($_POST['integration_index']);
+
+        $connectionInstance = ConnectionFactory::make($connection);
 
         $close_btn = '<div class="mo-optin-map-custom-field-close"></div>';
 
-        //if (empty($custom_fields)) wp_send_json_error($close_btn . __('Error: You have no custom field added to your optin. Consider adding one.', 'mailoptin'));
+        $custom_fields = [
+            'form_fields' => json_decode(stripslashes(sanitize_text_field($_POST['custom_fields'])), true),
+            'system_fields' => system_form_fields()
+        ];
 
-        $custom_fields = [];
+        $merge_fields = $connectionInstance->get_optin_fields($list_id);
 
-        $custom_fields['form_fields'] = json_decode(
-            stripslashes(sanitize_text_field($_POST['custom_fields'])), true
-        );
-
-        $custom_fields['system_fields'] = system_form_fields();
-
-        $merge_fields = ConnectionFactory::make($connection)->get_optin_fields($list_id);
-
-        if (empty($merge_fields)) wp_send_json_error($close_btn . __('Error: No integration field found. Select a list first if you haven\'t and try again.', 'mailoptin'));
+        if (empty($merge_fields)) {
+            wp_send_json_error($close_btn . __('Error: No integration field found. Select a list first if you haven\'t and try again.', 'mailoptin'));
+        }
 
         $response = $close_btn;
         $response .= '<div style="text-align:center" class="customize-control-title">';
@@ -1186,9 +1187,13 @@ class AjaxHandler
         $response .= '</div>';
         $response .= apply_filters('mo_optin_customizer_field_map_description', '', $connection, $list_id);
 
-        if ( ! empty($custom_field_mappings)) {
-            $custom_field_mappings = json_decode($custom_field_mappings, true);
-        }
+        // Define standard fields as a variable
+        $standard_fields = apply_filters('mailoptin_optin_standard_fields_array', [
+            'mo_core_full_name'  => __('Full Name', 'mailoptin'),
+            'mo_core_first_name' => __('First Name', 'mailoptin'),
+            'mo_core_last_name'  => __('Last Name', 'mailoptin'),
+            'mo_core_email'      => __('Email Address', 'mailoptin'),
+        ]);
 
         foreach ($merge_fields as $key => $label) {
             $response .= '<div class="mo-integration-block">';
@@ -1196,33 +1201,18 @@ class AjaxHandler
             $response .= "<select id=\"$key\" class=\"mo-optin-custom-field-select\" name=\"$key\">";
             $response .= '<option value="">' . __('Select...', 'mailoptin') . '</option>';
 
-            if ( ! empty($custom_fields['form_fields'])) {
-                $response .= sprintf('<optgroup label="%s">', esc_html__('Form Fields', 'mailoptin'));
-                foreach ($custom_fields['form_fields'] as $custom_field) {
-                    $db_val   = isset($custom_field_mappings[$integration_index][$key]) ? $custom_field_mappings[$integration_index][$key] : '';
-                    $response .= sprintf(
-                        '<option value="%s" %s>%s</option>',
-                        $custom_field['cid'],
-                        selected($db_val, $custom_field['cid'], false),
-                        $custom_field['placeholder']
-                    );
-                }
-                $response .= '</optgroup>';
+            if (in_array(AbstractConnect::FULL_FIELDS_MAPPING_SUPPORT, $connectionInstance::features_support())) {
+                $response .= $this->generate_optgroup('Standard Fields', $standard_fields, $custom_field_mappings, $integration_index, $key);
             }
 
-            if ( ! empty($custom_fields['system_fields'])) {
-                $response .= sprintf('<optgroup label="%s">', esc_html__('System Fields', 'mailoptin'));
-                foreach ($custom_fields['system_fields'] as $index => $value) {
-                    $db_val   = isset($custom_field_mappings[$integration_index][$key]) ? $custom_field_mappings[$integration_index][$key] : '';
-                    $response .= sprintf(
-                        '<option value="%s" %s>%s</option>',
-                        $index,
-                        selected($db_val, $index, false),
-                        $value
-                    );
-                }
-                $response .= '</optgroup>';
+            if (!empty($custom_fields['form_fields'])) {
+                $response .= $this->generate_optgroup('Form Fields', $custom_fields['form_fields'], $custom_field_mappings, $integration_index, $key, 'cid', 'placeholder');
             }
+
+            if (!empty($custom_fields['system_fields'])) {
+                $response .= $this->generate_optgroup('System Fields', $custom_fields['system_fields'], $custom_field_mappings, $integration_index, $key);
+            }
+
             $response .= '</select>';
             $response .= '</div>';
         }
@@ -1232,6 +1222,25 @@ class AjaxHandler
         $response .= '</div>';
 
         wp_send_json_success($response);
+    }
+
+    private function generate_optgroup($label, $fields, $custom_field_mappings, $integration_index, $key, $value_key = null, $label_key = null)
+    {
+        $response = sprintf('<optgroup label="%s">', esc_html__($label, 'mailoptin'));
+        foreach ($fields as $index => $value) {
+            $db_val = $custom_field_mappings[$integration_index][$key] ?? '';
+            $value_attr = $value_key ? $value[$value_key] : $index;
+            $label_text = $label_key ? $value[$label_key] : $value;
+            $response .= sprintf(
+                '<option value="%s" %s>%s</option>',
+                $value_attr,
+                selected($db_val, $value_attr, false),
+                $label_text
+            );
+        }
+        $response .= '</optgroup>';
+
+        return $response;
     }
 
     /**

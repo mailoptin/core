@@ -78,11 +78,15 @@ class ConnectionsRepository
 
         $email_list = get_transient($cache_key);
 
-        if (empty($email_list) || false === $email_list) {
+        if (empty($email_list)) {
 
             $connectInstance = ConnectionFactory::make($connection);
 
-            $email_list = (array)$connectInstance->get_email_list();
+            $email_list = [];
+
+            if(is_object($connectInstance)) {
+                $email_list = (array)$connectInstance->get_email_list();
+            }
 
             set_transient($cache_key, $email_list, MINUTE_IN_SECONDS);
         }
