@@ -403,7 +403,7 @@ $footer_content";
     {
         $data = [];
 
-        $names = explode(' ', $name);
+        $names = explode(' ', sanitize_text_field($name));
 
         if (isset($names[0])) {
             $data[] = trim($names[0]);
