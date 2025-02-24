@@ -100,7 +100,6 @@
         });
 
         $(document).on('mo_integration_removed', function (e, index, parent) {
-            console.log(index, parent);
             var data_store = $("input[data-customize-setting-link*='[custom_field_mappings]']");
             try {
                 var old_data = JSON.parse(data_store.val());
