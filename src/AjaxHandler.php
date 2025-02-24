@@ -711,15 +711,14 @@ class AjaxHandler
         $builder->payload    = $payload = apply_filters('mailoptin_optin_subscription_request_body', sanitize_data($_REQUEST['optin_data']));
         $builder->optin_uuid = $optin_uuid = $payload['optin_uuid'];
 
-        $builder->optin_campaign_id = isset($payload['optin_campaign_id']) && ! empty($payload['optin_campaign_id']) ? absint($payload['optin_campaign_id']) : absint(OptinCampaignsRepository::get_optin_campaign_id_by_uuid($optin_uuid));
+        $builder->optin_campaign_id = ! empty($payload['optin_campaign_id']) ? absint($payload['optin_campaign_id']) : absint(OptinCampaignsRepository::get_optin_campaign_id_by_uuid($optin_uuid));
         $builder->email             = $payload['email'];
-        $builder->name              = isset($payload['name']) ? $payload['name'] : '';
+        $builder->name              = $payload['name'] ?? '';
         $builder->user_agent        = $payload['user_agent'];
         $builder->conversion_page   = $payload['conversion_page'];
         $builder->referrer          = $payload['referrer'];
 
         $response = self::do_optin_conversion($builder);
-
 
         wp_send_json($response);
     }
@@ -790,7 +789,7 @@ class AjaxHandler
             }
         }
 
-        $optin_campaign_type = isset($conversion_data->optin_campaign_type) ? $conversion_data->optin_campaign_type : OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id);
+        $optin_campaign_type = $conversion_data->optin_campaign_type ?? OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id);
 
         $lead_bank_only = OptinCampaignsRepository::get_customizer_value($optin_campaign_id, 'lead_bank_only', false);
 
@@ -843,7 +842,7 @@ class AjaxHandler
         }
 
         // we are not checking if $connection_email_list is set because it can be null when supplied by elementor connection such as convertfox.
-        $connection_service = isset($conversion_data->connection_service) ? $conversion_data->connection_service : '';
+        $connection_service = $conversion_data->connection_service ?? '';
 
         if ( ! empty($connection_service)) {
 
@@ -852,7 +851,7 @@ class AjaxHandler
                 return AbstractConnect::ajax_success();
             }
 
-            $connection_email_list = isset($conversion_data->connection_email_list) ? $conversion_data->connection_email_list : '';
+            $connection_email_list = $conversion_data->connection_email_list ?? '';
             $response              = self::add_lead_to_connection($connection_service, $connection_email_list, $conversion_data);
 
             if (AbstractConnect::is_ajax_success($response)) {
@@ -867,7 +866,7 @@ class AjaxHandler
             true
         );
 
-        if ( ! $integrations || ! is_array($integrations) || empty($integrations)) {
+        if ( ! is_array($integrations) || empty($integrations)) {
 
             AbstractConnect::send_optin_error_email($optin_campaign_id, $no_email_provider_or_list_error, $optin_campaign_type);
 
@@ -876,9 +875,11 @@ class AjaxHandler
 
         $responses = [];
 
-        foreach ($integrations as $integration) {
+        foreach ($integrations as $index => $integration) {
 
             if (empty($integration['connection_service'])) continue;
+
+            $conversion_data->payload['index'] = $index;
 
             $conversion_data->payload['integration_data'] = $integration;
 
@@ -910,7 +911,7 @@ class AjaxHandler
 
                 $responses[] = self::add_lead_to_connection(
                     $integration['connection_service'],
-                    isset($integration['connection_email_list']) ? $integration['connection_email_list'] : '',
+                    $integration['connection_email_list'] ?? '',
                     $conversion_data
                 );
             }
@@ -964,7 +965,7 @@ class AjaxHandler
             return AbstractConnect::ajax_failure($no_email_provider_or_list_error);
         }
 
-        $conversion_data->email = trim(isset($conversion_data->email) ? $conversion_data->email : '');
+        $conversion_data->email = trim($conversion_data->email ?? '');
 
         if (empty($conversion_data->email) || ! is_email($conversion_data->email)) {
             return AbstractConnect::ajax_failure(__('Email address is not valid. Please try again.', 'mailoptin'));
@@ -1157,21 +1158,21 @@ class AjaxHandler
     {
         check_ajax_referer('customizer-fetch-email-list', 'security');
 
-        if (!current_user_has_privilege()) {
+        if ( ! current_user_has_privilege()) {
             exit;
         }
 
-        $connection = sanitize_text_field($_POST['connect_service']);
-        $list_id = sanitize_text_field($_POST['list_id']);
+        $connection            = sanitize_text_field($_POST['connect_service']);
+        $list_id               = sanitize_text_field($_POST['list_id']);
         $custom_field_mappings = json_decode(stripslashes(sanitize_text_field($_POST['custom_field_mappings'])), true);
-        $integration_index = sanitize_text_field($_POST['integration_index']);
+        $integration_index     = sanitize_text_field($_POST['integration_index']);
 
         $connectionInstance = ConnectionFactory::make($connection);
 
         $close_btn = '<div class="mo-optin-map-custom-field-close"></div>';
 
         $custom_fields = [
-            'form_fields' => json_decode(stripslashes(sanitize_text_field($_POST['custom_fields'])), true),
+            'form_fields'   => json_decode(stripslashes(sanitize_text_field($_POST['custom_fields'])), true),
             'system_fields' => system_form_fields()
         ];
 
@@ -1205,11 +1206,11 @@ class AjaxHandler
                 $response .= $this->generate_optgroup('Standard Fields', $standard_fields, $custom_field_mappings, $integration_index, $key);
             }
 
-            if (!empty($custom_fields['form_fields'])) {
+            if ( ! empty($custom_fields['form_fields'])) {
                 $response .= $this->generate_optgroup('Form Fields', $custom_fields['form_fields'], $custom_field_mappings, $integration_index, $key, 'cid', 'placeholder');
             }
 
-            if (!empty($custom_fields['system_fields'])) {
+            if ( ! empty($custom_fields['system_fields'])) {
                 $response .= $this->generate_optgroup('System Fields', $custom_fields['system_fields'], $custom_field_mappings, $integration_index, $key);
             }
 
@@ -1228,10 +1229,10 @@ class AjaxHandler
     {
         $response = sprintf('<optgroup label="%s">', esc_html__($label, 'mailoptin'));
         foreach ($fields as $index => $value) {
-            $db_val = $custom_field_mappings[$integration_index][$key] ?? '';
+            $db_val     = $custom_field_mappings[$integration_index][$key] ?? '';
             $value_attr = $value_key ? $value[$value_key] : $index;
             $label_text = $label_key ? $value[$label_key] : $value;
-            $response .= sprintf(
+            $response   .= sprintf(
                 '<option value="%s" %s>%s</option>',
                 $value_attr,
                 selected($db_val, $value_attr, false),

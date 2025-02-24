@@ -47,8 +47,18 @@
     };
 
     var save_field_mapping_data = function (parent) {
-        var index = parent.data('integration-index');
-        var data_store = [];
+        var cache = $("input[data-customize-setting-link*='[custom_field_mappings]']"),
+            existing_data_store = cache.val(),
+            index = parent.data('integration-index'),
+            data_store = [];
+
+        if (typeof existing_data_store !== 'undefined') {
+            try {
+                data_store = JSON.parse(existing_data_store);
+                if (!$.isArray(data_store)) data_store = [];
+            } catch {
+            }
+        }
 
         $('.mo-optin-custom-field-select', parent).each(function () {
             var objKey = $(this).attr('name');
@@ -59,7 +69,7 @@
             data_store[index][objKey] = $(this).val();
         });
 
-        $("input[data-customize-setting-link*='[custom_field_mappings]']").val(JSON.stringify(data_store)).trigger('change');
+        cache.val(JSON.stringify(data_store)).trigger('change');
     };
 
     $(function () {
@@ -87,6 +97,23 @@
         $(document).on('change', '.mo-optin-custom-field-select', function (e) {
             var parent = $(this).parents('.mo-integration-widget');
             save_field_mapping_data(parent);
+        });
+
+        $(document).on('mo_integration_removed', function (e, index, parent) {
+            var data_store = $("input[data-customize-setting-link*='[custom_field_mappings]']");
+            try {
+                var old_data = JSON.parse(data_store.val());
+
+                // remove mapping by index. see https://stackoverflow.com/a/1345122/2648410
+                old_data.splice(index, 1);
+                // remove null and empty from array elements.
+                old_data = _.without(old_data, null, '');
+                // store the data
+                data_store.val(JSON.stringify(old_data)).trigger('change');
+
+            } catch {
+
+            }
         });
     });
 

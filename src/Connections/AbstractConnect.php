@@ -90,6 +90,10 @@ abstract class AbstractConnect
             $custom_field_mappings = json_decode($custom_field_mappings, true);
         }
 
+        if (isset($this->extras['index'])) {
+            return moVar($custom_field_mappings, $this->extras['index'], []);
+        }
+
         return \MailOptin\Core\array_flatten($custom_field_mappings);
     }
 

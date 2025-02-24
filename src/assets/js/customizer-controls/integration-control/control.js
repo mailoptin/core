@@ -195,8 +195,12 @@
 
             var parent = $(this).parents('.mo-integration-widget');
             parent.slideUp(400, function () {
-                $(this).remove();
+
                 var index = parent.data('integration-index');
+
+                $(document.body).trigger('mo_integration_removed', [index, parent, $(this)]);
+
+                $(this).remove();
                 var data_store = $('.mo-integrations-save-field');
                 var old_data = JSON.parse(data_store.val());
                 // remove integration by index. see https://stackoverflow.com/a/1345122/2648410
