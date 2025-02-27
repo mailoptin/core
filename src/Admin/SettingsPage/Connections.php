@@ -218,10 +218,25 @@ class Connections extends AbstractSettingsPage
             return strcasecmp($first_comp, $second_comp);
         });
 
-        $nav_tabs         = '';
-        $tab_content_area = '';
         if ( ! empty($connection_args)) {
             $instance = Custom_Settings_Page_Api::instance([], MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, __('Integrations', 'mailoptin'));
+
+            $instance->persist_plugin_settings();
+            $this->register_core_settings($instance);
+            $instance->do_settings_errors();
+            settings_errors('wp_csa_notice');
+            echo '<div class="wrap">';
+            $instance->settings_page_heading();
+
+            ?>
+	        <div id="poststuff">
+	        <div id="post-body" class="metabox-holder columns-2">
+	        <div id="post-body-content" style="position: relative;">
+            <?php
+
+            $this->filter_sub_menu();
+            echo '<div class="mailoptin-settings-wrap-grid ' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '" data-option-name="' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '">';
+
             foreach ($connection_args as $key => $connection_arg) {
                 $type = isset($connection_arg['type']) ? $connection_arg['type'] : '';
                 if (isset($_GET['connect-type']) && $type != $_GET['connect-type']) {
@@ -239,49 +254,42 @@ class Connections extends AbstractSettingsPage
                 $key = key($connection_arg);
                 // re-add section title after we've gotten key.
                 $connection_arg['section_title'] = $section_title;
-                $nav_tabs                        .= sprintf('<a href="#%1$s" class="nav-tab" id="%1$s-tab"><span class="dashicons dashicons-admin-settings"></span> %2$s</a>', $key, $section_title_without_status);
-                $tab_content_area                .= sprintf('<div id="%s" class="mailoptin-group-wrapper">', $key);
-                $tab_content_area                .= $instance->metax_box_instance($connection_arg);
-                $tab_content_area                .= '</div>';
-            }
+				echo '<div class="mailoptin-integration-tile-wrapper">';
 
-            $instance->persist_plugin_settings();
-            $this->register_core_settings($instance);
-            $instance->do_settings_errors();
-            settings_errors('wp_csa_notice');
-            echo '<div class="wrap">';
-            $instance->settings_page_heading();
+				// Show logo when available
+                if (!empty($connection_arg['logo_url'])) {
+                    printf(
+                        '<div class="mailoptin-integration-logo">
+						            <img src="%s" alt="%s" />
+						         </div>',
+                        esc_url($connection_arg['logo_url']),
+                        esc_attr($section_title_without_status)
+                    );
+                }
 
-            if ( ! empty($connection_args)) {
-                ?>
-                <div id="poststuff">
-                <div id="post-body" class="metabox-holder columns-2">
-                <div id="post-body-content" style="position: relative;">
-                <?php
-                $this->filter_sub_menu();
-                echo '<div class="mailoptin-settings-wrap ' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '" data-option-name="' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '">';
-                echo '<h2 class="nav-tab-wrapper">' . $nav_tabs . '</h2>';
-                echo '<div class="metabox-holder mailoptin-tab-settings">';
-                echo '<form method="post">';
-                $instance->nonce_field();
-                echo $tab_content_area;
-                echo '</form>';
-                echo '</div>';
-                echo '</div>';
-                echo '</div>';
-                ?>
-                <div id="postbox-container-1" class="postbox-container">
-                    <div id="side-sortables" class="meta-box-sortables ui-sortable">
-                        <?php $this->sidebar_metaboxes(); ?>
-                    </div>
-                </div>
-                <?php
-                echo '</div>';
-                echo '</div>';
+                printf('<h2 class="mailoptin-integration-title">%s</h2>', $section_title);
+                printf('<a href="#%s-modal-settings" rel="modal:open" class="button">%s</a>', $key, esc_html__('Configure', 'mailoptin'));
                 echo '</div>';
 
-                do_action('mailoptin_after_connections_settings_page', MAILOPTIN_CONNECTIONS_DB_OPTION_NAME);
-            }
+				// Modal form
+                printf(
+                    '<form method="post" id="%s-modal-settings" class="modal">
+						        <div id="%s-modal-settings-title">%s</div>
+						        %s
+						    </form>',
+                    esc_attr($key),
+                    esc_attr($key),
+                    $instance->metax_box_instance($connection_arg),
+                    wp_nonce_field('save_mailoptin_connections', 'wp_csa_nonce', true, false)
+                );
+			}
+
+            do_action('mailoptin_after_connections_settings_page', MAILOPTIN_CONNECTIONS_DB_OPTION_NAME);
+
+            echo '</div>';
+            echo '</div>';
+            echo '</div>';
+            echo '</div>';
         }
     }
 

@@ -23,8 +23,10 @@ class RegisterScripts
     {
         wp_enqueue_script('mailoptin-fancybox', MAILOPTIN_ASSETS_URL . 'fancybox/jquery.fancybox.min.js', ['jquery'], false, true);
         wp_enqueue_script('mailoptin-init-fancybox', MAILOPTIN_ASSETS_URL . 'js/admin/fancybox-init.js', ['jquery'], false, true);
+        wp_enqueue_script('mailoptin-jquery-modal', MAILOPTIN_ASSETS_URL . 'jquery-modal/jquery.modal.min.js', ['jquery'], true);
         wp_enqueue_style('mailoptin-fancybox', MAILOPTIN_ASSETS_URL . 'fancybox/jquery.fancybox.min.css', false, true);
         wp_enqueue_style('mailoptin-activate-fancybox', MAILOPTIN_ASSETS_URL . 'css/admin/fancybox.css', false, true);
+        wp_enqueue_style('mailoptin-jquery-modal', MAILOPTIN_ASSETS_URL . 'jquery-modal/jquery.modal.min.css', false, true);
     }
 
     /**

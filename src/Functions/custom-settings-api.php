@@ -447,6 +447,10 @@ class Custom_Settings_Page_Api
             unset($args['section_title']);
         }
 
+		if (isset($args['logo_url'])) {
+			unset($args['logo_url']);
+        }
+
         if (isset($args['disable_submit_button'])) {
             unset($args['disable_submit_button']);
         }
