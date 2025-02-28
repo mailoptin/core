@@ -28,7 +28,7 @@ class Misc
             $subject = $result;
         }
 
-        return do_shortcode($subject);
+        return apply_filters('mailoptin_parsed_email_campaign_subject', do_shortcode($subject), $subject);
     }
 
     /**

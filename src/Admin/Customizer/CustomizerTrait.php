@@ -282,156 +282,54 @@ trait CustomizerTrait
      */
     public function js_script()
     {
-        $wp_user_reg_label = __('Select User Role (Required)', 'mailoptin');
-        $salesforce_label  = __('Select Salesforce Object', 'mailoptin');
-        $ck_label          = __('Select Kit (ConvertKit) Form', 'mailoptin');
-        $beehiiv_label     = __('Select beehiiv Tier', 'mailoptin');
-        $drip_label        = __('Select Drip Campaign', 'mailoptin');
-        $zohocrm_label     = __('Select ZohoCRM Module', 'mailoptin');
-        $fbca_label        = __('Select Custom Audience', 'mailoptin');
-        $webhook_label     = __('Request Method', 'mailoptin');
-        $default_label     = __('Select Email List', 'mailoptin');
+        $labels = [
+            'WordPressUserRegistrationConnect' => __('Select User Role (Required)', 'mailoptin'),
+            'SalesforceConnect' => __('Select Salesforce Object', 'mailoptin'),
+            'ConvertKitConnect' => __('Select Kit (ConvertKit) Form', 'mailoptin'),
+            'BeehiivConnect' => __('Select beehiiv Tier', 'mailoptin'),
+            'DripConnect' => __('Select Drip Campaign', 'mailoptin'),
+            'ZohoCRMConnect' => __('Select ZohoCRM Module', 'mailoptin'),
+            'FacebookCustomAudienceConnect' => __('Select Custom Audience', 'mailoptin'),
+            'WebHookConnect' => __('Request Method', 'mailoptin'),
+            'GoogleSheetConnect' => __('Select Spreadsheet File', 'mailoptin'),
+        ];
+        $default_label = __('Select Email List', 'mailoptin');
         ?>
         <script type="text/javascript">
             (function ($) {
-                    function logic(connection_service) {
-                        if (connection_service === undefined) {
-                            connection_service = $("select[data-customize-setting-link*='connection_service']").val();
-                        }
+                function updateLabel(connection_service, title_obj) {
+                    var labels = <?php echo json_encode($labels); ?>;
+                    title_obj.text(labels[connection_service] || '<?php echo $default_label; ?>');
+                }
 
-                        var title_obj = $('li[id*="connection_email_list"] .customize-control-title');
-
-                        if (connection_service === 'ConvertKitConnect') {
-                            title_obj.text('<?php echo $ck_label; ?>');
-                        }
-
-                        if (connection_service === 'BeehiivConnect') {
-                            title_obj.text('<?php echo $beehiiv_label; ?>');
-                        }
-
-                        if (connection_service === 'SalesforceConnect') {
-                            title_obj.text('<?php echo $salesforce_label; ?>');
-                        }
-
-                        if (connection_service === 'DripConnect') {
-                            title_obj.text('<?php echo $drip_label; ?>');
-                        }
-
-                        if (connection_service === 'ZohoCRMConnect') {
-                            title_obj.text('<?php echo $zohocrm_label; ?>');
-                        }
-
-                        if (connection_service === 'FacebookCustomAudienceConnect') {
-                            title_obj.text('<?php echo $fbca_label; ?>');
-                        }
-
-                        if (connection_service === 'WebHookConnect') {
-                            title_obj.text('<?php echo $webhook_label; ?>');
-                        }
-
-                        if (connection_service === 'WordPressUserRegistrationConnect') {
-                            title_obj.text('<?php echo $wp_user_reg_label; ?>');
-                        }
+                function logic(connection_service) {
+                    if (!connection_service) {
+                        connection_service = $("select[data-customize-setting-link*='connection_service']").val();
                     }
+                    updateLabel(connection_service, $('li[id*="connection_email_list"] .customize-control-title'));
+                }
 
-                    function logic_new(connection_service, parent) {
-                        if (connection_service === undefined) {
-                            $('.mo-integration-widget').each(function () {
-                                var parent = $(this);
-                                connection_service = $("select[name='connection_service']", parent).val();
-
-                                var title_obj = $(".connection_email_list label.customize-control-title", parent);
-
-                                if (connection_service === 'ConvertKitConnect') {
-                                    title_obj.text('<?php echo $ck_label; ?>');
-                                }
-
-                                if (connection_service === 'BeehiivConnect') {
-                                    title_obj.text('<?php echo $beehiiv_label; ?>');
-                                }
-
-                                if (connection_service === 'SalesforceConnect') {
-                                    title_obj.text('<?php echo $salesforce_label; ?>');
-                                }
-
-                                if (connection_service === 'DripConnect') {
-                                    title_obj.text('<?php echo $drip_label; ?>');
-                                }
-
-                                if (connection_service === 'ZohoCRMConnect') {
-                                    title_obj.text('<?php echo $zohocrm_label; ?>');
-                                }
-
-                                if (connection_service === 'FacebookCustomAudienceConnect') {
-                                    title_obj.text('<?php echo $fbca_label; ?>');
-                                }
-
-                                if (connection_service === 'WebHookConnect') {
-                                    title_obj.text('<?php echo $webhook_label; ?>');
-                                }
-
-                                if (connection_service === 'WordPressUserRegistrationConnect') {
-                                    title_obj.text('<?php echo $wp_user_reg_label; ?>');
-                                }
-                            });
-                        } else {
-
-                            connection_service = $("select[name='connection_service']", parent).val();
-
-                            var title_obj = $(".connection_email_list label.customize-control-title", parent);
-
-                            if (connection_service === 'ConvertKitConnect') {
-                                title_obj.text('<?php echo $ck_label; ?>');
-                            }
-
-                            if (connection_service === 'BeehiivConnect') {
-                                title_obj.text('<?php echo $beehiiv_label; ?>');
-                            }
-
-                            if (connection_service === 'SalesforceConnect') {
-                                title_obj.text('<?php echo $salesforce_label; ?>');
-                            }
-
-                            if (connection_service === 'DripConnect') {
-                                title_obj.text('<?php echo $drip_label; ?>');
-                            }
-
-                            if (connection_service === 'ZohoCRMConnect') {
-                                title_obj.text('<?php echo $zohocrm_label; ?>');
-                            }
-
-                            if (connection_service === 'FacebookCustomAudienceConnect') {
-                                title_obj.text('<?php echo $fbca_label; ?>');
-                            }
-
-                            if (connection_service === 'WebHookConnect') {
-                                title_obj.text('<?php echo $webhook_label; ?>');
-                            }
-
-                            if (connection_service === 'WordPressUserRegistrationConnect') {
-                                title_obj.text('<?php echo $wp_user_reg_label; ?>');
-                            }
-                        }
-                    }
-
-                    // on ready event
-                    $(window).on('load', function () {
-                        logic();
-                        logic_new();
-                        $(document.body).on('mo_email_list_data_found', function (e, connection_service) {
-                            // restore default label before change
-                            $('li[id*="connection_email_list"] .customize-control-title').text('<?php echo $default_label; ?>');
-                            logic(connection_service);
-                        });
-
-                        $(document.body).on('mo_new_email_list_data_found', function (e, connection_service, parent) {
-                            $(".connection_email_list label.customize-control-title", parent).text('<?php echo $default_label; ?>');
-                            logic_new(connection_service, parent);
-                        });
+                function logic_new(connection_service, parent) {
+                    $('.mo-integration-widget').each(function () {
+                        var container = parent || $(this);
+                        var service = connection_service || $("select[name='connection_service']", container).val();
+                        updateLabel(service, $(".connection_email_list label.customize-control-title", container));
                     });
                 }
 
-            )(jQuery);
+                $(window).on('load', function () {
+                    logic();
+                    logic_new();
+                    $(document.body).on('mo_email_list_data_found', function (e, connection_service) {
+                        $('li[id*="connection_email_list"] .customize-control-title').text('<?php echo $default_label; ?>');
+                        logic(connection_service);
+                    });
+                    $(document.body).on('mo_new_email_list_data_found', function (e, connection_service, parent) {
+                        $(".connection_email_list label.customize-control-title", parent).text('<?php echo $default_label; ?>');
+                        logic_new(connection_service, parent);
+                    });
+                });
+            })(jQuery);
         </script>
         <?php
     }

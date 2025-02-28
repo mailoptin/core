@@ -289,7 +289,11 @@ class NewPublishPost extends AbstractTriggers
         $search  = ['{{title}}'];
         $replace = [$data_source->post_title];
 
-        return do_shortcode(str_replace($search, $replace, $email_subject));
+        return apply_filters(
+            'mailoptin_new_post_email_campaign_subject',
+            do_shortcode(str_replace($search, $replace, $email_subject)),
+            $email_subject, $data_source
+        );
     }
 
     /**

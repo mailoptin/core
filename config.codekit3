@@ -15,7 +15,7 @@
       "uuidString" : "A37598BB-52C3-4652-8A10-5BABEB9FAA63"
     }
   ],
-  "creatorBuild" : "34576",
+  "creatorBuild" : "34627",
   "files" : {
     "\/.gitignore" : {
       "cB" : 0,
@@ -2203,10 +2203,6 @@
         "active" : 0,
         "optionString" : "{'before': true, 'after': true, 'overrides': {}}"
       },
-      "line-comment-position" : {
-        "active" : 0,
-        "optionString" : "{'position': 'above'}"
-      },
       "linebreak-style" : {
         "active" : 0,
         "optionString" : "'unix'"
@@ -2258,10 +2254,6 @@
       "max-statements-per-line" : {
         "active" : 0,
         "optionString" : "{'max': 1}"
-      },
-      "multiline-comment-style" : {
-        "active" : 0,
-        "optionString" : "'starred-block'"
       },
       "multiline-ternary" : {
         "active" : 0,
@@ -2404,7 +2396,8 @@
         "active" : 0
       },
       "no-extra-boolean-cast" : {
-        "active" : 1
+        "active" : 1,
+        "optionString" : "{'enforceForInnerExpressions': false}"
       },
       "no-extra-label" : {
         "active" : 0
@@ -2489,7 +2482,8 @@
         "optionString" : "{'ignore': [], 'ignoreArrayIndexes': true, 'ignoreDefaultValues': false, 'enforceConst': false, 'detectObjects': false}"
       },
       "no-misleading-character-class" : {
-        "active" : 0
+        "active" : 0,
+        "optionString" : "{'allowEscape': false}"
       },
       "no-mixed-operators" : {
         "active" : 0,
@@ -2857,7 +2851,8 @@
         "active" : 0
       },
       "require-unicode-regexp" : {
-        "active" : 0
+        "active" : 0,
+        "optionString" : "{'requireFlag': 'u'}"
       },
       "require-yield" : {
         "active" : 1
@@ -3148,11 +3143,9 @@
       "autoOutputPathReplace1" : "sass",
       "autoOutputPathReplace2" : "css",
       "autoOutputPathStyle" : 0,
-      "compilerType" : 0,
       "cssoStyle" : 0,
-      "decimalPrecision" : 10,
       "emitCharset" : 1,
-      "outputStyle" : 0,
+      "outputStyle" : 1,
       "purgeCSSStyle" : 0,
       "shouldRunAutoprefixer" : 0,
       "shouldRunBless" : 0,
@@ -3269,6 +3262,7 @@
     ],
     "rollupTreeshakingEnabled" : 1,
     "rollupTreeshakingModuleSideEffects" : 1,
+    "sassWarningStyle" : 1,
     "skippedFoldersString" : "\/src\/optinforms,_logs,\/src\/blockeditor,\/src\/assets\/toastr,.idea,\/src\/assets\/tooltipster,\/src\/repositories,\/src\/connections,node_modules,\/bin,\/src\/logging,\/src\/functions,\/src\/emailcampaigns,_cache,\/src\/assets\/js\/admin,logs,cache,\/tests,\/vendor,\/src\/assets\/fancybox,\/src\/registeractivation,log,\/src\/pluginsettings,\/src\/assets\/css,\/storage\/framework\/sessions,\/src\/admin,\/src\/assets\/chosen,\/build,\/src\/assets\/js\/customizer-controls",
     "sourceFolderName" : "source",
     "susyVersion" : 3,
@@ -3289,6 +3283,7 @@
     "tsImportHelpers" : 0,
     "tsIsolatedModules" : 0,
     "tsJSXFactory" : "React.createElement",
+    "tsJSXFragmentFactory" : "Fragment",
     "tsNoEmitHelpers" : 0,
     "tsNoFallthroughCasesInSwitch" : 0,
     "tsNoImplicitAny" : 0,

@@ -18,17 +18,23 @@
     };
 
     var ajax_get_custom_fields = function (parent) {
-        $.post(ajaxurl, {
-                action: 'mailoptin_customizer_optin_map_custom_field',
-                optin_campaign_id: mailoptin_optin_campaign_id,
-                custom_field_mappings: $("input[data-customize-setting-link*='[custom_field_mappings]']").val(),
-                integration_index: parent.data('integration-index'),
-                connect_service: $("select[name='connection_service']", parent).val(),
-                list_id: $("select[name='connection_email_list']", parent).val(),
-                custom_fields: $('.mo-fields-save-field').val(),
-                security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
-            },
-            function (response) {
+        var payload = {
+            action: 'mailoptin_customizer_optin_map_custom_field',
+            optin_campaign_id: mailoptin_optin_campaign_id,
+            custom_field_mappings: $("input[data-customize-setting-link*='[custom_field_mappings]']").val(),
+            integration_index: parent.data('integration-index'),
+            connect_service: $("select[name='connection_service']", parent).val(),
+            list_id: $("select[name='connection_email_list']", parent).val(),
+            custom_fields: $('.mo-fields-save-field').val(),
+            security: $("input[data-customize-setting-link*='[ajax_nonce]']").val()
+        };
+
+        $('.mo-integration-block:visible .mo-optin-integration-field', parent).each(function () {
+            var obj = $(this);
+            payload[obj.attr('name')] = obj.val();
+        });
+
+        $.post(ajaxurl, payload, function (response) {
 
                 if (_.isObject(response) && 'data' in response) {
                     $('.mo-optin-map-custom-field-settings', parent).show();
@@ -41,8 +47,18 @@
     };
 
     var save_field_mapping_data = function (parent) {
-        var index = parent.data('integration-index');
-        var data_store = [];
+        var cache = $("input[data-customize-setting-link*='[custom_field_mappings]']"),
+            existing_data_store = cache.val(),
+            index = parent.data('integration-index'),
+            data_store = [];
+
+        if (typeof existing_data_store !== 'undefined') {
+            try {
+                data_store = JSON.parse(existing_data_store);
+                if (!$.isArray(data_store)) data_store = [];
+            } catch {
+            }
+        }
 
         $('.mo-optin-custom-field-select', parent).each(function () {
             var objKey = $(this).attr('name');
@@ -53,7 +69,7 @@
             data_store[index][objKey] = $(this).val();
         });
 
-        $("input[data-customize-setting-link*='[custom_field_mappings]']").val(JSON.stringify(data_store)).trigger('change');
+        cache.val(JSON.stringify(data_store)).trigger('change');
     };
 
     $(function () {
@@ -81,6 +97,23 @@
         $(document).on('change', '.mo-optin-custom-field-select', function (e) {
             var parent = $(this).parents('.mo-integration-widget');
             save_field_mapping_data(parent);
+        });
+
+        $(document).on('mo_integration_removed', function (e, index, parent) {
+            var data_store = $("input[data-customize-setting-link*='[custom_field_mappings]']");
+            try {
+                var old_data = JSON.parse(data_store.val());
+
+                // remove mapping by index. see https://stackoverflow.com/a/1345122/2648410
+                old_data.splice(index, 1);
+                // remove null and empty from array elements.
+                old_data = _.without(old_data, null, '');
+                // store the data
+                data_store.val(JSON.stringify(old_data)).trigger('change');
+
+            } catch {
+
+            }
         });
     });
 

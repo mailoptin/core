@@ -7,6 +7,7 @@ use MailOptin\Core\OptinForms\AbstractOptinForm;
 use MailOptin\Core\Repositories\ConnectionsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use WP_Customize_Control;
+
 use function MailOptin\Core\moVar;
 
 class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
@@ -51,7 +52,11 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
 
         add_action('customize_controls_print_footer_scripts', [$this, 'field_template']);
 
-        wp_enqueue_script('mailoptin-customizer-fields', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/fields-control/control.js', array('jquery', 'customize-base', 'wp-color-picker'), false, true);
+        wp_enqueue_script('mailoptin-customizer-fields', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/fields-control/control.js', array(
+            'jquery',
+            'customize-base',
+            'wp-color-picker'
+        ), false, true);
         wp_enqueue_style('mailoptin-customizer-fields', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/fields-control/style.css', null);
 
         // toggle control assets
@@ -377,8 +382,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     }
                 }
                 ?>
-            </select>
-        </label>
+            </select> </label>
 
         <?php if ( ! empty($description)) : ?>
         <span class="description customize-control-description"><?php echo $description; ?></span>
@@ -448,8 +452,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
         echo "<div class=\"$name mo-fields-block{$class}\">";
         if ( ! empty($fonts)) {
             ?>
-            <label>
-                <span class="customize-control-title"><?php echo esc_html($label); ?></span>
+            <label> <span class="customize-control-title"><?php echo esc_html($label); ?></span>
                 <select name="<?= $name; ?>">
                     <?php
                     printf('<option value="inherit" %s>%s</option>', selected($this->value(), 'inherit', false), __('Inherit from Theme', 'mailoptin'));
@@ -518,60 +521,60 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                 case 'text':
                     $this->repeater_text_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description'],
-                        @$control_arg['placeholder'],
-                        @$control_arg['type']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
+                        $control_arg['placeholder'] ?? '',
+                        $control_arg['type'] ?? '',
                     );
                     break;
                 case 'select':
                     $this->repeater_select_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['choices'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['choices'] ?? [],
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
                     );
                     break;
                 case 'chosen_select':
                     $this->repeater_chosen_select_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['choices'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['choices'] ?? [],
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
                     );
                     break;
                 case 'color':
                     $this->repeater_color_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
                     );
                     break;
                 case 'font':
                     $this->repeater_font_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description'],
-                        @$control_arg['count']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
+                        $control_arg['count'] ?? '',
                     );
                     break;
                 case 'toggle':
                     $this->repeater_toggle_field(
                         $index,
-                        @$control_arg['name'],
-                        @$control_arg['class'],
-                        @$control_arg['label'],
-                        @$control_arg['description']
+                        $control_arg['name'] ?? '',
+                        $control_arg['class'] ?? '',
+                        $control_arg['label'] ?? '',
+                        $control_arg['description'] ?? '',
                     );
                     break;
                 case 'custom_content':
@@ -673,8 +676,14 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                     <?php $this->repeater_font_field($index, 'font', '', __('Font', 'mailoptin')); ?>
                     <?php $this->repeater_toggle_field($index, 'field_required', '', __('Make Field Required', 'mailoptin')); ?>
 
-                    <?php $this->repeater_select_field($index, 'recaptcha_v2_size', ['normal' => __('Normal', 'mailoptin'), 'compact' => __('Compact', 'mailoptin')], '', __('Size', 'mailoptin')); ?>
-                    <?php $this->repeater_select_field($index, 'recaptcha_v2_style', ['light' => __('Light', 'mailoptin'), 'dark' => __('Dark', 'mailoptin')], '', __('Style', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'recaptcha_v2_size', [
+                        'normal'  => __('Normal', 'mailoptin'),
+                        'compact' => __('Compact', 'mailoptin')
+                    ], '', __('Size', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'recaptcha_v2_style', [
+                        'light' => __('Light', 'mailoptin'),
+                        'dark'  => __('Dark', 'mailoptin')
+                    ], '', __('Style', 'mailoptin')); ?>
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_after', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                 </div>
                 <div class="mo-fields-widget-actions">
