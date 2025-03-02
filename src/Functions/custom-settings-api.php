@@ -370,8 +370,17 @@ class Custom_Settings_Page_Api
         echo '</h2>';
     }
 
-    public function nonce_field()
+    /**
+    * @param bool $display
+    *
+    * @return string|void
+    */
+    public function nonce_field($display=true)
     {
+        if(!$display) {
+            return sprintf('<input id="wp_csa_nonce" type="hidden" name="wp_csa_nonce" value="%s">', wp_create_nonce('wp-csa-nonce'));
+        }
+
         printf('<input id="wp_csa_nonce" type="hidden" name="wp_csa_nonce" value="%s">', wp_create_nonce('wp-csa-nonce'));
     }
 

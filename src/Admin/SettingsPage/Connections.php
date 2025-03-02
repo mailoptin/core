@@ -238,7 +238,7 @@ class Connections extends AbstractSettingsPage
             echo '<div class="mailoptin-settings-wrap-grid ' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '" data-option-name="' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '">';
 
             foreach ($connection_args as $key => $connection_arg) {
-                $type = isset($connection_arg['type']) ? $connection_arg['type'] : '';
+                $type = $connection_arg['type'] ?? '';
                 if (isset($_GET['connect-type']) && $type != $_GET['connect-type']) {
                     unset($connection_args[$key]);
                     continue;
@@ -274,13 +274,13 @@ class Connections extends AbstractSettingsPage
 				// Modal form
                 printf(
                     '<form method="post" id="%s-modal-settings" class="modal">
-						        <div id="%s-modal-settings-title">%s</div>
-						        %s
-						    </form>',
+						<div id="%s-modal-settings-title">%s</div>
+						%s
+					</form>',
                     esc_attr($key),
                     esc_attr($key),
                     $instance->metax_box_instance($connection_arg),
-                    wp_nonce_field('save_mailoptin_connections', 'wp_csa_nonce', true, false)
+                    $instance->nonce_field(false)
                 );
 			}
 
