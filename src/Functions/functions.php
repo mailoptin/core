@@ -86,6 +86,8 @@ function limit_text($text, $limit = 150)
 
         // when truncated text ends with malfunctioned link eg <a href="https://hello.com, <img src="http://hey.com/img.png, remove them
         $text = preg_replace(sprintf("/<(img|a|em|hr|div)[^>]+(%s)/", preg_quote($ellipsis, '/')), '$2', $text);
+
+        $text = apply_filters('mo_limit_text_sanitized', $text);
     }
 
     $text = close_tags($text);
