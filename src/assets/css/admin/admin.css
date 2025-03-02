@@ -1735,3 +1735,11 @@ form.mo-inline {
     height: 55px;
     display: inline-block;
 }
+
+.mailoptin-admin .mailoptin-integration-modal {
+    display: none;
+}
+
+.mailoptin-admin .mailoptin-integration-modal .postbox {
+    padding: 15px;
+}

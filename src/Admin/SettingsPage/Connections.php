@@ -268,15 +268,17 @@ class Connections extends AbstractSettingsPage
                 }
 
                 printf('<h2 class="mailoptin-integration-title">%s</h2>', $section_title);
-                printf('<a href="#%s-modal-settings" rel="modal:open" class="button">%s</a>', $key, esc_html__('Configure', 'mailoptin'));
+                printf('<a href="#%s-modal-settings" data-fancybox class="button" role="button">%s</a>', $key, esc_html__('Configure', 'mailoptin'));
                 echo '</div>';
 
 				// Modal form
                 printf(
-                    '<form method="post" id="%s-modal-settings" class="modal">
-						<div id="%s-modal-settings-title">%s</div>
-						%s
-					</form>',
+                    '<div class="mailoptin-integration-modal" id="%s-modal-settings">
+					           <form method="post">
+					               <div id="%s-modal-settings-title">%s</div>
+					               %s
+					           </form>
+					       </div>',
                     esc_attr($key),
                     esc_attr($key),
                     $instance->metax_box_instance($connection_arg),
