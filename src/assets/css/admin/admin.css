@@ -1677,3 +1677,64 @@ form.mo-inline {
     font-weight: bold;
     color: #00a32a;
 }
+
+.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections {
+    margin: 15px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper {
+    flex: 0 1 220px;
+    max-width: 220px;
+    box-sizing: border-box;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center; /* Center-align content within the card */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+}
+
+.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper .button {
+    margin-top: auto;
+}
+
+.mailoptin-admin .mailoptin-integration-modal .postbox {
+    border: 0;
+    box-shadow:none;
+}
+
+.mailoptin-admin .mailoptin-integration-modal {
+    padding: 20px;
+}
+
+.mailoptin-admin .mailoptin-integration-title span {
+    display: block;
+    margin-top: 8px;
+    color: #FF0000;
+}
+
+.mailoptin-admin .mailoptin-integration-logo {
+    text-align: center;
+    margin-bottom: 8px;
+    height: 55px;
+}
+
+.mailoptin-admin .mailoptin-integration-logo img {
+    max-width: 100%;
+    height: 55px;
+    display: inline-block;
+}
+
+.mailoptin-admin .mailoptin-integration-modal {
+    display: none;
+}
+
+.mailoptin-admin .mailoptin-integration-modal .postbox {
+    padding: 15px;
+}

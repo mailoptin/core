@@ -57,7 +57,10 @@ class RegisterScripts
             wp_enqueue_style('mailoptin-core-select2', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/select2/select2.min.css', null);
 
             wp_enqueue_script('mailoptin-admin-tooltipster', MAILOPTIN_ASSETS_URL . 'tooltipster/bundle.min.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
-            wp_enqueue_script('mailoptin-admin-tooltipster-init', MAILOPTIN_ASSETS_URL . 'tooltipster/init.js', array('jquery', 'mailoptin-admin-tooltipster'), MAILOPTIN_VERSION_NUMBER, true);
+            wp_enqueue_script('mailoptin-admin-tooltipster-init', MAILOPTIN_ASSETS_URL . 'tooltipster/init.js', array(
+                'jquery',
+                'mailoptin-admin-tooltipster'
+            ), MAILOPTIN_VERSION_NUMBER, true);
             wp_enqueue_script('mailoptin-ab-test-script', MAILOPTIN_ASSETS_URL . 'js/admin/ab-test.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
 
             wp_enqueue_script('mailoptin-add-optin-campaign', MAILOPTIN_ASSETS_URL . 'js/admin/new-optin-campaign.js', array('jquery'), MAILOPTIN_VERSION_NUMBER, true);
@@ -139,7 +142,7 @@ class RegisterScripts
                 // since form id 0 does not exist, not_logged_in_msg returns false which cause a fatal error when false is
                 // passed to do_shortcode in ./ninja-forms/includes/Display/Render.php:103
                 // Fatal error: Uncaught TypeError: str_contains(): Argument #1 ($haystack) must be of type string, array given
-                Ninja_Forms()->form( 0 )->get()->update_setting( 'not_logged_in_msg', '' );
+                Ninja_Forms()->form(0)->get()->update_setting('not_logged_in_msg', '');
 
                 \NF_Display_Render::localize(0);
 

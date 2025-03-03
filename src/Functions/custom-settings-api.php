@@ -370,8 +370,17 @@ class Custom_Settings_Page_Api
         echo '</h2>';
     }
 
-    public function nonce_field()
+    /**
+    * @param bool $display
+    *
+    * @return string|void
+    */
+    public function nonce_field($display=true)
     {
+        if(!$display) {
+            return sprintf('<input id="wp_csa_nonce" type="hidden" name="wp_csa_nonce" value="%s">', wp_create_nonce('wp-csa-nonce'));
+        }
+
         printf('<input id="wp_csa_nonce" type="hidden" name="wp_csa_nonce" value="%s">', wp_create_nonce('wp-csa-nonce'));
     }
 
@@ -445,6 +454,10 @@ class Custom_Settings_Page_Api
         // remove section title from array to make the argument keys be arrays so it can work with foreach loop
         if (isset($args['section_title'])) {
             unset($args['section_title']);
+        }
+
+		if (isset($args['logo_url'])) {
+			unset($args['logo_url']);
         }
 
         if (isset($args['disable_submit_button'])) {
