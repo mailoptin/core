@@ -236,8 +236,6 @@ class Connections extends AbstractSettingsPage
             $this->filter_sub_menu();
             echo '<div class="mailoptin-settings-wrap-grid ' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '" data-option-name="' . MAILOPTIN_CONNECTIONS_DB_OPTION_NAME . '">';
 
-            ray($connection_args);
-
             foreach ($connection_args as $key => $connection_arg) {
                 $type = $connection_arg['type'] ?? '';
                 if (isset($_GET['connect-type']) && $type != $_GET['connect-type']) {
