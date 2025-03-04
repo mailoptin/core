@@ -1704,6 +1704,10 @@ form.mo-inline {
     margin-top: auto;
 }
 
+.mailoptin-admin .mailoptin-integration-modal {
+    max-width: 800px;
+}
+
 .mailoptin-admin .mailoptin-integration-modal .postbox {
     border: 0;
     box-shadow:none;
