@@ -86,11 +86,45 @@ function limit_text($text, $limit = 150)
 
         // when truncated text ends with malfunctioned link eg <a href="https://hello.com, <img src="http://hey.com/img.png, remove them
         $text = preg_replace(sprintf("/<(img|a|em|hr|div)[^>]+(%s)/", preg_quote($ellipsis, '/')), '$2', $text);
+
+        // Only apply ensure_valid_html if the filter is explicitly enabled
+        if (apply_filters('mo_email_campaign_ensure_valid_html', false)) {
+            $text = ensure_valid_html($text, $ellipsis);
+        }
     }
 
-    $text = close_tags($text);
+    return close_tags($text);
+}
 
-    return $text;
+function ensure_valid_html($content, $ellipsis)
+{
+    if (empty(trim($content))) return $content;
+
+    $content = html_entity_decode($content, ENT_QUOTES, 'UTF-8');
+
+    $dom = new \DOMDocument();
+
+    \libxml_use_internal_errors(true);
+
+    $wrapped_content = '<div>' . $content . '</div>';
+
+    $dom->loadHTML(mb_convert_encoding($wrapped_content, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+    \libxml_clear_errors();
+
+    $content = '';
+    $wrapper = $dom->getElementsByTagName('div')->item(0);
+    if ($wrapper) {
+        foreach ($wrapper->childNodes as $node) {
+            $content .= $dom->saveHTML($node);
+        }
+    }
+
+    $content = rtrim($content, "< \t\n\r\0\x0B");
+
+    $content = preg_replace(sprintf("/<(img|a|em|div|span|strong|u|hr)[^>]*(%s)[^>]*>/", preg_quote($ellipsis, '/')), '$2', $content);
+
+    return trim($content);
 }
 
 function close_tags($content)
