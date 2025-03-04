@@ -219,6 +219,7 @@ class Connections extends AbstractSettingsPage
         });
 
         if ( ! empty($connection_args)) {
+
             $instance = Custom_Settings_Page_Api::instance([], MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, __('Integrations', 'mailoptin'));
 
             $instance->persist_plugin_settings();
@@ -243,6 +244,9 @@ class Connections extends AbstractSettingsPage
                     continue;
                 }
 
+                $logo_url = $connection_arg['logo_url'] ?? '';
+                unset($connection_arg['logo_url']);
+
                 unset($connection_arg['type']);
 
                 $section_title = $connection_arg['section_title'];
@@ -256,12 +260,12 @@ class Connections extends AbstractSettingsPage
                 echo '<div class="mailoptin-integration-tile-wrapper">';
 
                 // Show logo when available
-                if ( ! empty($connection_arg['logo_url'])) {
+                if ( ! empty($logo_url)) {
                     printf(
                         '<div class="mailoptin-integration-logo">
 						            <img src="%s" alt="%s" />
 						         </div>',
-                        esc_url($connection_arg['logo_url']),
+                        esc_url($logo_url),
                         esc_attr($section_title_without_status)
                     );
                 }
