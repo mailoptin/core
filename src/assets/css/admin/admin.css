@@ -1691,11 +1691,7 @@ form.mo-inline {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    padding-left: 8px;
-}
-
-.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper:first-child {
-    padding-left: 0;
+    padding: 0 4px;
 }
 
 .mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper > div {
