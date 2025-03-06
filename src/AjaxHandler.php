@@ -816,6 +816,7 @@ class AjaxHandler
             'user_agent'          => $conversion_data->user_agent,
             'conversion_page'     => $conversion_data->conversion_page,
             'referrer'            => $conversion_data->referrer,
+            'meta_data'           => json_encode(['ip_address' => get_ip_address()]),
         ];
 
         $conversionRepoResponse = false;

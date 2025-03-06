@@ -9,7 +9,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 14;
+    const DB_VER = 15;
 
     public function init_options()
     {
@@ -251,6 +251,15 @@ class DBUpdates
         $table = $wpdb->prefix . Core::optin_campaigns_table_name;
 
         $wpdb->query("ALTER TABLE $table CHANGE name name varchar(200) NOT NULL;");
+    }
+
+    public function update_routine_15()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . Core::conversions_table_name;
+
+        $wpdb->query("ALTER TABLE $table ADD COLUMN meta_data longtext NULL DEFAULT NULL;");
     }
 
     public static function get_instance()

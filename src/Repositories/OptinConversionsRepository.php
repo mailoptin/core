@@ -22,6 +22,7 @@ class OptinConversionsRepository extends AbstractRepository
      * @type string $user_agent
      * @type string $conversion_page
      * @type string $referrer
+     * @type string $meta_data
      * }
      *
      * @return false|int
@@ -39,10 +40,12 @@ class OptinConversionsRepository extends AbstractRepository
                 'user_agent'      => sanitize_text_field($data['user_agent']),
                 'conversion_page' => sanitize_text_field($data['conversion_page']),
                 'referrer'        => sanitize_text_field($data['referrer']),
-                'date_added'      => current_time('mysql')
+                'meta_data'       => sanitize_text_field(moVar($data, 'meta_data', '[]')),
+                'date_added'      => current_time('mysql'),
             ),
             array(
                 '%d',
+                '%s',
                 '%s',
                 '%s',
                 '%s',
@@ -71,6 +74,7 @@ class OptinConversionsRepository extends AbstractRepository
      * @type string $user_agent
      * @type string $conversion_page
      * @type string $referrer
+     * @type string $meta_data
      * }
      *
      * @return false|int
@@ -85,7 +89,8 @@ class OptinConversionsRepository extends AbstractRepository
             'custom_fields'   => sanitize_text_field(moVar($data, 'custom_fields', '[]')),
             'user_agent'      => sanitize_text_field($data['user_agent']),
             'conversion_page' => sanitize_text_field($data['conversion_page']),
-            'referrer'        => sanitize_text_field($data['referrer'])
+            'referrer'        => sanitize_text_field($data['referrer']),
+            'meta_data'       => sanitize_text_field(moVar($data, 'meta_data', '[]'))
         );
 
         $update_data = array_filter($update_data, function ($value) {
