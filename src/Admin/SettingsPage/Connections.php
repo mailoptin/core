@@ -257,7 +257,7 @@ class Connections extends AbstractSettingsPage
                 $key = key($connection_arg);
                 // re-add section title after we've gotten key.
                 $connection_arg['section_title'] = $section_title;
-                echo '<div class="mailoptin-integration-tile-wrapper"><div>';
+                echo '<div class="mailoptin-integration-tile-wrapper"><div><div class="mailoptin-integration-upper">';
 
                 // Show logo when available
                 if ( ! empty($logo_url)) {
@@ -270,8 +270,8 @@ class Connections extends AbstractSettingsPage
                     );
                 }
 
-                printf('<h2 class="mailoptin-integration-title">%s</h2>', str_replace(__('Connection', 'mailoptin'), '', $section_title));
-                printf('<a href="#%s-modal-settings" data-fancybox class="button" role="button">%s</a>', $key, esc_html__('Configure', 'mailoptin'));
+                printf('<h2 class="mailoptin-integration-title">%s</h2></div>', str_replace(__('Connection', 'mailoptin'), '', $section_title));
+                printf('<div class="mailoptin-integration-lower"><a href="#%s-modal-settings" data-fancybox class="button" role="button">%s</a></div>', $key, esc_html__('Configure', 'mailoptin'));
                 echo '</div>';
                 echo '</div>';
 

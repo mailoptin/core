@@ -1698,10 +1698,14 @@ form.mo-inline {
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 32px 16px 16px;
+    padding: 24px 16px 0;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    min-height: 180px;
+    min-height: 200px;
+}
+
+.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-upper {
+    min-height: 150px;
 }
 
 .mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper .button {
@@ -1734,7 +1738,7 @@ form.mo-inline {
 }
 
 .mailoptin-admin .mailoptin-integration-logo img {
-    /*max-width: 100px;*/
+    max-width: 100px;
     max-height: 55px;
     display: inline-block;
 }
