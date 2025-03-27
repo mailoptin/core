@@ -207,11 +207,28 @@ class Connections extends AbstractSettingsPage
         do_action('mailoptin_before_connections_settings_page', MAILOPTIN_CONNECTIONS_DB_OPTION_NAME);
         $connection_args = apply_filters('mailoptin_connections_settings_page', array());
         usort($connection_args, function ($a, $b) {
-            // make sendinblue appear first
+            
+            // First check if an integration is connected
+            $a_connected = strpos($a["section_title"] ?? '', '(Connected)') !== false;
+            $b_connected = strpos($b["section_title"] ?? '', '(Connected)') !== false;
+            
+            // Prioritize connected integrations
+            if ($a_connected && !$b_connected) {
+                return -1;
+            }
+            if (!$a_connected && $b_connected) {
+                return 1;
+            }
+            
+            // If connection status is the same, make sendinblue appear first
             if (isset($a['sendinblue_api_key'])) {
                 return -1;
             }
+            if (isset($b['sendinblue_api_key'])) {
+                return 1;
+            }
 
+            // Finally sort alphabetically
             $first_comp  = $a["section_title_without_status"] ?? $a["section_title"];
             $second_comp = $b["section_title_without_status"] ?? $b["section_title"];
 
