@@ -208,15 +208,7 @@ class Connections extends AbstractSettingsPage
         $connection_args = apply_filters('mailoptin_connections_settings_page', array());
         usort($connection_args, function ($a, $b) {
             
-            // Make sendinblue appear first
-            if (isset($a['sendinblue_api_key'])) {
-                return -1;
-            }
-            if (isset($b['sendinblue_api_key'])) {
-                return 1;
-            }
-		
-            // Check if an integration is connected
+            // First check if an integration is connected
             $a_connected = strpos($a["section_title"] ?? '', '(Connected)') !== false;
             $b_connected = strpos($b["section_title"] ?? '', '(Connected)') !== false;
             
@@ -225,6 +217,14 @@ class Connections extends AbstractSettingsPage
                 return -1;
             }
             if (!$a_connected && $b_connected) {
+                return 1;
+            }
+            
+            // If connection status is the same, make sendinblue appear first
+            if (isset($a['sendinblue_api_key'])) {
+                return -1;
+            }
+            if (isset($b['sendinblue_api_key'])) {
                 return 1;
             }
 
