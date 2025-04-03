@@ -330,7 +330,7 @@ $footer_content";
 
             if (!empty($disable_optin_error_emails) && ($disable_optin_error_emails == 'true' || $disable_optin_error_emails === true)) {
                 return;
-        }
+            }
 
         if ( ! isset($optin_campaign_id, $error_message)) return;
 
