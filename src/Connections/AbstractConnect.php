@@ -8,6 +8,7 @@ use MailOptin\Core\EmailCampaigns\TemplateTrait;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
+use MailOptin\Core\PluginSettings\Settings;
 
 use function MailOptin\Core\is_valid_data;
 use function MailOptin\Core\moVar;
@@ -325,8 +326,10 @@ $footer_content";
 
     public static function send_optin_error_email($optin_campaign_id, $error_message, $optin_campaign_type = '')
     {
-        if (apply_filters('mailoptin_disable_send_optin_error_email', false, $optin_campaign_id)) {
-            return;
+        $disable_optin_error_emails = apply_filters('mailoptin_disable_send_optin_error_email', Settings::instance()->disable_optin_error_emails());
+
+            if (!empty($disable_optin_error_emails) && ($disable_optin_error_emails == 'true' || $disable_optin_error_emails === true)) {
+                return;
         }
 
         if ( ! isset($optin_campaign_id, $error_message)) return;
