@@ -202,6 +202,12 @@ tr#ajax_nonce_row {
     border-color: #3276b1 !important;
 }
 
+.mailoptin-btn-green {
+    color: #fff !important;
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
 .mailoptin-optin-clear, .mailoptin-template-clear {
     clear: both;
 }

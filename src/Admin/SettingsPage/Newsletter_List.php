@@ -85,35 +85,67 @@ class Newsletter_List extends \WP_List_Table
      *
      * @return mixed
      */
+
     public function column_action($item)
-    {
-        $email_campaign_id = absint($item['id']);
+{
+    $email_campaign_id = absint($item['id']);
 
-        $delete_url    = Email_Campaign_List::_campaign_delete_url($email_campaign_id);
-        $clone_url     = Email_Campaign_List::_campaign_clone_url($email_campaign_id);
-        $customize_url = Email_Campaign_List::_campaign_customize_url($email_campaign_id);
+    $delete_url    = Email_Campaign_List::_campaign_delete_url($email_campaign_id);
+    $clone_url     = Email_Campaign_List::_campaign_clone_url($email_campaign_id);
+    $customize_url = Email_Campaign_List::_campaign_customize_url($email_campaign_id);
 
-        $action = sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-blue" href="%s" title="%s">%s</a> &nbsp;',
-            esc_url_raw($customize_url),
-            __('Customize', 'mailoptin'),
-            '<span class="dashicons dashicons-edit mo-action-icon"></span>'
-        );
+    $send_url = esc_url(
+        add_query_arg(
+            '_wpnonce',
+            wp_create_nonce('mailoptin-send-newsletter'),
+            admin_url('?action=mailoptin_send_newsletter&id=' . $email_campaign_id)
+        )
+    );
+
+    $action = sprintf(
+        '<a class="mo-tooltipster button action mailoptin-btn-blue" href="%s" title="%s">%s</a> &nbsp;',
+        esc_url_raw($customize_url),
+        __('Customize', 'mailoptin'),
+        '<span class="dashicons dashicons-edit mo-action-icon"></span>'
+    );
+
+    $action .= sprintf(
+        '<a class="mo-tooltipster button action" href="%s" title="%s">%s</a> &nbsp;',
+        $clone_url,
+        __('Clone', 'mailoptin'),
+        '<span class="dashicons dashicons-admin-page mo-action-icon"></span>'
+    );
+
+    $action .= sprintf(
+        '<a class="mo-tooltipster button action mailoptin-btn-red mo-delete-prompt" href="%s" title="%s">%s</a> &nbsp;',
+        $delete_url,
+        __('Delete', 'mailoptin'),
+        '<span class="dashicons dashicons-trash mo-action-icon"></span>'
+    );
+
+    // Only show the send button if the newsletter hasn't been sent or failed
+    $date_sent = EmailCampaignMeta::get_meta_data($email_campaign_id, 'newsletter_date_sent');
+    if (empty($date_sent) || in_array($date_sent, [ER::NEWSLETTER_STATUS_FAILED, ER::NEWSLETTER_STATUS_DRAFT])) {
         $action .= sprintf(
-            '<a class="mo-tooltipster button action" href="%s" title="%s">%s</a> &nbsp;',
-            $clone_url,
-            __('Clone', 'mailoptin'),
-            '<span class="dashicons dashicons-admin-page mo-action-icon"></span>'
+            '<a onclick="return confirm(\'%s\')" href="%s" class="mo-tooltipster button action mailoptin-btn-blue mo-send-newsletter-link" title="%s" data-campaign-id="%d">%s</a> &nbsp;',
+            esc_js(__('Are you sure you want to send this newsletter now?', 'mailoptin')),
+            $send_url,
+            __('Send Broadcast', 'mailoptin'),
+            $email_campaign_id,
+            '<span class="dashicons dashicons-email-alt mo-action-icon"></span>'
         );
+    } else {
+        // If the newsletter has been sent (or status is not draft/failed), show a green button (no click action needed)
         $action .= sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-red mo-delete-prompt" href="%s" title="%s">%s</a> &nbsp;',
-            $delete_url,
-            __('Delete', 'mailoptin'),
-            '<span class="dashicons dashicons-trash mo-action-icon"></span>'
+            '<span class="mo-tooltipster button action mailoptin-btn-green" title="%s">%s</span> &nbsp;',
+            __('Broadcast Sent', 'mailoptin'),
+            '<span class="dashicons dashicons-saved mo-action-icon"></span>'
         );
-
-        return $action;
     }
+
+    return $action;
+}
+
 
     public function column_date_sent($item)
     {
