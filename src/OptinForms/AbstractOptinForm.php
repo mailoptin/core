@@ -1249,8 +1249,10 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         if ($this->optin_campaign_type == 'lightbox') {
             $body_close         = $this->get_customizer_value('close_backdrop_click');
+            $keyClose = ! $this->get_customizer_value('disable_esc_key');
+
             $data['body_close'] = apply_filters('mo_optin_campaign_body_close', $body_close, $this);
-            $data['keyClose']   = apply_filters('mo_optin_campaign_key_close', true, $this);
+            $data['keyClose'] = apply_filters('mo_optin_campaign_key_close', $keyClose, $this);
         }
 
         if ($this->optin_campaign_type == 'bar') {
