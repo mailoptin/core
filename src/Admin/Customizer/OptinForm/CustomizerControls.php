@@ -932,6 +932,19 @@ class CustomizerControls
                         )
                     )
                 ),
+                'disable_esc_key'          => new WP_Customize_Toggle_Control(
+                    $this->wp_customize,
+                    $this->option_prefix . '[disable_esc_key]',
+                    apply_filters('mo_optin_form_customizer_disable_esc_key_args', array(
+                            'label'    => __('Disable ESC Key', 'mailoptin'),
+                            'section'  => $this->customizerClassInstance->configuration_section_id,
+                            'settings' => $this->option_prefix . '[disable_esc_key]',
+                            'type'     => 'light',
+                            'priority' => 46,
+                            'description' => __('Prevent ESC key from closing a pop-up campaign.', 'mailoptin'),
+                        )
+                    )
+                ),
                 'close_backdrop_click'       => new WP_Customize_Toggle_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[close_backdrop_click]',

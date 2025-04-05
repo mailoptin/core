@@ -571,6 +571,7 @@ class Customizer
 
                 if ( ! in_array($customizerClassInstance->optin_campaign_type, ['lightbox', 'slidein', 'bar'])) {
                     unset($controls['hide_close_button']);
+                    unset($controls['disable_esc_key']);
                 }
 
                 return $controls;

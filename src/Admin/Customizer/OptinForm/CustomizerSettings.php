@@ -500,6 +500,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),
+                'disable_esc_key'       => array(
+                    'default'   => $this->customizer_defaults['disable_esc_key'],
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
                 'close_backdrop_click'       => array(
                     'default'   => $this->customizer_defaults['close_backdrop_click'],
                     'type'      => 'option',
