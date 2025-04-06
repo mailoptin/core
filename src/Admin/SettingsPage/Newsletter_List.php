@@ -40,14 +40,12 @@ class Newsletter_List extends \WP_List_Table
      */
     public function get_columns()
     {
-        $columns = array(
+        return array(
             'cb'        => '<input type="checkbox" />',
             'name'      => __('Name', 'mailoptin'),
             'action'    => __('Actions', 'mailoptin'),
             'date_sent' => __('Date Sent', 'mailoptin'),
         );
-
-        return $columns;
     }
 
     /**
@@ -69,10 +67,30 @@ class Newsletter_List extends \WP_List_Table
         $customize_url = Email_Campaign_List::_campaign_customize_url($email_campaign_id);
 
         $delete_url = Email_Campaign_List::_campaign_delete_url($email_campaign_id);
+        $send_url   = esc_url(
+            add_query_arg(
+                '_wpnonce',
+                wp_create_nonce('mailoptin-send-newsletter'),
+                admin_url('?action=mailoptin_send_newsletter&id=' . $email_campaign_id)
+            )
+        );
         $name       = "<strong><a href=\"$customize_url\">" . $item['name'] . '</a></strong>';
+
+        $date_sent = EmailCampaignMeta::get_meta_data($email_campaign_id, 'newsletter_date_sent');
 
         $actions = [
             'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', $delete_url, __('Delete', 'mailoptin')),
+            'send'   => sprintf(
+                '<a href="%s" class="mo-send-newsletter-link" onclick="return confirm(\'%s\')">%s</a>',
+                $send_url,
+                esc_js(__('Are you sure you want to send this newsletter now?', 'mailoptin')),
+                ( ! empty($date_sent) && ! in_array($date_sent, [
+                        ER::NEWSLETTER_STATUS_FAILED,
+                        ER::NEWSLETTER_STATUS_DRAFT
+                    ]))
+                    ? __('Resend Broadcast', 'mailoptin')
+                    : __('Send Broadcast', 'mailoptin')
+            ),
         ];
 
         return $name . $this->row_actions($actions);

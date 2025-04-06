@@ -9,6 +9,7 @@ use MailOptin\Core\Admin\Customizer\OptinForm\CustomizerSettings;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\RegisterScripts;
 use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
+
 use function MailOptin\Core\is_mailoptin_customizer_preview;
 use function MailOptin\Core\moVar;
 
@@ -50,18 +51,30 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         if ( ! empty($_REQUEST['mailoptin_optin_campaign_id'])) {
             add_filter('mo_optin_form_customizer_design_settings', [$this, 'customizer_design_settings'], 10, 2);
             add_filter('mo_optin_form_customizer_headline_settings', [$this, 'customizer_headline_settings'], 10, 2);
-            add_filter('mo_optin_form_customizer_description_settings', [$this, 'customizer_description_settings'], 10, 2);
+            add_filter('mo_optin_form_customizer_description_settings', [
+                $this,
+                'customizer_description_settings'
+            ], 10, 2);
             add_filter('mo_optin_form_customizer_note_settings', [$this, 'customizer_note_settings'], 10, 2);
             add_filter('mo_optin_form_customizer_fields_settings', [$this, 'customizer_fields_settings'], 10, 2);
-            add_filter('mo_optin_form_customizer_configuration_settings', [$this, 'customizer_configuration_settings'], 10, 2);
+            add_filter('mo_optin_form_customizer_configuration_settings', [
+                $this,
+                'customizer_configuration_settings'
+            ], 10, 2);
             add_filter('mo_optin_form_customizer_output_settings', [$this, 'customizer_output_settings'], 10, 2);
 
             add_filter('mo_optin_form_customizer_design_controls', [$this, 'customizer_design_controls'], 10, 4);
             add_filter('mo_optin_form_customizer_headline_controls', [$this, 'customizer_headline_controls'], 10, 4);
-            add_filter('mo_optin_form_customizer_description_controls', [$this, 'customizer_description_controls'], 10, 4);
+            add_filter('mo_optin_form_customizer_description_controls', [
+                $this,
+                'customizer_description_controls'
+            ], 10, 4);
             add_filter('mo_optin_form_customizer_note_controls', array($this, 'customizer_note_controls'), 10, 4);
             add_filter('mo_optin_form_customizer_fields_controls', [$this, 'customizer_fields_controls'], 10, 4);
-            add_filter('mo_optin_form_customizer_configuration_controls', [$this, 'customizer_configuration_controls'], 10, 4);
+            add_filter('mo_optin_form_customizer_configuration_controls', [
+                $this,
+                'customizer_configuration_controls'
+            ], 10, 4);
             add_filter('mo_optin_form_customizer_output_controls', [$this, 'customizer_output_controls'], 10, 4);
 
             add_action('customize_preview_init', function () {
@@ -1248,9 +1261,11 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $data['icon_close'] = $icon_close_config;
 
         if ($this->optin_campaign_type == 'lightbox') {
-            $body_close         = $this->get_customizer_value('close_backdrop_click');
+            $body_close = $this->get_customizer_value('close_backdrop_click');
+            $keyClose   = $this->get_customizer_value('disable_esc_key') !== true;
+
             $data['body_close'] = apply_filters('mo_optin_campaign_body_close', $body_close, $this);
-            $data['keyClose']   = apply_filters('mo_optin_campaign_key_close', true, $this);
+            $data['keyClose']   = apply_filters('mo_optin_campaign_key_close', $keyClose, $this);
         }
 
         if ($this->optin_campaign_type == 'bar') {
