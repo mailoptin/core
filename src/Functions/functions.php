@@ -309,7 +309,9 @@ function get_ip_address()
             continue;
         }
 
-        $user_ip = str_replace('::1', '127.0.0.1', $_SERVER[$key]);
+        $user_ip = sanitize_text_field($_SERVER[$key]);
+
+        if ($user_ip === '::1') $user_ip = '127.0.0.1';
     }
 
     return apply_filters('mailoptin_get_ip', $user_ip);
