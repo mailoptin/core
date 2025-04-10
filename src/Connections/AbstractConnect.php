@@ -291,6 +291,9 @@ abstract class AbstractConnect
      */
     public static function save_optin_error_log($message, $filename = 'error', $optin_campaign_id = null, $optin_campaign_type = null)
     {
+        // skip api keys not found errors.
+        if (preg_match('/not found\.$/', $message)) return false;
+
         $error_log_folder = MAILOPTIN_OPTIN_ERROR_LOG;
 
         // does bugs folder exist? if NO, create it.
