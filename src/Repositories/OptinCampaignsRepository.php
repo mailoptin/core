@@ -579,9 +579,7 @@ class OptinCampaignsRepository extends AbstractRepository
 
         if (empty($custom_fields)) return [];
 
-        $custom_fields = json_decode($custom_fields, true);
-
-        return $custom_fields;
+        return json_decode($custom_fields, true);
     }
 
     /**
