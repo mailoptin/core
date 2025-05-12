@@ -157,11 +157,16 @@ abstract class AbstractConnect
      * Helper to return failed error.
      *
      * @param string $error
+     * @param bool $skipMessage
      *
      * @return array
      */
-    public static function ajax_failure($error = '')
+    public static function ajax_failure($error = '', $skipMessage = false)
     {
+        if (empty($error) && ! $skipMessage) {
+            $error = __('There was an error saving your contact. Please try again.', 'mailoptin');
+        }
+
         return ['success' => false, 'message' => apply_filters('mo_optin_ajax_error_message', $error)];
     }
 
@@ -331,9 +336,9 @@ $footer_content";
     {
         $disable_optin_error_emails = apply_filters('mailoptin_disable_send_optin_error_email', Settings::instance()->disable_optin_error_emails());
 
-            if (!empty($disable_optin_error_emails) && ($disable_optin_error_emails == 'true' || $disable_optin_error_emails === true)) {
-                return;
-            }
+        if ( ! empty($disable_optin_error_emails) && ($disable_optin_error_emails == 'true' || $disable_optin_error_emails === true)) {
+            return;
+        }
 
         if ( ! isset($optin_campaign_id, $error_message)) return;
 
