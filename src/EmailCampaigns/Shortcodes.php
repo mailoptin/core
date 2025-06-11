@@ -336,7 +336,9 @@ class Shortcodes
 
         if (empty($key)) return '';
 
-        return wp_kses_post(get_post_meta($this->wp_post_obj->ID, $key, true));
+        $output = wp_kses_post(get_post_meta($this->wp_post_obj->ID, $key, true));
+
+        return apply_filters('mo_email_campaign_shortcode_post_meta', $output, $key, $atts);
     }
 
     public function acf_custom_field($atts)
@@ -354,7 +356,7 @@ class Shortcodes
         $value = get_field($field, $post_id, $format_value);
 
         if (is_array($value)) {
-            $value = @implode(', ', $value);
+            $value = implode(', ', $value);
         }
 
         return $value;
