@@ -224,7 +224,6 @@ switch ($country_type) {
             'SDN' => __('Sudan', 'mailoptin'),
             'SUR' => __('Suriname', 'mailoptin'),
             'SJM' => __('Svalbard and Jan Mayen', 'mailoptin'),
-            'SWZ' => __('Swaziland', 'mailoptin'),
             'SWE' => __('Sweden', 'mailoptin'),
             'CHE' => __('Switzerland', 'mailoptin'),
             'SYR' => __('Syria', 'mailoptin'),
@@ -263,7 +262,6 @@ switch ($country_type) {
             'ZMB' => __('Zambia', 'mailoptin'),
             'ZWE' => __('Zimbabwe', 'mailoptin'),
         );
-        break;
     default:
         return array(
             'AF' => __('Afghanistan', 'mailoptin'),

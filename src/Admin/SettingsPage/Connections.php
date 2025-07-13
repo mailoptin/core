@@ -105,33 +105,30 @@ class Connections extends AbstractSettingsPage
 
     public function sidebar_metaboxes()
     {
-        $mailpoet_url  = 'https://mailoptin.io/article/create-mailpoet-opt-in-forms-wordpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=mailpoet';
-        $mailster_url  = 'https://mailoptin.io/article/create-mailster-optin-forms-wordpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=mailster';
-        $fluentcrm_url = 'https://mailoptin.io/article/create-fluent-crm-forms-wordpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=fluentcrm';
+        $mailpoet_url   = 'https://mailoptin.io/article/create-mailpoet-opt-in-forms-wordpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=mailpoet';
+        $mailster_url   = 'https://mailoptin.io/article/create-mailster-optin-forms-wordpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=mailster';
+        $fluentcrm_url  = 'https://mailoptin.io/article/create-fluent-crm-forms-wordpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=fluentcrm';
+        $groundhogg_url = 'https://mailoptin.io/article/create-groundhogg-forms-wordpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=groundhogg';
 
-        $mailpoet_error_url  = AbstractConnect::get_optin_error_log_link('mailpoet', true);
-        $mailster_error_url  = AbstractConnect::get_optin_error_log_link('mailster', true);
-        $fluentcrm_error_url = AbstractConnect::get_optin_error_log_link('fluentcrm', true);
+        $mailpoet_error_url   = AbstractConnect::get_optin_error_log_link('mailpoet', true);
+        $mailster_error_url   = AbstractConnect::get_optin_error_log_link('mailster', true);
+        $fluentcrm_error_url  = AbstractConnect::get_optin_error_log_link('fluentcrm', true);
+        $groundhogg_error_url = AbstractConnect::get_optin_error_log_link('groundhogg', true);
 
-        if (
-            \MailOptin\MailPoetConnect\Connect::is_connected() &&
-            ! empty($mailpoet_error_url)
-        ) {
+        if (\MailOptin\MailPoetConnect\Connect::is_connected() && ! empty($mailpoet_error_url)) {
             $mailpoet_url = $mailpoet_error_url;
         }
 
-        if (
-            \MailOptin\MailsterConnect\Connect::is_connected() &&
-            ! empty($mailster_error_url)
-        ) {
+        if (\MailOptin\MailsterConnect\Connect::is_connected() && ! empty($mailster_error_url)) {
             $mailster_url = $mailster_error_url;
         }
 
-        if (
-            \MailOptin\FluentCRMConnect\Connect::is_connected() &&
-            ! empty($fluentcrm_error_url)
-        ) {
+        if (\MailOptin\FluentCRMConnect\Connect::is_connected() && ! empty($fluentcrm_error_url)) {
             $fluentcrm_url = $fluentcrm_error_url;
+        }
+
+        if (\MailOptin\GroundhoggConnect\Connect::is_connected() && ! empty($groundhogg_error_url)) {
+            $groundhogg_url = $groundhogg_error_url;
         }
 
         $boxes = [
@@ -163,7 +160,7 @@ class Connections extends AbstractSettingsPage
                 'section_title' => esc_html__('Elite WordPress Integrations'),
                 'content'       => sprintf(__('MailOptin also integrates with the following WordPress features and plugins.
                 <p><a href="%s" target="_blank">WordPress user registration</a></p>
-                <p><a href="%s" target="_blank">MailPoet</a>, <a href="%s" target="_blank">Mailster</a> & <a href="%s" target="_blank">FluentCRM plugins</a></p>
+                <p><a href="%s" target="_blank">MailPoet</a>, <a href="%s" target="_blank">Mailster</a>, <a href="%s" target="_blank">FluentCRM</a> & <a href="%s" target="_blank">Groundhogg</a></p>
                 <p><a href="%s" target="_blank">WooCommerce, memberships & subscriptions plugins</a></p>
                 <p><a href="%s" target="_blank">Easy Digital Downloads plugin</a></p>
                 <p><a href="%s" target="_blank">MemberPress</a>, <a href="%s" target="_blank">Restrict Content Pro</a> & <a href="%s" target="_blank">Paid Memberships Pro</a></a></p>
@@ -174,6 +171,7 @@ class Connections extends AbstractSettingsPage
                     $mailpoet_url,
                     $mailster_url,
                     $fluentcrm_url,
+                    $groundhogg_url,
                     'https://mailoptin.io/integrations/woocommerce/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=woocommerce',
                     'https://mailoptin.io/integrations/easy-digital-downloads/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=edd',
                     'https://mailoptin.io/integrations/memberpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=memberpress',
@@ -207,19 +205,19 @@ class Connections extends AbstractSettingsPage
         do_action('mailoptin_before_connections_settings_page', MAILOPTIN_CONNECTIONS_DB_OPTION_NAME);
         $connection_args = apply_filters('mailoptin_connections_settings_page', array());
         usort($connection_args, function ($a, $b) {
-            
+
             // First check if an integration is connected
             $a_connected = strpos($a["section_title"] ?? '', '(Connected)') !== false;
             $b_connected = strpos($b["section_title"] ?? '', '(Connected)') !== false;
-            
+
             // Prioritize connected integrations
-            if ($a_connected && !$b_connected) {
+            if ($a_connected && ! $b_connected) {
                 return -1;
             }
-            if (!$a_connected && $b_connected) {
+            if ( ! $a_connected && $b_connected) {
                 return 1;
             }
-            
+
             // If connection status is the same, make sendinblue appear first
             if (isset($a['sendinblue_api_key'])) {
                 return -1;

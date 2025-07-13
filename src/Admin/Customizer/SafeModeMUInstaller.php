@@ -6,14 +6,14 @@ class SafeModeMUInstaller
 {
     private $mu_plugin_filename = 'mailoptin-customizer-optimizer.php';
 
-    private $current_version = '0.1';
+    private $current_version = '0.2';
 
     // Content of the MU plugin
     private $mu_plugin_content = '<?php
 /**
  * Plugin Name: MailOptin Customizer Integration
  * Description: Improve customizer compatibility between MailOptin and other plugins.
- * Version: 0.1
+ * Version: 0.2
  * Author: MailOptin
  */
 
@@ -59,6 +59,7 @@ class MailOptinCustomizerIntegration
     // Plugins that should remain active
     private $required_plugins_substring = [
         \'fluent\',
+        \'groundhogg\',
         \'mailpoet\',
         \'wemail\',
         \'memberpress\',
