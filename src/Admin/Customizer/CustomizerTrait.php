@@ -282,15 +282,16 @@ trait CustomizerTrait
      */
     public function js_script()
     {
-        $labels = [
+        $labels        = [
             'WordPressUserRegistrationConnect' => __('Select User Role (Required)', 'mailoptin'),
-            'SalesforceConnect' => __('Select Salesforce Object', 'mailoptin'),
-            'ConvertKitConnect' => __('Select Kit (ConvertKit) Form', 'mailoptin'),
-            'BeehiivConnect' => __('Select beehiiv Tier', 'mailoptin'),
-            'ZohoCRMConnect' => __('Select ZohoCRM Module', 'mailoptin'),
-            'FacebookCustomAudienceConnect' => __('Select Custom Audience', 'mailoptin'),
-            'WebHookConnect' => __('Request Method', 'mailoptin'),
-            'GoogleSheetConnect' => __('Select Spreadsheet File', 'mailoptin'),
+            'SalesforceConnect'                => __('Select Salesforce Object', 'mailoptin'),
+            'ConvertKitConnect'                => __('Select Kit (ConvertKit) Form', 'mailoptin'),
+            'BeehiivConnect'                   => __('Select beehiiv Tier', 'mailoptin'),
+            'ZohoCRMConnect'                   => __('Select ZohoCRM Module', 'mailoptin'),
+            'FacebookCustomAudienceConnect'    => __('Select Custom Audience', 'mailoptin'),
+            'WebHookConnect'                   => __('Request Method', 'mailoptin'),
+            'GoogleSheetConnect'               => __('Select Spreadsheet File', 'mailoptin'),
+            'SenderConnect'                    => __('Sender Group', 'mailoptin'),
         ];
         $default_label = __('Select Email List', 'mailoptin');
         ?>
