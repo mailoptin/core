@@ -1298,57 +1298,6 @@ class AjaxHandler
                     }
                 }
                 break;
-            case 'woocommerce_customers' :
-                if (class_exists('\WooCommerce')) {
-
-                    $wp_user_query = new \WP_User_Query(
-                        array(
-                            'search'         => "*{$q}*",
-                            'search_columns' => array(
-                                'user_login',
-                                'user_nicename',
-                                'user_email',
-                                'ID',
-                                'display_name'
-                            ),
-                            'role'           => 'customer',
-                            'fields'         => ['ID', 'user_email', 'display_name']
-                        ));
-
-                    $users = $wp_user_query->get_results();
-
-                    $wp_user_query2 = new \WP_User_Query(
-                        array(
-                            'meta_query' => array(
-                                'relation' => 'OR',
-                                array(
-                                    'key'     => 'first_name',
-                                    'value'   => $q,
-                                    'compare' => 'LIKE'
-                                ),
-                                array(
-                                    'key'     => 'last_name',
-                                    'value'   => $q,
-                                    'compare' => 'LIKE'
-                                )
-                            ),
-                            'role'       => 'customer',
-                            'fields'     => ['ID', 'user_email', 'display_name']
-                        )
-                    );
-
-                    $users2 = $wp_user_query2->get_results();
-
-                    $users = array_unique(array_merge($users, $users2), SORT_REGULAR);
-
-                    if (is_array($users) && ! empty($users)) {
-                        $response = [];
-                        foreach ($users as $user) {
-                            $response[$user->ID] = sprintf('%s (%s)', $user->display_name, $user->user_email);
-                        }
-                    }
-                }
-                break;
         }
 
         $response = apply_filters('mo_page_targeting_search_response', $response, $search_type, $q);
