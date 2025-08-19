@@ -517,7 +517,7 @@ class Columbine extends AbstractOptinTheme
     {
         $mini_header = $this->get_customizer_value('mini_headline', __("Don't miss out!", 'mailoptin'));
 
-        $mini_header_block = '<div class="columbine-miniText">' . $mini_header . '</div>';
+        $mini_header_block = '<div class="columbine-miniText">' . wp_kses_post($mini_header) . '</div>';
 
         return <<<HTML
 [mo-optin-form-wrapper class="columbine-container"]
