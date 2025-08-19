@@ -508,7 +508,7 @@ class Gridgum extends AbstractOptinTheme
     {
         $mini_header = $this->get_customizer_value('mini_headline', __("Don't miss out!", 'mailoptin'));
 
-        $mini_header_block = '<div class="gridgum_header2">' . $mini_header . '</div>';
+        $mini_header_block = '<div class="gridgum_header2">' . wp_kses_post($mini_header) . '</div>';
 
         return <<<HTML
         [mo-optin-form-wrapper class="gridgum_container"]

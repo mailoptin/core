@@ -668,7 +668,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
             $style .= "padding: 0;";
         }
 
-        $html = "<$tag class=\"$class\" style=\"$style\">$headline</$tag>";
+        $html = "<$tag class=\"$class\" style=\"$style\">" . wp_kses_post($headline) . "</$tag>";
 
         return $html;
     }
@@ -853,7 +853,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $style = esc_attr($atts['style']);
         $style = "$description_styles $style";
 
-        $html = "<div class=\"$class\" style=\"$style\">$description</div>";
+        $html = "<div class=\"$class\" style=\"$style\">" . wp_kses_post($description) . "</div>";
 
         return $html;
     }
@@ -870,7 +870,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $note                          = apply_filters('mo_optin_form_before_note', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
         $is_acceptance_checkbox_active = $this->get_customizer_value('note_acceptance_checkbox');
 
-        $note .= '<span class="mo-note-content">' . $this->get_customizer_value('note') . '</span>';
+        $note .= '<span class="mo-note-content">' . wp_kses_post($this->get_customizer_value('note')) . '</span>';
 
         if ($is_acceptance_checkbox_active) {
             $note .= '</label>';
