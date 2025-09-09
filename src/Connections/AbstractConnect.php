@@ -179,9 +179,15 @@ abstract class AbstractConnect
      */
     public static function save_campaign_error_log($message, $campaign_log_id, $email_campaign_id)
     {
-        if ( ! isset($message) || ! isset($campaign_log_id) || ! isset($email_campaign_id)) {
-            return;
-        }
+        if ( ! isset($message) || ! isset($campaign_log_id) || ! isset($email_campaign_id)) return;
+
+        static $cache_bucket = [];
+
+        $cache_key = hash("sha256", sprintf('%s:%s:%s', $message, $campaign_log_id, $email_campaign_id));
+
+        if (isset($cache_bucket[$cache_key])) return;
+
+        $cache_bucket[$cache_key] = true;
 
         $email_campaign_name = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
         $filename            = md5($email_campaign_name . $campaign_log_id);
