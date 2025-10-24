@@ -120,6 +120,8 @@ class Base
         InPost::get_instance();
         Shortcodes::get_instance();
         Recaptcha::get_instance();
+        //Turnstile initialization
+        \MailOptin\Core\OptinForms\Turnstile::get_instance();
 
         BlockEditor\Init::get_instance();
 

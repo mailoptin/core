@@ -73,6 +73,8 @@
 
                         $(field).find(".recaptcha_v2_size.mo-fields-block").show();
                         $(field).find(".recaptcha_v2_style.mo-fields-block").show();
+                        $(field).find(".turnstile_size.mo-fields-block").show();
+                        $(field).find(".turnstile_theme.mo-fields-block").show();
 
                         $(field).find(".placeholder.mo-fields-block").show();
                         $(field).find(".color.mo-fields-block").show();
@@ -83,6 +85,10 @@
                         if (field_type !== 'recaptcha_v2') {
                             $(field).find(".recaptcha_v2_size.mo-fields-block").hide();
                             $(field).find(".recaptcha_v2_style.mo-fields-block").hide();
+                        }
+                        if (field_type !== 'turnstile') {
+                            $(field).find(".turnstile_size.mo-fields-block").hide();
+                            $(field).find(".turnstile_theme.mo-fields-block").hide();
                         }
 
                         if (field_type === 'recaptcha_v2') {
@@ -98,6 +104,13 @@
                             $(field).find(".recaptcha_v2_size.mo-fields-block").hide();
                             $(field).find(".recaptcha_v2_style.mo-fields-block").hide();
 
+                            $(field).find(".placeholder.mo-fields-block").hide();
+                            $(field).find(".color.mo-fields-block").hide();
+                            $(field).find(".background.mo-fields-block").hide();
+                            $(field).find(".font.mo-fields-block").hide();
+                            $(field).find(".field_required.mo-fields-block").hide();
+                        }
+                        if (field_type === 'turnstile') {
                             $(field).find(".placeholder.mo-fields-block").hide();
                             $(field).find(".color.mo-fields-block").hide();
                             $(field).find(".background.mo-fields-block").hide();
