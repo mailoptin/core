@@ -153,6 +153,8 @@ class RegisterScripts
         }
 
         Recaptcha::get_instance()->enqueue_script();
+        // Enqueue Cloudflare Turnstile script
+        \MailOptin\Core\OptinForms\Turnstile::get_instance()->enqueue_script();
 
         $this->global_js_variables('mailoptin');
     }
