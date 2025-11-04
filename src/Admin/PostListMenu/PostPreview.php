@@ -37,6 +37,10 @@ class PostPreview
 
     public function get_form_content()
     {
+        global $pagenow;
+
+        if($pagenow !== 'edit.php')  return;
+
         $campaignsHTML = '';
         foreach ($this->get_campaigns() as $campaign) {
             $campaignsHTML .= '<option value="' . esc_attr($campaign['id']) . '">' . esc_attr($campaign['name']) . '</option>';

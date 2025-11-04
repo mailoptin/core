@@ -531,9 +531,9 @@ function cache_transform($cache_key, $callback)
 
     static $mo_cache_transform_bucket = [];
 
-    $result = moVar($mo_cache_transform_bucket, $cache_key, false);
+    $result = moVar($mo_cache_transform_bucket, $cache_key);
 
-    if ( ! $result) {
+    if ( ! isset($mo_cache_transform_bucket[$cache_key])) {
 
         $result = $callback();
 
