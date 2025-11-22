@@ -612,6 +612,7 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
             'recaptcha_v2'      => __('reCAPTCHA v2', 'mailoptin'),
             'recaptcha_v3'      => __('reCAPTCHA v3', 'mailoptin'),
             'country'           => __('Country', 'mailoptin'),
+            'turnstile'         => __('Cloudflare Turnstile', 'mailoptin'),
         ];
 
         $widget_title = sprintf(__('Field %s', 'mailoptin'), '#' . ($index + 1));
@@ -684,6 +685,16 @@ class WP_Customize_Fields_Repeater_Control extends WP_Customize_Control
                         'light' => __('Light', 'mailoptin'),
                         'dark'  => __('Dark', 'mailoptin')
                     ], '', __('Style', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'turnstile_size', [
+                        'normal'    => __('Normal', 'mailoptin'),
+                        'compact'   => __('Compact', 'mailoptin'),
+                        'invisible' => __('Invisible', 'mailoptin')
+                    ], '', __('Size', 'mailoptin')); ?>
+                    <?php $this->repeater_select_field($index, 'turnstile_theme', [
+                        'auto'  => __('Auto', 'mailoptin'),
+                        'light' => __('Light', 'mailoptin'),
+                        'dark'  => __('Dark', 'mailoptin')
+                    ], '', __('Theme', 'mailoptin')); ?>
                     <?php $this->parse_control($index, apply_filters('mo_optin_fields_controls_after', [], $this->optin_campaign_id, $index, $this->saved_values)); ?>
                 </div>
                 <div class="mo-fields-widget-actions">
