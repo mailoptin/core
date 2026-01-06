@@ -650,7 +650,7 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $settings = self::get_settings();
 
-        return isset($settings[$optin_campaign_id]) ? $settings[$optin_campaign_id] : '';
+        return $settings[$optin_campaign_id] ?? [];
     }
 
     /**
