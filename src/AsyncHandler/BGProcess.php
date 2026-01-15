@@ -26,8 +26,6 @@ class BGProcess extends WP_Background_Process
 
         if ($item['action']) unset($item['action']);
 
-        ray($action, $item);
-
         do_action('mailoptin_async_handler_job', $action, $item);
 
         return false;
