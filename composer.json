@@ -8,13 +8,15 @@
     "pelago/emogrifier": "^6.0.0",
     "league/csv": "^9.0",
     "collizo4sky/persist-admin-notices-dismissal": "^1.3",
-    "nesbot/carbon": "^2.57",
-    "deliciousbrains/wp-background-processing": "^1.0"
+    "nesbot/carbon": "^2.57"
   },
   "autoload": {
     "psr-4": {
       "MailOptin\\Core\\": "src/"
     },
+    "classmap": [
+      "src/Libs/WPBGProcessing"
+    ],
     "files": [
       "src/Functions/custom-settings-api.php",
       "src/Functions/functions.php",

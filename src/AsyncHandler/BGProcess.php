@@ -2,7 +2,7 @@
 
 namespace MailOptin\Core\AsyncHandler;
 
-use WP_Background_Process;
+use MailOptin\Core\Libs\WPBGProcessing\WP_Background_Process;
 
 class BGProcess extends WP_Background_Process
 {
@@ -25,6 +25,8 @@ class BGProcess extends WP_Background_Process
         $action = $item['action'] ?? '';
 
         if ($item['action']) unset($item['action']);
+
+        ray($action, $item);
 
         do_action('mailoptin_async_handler_job', $action, $item);
 
