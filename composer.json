@@ -8,7 +8,8 @@
     "pelago/emogrifier": "^6.0.0",
     "league/csv": "^9.0",
     "collizo4sky/persist-admin-notices-dismissal": "^1.3",
-    "nesbot/carbon": "^2.57"
+    "nesbot/carbon": "^2.57",
+    "deliciousbrains/wp-background-processing": "^1.0"
   },
   "autoload": {
     "psr-4": {

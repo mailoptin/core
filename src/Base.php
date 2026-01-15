@@ -13,6 +13,7 @@ use MailOptin\Core\Admin\SettingsPage\ConversionExport;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
 use MailOptin\Core\Admin\SettingsPage\LicenseUpgrader;
+use MailOptin\Core\AsyncHandler\AsyncHandler;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
 use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
@@ -105,6 +106,7 @@ class Base
         RegisterScripts::get_instance();
         AjaxHandler::get_instance();
         Cron::get_instance();
+        AsyncHandler::get_instance();
 
         $this->admin_hooks();
         Admin\Customizer\EmailCampaign\Customizer::instance();
