@@ -171,6 +171,12 @@ class Settings extends AbstractSettingsPage
                             'checkbox_label' => __('Disable', 'mailoptin'),
                             'description' => esc_html__('Check to disable sending optin error notification emails.', 'mailoptin')
                         ],
+                        'enable_async_optin' => [
+                                'type'           => 'checkbox',
+                                'label'          => __('Optin Background Processing', 'mailoptin'),
+                                'checkbox_label' => __('Enable', 'mailoptin'),
+                                'description' => esc_html__('Enable background processing of optin for non-form integrations such as optin after user registration, WooCommerce checkout etc. This is useful e.g for WooCommerce so customer subscription does not slow down the checkout.', 'mailoptin')
+                        ],
                         'global_cookie'               => [
                             'type'        => 'number',
                             'value'       => 0,

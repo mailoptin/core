@@ -707,3 +707,8 @@ function content_http_redirect($myURL)
     <a href="<?php echo $myURL; ?>">Click Here</a> if you do not want to wait.
     <?php
 }
+
+function is_optin_bg_processing_enabled()
+{
+    return Settings::instance()->enable_async_optin() === 'true';
+}
