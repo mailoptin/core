@@ -22,6 +22,7 @@ use MailOptin\Core\OptinForms\FrontEndOutput;
 use MailOptin\Core\OptinForms\InPost;
 use MailOptin\Core\OptinForms\Recaptcha;
 use MailOptin\Core\OptinForms\Shortcodes;
+use MailOptin\Core\OptinForms\Turnstile;
 use MailOptin\Libsodium\LibsodiumSettingsPage;
 
 define('MAILOPTIN_OAUTH_URL', 'https://auth.mailoptin.io');
@@ -122,6 +123,8 @@ class Base
         InPost::get_instance();
         Shortcodes::get_instance();
         Recaptcha::get_instance();
+        //Turnstile initialization
+        Turnstile::get_instance();
 
         BlockEditor\Init::get_instance();
 

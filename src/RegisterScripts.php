@@ -4,6 +4,7 @@ namespace MailOptin\Core;
 
 
 use MailOptin\Core\OptinForms\Recaptcha;
+use MailOptin\Core\OptinForms\Turnstile;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
@@ -153,6 +154,8 @@ class RegisterScripts
         }
 
         Recaptcha::get_instance()->enqueue_script();
+        // Enqueue Cloudflare Turnstile script
+        Turnstile::get_instance()->enqueue_script();
 
         $this->global_js_variables('mailoptin');
     }
