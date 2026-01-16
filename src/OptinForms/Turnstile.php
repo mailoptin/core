@@ -4,8 +4,9 @@ namespace MailOptin\Core\OptinForms;
 
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
-use MailOptin\Core\OptinForms\ConversionDataBuilder;
 use WP_Error;
+
+use function MailOptin\Core\current_user_has_privilege;
 
 class Turnstile
 {
@@ -31,7 +32,7 @@ class Turnstile
             $wp_scripts = wp_scripts();
             if ($wp_scripts) {
                 foreach ($wp_scripts->registered as $reg) {
-                    $src = isset($reg->src) ? $reg->src : '';
+                    $src = $reg->src ?? '';
                     if ($src && strpos($src, 'challenges.cloudflare.com/turnstile/v0/api.js') !== false) {
                         // Another plugin already registered Turnstile; avoid duplicate load.
                         return false;
@@ -41,17 +42,18 @@ class Turnstile
         }
 
         $ids = OptinCampaignsRepository::get_optin_campaign_ids();
-        if (!is_array($ids) || empty($ids)) {
+
+        if ( ! is_array($ids) || empty($ids)) {
             return false;
         }
 
         foreach ($ids as $id) {
-            if (!OptinCampaignsRepository::is_activated($id)) {
+            if ( ! OptinCampaignsRepository::is_activated($id)) {
                 continue;
             }
             $fields = OptinCampaignsRepository::form_custom_fields($id);
             foreach ($fields as $field) {
-                if (!empty($field['field_type']) && $field['field_type'] === 'turnstile') {
+                if ( ! empty($field['field_type']) && $field['field_type'] === 'turnstile') {
                     return true;
                 }
             }
@@ -62,9 +64,7 @@ class Turnstile
 
     public function enqueue_script()
     {
-        if (!$this->should_enqueue_turnstile()) {
-            return;
-        }
+        if ( ! $this->should_enqueue_turnstile()) return;
 
         // Cloudflare Turnstile auto-detects widgets with the cf-turnstile class
         $src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
@@ -77,6 +77,7 @@ class Turnstile
             if ($handle === 'mo-turnstile-script') {
                 $src = remove_query_arg('ver', $src);
             }
+
             return $src;
         }, 10, 2);
     }
@@ -98,7 +99,7 @@ class Turnstile
             }
         }
 
-        if (!$has_turnstile) return $response;
+        if ( ! $has_turnstile) return $response;
 
         if (empty($conversion_data->payload['cf-turnstile-response'])) {
             return new WP_Error('mo-empty-captcha', __('Cloudflare Turnstile is required.', 'mailoptin'));
@@ -122,7 +123,7 @@ class Turnstile
 
         $body = json_decode(wp_remote_retrieve_body($result), true);
 
-        if (!isset($body['success']) || !$body['success']) {
+        if ( ! isset($body['success']) || ! $body['success']) {
             return new WP_Error('mo-empty-captcha', esc_html__('Cloudflare Turnstile verification failed, please try again.', 'mailoptin'));
         }
 
@@ -133,14 +134,14 @@ class Turnstile
     {
         if ($field_type !== 'turnstile') return $output;
 
-        $turnstile_theme = !empty($field['turnstile_theme']) ? $field['turnstile_theme'] : (Settings::instance()->turnstile_theme('auto'));
-        $turnstile_size  = !empty($field['turnstile_size']) ? $field['turnstile_size'] : (Settings::instance()->turnstile_size('normal'));
+        $turnstile_theme = ! empty($field['turnstile_theme']) ? $field['turnstile_theme'] : (Settings::instance()->turnstile_theme('auto'));
+        $turnstile_size  = ! empty($field['turnstile_size']) ? $field['turnstile_size'] : (Settings::instance()->turnstile_size('normal'));
 
         $site_key    = Settings::instance()->turnstile_site_key();
         $site_secret = Settings::instance()->turnstile_site_secret();
 
         $output .= $atts['tag_start'];
-        if (\MailOptin\Core\current_user_has_privilege() && (empty($site_key) || empty($site_secret))) {
+        if (current_user_has_privilege() && (empty($site_key) || empty($site_secret))) {
             $output .= '<div style="margin:5px 0;color:#31708f;background-color: #d9edf7;border-color: #bcdff1;">' . esc_html__('To use Cloudflare Turnstile, add the API keys in Dashboard > MailOptin > Settings > Turnstile.', 'mailoptin') . '</div>';
         } else {
             // Cloudflare Turnstile auto renders this container
@@ -157,18 +158,18 @@ class Turnstile
         $settings['turnstile_settings'] = [
             'tab_title' => __('Cloudflare Turnstile', 'mailoptin'),
             [
-                'section_title'          => __('Turnstile Settings', 'mailoptin'),
-                'turnstile_site_key'     => [
+                'section_title'         => __('Turnstile Settings', 'mailoptin'),
+                'turnstile_site_key'    => [
                     'type'        => 'text',
                     'label'       => __('Site Key', 'mailoptin'),
                     'description' => sprintf(__('Necessary for displaying Turnstile. Grab it %shere%s', 'mailoptin'), '<a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer">', '</a>')
                 ],
-                'turnstile_site_secret'  => [
+                'turnstile_site_secret' => [
                     'type'        => 'text',
                     'label'       => __('Site Secret', 'mailoptin'),
                     'description' => sprintf(__('Required for server-side verification. Grab it %shere%s', 'mailoptin'), '<a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer">', '</a>')
                 ],
-                'turnstile_theme'        => [
+                'turnstile_theme'       => [
                     'type'        => 'select',
                     'label'       => __('Default Theme', 'mailoptin'),
                     'options'     => [
@@ -179,7 +180,7 @@ class Turnstile
                     'value'       => 'auto',
                     'description' => __('Default Turnstile theme; can be overridden per form field.', 'mailoptin')
                 ],
-                'turnstile_size'         => [
+                'turnstile_size'        => [
                     'type'        => 'select',
                     'label'       => __('Default Size', 'mailoptin'),
                     'options'     => [
