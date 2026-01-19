@@ -48,7 +48,7 @@ class Custom_Settings_Page_Api
     private $sidebar_config = array();
 
     /** @var string header title of the page */
-    private $page_header = '';
+    public $page_header = '';
 
     private $exclude_top_tav_nav = false;
 

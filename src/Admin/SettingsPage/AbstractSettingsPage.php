@@ -18,6 +18,9 @@ abstract class AbstractSettingsPage
 
     public static $parent_menu_url_map = [];
 
+    /** @var Custom_Settings_Page_Api */
+    public $settings_page_instance;
+
     public function init_menu()
     {
         add_action('admin_menu', array($this, 'register_core_menu'));
@@ -56,22 +59,25 @@ abstract class AbstractSettingsPage
         return [];
     }
 
-    public function header_submenu_tabs()
-    {
-        return [];
-    }
-
     public function settings_page_header($active_menu = '')
     {
-        $logo_url       = MAILOPTIN_ASSETS_URL . 'images/logo-mailoptin.png';
-        $submenus_count = count($this->header_menu_tabs());
+        $logo_url         = MAILOPTIN_ASSETS_URL . 'images/mailoptin.svg';
+        $header_menu_tabs = $this->header_menu_tabs();
+
+        $heading_label = wp_list_pluck(
+                wp_list_filter($header_menu_tabs, ['id' => $active_menu]),
+                'label'
+        );
+
         ?>
 
         <div class="mailoptin-admin-wrap">
-            <div class="mo-admin-banner<?= defined('MAILOPTIN_DETACH_LIBSODIUM') ? ' mailoptin-pro' : ' mailoptin-not-pro' ?><?= $submenus_count < 2 ? ' mailoptin-no-submenu' : '' ?>">
-                <div class="mo-admin-banner__logo">
-                    <img src="<?= $logo_url ?>" alt="">
-                </div>
+            <div class="mailoptin-header-items">
+                <img src="<?= $logo_url ?>" alt="MailOptin">
+                <h2 class="mailoptin-headers-main-title"><?php echo $this->settings_page_instance->page_header;  ?></h2>
+                <?php $this->header_breadcrumbs(); ?>
+            </div>
+            <div class="mailoptin-headers-header-close">
                 <div class="mo-admin-banner__helplinks">
                     <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
                         <span>
@@ -88,7 +94,7 @@ abstract class AbstractSettingsPage
                     <?php endif; ?>
                     <span>
                         <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
-                            <span class="dashicons dashicons-book"></span> <?= __('Documentation', 'mailoptin'); ?>
+                            <span class="dashicons dashicons-book"></span> <?= __('Help', 'mailoptin'); ?>
                         </a>
                     </span> <span>
                         <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
@@ -96,20 +102,21 @@ abstract class AbstractSettingsPage
                         </a>
                     </span>
                 </div>
-                <div class="clear"></div>
-                <?php $this->settings_page_header_menus($active_menu); ?>
             </div>
-            <?php
-
-            $submenus = $this->header_submenu_tabs();
-
-            if ( ! empty($submenus) && count($submenus) > 1) {
-                $this->settings_page_header_sub_menus($active_menu);
-            }
-            ?>
         </div>
+        <?php $this->settings_page_header_menus($active_menu); ?>
         <?php
         do_action('mailoptin_settings_page_header', $active_menu);
+    }
+
+    private function header_breadcrumbs()
+    {
+//        return '<nav class="mailoptin-headers-breadcrumbs">
+//                    <span class="mailoptin-headers-crumb"><a href="#">Dashboard</a>
+//                        <span class="mailoptin-headers-crumb-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" class="mailoptin-headers-breadcrumb-icon" style="fill: #fff;"><path d="M4.90625 10.2734L8.17578 7.0039L4.90625 3.73438" stroke="#4B5563" stroke-width="1.08984" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+//                    </span>
+//                    <span class="mailoptin-headers-crumb">Site Builder</span>
+//                </nav>';
     }
 
     public function settings_page_header_menus($active_menu)
@@ -119,13 +126,14 @@ abstract class AbstractSettingsPage
         if (count($menus) < 2) return;
         ?>
         <div class="mailoptin-header-menus">
-            <nav class="mailoptin-nav-tab-wrapper nav-tab-wrapper">
+            <nav class="mailoptin-nav-tab-wrapper">
                 <?php foreach ($menus as $menu) :
                     $id = esc_attr(moVar($menu, 'id', ''));
                     $url = esc_url_raw(! empty($menu['url']) ? $menu['url'] : add_query_arg('view', $id));
+                    $url = esc_url(remove_query_arg(wp_removable_query_args(), $url));
                     self::$parent_menu_url_map[$id] = $url;
                     ?>
-                    <a href="<?php echo esc_url(remove_query_arg(wp_removable_query_args(), $url)); ?>" class="mailoptin-nav-tab nav-tab<?= $id == $active_menu ? ' mailoptin-nav-active' : '' ?>">
+                    <a href="<?php echo $url; ?>" class="mailoptin-nav-tab<?= $id == $active_menu ? ' mailoptin-nav-active' : '' ?>">
                         <?php echo esc_attr($menu['label']) ?>
                     </a>
                 <?php endforeach; ?>
@@ -155,6 +163,11 @@ abstract class AbstractSettingsPage
     }
     /** --------------------------------------------------------------- */
 
+    public function set_settings_page_instance($instance)
+    {
+        $this->settings_page_instance = $instance;
+    }
+
     /**
      * Register mailoptin core settings.
      *
@@ -162,8 +175,6 @@ abstract class AbstractSettingsPage
      */
     public function register_core_settings(Custom_Settings_Page_Api $instance)
     {
-        $instance->tab($this->tab_args());
-
         $this->settings_page_header();
     }
 
@@ -194,29 +205,6 @@ abstract class AbstractSettingsPage
         }
 
         return $classes;
-    }
-
-    public function tab_args()
-    {
-        $args = [];
-
-        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
-            $args[80]  = array(
-                    'url'   => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE,
-                    'label' => __('Email Automation', 'mailoptin')
-            );
-            $args[90]  = array(
-                    'url'   => MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE,
-                    'label' => __('Broadcasts', 'mailoptin')
-            );
-            $args[100] = array('url' => MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE, 'label' => __('Logs', 'mailoptin'));
-        }
-
-        $tabs = apply_filters('mailoptin_settings_page_tabs', $args);
-
-        ksort($tabs);
-
-        return $tabs;
     }
 
     public static function why_upgrade_to_pro()

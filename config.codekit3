@@ -39,12 +39,6 @@
       "oAP" : "\/bin",
       "oF" : 0
     },
-    "\/build" : {
-      "ft" : 65536,
-      "oA" : 1,
-      "oAP" : "\/build",
-      "oF" : 0
-    },
     "\/composer.json" : {
       "ft" : 524288,
       "oA" : 1,
@@ -385,6 +379,16 @@
       "ou" : "lpckwebp-none",
       "q" : 95,
       "rq" : 75
+    },
+    "\/src\/assets\/images\/mailoptin.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/assets\/images\/mailoptin.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
     },
     "\/src\/assets\/images\/mailoptinXfusewp.png" : {
       "ft" : 32768,
@@ -1576,6 +1580,22 @@
       "oAP" : "\/src\/assets\/tooltipster",
       "oF" : 0
     },
+    "\/src\/AsyncHandler\/AsyncHandler.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/AsyncHandler\/AsyncHandler.php",
+      "oF" : 0
+    },
+    "\/src\/AsyncHandler\/BGProcess.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/AsyncHandler\/BGProcess.php",
+      "oF" : 0
+    },
     "\/src\/Base.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -1640,6 +1660,38 @@
       "oAP" : "\/src\/index.php",
       "oF" : 1
     },
+    "\/src\/Libs\/index.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/Libs\/index.php",
+      "oF" : 0
+    },
+    "\/src\/Libs\/WPBGProcessing\/index.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/Libs\/WPBGProcessing\/index.php",
+      "oF" : 0
+    },
+    "\/src\/Libs\/WPBGProcessing\/wp-async-request.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/Libs\/WPBGProcessing\/wp-async-request.php",
+      "oF" : 0
+    },
+    "\/src\/Libs\/WPBGProcessing\/wp-background-process.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/Libs\/WPBGProcessing\/wp-background-process.php",
+      "oF" : 0
+    },
     "\/src\/Logging" : {
       "ft" : 65536,
       "oA" : 1,
@@ -1703,7 +1755,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 748094789.24979603
+    "lastBuiltDate" : 790532644.34874296
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,

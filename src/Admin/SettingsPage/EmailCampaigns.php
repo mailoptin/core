@@ -17,26 +17,25 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     protected $email_campaigns_instance;
 
+    protected $settingsFrameworkInstance;
+
     public function __construct()
     {
+        $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance();
+        $this->settingsFrameworkInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
+        $this->settingsFrameworkInstance->page_header(__('Emails', 'mailoptin'));
+        $this->settingsFrameworkInstance->sidebar($this->sidebar_args());
+        $this->set_settings_page_instance($this->settingsFrameworkInstance);
+
         add_action('mailoptin_register_menu_page', array($this, 'register_menu_page'), 20);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_email_campaign_per_page', array($this, 'set_screen'), 10, 3);
 
-        add_action('mailoptin_admin_settings_submenu_page_post_email_automation', [$this, 'settings_admin_page_callback']);
-
-//        add_filter('wp_cspa_active_tab_class', function ($active_tab_class, $tab_url, $current_page_url) {
-//            // hack to make email automation not active if other sub tab eg lead bank is active.
-//            if (strpos($current_page_url, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE) !== false &&
-//                strpos($current_page_url, '&view') !== false &&
-//                $tab_url == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE
-//            ) {
-//                $active_tab_class = null;
-//            }
-//
-//            return $active_tab_class;
-//        }, 10, 3);
+        add_action(
+                'mailoptin_admin_settings_submenu_page_post_notifications',
+                [$this, 'settings_admin_page_callback']
+        );
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
         add_action('save_post', [$this, 'save_new_publish_post_exclude']);
@@ -60,22 +59,27 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function default_header_menu()
     {
-        return 'post_email_automation';
+        return 'post_notifications';
     }
 
     public function header_menu_tabs()
     {
         $tabs = apply_filters('mailoptin_emails_settings_page_tabs', [
-                20 => [
-                        'id'    => 'post_email_automation',
+                20  => [
+                        'id'    => 'post_notifications',
                         'url'   => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE,
-                        'label' => esc_html__('Post Email Automation', 'wp-user-avatar')
+                        'label' => esc_html__('Post Notifications', 'wp-user-avatar')
                 ],
-                40 => [
+                40  => [
                         'id'    => 'broadcasts',
                         'url'   => MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE,
-                        'label' => esc_html__('Broadcast', 'wp-user-avatar')
+                        'label' => esc_html__('Broadcasts', 'wp-user-avatar')
                 ],
+                100 => [
+                        'id'    => '',
+                        'url'   => MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE,
+                        'label' => esc_html__('Logs', 'wp-user-avatar')
+                ]
         ]);
 
         ksort($tabs);
@@ -147,13 +151,9 @@ class EmailCampaigns extends AbstractSettingsPage
 
         // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
         add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
-
-        $instance = Custom_Settings_Page_Api::instance();
-        $instance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
-        $instance->page_header(__('Emails', 'mailoptin'));
-        $instance->sidebar($this->sidebar_args());
         echo '<div class="mailoptin-data-listing">';
-        $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
+        $this->settingsFrameworkInstance->page_header(__('Post Notifications', 'mailoptin'));
+        $this->settingsFrameworkInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
     }
 
