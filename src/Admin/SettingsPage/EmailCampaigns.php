@@ -19,41 +19,68 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'), 20);
+        add_action('mailoptin_register_menu_page', array($this, 'register_menu_page'), 20);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_email_campaign_per_page', array($this, 'set_screen'), 10, 3);
 
-        add_filter('wp_cspa_active_tab_class', function ($active_tab_class, $tab_url, $current_page_url) {
-            // hack to make email automation not active if other sub tab eg lead bank is active.
-            if (strpos($current_page_url, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE) !== false &&
-                strpos($current_page_url, '&view') !== false &&
-                $tab_url == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE
-            ) {
-                $active_tab_class = null;
-            }
+        add_action('mailoptin_admin_settings_submenu_page_post_email_automation', [$this, 'settings_admin_page_callback']);
 
-            return $active_tab_class;
-        }, 10, 3);
+//        add_filter('wp_cspa_active_tab_class', function ($active_tab_class, $tab_url, $current_page_url) {
+//            // hack to make email automation not active if other sub tab eg lead bank is active.
+//            if (strpos($current_page_url, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE) !== false &&
+//                strpos($current_page_url, '&view') !== false &&
+//                $tab_url == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE
+//            ) {
+//                $active_tab_class = null;
+//            }
+//
+//            return $active_tab_class;
+//        }, 10, 3);
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
         add_action('save_post', [$this, 'save_new_publish_post_exclude']);
     }
 
-    public function register_settings_page()
+    public function register_menu_page()
     {
         $hook = add_submenu_page(
-            MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            __('Emails - MailOptin', 'mailoptin'),
-            __('Emails', 'mailoptin'),
-            \MailOptin\Core\get_capability(),
-            MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG,
-            array($this, 'settings_admin_page_callback')
+                MAILOPTIN_SETTINGS_SETTINGS_SLUG,
+                __('Emails - MailOptin', 'mailoptin'),
+                __('Emails', 'mailoptin'),
+                \MailOptin\Core\get_capability(),
+                MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG,
+                array($this, 'admin_page_callback')
         );
 
         add_action("load-$hook", array($this, 'screen_option'));
 
         do_action("mailoptin_register_email_campaign_settings_page", $hook);
+    }
+
+    public function default_header_menu()
+    {
+        return 'post_email_automation';
+    }
+
+    public function header_menu_tabs()
+    {
+        $tabs = apply_filters('mailoptin_emails_settings_page_tabs', [
+                20 => [
+                        'id'    => 'post_email_automation',
+                        'url'   => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE,
+                        'label' => esc_html__('Post Email Automation', 'wp-user-avatar')
+                ],
+                40 => [
+                        'id'    => 'broadcasts',
+                        'url'   => MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE,
+                        'label' => esc_html__('Broadcast', 'wp-user-avatar')
+                ],
+        ]);
+
+        ksort($tabs);
+
+        return $tabs;
     }
 
     /**
@@ -81,11 +108,11 @@ class EmailCampaigns extends AbstractSettingsPage
     {
         if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! isset($_GET['view'])) {
             $option = 'per_page';
-            $args   = array(
-                'label'   => __('Email Automation', 'mailoptin'),
-                'default' => 8,
-                'option'  => 'email_campaign_per_page',
-            );
+            $args   = [
+                    'label'   => __('Email Automation', 'mailoptin'),
+                    'default' => 8,
+                    'option'  => 'email_campaign_per_page',
+            ];
             add_screen_option($option, $args);
             $this->email_campaigns_instance = Email_Campaign_List::get_instance();
         }
@@ -125,7 +152,6 @@ class EmailCampaigns extends AbstractSettingsPage
         $instance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
         $instance->page_header(__('Emails', 'mailoptin'));
         $instance->sidebar($this->sidebar_args());
-        $this->register_core_settings($instance);
         echo '<div class="mailoptin-data-listing">';
         $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
@@ -134,7 +160,7 @@ class EmailCampaigns extends AbstractSettingsPage
     public function add_new_email_campaign()
     {
         if (isset($_GET['view']) && in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast']
-            )) {
+                )) {
             return;
         }
 
@@ -177,9 +203,9 @@ class EmailCampaigns extends AbstractSettingsPage
         <div style="text-align: left;margin: 10px;">
             <?php
             printf(
-                __('Disable %sMailOptin new post notification%s for this post.', 'mailoptin'),
-                '<strong>',
-                '</strong>'
+                    __('Disable %sMailOptin new post notification%s for this post.', 'mailoptin'),
+                    '<strong>',
+                    '</strong>'
             );
 
             wp_nonce_field('mo-disable-npp-nonce', 'mo-disable-npp-nonce');
@@ -188,8 +214,7 @@ class EmailCampaigns extends AbstractSettingsPage
             ?>
             <input type="hidden" name="mo-disable-npp" value="no">
             <input name="mo-disable-npp" id="mo-disable-npp" type="checkbox" class="tgl tgl-light" value="yes" <?php
-            checked($val, 'yes'); ?>>
-            <label for="mo-disable-npp" style="display:inline-block;" class="tgl-btn"></label>
+            checked($val, 'yes'); ?>> <label for="mo-disable-npp" style="display:inline-block;" class="tgl-btn"></label>
         </div>
         <?php
     }

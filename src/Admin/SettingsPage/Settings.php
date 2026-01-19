@@ -19,16 +19,16 @@ class Settings extends AbstractSettingsPage
     public function __construct()
     {
         $this->init_menu();
-        add_action('admin_menu', array($this, 'register_settings_page'), 10);
+        add_action('mailoptin_register_menu_page', array($this, 'register_menu_page'), 10);
         add_action('wp_cspa_persist_settings', array($this, 'check_for_mailoptin_affiliate_check'), 10, 2);
         add_action('admin_init', [$this, 'clear_optin_cache']);
 
         add_action('admin_init', [$this, 'install_missing_db_tables']);
 
-        add_action('mailoptin_admin_settings_page_general', [$this, 'settings_admin_page_callback']);
+        add_action('mailoptin_admin_settings_submenu_page_general', [$this, 'settings_admin_page_callback']);
     }
 
-    public function register_settings_page()
+    public function register_menu_page()
     {
         add_submenu_page(
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
