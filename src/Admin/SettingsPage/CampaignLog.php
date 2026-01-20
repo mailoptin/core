@@ -17,6 +17,8 @@ class CampaignLog extends AbstractSettingsPage
     public function __construct()
     {
         add_action('mailoptin_register_email_campaign_settings_page', [$this, 'init']);
+
+        add_action('mailoptin_admin_settings_submenu_page_campaign-log', [$this, 'settings_admin_page']);
     }
 
     public function init($hook)
@@ -33,9 +35,8 @@ class CampaignLog extends AbstractSettingsPage
 
         $instance = Custom_Settings_Page_Api::instance();
         $instance->option_name('mailoptin_campaign_log');
-        $instance->page_header(__('Emails', 'mailoptin'));
+        $instance->page_header(__('Logs', 'mailoptin'));
         $instance->sidebar($this->sidebar_args());
-        $this->register_core_settings($instance);
         echo '<div class="mailoptin-log-listing">';
         $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
@@ -47,13 +48,12 @@ class CampaignLog extends AbstractSettingsPage
     public function screen_option()
     {
         if (isset($_GET['page'], $_GET['view']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && $_GET['view'] == MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG) {
-
             $option = 'per_page';
-            $args   = array(
+            $args   = [
                 'label'   => __('Email Log', 'mailoptin'),
                 'default' => 10,
                 'option'  => 'campaign_log_per_page',
-            );
+            ];
 
             add_screen_option($option, $args);
 
@@ -71,9 +71,7 @@ class CampaignLog extends AbstractSettingsPage
      */
     public function wp_list_table($content, $option_name)
     {
-        if ($option_name != 'mailoptin_campaign_log') {
-            return $content;
-        }
+        if ($option_name != 'mailoptin_campaign_log') return $content;
 
         $this->campaign_instance->prepare_items();
 

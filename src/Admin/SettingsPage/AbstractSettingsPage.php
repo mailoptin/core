@@ -155,6 +155,8 @@ abstract class AbstractSettingsPage
     {
         $active_menu = $this->active_menu_tab();
 
+        do_action('mailoptin_admin_settings_page_pre', $active_menu);
+
         $this->settings_page_header($active_menu);
 
         do_action('mailoptin_admin_settings_page_' . $active_menu);

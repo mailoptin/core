@@ -21,11 +21,19 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function __construct()
     {
-        $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance();
-        $this->settingsFrameworkInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
-        $this->settingsFrameworkInstance->page_header(__('Emails', 'mailoptin'));
-        $this->settingsFrameworkInstance->sidebar($this->sidebar_args());
-        $this->set_settings_page_instance($this->settingsFrameworkInstance);
+        add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
+
+            if (in_array($active_menu, ['post-notifications', 'broadcasts', 'campaign-log'])) {
+
+                add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
+
+                $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance();
+                $this->settingsFrameworkInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
+                $this->settingsFrameworkInstance->page_header(__('Emails', 'mailoptin'));
+                $this->settingsFrameworkInstance->sidebar($this->sidebar_args());
+                $this->set_settings_page_instance($this->settingsFrameworkInstance);
+            }
+        });
 
         add_action('mailoptin_register_menu_page', array($this, 'register_menu_page'), 20);
 
@@ -33,7 +41,7 @@ class EmailCampaigns extends AbstractSettingsPage
         add_filter('set_screen_option_email_campaign_per_page', array($this, 'set_screen'), 10, 3);
 
         add_action(
-                'mailoptin_admin_settings_submenu_page_post_notifications',
+                'mailoptin_admin_settings_submenu_page_post-notifications',
                 [$this, 'settings_admin_page_callback']
         );
 
@@ -59,14 +67,14 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function default_header_menu()
     {
-        return 'post_notifications';
+        return 'post-notifications';
     }
 
     public function header_menu_tabs()
     {
         $tabs = apply_filters('mailoptin_emails_settings_page_tabs', [
                 20  => [
-                        'id'    => 'post_notifications',
+                        'id'    => 'post-notifications',
                         'url'   => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE,
                         'label' => esc_html__('Post Notifications', 'wp-user-avatar')
                 ],
@@ -76,7 +84,7 @@ class EmailCampaigns extends AbstractSettingsPage
                         'label' => esc_html__('Broadcasts', 'wp-user-avatar')
                 ],
                 100 => [
-                        'id'    => '',
+                        'id'    => 'campaign-log',
                         'url'   => MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE,
                         'label' => esc_html__('Logs', 'wp-user-avatar')
                 ]
@@ -127,7 +135,6 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
-        add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
 
         if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new') {
             return AddNewEmail::get_instance()->settings_admin_page();
@@ -159,8 +166,10 @@ class EmailCampaigns extends AbstractSettingsPage
 
     public function add_new_email_campaign()
     {
-        if (isset($_GET['view']) && in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast']
-                )) {
+        if (
+                isset($_GET['view']) &&
+                in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast', 'campaign-log'])
+        ) {
             return;
         }
 

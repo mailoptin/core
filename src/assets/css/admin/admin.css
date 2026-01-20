@@ -1018,9 +1018,8 @@ form.mo-inline {
 }
 
 .mailoptin-admin #wpbody #wpbody-content .wrap h2.wp-csa-heading {
-    padding: 15px 20px;
-    font-size: 2em;
-    margin: 0 -20px 20px;
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 .mo-admin-banner__helplinks a {

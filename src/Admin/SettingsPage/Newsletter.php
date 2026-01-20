@@ -18,8 +18,8 @@ class Newsletter extends AbstractSettingsPage
     {
         add_action('mailoptin_register_email_campaign_settings_page', [$this, 'init']);
 
-        add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
-        add_filter('set_screen_option_newsletters_per_page', array($this, 'set_screen'), 10, 3);
+        add_filter('set-screen-option', [$this, 'set_screen'], 10, 3);
+        add_filter('set_screen_option_newsletters_per_page', [$this, 'set_screen'], 10, 3);
 
         add_action('mailoptin_admin_settings_submenu_page_broadcasts', [$this, 'settings_admin_page']);
     }
@@ -56,7 +56,7 @@ class Newsletter extends AbstractSettingsPage
 
         $instance = Custom_Settings_Page_Api::instance();
         $instance->option_name('mailoptin_newsletter');
-        $instance->page_header(__('Emails', 'mailoptin'));
+        $instance->page_header(__('Broadcasts', 'mailoptin'));
         $instance->sidebar($this->sidebar_args());
         echo '<div class="mailoptin-log-listing">';
         $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
