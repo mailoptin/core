@@ -7,6 +7,7 @@ use MailOptin\Core\RegisterActivation\CreateDBTables;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use W3Guy\Custom_Settings_Page_Api;
 
+use function MailOptin\Core\get_capability;
 use function MailOptin\Core\moVar;
 use function MailOptin\Core\moVarGET;
 
@@ -16,9 +17,20 @@ if ( ! defined('ABSPATH')) {
 
 class Settings extends AbstractSettingsPage
 {
+    protected $instance;
+
     public function __construct()
     {
         $this->init_menu();
+
+        add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
+
+            if (in_array($active_menu, ['general'])) {
+                $this->instance = Custom_Settings_Page_Api::instance([], MAILOPTIN_SETTINGS_DB_OPTION_NAME, __('Settings', 'mailoptin'));
+                $this->set_settings_page_instance($this->instance);
+            }
+        });
+
         add_action('mailoptin_register_menu_page', array($this, 'register_menu_page'), 10);
         add_action('wp_cspa_persist_settings', array($this, 'check_for_mailoptin_affiliate_check'), 10, 2);
         add_action('admin_init', [$this, 'clear_optin_cache']);
@@ -34,7 +46,7 @@ class Settings extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Settings - MailOptin', 'mailoptin'),
             __('Settings', 'mailoptin'),
-            \MailOptin\Core\get_capability(),
+            get_capability(),
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             array($this, 'admin_page_callback')
         );
@@ -47,7 +59,8 @@ class Settings extends AbstractSettingsPage
 
     public function header_menu_tabs()
     {
-        $tabs = apply_filters('mailoptin_settings_header_menu_tabs', [
+        $tabs = apply_filters(
+                'mailoptin_settings_header_menu_tabs', [
             10 => ['id' => 'general', 'url' => MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE, 'label' => esc_html__('Settings', 'wp-user-avatar')]
         ]);
 
@@ -257,7 +270,7 @@ class Settings extends AbstractSettingsPage
         $tab_content_area = '';
 
         if ( ! empty($settings_args)) {
-            $instance = Custom_Settings_Page_Api::instance([], MAILOPTIN_SETTINGS_DB_OPTION_NAME, __('Settings', 'mailoptin'));
+            $instance = $this->instance;
             foreach ($settings_args as $key => $settings_arg) {
                 $tab_title     = $settings_arg['tab_title'];
                 $section_title = $settings_arg['tab_title'];
@@ -270,13 +283,12 @@ class Settings extends AbstractSettingsPage
                     foreach ($settings_arg as $single_arg) {
                         $tab_content_area .= $instance->metax_box_instance($single_arg);
                     }
-                    $tab_content_area .= '</div>';
                 } else {
                     $settings_arg['section_title'] = $section_title;
                     $tab_content_area              .= sprintf('<div id="%s" class="mailoptin-group-wrapper">', $key);
                     $tab_content_area              .= $instance->metax_box_instance($settings_arg);
-                    $tab_content_area              .= '</div>';
                 }
+                $tab_content_area .= '</div>';
             }
 
             $instance->persist_plugin_settings();

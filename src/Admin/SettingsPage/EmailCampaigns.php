@@ -10,6 +10,8 @@ if ( ! defined('ABSPATH')) {
 use W3Guy\Custom_Settings_Page_Api;
 use MailOptin\Core;
 
+use function MailOptin\Core\get_capability;
+
 class EmailCampaigns extends AbstractSettingsPage
 {
     /**
@@ -55,7 +57,7 @@ class EmailCampaigns extends AbstractSettingsPage
                 MAILOPTIN_SETTINGS_SETTINGS_SLUG,
                 __('Emails - MailOptin', 'mailoptin'),
                 __('Emails', 'mailoptin'),
-                \MailOptin\Core\get_capability(),
+                get_capability(),
                 MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG,
                 array($this, 'admin_page_callback')
         );

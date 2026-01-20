@@ -62,13 +62,6 @@ abstract class AbstractSettingsPage
     public function settings_page_header($active_menu = '')
     {
         $logo_url         = MAILOPTIN_ASSETS_URL . 'images/mailoptin.svg';
-        $header_menu_tabs = $this->header_menu_tabs();
-
-        $heading_label = wp_list_pluck(
-                wp_list_filter($header_menu_tabs, ['id' => $active_menu]),
-                'label'
-        );
-
         ?>
 
         <div class="mailoptin-admin-wrap">
@@ -82,23 +75,23 @@ abstract class AbstractSettingsPage
                     <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
                         <span>
                             <a rel="noopener" href="https://mailoptin.io/submit-ticket/" target="_blank">
-                                <span class="dashicons dashicons-admin-users"></span> <?= __('Request Support', 'mailoptin'); ?>
+                                <?= __('Request Support', 'mailoptin'); ?>
                             </a>
                         </span>
                     <?php else: ?>
                         <span>
                             <a class="mailoptin-right-nav-active" rel="noopener" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=topmenu">
-                                <span class="dashicons dashicons-admin-links"></span> <?= __('Premium Upgrade', 'mailoptin'); ?>
+                                <?= __('Premium Upgrade', 'mailoptin'); ?>
                             </a>
                         </span>
                     <?php endif; ?>
                     <span>
                         <a rel="noopener" href="https://mailoptin.io/docs/" target="_blank">
-                            <span class="dashicons dashicons-book"></span> <?= __('Help', 'mailoptin'); ?>
+                            <?= __('Help', 'mailoptin'); ?>
                         </a>
                     </span> <span>
                         <a rel="noopener" href="https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform" target="_blank">
-                            <span class="dashicons dashicons-star-filled"></span> <?= __('Review', 'mailoptin'); ?>
+                            <?= __('Review', 'mailoptin'); ?>
                         </a>
                     </span>
                 </div>
