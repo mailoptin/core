@@ -12,9 +12,22 @@ if ( ! defined('ABSPATH')) {
 
 class Connections extends AbstractSettingsPage
 {
+    public $settingsInstance;
+
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'), 15);
+        add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
+
+            if ('integrations' === $active_menu) {
+                $this->settingsInstance = Custom_Settings_Page_Api::instance([], MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, __('Integrations', 'mailoptin'));
+                $this->settingsInstance->remove_h2_header();
+                $this->set_settings_page_instance($this->settingsInstance);
+            }
+        });
+
+        add_action('mailoptin_register_menu_page', array($this, 'register_settings_page'), 15);
+
+        add_action('mailoptin_admin_settings_submenu_page_integrations', [$this, 'settings_admin_page_callback']);
 
         add_action('mailoptin_admin_notices', function () {
             add_action('admin_notices', array($this, 'admin_notices'));
@@ -44,13 +57,18 @@ class Connections extends AbstractSettingsPage
     public function register_settings_page()
     {
         add_submenu_page(
-            MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            __('Integrations - MailOptin', 'mailoptin'),
-            __('Integrations', 'mailoptin'),
-            \MailOptin\Core\get_capability(),
-            MAILOPTIN_CONNECTIONS_SETTINGS_SLUG,
-            array($this, 'settings_admin_page_callback')
+                MAILOPTIN_SETTINGS_SETTINGS_SLUG,
+                __('Integrations - MailOptin', 'mailoptin'),
+                __('Integrations', 'mailoptin'),
+                \MailOptin\Core\get_capability(),
+                MAILOPTIN_CONNECTIONS_SETTINGS_SLUG,
+                array($this, 'admin_page_callback')
         );
+    }
+
+    public function default_header_menu()
+    {
+        return 'integrations';
     }
 
     public function filter_sub_menu()
@@ -132,9 +150,9 @@ class Connections extends AbstractSettingsPage
         }
 
         $boxes = [
-            [
-                'section_title' => esc_html__('Integration with Form Plugins'),
-                'content'       => sprintf(__('MailOptin integrates with popular WordPress form plugins to help save all contacts and subscribers from your forms submissions to your email marketing software and CRM.
+                [
+                        'section_title' => esc_html__('Integration with Form Plugins'),
+                        'content'       => sprintf(__('MailOptin integrates with popular WordPress form plugins to help save all contacts and subscribers from your forms submissions to your email marketing software and CRM.
                 <p><a href="%s" target="_blank">Gravity Forms integration</a></p>
                 <p><a href="%s" target="_blank">Contact Form 7 integration</a></p>
                 <p><a href="%s" target="_blank">WPForms integration</a></p>
@@ -145,20 +163,20 @@ class Connections extends AbstractSettingsPage
                 <p><a href="%s" target="_blank">Fluent Forms integration</a></p>
                 <p><a href="%s" target="_blank">WS Form integration</a></p>
                 '),
-                    'https://mailoptin.io/article/gravity-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=gravity_forms',
-                    'https://mailoptin.io/article/contact-form-7-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=cf7',
-                    'https://mailoptin.io/article/wpforms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=wpforms',
-                    'https://mailoptin.io/article/ninja-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=ninja_forms',
-                    'https://mailoptin.io/article/elementor-form-integration/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=elementor_forms',
-                    'https://mailoptin.io/article/forminator-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=forminator',
-                    'https://mailoptin.io/article/formidable-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=formidable_forms',
-                    'https://mailoptin.io/article/fluent-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=fluent_forms',
-                    'https://mailoptin.io/article/ws-form-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=ws_form'
-                )
-            ],
-            [
-                'section_title' => esc_html__('Elite WordPress Integrations'),
-                'content'       => sprintf(__('MailOptin also integrates with the following WordPress features and plugins.
+                                'https://mailoptin.io/article/gravity-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=gravity_forms',
+                                'https://mailoptin.io/article/contact-form-7-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=cf7',
+                                'https://mailoptin.io/article/wpforms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=wpforms',
+                                'https://mailoptin.io/article/ninja-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=ninja_forms',
+                                'https://mailoptin.io/article/elementor-form-integration/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=elementor_forms',
+                                'https://mailoptin.io/article/forminator-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=forminator',
+                                'https://mailoptin.io/article/formidable-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=formidable_forms',
+                                'https://mailoptin.io/article/fluent-forms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=fluent_forms',
+                                'https://mailoptin.io/article/ws-form-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=ws_form'
+                        )
+                ],
+                [
+                        'section_title' => esc_html__('Elite WordPress Integrations'),
+                        'content'       => sprintf(__('MailOptin also integrates with the following WordPress features and plugins.
                 <p><a href="%s" target="_blank">WordPress user registration</a></p>
                 <p><a href="%s" target="_blank">MailPoet</a>, <a href="%s" target="_blank">Mailster</a>, <a href="%s" target="_blank">FluentCRM</a> & <a href="%s" target="_blank">Groundhogg</a></p>
                 <p><a href="%s" target="_blank">WooCommerce, memberships & subscriptions plugins</a></p>
@@ -167,23 +185,23 @@ class Connections extends AbstractSettingsPage
                 <p><a href="%s" target="_blank">LearnDash</a>, <a href="%s" target="_blank">LifterLMS</a>, <a href="%s" target="_blank">Tutor LMS</a>, <a href="%s" target="_blank">GiveWP</a></p>
                 <p><a href="%s" target="_blank">Polylang, WPML & Weglot for multilingual support</a></p>
                 '),
-                    'https://mailoptin.io/article/create-wordpress-user-registration-form/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=wp_user_registration',
-                    $mailpoet_url,
-                    $mailster_url,
-                    $fluentcrm_url,
-                    $groundhogg_url,
-                    'https://mailoptin.io/integrations/woocommerce/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=woocommerce',
-                    'https://mailoptin.io/integrations/easy-digital-downloads/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=edd',
-                    'https://mailoptin.io/integrations/memberpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=memberpress',
-                    'https://mailoptin.io/integrations/restrict-content-pro/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=memberpress',
-                    'https://mailoptin.io/integrations/paid-memberships-pro/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=pmpro',
-                    'https://mailoptin.io/integrations/learndash/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=learndash',
-                    'https://mailoptin.io/integrations/lifterlms/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=lifterlms',
-                    'https://mailoptin.io/integrations/tutor-lms/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=tutor-lms',
-                    'https://mailoptin.io/integrations/givewp/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=givewp',
-                    'https://mailoptin.io/article/create-multilingual-optin-campaigns/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=multilingual'
-                )
-            ]
+                                'https://mailoptin.io/article/create-wordpress-user-registration-form/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=wp_user_registration',
+                                $mailpoet_url,
+                                $mailster_url,
+                                $fluentcrm_url,
+                                $groundhogg_url,
+                                'https://mailoptin.io/integrations/woocommerce/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=woocommerce',
+                                'https://mailoptin.io/integrations/easy-digital-downloads/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=edd',
+                                'https://mailoptin.io/integrations/memberpress/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=memberpress',
+                                'https://mailoptin.io/integrations/restrict-content-pro/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=memberpress',
+                                'https://mailoptin.io/integrations/paid-memberships-pro/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=pmpro',
+                                'https://mailoptin.io/integrations/learndash/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=learndash',
+                                'https://mailoptin.io/integrations/lifterlms/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=lifterlms',
+                                'https://mailoptin.io/integrations/tutor-lms/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=tutor-lms',
+                                'https://mailoptin.io/integrations/givewp/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=givewp',
+                                'https://mailoptin.io/article/create-multilingual-optin-campaigns/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=multilingual'
+                        )
+                ]
         ];
 
         $boxes = array_merge($boxes, $this->sidebar_args());
@@ -235,15 +253,13 @@ class Connections extends AbstractSettingsPage
 
         if ( ! empty($connection_args)) {
 
-            $instance = Custom_Settings_Page_Api::instance([], MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, __('Integrations', 'mailoptin'));
+            $instance = $this->settingsInstance;
 
             $instance->persist_plugin_settings();
-            $this->register_core_settings($instance);
             $instance->do_settings_errors();
             settings_errors('wp_csa_notice');
             echo '<div class="wrap">';
             $instance->settings_page_heading();
-
             ?>
             <div id="poststuff">
             <div id="post-body" class="metabox-holder columns-2">
@@ -277,11 +293,11 @@ class Connections extends AbstractSettingsPage
                 // Show logo when available
                 if ( ! empty($logo_url)) {
                     printf(
-                        '<div class="mailoptin-integration-logo">
+                            '<div class="mailoptin-integration-logo">
 						            <img src="%s" alt="%s" />
 						         </div>',
-                        esc_url($logo_url),
-                        esc_attr($section_title_without_status)
+                            esc_url($logo_url),
+                            esc_attr($section_title_without_status)
                     );
                 }
 
@@ -292,16 +308,16 @@ class Connections extends AbstractSettingsPage
 
                 // Modal form
                 printf(
-                    '<div class="mailoptin-integration-modal" id="%s-modal-settings">
+                        '<div class="mailoptin-integration-modal" id="%s-modal-settings">
 					           <form method="post">
 					               <div id="%s-modal-settings-title">%s</div>
 					               %s
 					           </form>
 					       </div>',
-                    esc_attr($key),
-                    esc_attr($key),
-                    $instance->metax_box_instance($connection_arg),
-                    $instance->nonce_field(false)
+                        esc_attr($key),
+                        esc_attr($key),
+                        $instance->metax_box_instance($connection_arg),
+                        $instance->nonce_field(false)
                 );
             }
 

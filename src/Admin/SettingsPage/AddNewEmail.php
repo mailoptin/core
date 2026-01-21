@@ -10,21 +10,10 @@ if ( ! defined('ABSPATH')) {
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use W3Guy\Custom_Settings_Page_Api;
 
+use function MailOptin\Core\moVarGET;
+
 class AddNewEmail extends AbstractSettingsPage
 {
-    /**
-     * Array of email campaign types available.
-     *
-     * @return array
-     */
-    public function email_campaign_types()
-    {
-        return apply_filters('mo_email_campaign_types', [
-            EmailCampaignRepository::NEW_PUBLISH_POST   => __('New Post Notification', 'mailoptin'),
-            EmailCampaignRepository::POSTS_EMAIL_DIGEST => __('Posts Email Digest', 'mailoptin')
-        ]);
-    }
-
     /**
      * Back to campaign overview button.
      */
@@ -39,12 +28,14 @@ class AddNewEmail extends AbstractSettingsPage
      */
     public function settings_admin_page()
     {
+        if (moVarGET('page') !== MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) return;
+
+
         add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
         add_filter('wp_cspa_main_content_area', [$this, 'content']);
 
         $instance = Custom_Settings_Page_Api::instance();
-        $instance->page_header(__('Add New Email', 'mailoptin'));
-        $this->register_core_settings($instance);
+        $instance->page_header(__('Add Email Campaign', 'mailoptin'));
         $instance->build(true, true);
     }
 

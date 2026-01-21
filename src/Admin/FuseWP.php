@@ -19,7 +19,7 @@ class FuseWP
 
     public function __construct()
     {
-        add_action('admin_menu', [$this, 'register_settings_page'], 25);
+        add_action('mailoptin_register_menu_page', [$this, 'register_settings_page'], 26);
 
         add_action('wp_ajax_mailoptin_activate_plugin', [$this, 'mailoptin_activate_plugin']);
         add_action('wp_ajax_mailoptin_install_plugin', [$this, 'mailoptin_install_plugin']);
@@ -454,7 +454,7 @@ class FuseWP
             }
         </style>
         <?php
-        echo '<div id="mailoptin-admin-fusewp" class="wrap mailoptin-admin-wrap mailoptin-admin-plugin-landing">';
+        echo '<div id="mailoptin-admin-fusewp" class="wrap mailoptin-admin-plugin-landing">';
 
         $this->output_section_heading();
         $this->output_section_screenshot();

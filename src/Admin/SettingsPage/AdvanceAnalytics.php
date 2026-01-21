@@ -5,38 +5,56 @@ namespace MailOptin\Core\Admin\SettingsPage;
 use MailOptin\AdvanceAnalytics\SettingsPage;
 use W3Guy\Custom_Settings_Page_Api;
 
+use function MailOptin\Core\get_capability;
+
 class AdvanceAnalytics extends AbstractSettingsPage
 {
+    protected $settingsInstance;
+
     public function __construct()
     {
-        add_action('plugins_loaded', function () {
-            add_action('admin_menu', array($this, 'register_settings_page'), 35);
-        }, 20);
+        add_action('mailoptin_register_menu_page', array($this, 'register_settings_page'), 35);
+
+        add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
+
+            if ($active_menu === 'statistics') {
+                $this->settingsInstance = Custom_Settings_Page_Api::instance();
+                $this->settingsInstance->option_name('mo_analytics');
+                $this->settingsInstance->page_header(__('Statistics', 'mailoptin'));
+                $this->settingsInstance->remove_h2_header();
+                $this->set_settings_page_instance($this->settingsInstance);
+            }
+        });
+
+        add_action('mailoptin_admin_settings_submenu_page_statistics', [$this, 'settings_admin_page_callback']);
     }
 
     public function register_settings_page()
     {
         $hook = add_submenu_page(
-            MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            __('Statistics - MailOptin', 'mailoptin'),
-            __('Statistics', 'mailoptin'),
-            \MailOptin\Core\get_capability(),
-            MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG,
-            array($this, 'settings_admin_page_callback')
+                MAILOPTIN_SETTINGS_SETTINGS_SLUG,
+                __('Statistics - MailOptin', 'mailoptin'),
+                __('Statistics', 'mailoptin'),
+                get_capability(),
+                MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_SLUG,
+                array($this, 'admin_page_callback')
         );
 
         do_action("mailoptin_advance_analytics_settings_page", $hook);
 
-        if (!apply_filters('mailoptin_enable_advance_analytics', false)) {
+        if ( ! apply_filters('mailoptin_enable_advance_analytics', false)) {
             add_filter('wp_cspa_main_content_area', array($this, 'upsell_settings_page'), 10, 2);
         }
     }
 
+    public function default_header_menu()
+    {
+        return 'statistics';
+    }
+
     public function upsell_settings_page($content, $option_name)
     {
-        if ($option_name != 'mo_analytics') {
-            return $content;
-        }
+        if ($option_name != 'mo_analytics') return $content;
 
         $url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=advanceanalytics_btn';
 
@@ -49,9 +67,9 @@ class AdvanceAnalytics extends AbstractSettingsPage
                     <h1><?php _e('Advance Analytics Locked', 'mailoptin'); ?></h1>
                     <p>
                         <?php printf(
-                            __('Get important metrics and insights to improve your lead-generation strategy and make data-driven decisions.', 'mailoptin'),
-                            '<strong>',
-                            '</strong>'
+                                __('Get important metrics and insights to improve your lead-generation strategy and make data-driven decisions.', 'mailoptin'),
+                                '<strong>',
+                                '</strong>'
                         ); ?>
                     </p>
                     <p>
@@ -76,15 +94,12 @@ class AdvanceAnalytics extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
-        $instance = Custom_Settings_Page_Api::instance();
-        $instance->option_name('mo_analytics');
-        $instance->page_header(__('Statistics', 'mailoptin'));
-        $this->register_core_settings($instance);
         if (apply_filters('mailoptin_enable_advance_analytics', false)) {
-            $instance->sidebar(SettingsPage::get_instance()->analytic_chart_sidebar());
+            $this->settingsInstance->sidebar(SettingsPage::get_instance()->analytic_chart_sidebar());
             SettingsPage::get_instance()->process_actions();
         }
-        $instance->build(!apply_filters('mailoptin_enable_advance_analytics', false));
+
+        $this->settingsInstance->build(! apply_filters('mailoptin_enable_advance_analytics', false));
     }
 
     /**
