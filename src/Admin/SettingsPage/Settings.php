@@ -311,22 +311,6 @@ class Settings extends AbstractSettingsPage
         }
     }
 
-    public function sidebar_metaboxes()
-    {
-        $boxes = $this->sidebar_args();
-
-        foreach ($boxes as $box) :
-            ?>
-            <div class="postbox">
-                <div class="postbox-header">
-                    <h2 class="hndle is-non-sortable"><span><?= $box['section_title'] ?></span></h2>
-                </div>
-                <div class="inside"><?= $box['content'] ?></div>
-            </div>
-        <?php
-        endforeach;
-    }
-
     public function install_missing_db_tables()
     {
         if (defined('DOING_AJAX')) return;
