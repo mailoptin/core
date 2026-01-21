@@ -65,7 +65,6 @@ class AddEmailCampaign extends AbstractSettingsPage
 
         $instance = Custom_Settings_Page_Api::instance();
         $instance->page_header(__('Add Email Automation', 'mailoptin'));
-        $this->register_core_settings($instance);
         $instance->build(true, true);
     }
 

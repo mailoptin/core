@@ -26,10 +26,14 @@ class EmailCampaigns extends AbstractSettingsPage
     {
         add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
 
-            if (
-                    moVarGET('page') === MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG &&
-                    in_array($active_menu, ['post-notifications', 'broadcasts', 'campaign-log', 'add-new'])
-            ) {
+            if (moVarGET('page') === MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && in_array($active_menu, [
+                            'post-notifications',
+                            'broadcasts',
+                            'campaign-log',
+                            'add-new',
+                            'add-new-email-automation',
+                            'create-broadcast'
+                    ])) {
 
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
 
@@ -50,10 +54,12 @@ class EmailCampaigns extends AbstractSettingsPage
                 'mailoptin_admin_settings_submenu_page_post-notifications',
                 [$this, 'settings_admin_page_callback']
         );
+        add_action('mailoptin_admin_settings_submenu_page_add-new', [$this, 'settings_admin_page_callback']);
         add_action(
-                'mailoptin_admin_settings_submenu_page_add-new',
+                'mailoptin_admin_settings_submenu_page_add-new-email-automation',
                 [$this, 'settings_admin_page_callback']
         );
+        add_action('mailoptin_admin_settings_submenu_page_create-broadcast', [$this, 'settings_admin_page_callback']);
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
         add_action('save_post', [$this, 'save_new_publish_post_exclude']);

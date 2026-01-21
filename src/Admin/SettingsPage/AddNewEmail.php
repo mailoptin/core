@@ -14,8 +14,6 @@ use function MailOptin\Core\moVarGET;
 
 class AddNewEmail extends AbstractSettingsPage
 {
-    public $settingsInstance;
-
     /**
      * Back to campaign overview button.
      */
@@ -36,9 +34,9 @@ class AddNewEmail extends AbstractSettingsPage
         add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
         add_filter('wp_cspa_main_content_area', [$this, 'content']);
 
-        $this->settingsInstance = Custom_Settings_Page_Api::instance();
-        $this->settingsInstance->page_header(__('Add Email Campaign', 'mailoptin'));
-        $this->settingsInstance->build(true, true);
+        $instance = Custom_Settings_Page_Api::instance();
+        $instance->page_header(__('Add Email Campaign', 'mailoptin'));
+        $instance->build(true, true);
     }
 
     public function content()

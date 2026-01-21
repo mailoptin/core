@@ -47,7 +47,6 @@ class AddNewsletter extends AbstractSettingsPage
 
         $instance = Custom_Settings_Page_Api::instance();
         $instance->page_header(__('Create Broadcast', 'mailoptin'));
-        $this->register_core_settings($instance);
         $instance->build(true, true);
     }
 
