@@ -14,7 +14,7 @@ use function MailOptin\Core\moVarGET;
 
 class AddNewEmail extends AbstractSettingsPage
 {
-    public $settingsFrameworkInstance;
+    public $settingsInstance;
 
     public function __construct()
     {
@@ -25,27 +25,13 @@ class AddNewEmail extends AbstractSettingsPage
                 add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
                 add_filter('wp_cspa_main_content_area', [$this, 'content']);
 
-                $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance();
-                $this->settingsFrameworkInstance->page_header(__('Emails', 'mailoptin'));
-                var_dump($this->settingsFrameworkInstance->page_header);
-                $this->set_settings_page_instance($this->settingsFrameworkInstance);
+                $this->settingsInstance = Custom_Settings_Page_Api::instance();
+                $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
+                $this->set_settings_page_instance($this->settingsInstance);
             }
         });
 
         add_action('mailoptin_admin_settings_submenu_page_add-new', [$this, 'settings_admin_page']);
-    }
-
-    /**
-     * Array of email campaign types available.
-     *
-     * @return array
-     */
-    public function email_campaign_types()
-    {
-        return apply_filters('mo_email_campaign_types', [
-                EmailCampaignRepository::NEW_PUBLISH_POST   => __('New Post Notification', 'mailoptin'),
-                EmailCampaignRepository::POSTS_EMAIL_DIGEST => __('Posts Email Digest', 'mailoptin')
-        ]);
     }
 
     /**
@@ -63,8 +49,8 @@ class AddNewEmail extends AbstractSettingsPage
     public function settings_admin_page()
     {
         if (moVarGET('page') !== MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) return;
-        $this->settingsFrameworkInstance->page_header(__('Add Email Campaign', 'mailoptin'));
-        $this->settingsFrameworkInstance->build(true, true);
+        $this->settingsInstance->page_header(__('Add Email Campaign', 'mailoptin'));
+        $this->settingsInstance->build(true, true);
     }
 
     public function content()

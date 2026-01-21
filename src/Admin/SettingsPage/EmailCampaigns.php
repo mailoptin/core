@@ -20,7 +20,7 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     protected $email_campaigns_instance;
 
-    protected $settingsFrameworkInstance;
+    protected $settingsInstance;
 
     public function __construct()
     {
@@ -30,11 +30,11 @@ class EmailCampaigns extends AbstractSettingsPage
 
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
 
-                $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance();
-                $this->settingsFrameworkInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
-                $this->settingsFrameworkInstance->page_header(__('Emails', 'mailoptin'));
-                $this->settingsFrameworkInstance->sidebar($this->sidebar_args());
-                $this->set_settings_page_instance($this->settingsFrameworkInstance);
+                $this->settingsInstance = Custom_Settings_Page_Api::instance();
+                $this->settingsInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
+                $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
+                $this->settingsInstance->sidebar($this->sidebar_args());
+                $this->set_settings_page_instance($this->settingsInstance);
             }
         });
 
@@ -141,6 +141,10 @@ class EmailCampaigns extends AbstractSettingsPage
 
         if ( moVarGET('page') == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
 
+            if ( moVarGET('view') == 'add-new') {
+                return AddNewEmail::get_instance()->settings_admin_page();
+            }
+
             if ( moVarGET('view') == 'add-new-email-automation') {
                 return AddEmailCampaign::get_instance()->settings_admin_page();
             }
@@ -153,8 +157,8 @@ class EmailCampaigns extends AbstractSettingsPage
         // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
         add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
         echo '<div class="mailoptin-data-listing">';
-        $this->settingsFrameworkInstance->page_header(__('Post Notifications', 'mailoptin'));
-        $this->settingsFrameworkInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
+        $this->settingsInstance->page_header(__('Post Notifications', 'mailoptin'));
+        $this->settingsInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
     }
 

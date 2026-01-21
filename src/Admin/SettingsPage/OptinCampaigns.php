@@ -16,7 +16,7 @@ class OptinCampaigns extends AbstractSettingsPage
      */
     protected $optin_forms_instance;
 
-    protected $settingsFrameworkInstance;
+    protected $settingsInstance;
 
     public function __construct()
     {
@@ -28,11 +28,11 @@ class OptinCampaigns extends AbstractSettingsPage
                 add_action('wp_cspa_before_post_body_content', [$this, 'optin_theme_sub_header'], 10, 2);
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_optin_form_button']);
 
-                $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance();
-                $this->settingsFrameworkInstance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
-                $this->settingsFrameworkInstance->page_header(__('Optin Campaigns', 'mailoptin'));
-                $this->settingsFrameworkInstance->sidebar($this->sidebar_args());
-                $this->set_settings_page_instance($this->settingsFrameworkInstance);
+                $this->settingsInstance = Custom_Settings_Page_Api::instance();
+                $this->settingsInstance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
+                $this->settingsInstance->page_header(__('Optin Campaigns', 'mailoptin'));
+                $this->settingsInstance->sidebar($this->sidebar_args());
+                $this->set_settings_page_instance($this->settingsInstance);
             }
         });
 
@@ -170,7 +170,7 @@ class OptinCampaigns extends AbstractSettingsPage
             AddOptinCampaign::get_instance()->settings_admin_page();
         } else {
             echo '<div class="mailoptin-data-listing">';
-            $this->settingsFrameworkInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
+            $this->settingsInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
             echo '</div>';
 
             $this->ab_split_test_form();

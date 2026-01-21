@@ -12,16 +12,16 @@ if ( ! defined('ABSPATH')) {
 
 class Connections extends AbstractSettingsPage
 {
-    public $settingsFrameworkInstance;
+    public $settingsInstance;
 
     public function __construct()
     {
         add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
 
             if ('integrations' === $active_menu) {
-                $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance([], MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, __('Integrations', 'mailoptin'));
-                $this->settingsFrameworkInstance->remove_h2_header();
-                $this->set_settings_page_instance($this->settingsFrameworkInstance);
+                $this->settingsInstance = Custom_Settings_Page_Api::instance([], MAILOPTIN_CONNECTIONS_DB_OPTION_NAME, __('Integrations', 'mailoptin'));
+                $this->settingsInstance->remove_h2_header();
+                $this->set_settings_page_instance($this->settingsInstance);
             }
         });
 
@@ -253,7 +253,7 @@ class Connections extends AbstractSettingsPage
 
         if ( ! empty($connection_args)) {
 
-            $instance = $this->settingsFrameworkInstance;
+            $instance = $this->settingsInstance;
 
             $instance->persist_plugin_settings();
             $instance->do_settings_errors();

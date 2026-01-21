@@ -61,15 +61,15 @@ abstract class AbstractSettingsPage
 
     public function settings_page_header($active_menu = '')
     {
-        $logo_url         = MAILOPTIN_ASSETS_URL . 'images/mailoptin.svg';
-
-        var_dump($this->settings_page_instance->page_header);
+        $logo_url = MAILOPTIN_ASSETS_URL . 'images/mailoptin.svg';
         ?>
 
         <div class="mailoptin-admin-wrap">
             <div class="mailoptin-header-items">
                 <img src="<?= $logo_url ?>" alt="MailOptin">
-                <h2 class="mailoptin-headers-main-title"><?php echo $this->settings_page_instance->page_header;  ?></h2>
+                <?php if ( ! empty($this->settings_page_instance->page_header)): ?>
+                    <h2 class="mailoptin-headers-main-title"><?php echo $this->settings_page_instance->page_header; ?></h2>
+                <?php endif; ?>
                 <?php $this->header_breadcrumbs(); ?>
             </div>
             <div class="mailoptin-headers-header-close">
@@ -152,12 +152,15 @@ abstract class AbstractSettingsPage
 
         do_action('mailoptin_admin_settings_page_pre', $active_menu);
 
+        var_dump($this->settings_page_instance);
+
         $this->settings_page_header($active_menu);
 
         do_action('mailoptin_admin_settings_page_' . $active_menu);
 
         do_action('mailoptin_admin_settings_submenu_page_' . $active_menu);
     }
+
     /** --------------------------------------------------------------- */
 
     public function set_settings_page_instance($instance)
