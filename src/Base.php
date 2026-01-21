@@ -161,7 +161,6 @@ class Base
         Admin\SettingsPage\Settings::get_instance();
         Admin\SettingsPage\Connections::get_instance();
         Admin\SettingsPage\EmailCampaigns::get_instance();
-        Admin\SettingsPage\AddNewEmail::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();
         Admin\PostListMenu\PostPreview::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();

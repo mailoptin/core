@@ -16,24 +16,6 @@ class AddNewEmail extends AbstractSettingsPage
 {
     public $settingsInstance;
 
-    public function __construct()
-    {
-        add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
-
-            if ('add-new' === $active_menu && moVarGET('page') === MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
-
-                add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
-                add_filter('wp_cspa_main_content_area', [$this, 'content']);
-
-                $this->settingsInstance = Custom_Settings_Page_Api::instance();
-                $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
-                $this->set_settings_page_instance($this->settingsInstance);
-            }
-        });
-
-        add_action('mailoptin_admin_settings_submenu_page_add-new', [$this, 'settings_admin_page']);
-    }
-
     /**
      * Back to campaign overview button.
      */
@@ -49,6 +31,12 @@ class AddNewEmail extends AbstractSettingsPage
     public function settings_admin_page()
     {
         if (moVarGET('page') !== MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) return;
+
+
+        add_action('wp_cspa_before_closing_header', [$this, 'back_to_optin_overview']);
+        add_filter('wp_cspa_main_content_area', [$this, 'content']);
+
+        $this->settingsInstance = Custom_Settings_Page_Api::instance();
         $this->settingsInstance->page_header(__('Add Email Campaign', 'mailoptin'));
         $this->settingsInstance->build(true, true);
     }

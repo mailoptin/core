@@ -152,8 +152,6 @@ abstract class AbstractSettingsPage
 
         do_action('mailoptin_admin_settings_page_pre', $active_menu);
 
-        var_dump($this->settings_page_instance);
-
         $this->settings_page_header($active_menu);
 
         do_action('mailoptin_admin_settings_page_' . $active_menu);

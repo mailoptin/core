@@ -26,7 +26,10 @@ class EmailCampaigns extends AbstractSettingsPage
     {
         add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
 
-            if (in_array($active_menu, ['post-notifications', 'broadcasts', 'campaign-log'])) {
+            if (
+                    moVarGET('page') === MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG &&
+                    in_array($active_menu, ['post-notifications', 'broadcasts', 'campaign-log', 'add-new'])
+            ) {
 
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
 
@@ -45,6 +48,10 @@ class EmailCampaigns extends AbstractSettingsPage
 
         add_action(
                 'mailoptin_admin_settings_submenu_page_post-notifications',
+                [$this, 'settings_admin_page_callback']
+        );
+        add_action(
+                'mailoptin_admin_settings_submenu_page_add-new',
                 [$this, 'settings_admin_page_callback']
         );
 
@@ -138,18 +145,17 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
+        if (moVarGET('page') == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
 
-        if ( moVarGET('page') == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
-
-            if ( moVarGET('view') == 'add-new') {
+            if (moVarGET('view') == 'add-new') {
                 return AddNewEmail::get_instance()->settings_admin_page();
             }
 
-            if ( moVarGET('view') == 'add-new-email-automation') {
+            if (moVarGET('view') == 'add-new-email-automation') {
                 return AddEmailCampaign::get_instance()->settings_admin_page();
             }
 
-            if ( moVarGET('view') == 'create-broadcast') {
+            if (moVarGET('view') == 'create-broadcast') {
                 return AddNewsletter::get_instance()->settings_admin_page();
             }
         }
