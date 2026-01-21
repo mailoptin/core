@@ -62,6 +62,8 @@ abstract class AbstractSettingsPage
     public function settings_page_header($active_menu = '')
     {
         $logo_url         = MAILOPTIN_ASSETS_URL . 'images/mailoptin.svg';
+
+        var_dump($this->settings_page_instance->page_header);
         ?>
 
         <div class="mailoptin-admin-wrap">

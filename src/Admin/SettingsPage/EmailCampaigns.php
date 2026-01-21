@@ -11,6 +11,7 @@ use W3Guy\Custom_Settings_Page_Api;
 use MailOptin\Core;
 
 use function MailOptin\Core\get_capability;
+use function MailOptin\Core\moVarGET;
 
 class EmailCampaigns extends AbstractSettingsPage
 {
@@ -138,24 +139,15 @@ class EmailCampaigns extends AbstractSettingsPage
     public function settings_admin_page_callback()
     {
 
-        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new') {
-            return AddNewEmail::get_instance()->settings_admin_page();
-        }
+        if ( moVarGET('page') == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
 
-        if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new-email-automation') {
-            return AddEmailCampaign::get_instance()->settings_admin_page();
-        }
+            if ( moVarGET('view') == 'add-new-email-automation') {
+                return AddEmailCampaign::get_instance()->settings_admin_page();
+            }
 
-        if ( ! empty($_GET['view']) && $_GET['view'] == 'create-broadcast') {
-            return AddNewsletter::get_instance()->settings_admin_page();
-        }
-
-        if ( ! empty($_GET['view']) && $_GET['view'] == MAILOPTIN_CAMPAIGN_LOG_SETTINGS_SLUG) {
-            return CampaignLog::get_instance()->settings_admin_page();
-        }
-
-        if ( ! empty($_GET['view']) && $_GET['view'] == MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_SLUG) {
-            return Newsletter::get_instance()->settings_admin_page();
+            if ( moVarGET('view') == 'create-broadcast') {
+                return AddNewsletter::get_instance()->settings_admin_page();
+            }
         }
 
         // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.

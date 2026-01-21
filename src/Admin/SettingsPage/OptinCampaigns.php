@@ -16,9 +16,28 @@ class OptinCampaigns extends AbstractSettingsPage
      */
     protected $optin_forms_instance;
 
+    protected $settingsFrameworkInstance;
+
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'), 25);
+        add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
+
+            if ($active_menu === 'optin-campaigns') {
+                // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
+                add_action('wp_cspa_main_content_area', [$this, 'wp_list_table'], 10, 2);
+                add_action('wp_cspa_before_post_body_content', [$this, 'optin_theme_sub_header'], 10, 2);
+                add_action('wp_cspa_before_closing_header', [$this, 'add_new_optin_form_button']);
+
+                $this->settingsFrameworkInstance = Custom_Settings_Page_Api::instance();
+                $this->settingsFrameworkInstance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
+                $this->settingsFrameworkInstance->page_header(__('Optin Campaigns', 'mailoptin'));
+                $this->settingsFrameworkInstance->sidebar($this->sidebar_args());
+                $this->set_settings_page_instance($this->settingsFrameworkInstance);
+            }
+        });
+
+        add_action('mailoptin_register_menu_page', array($this, 'register_settings_page'), 25);
+        add_action('mailoptin_admin_settings_submenu_page_optin-campaigns', [$this, 'settings_admin_page_callback']);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
@@ -27,17 +46,22 @@ class OptinCampaigns extends AbstractSettingsPage
     public function register_settings_page()
     {
         $hook = add_submenu_page(
-            MAILOPTIN_SETTINGS_SETTINGS_SLUG,
-            __('Optin Campaigns - MailOptin', 'mailoptin'),
-            __('Optin Campaigns', 'mailoptin'),
-            \MailOptin\Core\get_capability(),
-            MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG,
-            array($this, 'settings_admin_page_callback')
+                MAILOPTIN_SETTINGS_SETTINGS_SLUG,
+                __('Optin Campaigns - MailOptin', 'mailoptin'),
+                __('Optin Campaigns', 'mailoptin'),
+                \MailOptin\Core\get_capability(),
+                MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG,
+                array($this, 'admin_page_callback')
         );
 
         do_action("mailoptin_register_optin_campaign_settings_page", $hook);
 
         add_action("load-$hook", array($this, 'screen_option'));
+    }
+
+    public function default_header_menu()
+    {
+        return 'optin-campaigns';
     }
 
     /**
@@ -127,9 +151,9 @@ class OptinCampaigns extends AbstractSettingsPage
 
             $option = 'per_page';
             $args   = array(
-                'label'   => __('Optin Campaigns', 'mailoptin'),
-                'default' => 8,
-                'option'  => 'optin_forms_per_page',
+                    'label'   => __('Optin Campaigns', 'mailoptin'),
+                    'default' => 8,
+                    'option'  => 'optin_forms_per_page',
             );
 
             add_screen_option($option, $args);
@@ -145,19 +169,8 @@ class OptinCampaigns extends AbstractSettingsPage
         if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new-optin') {
             AddOptinCampaign::get_instance()->settings_admin_page();
         } else {
-            // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
-            add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
-            add_action('wp_cspa_before_post_body_content', array($this, 'optin_theme_sub_header'), 10, 2);
-            add_action('wp_cspa_before_closing_header', [$this, 'add_new_optin_form_button']);
-
-            $instance = Custom_Settings_Page_Api::instance();
-
-            $instance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
-            $instance->page_header(__('Optin Campaigns', 'mailoptin'));
-            $instance->sidebar($this->sidebar_args());
-            $this->register_core_settings($instance);
             echo '<div class="mailoptin-data-listing">';
-            $instance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
+            $this->settingsFrameworkInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
             echo '</div>';
 
             $this->ab_split_test_form();
@@ -176,8 +189,7 @@ class OptinCampaigns extends AbstractSettingsPage
                     <div class="mo-content">
                         <p>
                             <label for="mo-variant-name"><?php _e('Variant Name', 'mailoptin'); ?></label>
-                            <input type="text" id="mo-variant-name">
-                            <input type="hidden" id="mo-split-parent-id">
+                            <input type="text" id="mo-variant-name"> <input type="hidden" id="mo-split-parent-id">
                         </p>
                         <p>
                             <label for="mo-split-notes"><?php _e('Split Test Note', 'mailoptin'); ?></label>
