@@ -54,6 +54,11 @@ abstract class AbstractSettingsPage
     // commented out to prevent any fatal error
     //abstract function default_header_menu();
 
+    public function default_header_menu()
+    {
+        return '';
+    }
+
     public function header_menu_tabs()
     {
         return [];

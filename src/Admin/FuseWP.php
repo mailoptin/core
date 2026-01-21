@@ -454,7 +454,7 @@ class FuseWP
             }
         </style>
         <?php
-        echo '<div id="mailoptin-admin-fusewp" class="wrap mailoptin-admin-wrap mailoptin-admin-plugin-landing">';
+        echo '<div id="mailoptin-admin-fusewp" class="wrap mailoptin-admin-plugin-landing">';
 
         $this->output_section_heading();
         $this->output_section_screenshot();

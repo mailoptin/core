@@ -4,11 +4,27 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 use W3Guy\Custom_Settings_Page_Api;
 
+use function MailOptin\Core\get_capability;
+
 class LeadBank extends AbstractSettingsPage
 {
+    protected $settingsInstance;
+
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'), 30);
+        add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
+
+            if ($active_menu === 'leadbank') {
+
+                $this->settingsInstance = Custom_Settings_Page_Api::instance();
+                $this->settingsInstance->option_name('mo_leads');
+                $this->settingsInstance->page_header(__('Leads (Submissions)', 'mailoptin'));
+                $this->settingsInstance->remove_h2_header();
+                $this->set_settings_page_instance($this->settingsInstance);
+            }
+        });
+
+        add_action('mailoptin_register_menu_page', array($this, 'register_settings_page'), 30);
     }
 
     public function register_settings_page()
@@ -17,12 +33,19 @@ class LeadBank extends AbstractSettingsPage
             MAILOPTIN_SETTINGS_SETTINGS_SLUG,
             __('Leads (Submissions) - MailOptin', 'mailoptin'),
             __('Leads', 'mailoptin'),
-            \MailOptin\Core\get_capability(),
+            get_capability(),
             MAILOPTIN_LEAD_BANK_SETTINGS_SLUG,
-            array($this, 'settings_admin_page')
+            array($this, 'admin_page_callback')
         );
 
         add_action("load-$hook", array($this, 'screen_option'));
+
+        add_action('mailoptin_admin_settings_submenu_page_leadbank', [$this, 'settings_admin_page']);
+    }
+
+    public function default_header_menu()
+    {
+        return 'leadbank';
     }
 
     /**
@@ -50,11 +73,7 @@ class LeadBank extends AbstractSettingsPage
 
         do_action("mailoptin_leadbank_settings_page");
 
-        $instance = Custom_Settings_Page_Api::instance();
-        $instance->option_name('mo_leads');
-        $instance->page_header(__('Leads (Submissions)', 'mailoptin'));
-        $this->register_core_settings($instance);
-        $instance->build(true);
+        $this->settingsInstance->build(true);
     }
 
     public function upsell_settings_page($content, $option_name)

@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use function MailOptin\Core\is_mailoptin_admin_page;
+
 class ProUpgrade
 {
     public function __construct()
@@ -23,7 +25,7 @@ class ProUpgrade
      */
     public function admin_page_rate_us($footer_text)
     {
-        if (\MailOptin\Core\is_mailoptin_admin_page()) {
+        if (is_mailoptin_admin_page()) {
             $rate_text = sprintf(__('Thank you for using <a href="%1$s" target="_blank">MailOptin</a>! Please <a href="%2$s" target="_blank">rate us ★★★★★</a> on <a href="%2$s" target="_blank">WordPress.org</a>', 'mailoptin'),
                 'https://mailoptin.io',
                 'https://wordpress.org/support/view/plugin-reviews/mailoptin?filter=5#postform',
