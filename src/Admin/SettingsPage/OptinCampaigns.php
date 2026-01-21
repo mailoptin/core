@@ -22,11 +22,14 @@ class OptinCampaigns extends AbstractSettingsPage
     {
         add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
 
-            if ($active_menu === 'optin-campaigns') {
-                // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
-                add_action('wp_cspa_main_content_area', [$this, 'wp_list_table'], 10, 2);
-                add_action('wp_cspa_before_post_body_content', [$this, 'optin_theme_sub_header'], 10, 2);
-                add_action('wp_cspa_before_closing_header', [$this, 'add_new_optin_form_button']);
+            if (in_array($active_menu, ['optin-campaigns', 'add-new-optin'])) {
+
+                if ($active_menu === 'optin-campaigns') {
+                    // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
+                    add_action('wp_cspa_main_content_area', [$this, 'wp_list_table'], 10, 2);
+                    add_action('wp_cspa_before_post_body_content', [$this, 'optin_theme_sub_header'], 10, 2);
+                    add_action('wp_cspa_before_closing_header', [$this, 'add_new_optin_form_button']);
+                }
 
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
                 $this->settingsInstance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
@@ -38,6 +41,7 @@ class OptinCampaigns extends AbstractSettingsPage
 
         add_action('mailoptin_register_menu_page', array($this, 'register_settings_page'), 25);
         add_action('mailoptin_admin_settings_submenu_page_optin-campaigns', [$this, 'settings_admin_page_callback']);
+        add_action('mailoptin_admin_settings_submenu_page_add-new-optin', [$this, 'settings_admin_page_callback']);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
@@ -76,12 +80,12 @@ class OptinCampaigns extends AbstractSettingsPage
             $notification_bar = add_query_arg('optin-type', 'bar', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE);
             $slide_in         = add_query_arg('optin-type', 'slidein', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE);
 
-            $all_menu_active               = isset($_GET['page']) && ! isset($_GET['optin-type']) ? 'mailoptin-type-active' : null;
-            $lightbox_menu_active          = isset($_GET['optin-type']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG && $_GET['optin-type'] == 'lightbox' ? 'mailoptin-type-active' : null;
-            $sidebar_menu_active           = isset($_GET['optin-type']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG && $_GET['optin-type'] == 'sidebar' ? 'mailoptin-type-active' : null;
-            $before_after_post_menu_active = isset($_GET['optin-type']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG && $_GET['optin-type'] == 'inpost' ? 'mailoptin-type-active' : null;
-            $notification_bar_menu_active  = isset($_GET['optin-type']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG && $_GET['optin-type'] == 'bar' ? 'mailoptin-type-active' : null;
-            $slide_in_menu_active          = isset($_GET['optin-type']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG && $_GET['optin-type'] == 'slidein' ? 'mailoptin-type-active' : null;
+            $all_menu_active               = ! isset($_GET['optin-type']) ? 'mailoptin-type-active' : null;
+            $lightbox_menu_active          = isset($_GET['optin-type']) && $_GET['optin-type'] == 'lightbox' ? 'mailoptin-type-active' : null;
+            $sidebar_menu_active           = isset($_GET['optin-type']) && $_GET['optin-type'] == 'sidebar' ? 'mailoptin-type-active' : null;
+            $before_after_post_menu_active = isset($_GET['optin-type']) && $_GET['optin-type'] == 'inpost' ? 'mailoptin-type-active' : null;
+            $notification_bar_menu_active  = isset($_GET['optin-type']) && $_GET['optin-type'] == 'bar' ? 'mailoptin-type-active' : null;
+            $slide_in_menu_active          = isset($_GET['optin-type']) && $_GET['optin-type'] == 'slidein' ? 'mailoptin-type-active' : null;
             ?>
             <div id="mailoptin-sub-bar">
                 <div class="mailoptin-new-toolbar mailoptin-clear">
