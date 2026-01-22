@@ -39,12 +39,6 @@
       "oAP" : "\/bin",
       "oF" : 0
     },
-    "\/build" : {
-      "ft" : 65536,
-      "oA" : 1,
-      "oAP" : "\/build",
-      "oF" : 0
-    },
     "\/composer.json" : {
       "ft" : 524288,
       "oA" : 1,
@@ -1761,7 +1755,7 @@
     "displayValueWasSetByUser" : 1,
     "iconImageName" : "brackets-payne",
     "iconImageWasSetByUser" : 0,
-    "lastBuiltDate" : 790532644.34874296
+    "lastBuiltDate" : 790780706.541394
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,
