@@ -210,36 +210,10 @@ abstract class AbstractSettingsPage
         return $classes;
     }
 
-    public static function why_upgrade_to_pro()
-    {
-        $url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=why_upgrade_sidebar';
-
-        $content = '<ul>';
-        $content .= '<li>' . __('Unlimited number of optin conversion.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('More optin types e.g slide-in & top bar.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('More newsletters type e.g email digest.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('Ton of premium optin and email templates.', 'mailoptin') . '</li> ';
-        $content .= '<li>' . __('Optin triggers e.g Exit Intent, Scroll etc.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('Actionable reporting & insights.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('Leads - conversion backup.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('Wow your visitors with DisplayEffects.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('Page level targeting.', 'mailoptin') . '</li>';
-        $content .= '<li>' . __('And lots more.', 'mailoptin') . '</li>';
-        $content .= '</ul>';
-        $content .= '<div>Get <strong>10%</strong> off using this coupon.</div>';
-        $content .= '<div style="margin: 5px"><span style="background: #e3e3e3;padding: 2px;">10PERCENTOFF</span></div>';
-        $content .= '<div><a target="_blank" href="' . $url . '" class="button-primary" type="button">Go Premium</a></div>';
-
-        return $content;
-    }
-
     public function sidebar_args()
     {
         $sidebar_args = [
-                [
-                        'section_title' => esc_html__('Upgrade to Premium', 'mailoptin'),
-                        'content'       => self::pro_upsell(),
-                ]
+                ['section_title' => esc_html__('Upgrade to Premium', 'mailoptin'), 'content' => self::pro_upsell()]
         ];
 
         if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {

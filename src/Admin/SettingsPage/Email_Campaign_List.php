@@ -353,9 +353,9 @@ class Email_Campaign_List extends \WP_List_Table
         }
 
         $this->_column_headers = $this->get_column_info();
-        $per_page              = defined('MAILOPTIN_DETACH_LIBSODIUM') ? $this->get_items_per_page('email_campaign_per_page', 15) : 1;
+        $per_page              = $this->get_items_per_page('email_campaign_per_page', 15);
         $current_page          = $this->get_pagenum();
-        $total_items           = defined('MAILOPTIN_DETACH_LIBSODIUM') ? $this->record_count($campaign_type) : 1;
+        $total_items           = $this->record_count($campaign_type);
         $this->set_pagination_args(array(
                 'total_items' => $total_items, //WE have to calculate the total number of items
                 'per_page'    => $per_page //WE have to determine how many items to show on a page

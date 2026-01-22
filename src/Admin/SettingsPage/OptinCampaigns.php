@@ -24,17 +24,21 @@ class OptinCampaigns extends AbstractSettingsPage
 
             if (in_array($active_menu, ['optin-campaigns', 'add-new-optin'])) {
 
+                $this->settingsInstance = Custom_Settings_Page_Api::instance();
+
                 if ($active_menu === 'optin-campaigns') {
+
+                    $this->settingsInstance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
+                    $this->settingsInstance->sidebar($this->sidebar_args());
+
                     // Hook the OptinCampaign_List table to Custom_Settings_Page_Api main content filter.
                     add_action('wp_cspa_main_content_area', [$this, 'wp_list_table'], 10, 2);
                     add_action('wp_cspa_before_post_body_content', [$this, 'optin_theme_sub_header'], 10, 2);
                     add_action('wp_cspa_before_closing_header', [$this, 'add_new_optin_form_button']);
                 }
 
-                $this->settingsInstance = Custom_Settings_Page_Api::instance();
-                $this->settingsInstance->option_name(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
                 $this->settingsInstance->page_header(__('Optin Campaigns', 'mailoptin'));
-                $this->settingsInstance->sidebar($this->sidebar_args());
+
                 $this->set_settings_page_instance($this->settingsInstance);
             }
         });

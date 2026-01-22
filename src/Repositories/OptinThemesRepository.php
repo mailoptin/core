@@ -531,8 +531,6 @@ class OptinThemesRepository extends AbstractRepository
     {
         $optin_designs = OptinThemesRepository::get_by_type($optin_type);
 
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && in_array($optin_type, ['bar', 'slidein'])) $optin_designs = [];
-
         if (empty($optin_designs)) {
             if ($optin_type == 'bar') $optin_type = 'notification bar';
             echo '<div class="mo-error-box" style="padding: 87px 10px;margin:0;">';

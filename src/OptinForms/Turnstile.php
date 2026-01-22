@@ -155,43 +155,58 @@ class Turnstile
 
     public function settings_page($settings)
     {
+        $is_premium = defined('MAILOPTIN_DETACH_LIBSODIUM');
+
+        $fields = $is_premium ? [
+            'turnstile_site_key'    => [
+                'type'        => 'text',
+                'label'       => __('Site Key', 'mailoptin'),
+                'description' => sprintf(__('Necessary for displaying Turnstile. Grab it %shere%s', 'mailoptin'), '<a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer">', '</a>')
+            ],
+            'turnstile_site_secret' => [
+                'type'        => 'text',
+                'label'       => __('Site Secret', 'mailoptin'),
+                'description' => sprintf(__('Required for server-side verification. Grab it %shere%s', 'mailoptin'), '<a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer">', '</a>')
+            ],
+            'turnstile_theme'       => [
+                'type'        => 'select',
+                'label'       => __('Default Theme', 'mailoptin'),
+                'options'     => [
+                    'auto'  => __('Auto', 'mailoptin'),
+                    'light' => __('Light', 'mailoptin'),
+                    'dark'  => __('Dark', 'mailoptin'),
+                ],
+                'value'       => 'auto',
+                'description' => __('Default Turnstile theme; can be overridden per form field.', 'mailoptin')
+            ],
+            'turnstile_size'        => [
+                'type'        => 'select',
+                'label'       => __('Default Size', 'mailoptin'),
+                'options'     => [
+                    'normal'    => __('Normal', 'mailoptin'),
+                    'compact'   => __('Compact', 'mailoptin'),
+                    'invisible' => __('Invisible', 'mailoptin'),
+                ],
+                'value'       => 'normal',
+                'description' => __('Default Turnstile size; can be overridden per form field.', 'mailoptin')
+            ],
+        ] : [
+            'turnstile_site_key'    => [
+                'label' => __('Type', 'mailoptin'),
+                'type'  => 'arbitrary',
+                'data'  => sprintf(
+                    '<p style="text-align: center">%s</p><div class="moBtncontainer mobtnUpgrade"><a target="_blank" href="%s" class="mobutton mobtnPush mobtnGreen">%s</a></div>',
+                    esc_html__('Do you want to stop spam bots from filling out your form? You can add captcha from Cloudflare Turnstile to your forms to protects against spam and bot attacks.', 'mailoptin'),
+                    'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=turnstile_unlock',
+                    esc_html__('Upgrade to Unlock', 'mailoptin')
+                )
+            ],
+            'disable_submit_button' => true,
+        ];
+
         $settings['turnstile_settings'] = [
             'tab_title' => __('Cloudflare Turnstile', 'mailoptin'),
-            [
-                'section_title'         => __('Turnstile Settings', 'mailoptin'),
-                'turnstile_site_key'    => [
-                    'type'        => 'text',
-                    'label'       => __('Site Key', 'mailoptin'),
-                    'description' => sprintf(__('Necessary for displaying Turnstile. Grab it %shere%s', 'mailoptin'), '<a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer">', '</a>')
-                ],
-                'turnstile_site_secret' => [
-                    'type'        => 'text',
-                    'label'       => __('Site Secret', 'mailoptin'),
-                    'description' => sprintf(__('Required for server-side verification. Grab it %shere%s', 'mailoptin'), '<a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer">', '</a>')
-                ],
-                'turnstile_theme'       => [
-                    'type'        => 'select',
-                    'label'       => __('Default Theme', 'mailoptin'),
-                    'options'     => [
-                        'auto'  => __('Auto', 'mailoptin'),
-                        'light' => __('Light', 'mailoptin'),
-                        'dark'  => __('Dark', 'mailoptin'),
-                    ],
-                    'value'       => 'auto',
-                    'description' => __('Default Turnstile theme; can be overridden per form field.', 'mailoptin')
-                ],
-                'turnstile_size'        => [
-                    'type'        => 'select',
-                    'label'       => __('Default Size', 'mailoptin'),
-                    'options'     => [
-                        'normal'    => __('Normal', 'mailoptin'),
-                        'compact'   => __('Compact', 'mailoptin'),
-                        'invisible' => __('Invisible', 'mailoptin'),
-                    ],
-                    'value'       => 'normal',
-                    'description' => __('Default Turnstile size; can be overridden per form field.', 'mailoptin')
-                ],
-            ]
+            array_merge(['section_title' => __('Cloudflare Turnstile Settings', 'mailoptin')], $fields)
         ];
 
         return $settings;

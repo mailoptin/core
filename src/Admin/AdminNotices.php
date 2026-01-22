@@ -225,8 +225,9 @@ class AdminNotices
         if (strpos(\MailOptin\Core\current_url_with_query_string(), MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE) === false) return;
 
         $upgrade_url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=email_campaign_limit';
-        $notice      = sprintf(__('Upgrade to %s now to create multiple email automation with advance targeting and option to send directly to your email list subscribers.', 'mailoptin'),
-            '<a href="' . $upgrade_url . '" target="_blank">' . __('MailOptin premium', 'mailoptin') . '</a>'
+        $notice      = sprintf(__('Upgrade to %1$s to create automated email campaigns with advanced targeting and send directly to your list subscribers in your CRM and email marketing software. For instance, you can automatically %2$semail your posts to your Mailchimp audience%3$s immediately after publication.', 'mailoptin'),
+            '<a href="' . $upgrade_url . '" target="_blank">' . __('MailOptin premium', 'mailoptin') . '</a>',
+        '<a href="https://mailoptin.io/article/new-post-notification-mailchimp-email-list/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=email_campaign_limit" target="_blank">', '</a>'
         );
         echo '<div data-dismissible="email-campaign-count-limit-exceeded-3" class="updated notice notice-success is-dismissible">';
         echo "<p>$notice</p>";

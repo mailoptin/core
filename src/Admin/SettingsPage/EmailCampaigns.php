@@ -40,7 +40,10 @@ class EmailCampaigns extends AbstractSettingsPage
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
                 $this->settingsInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
                 $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
-                $this->settingsInstance->sidebar($this->sidebar_args());
+                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast'])) {
+                    $this->settingsInstance->sidebar($this->sidebar_args());
+                }
+
                 $this->set_settings_page_instance($this->settingsInstance);
             }
         });
@@ -138,7 +141,7 @@ class EmailCampaigns extends AbstractSettingsPage
             $option = 'per_page';
             $args   = [
                     'label'   => __('Email Automation', 'mailoptin'),
-                    'default' => 8,
+                    'default' => 15,
                     'option'  => 'email_campaign_per_page',
             ];
             add_screen_option($option, $args);
