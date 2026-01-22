@@ -690,11 +690,16 @@ form.mo-inline {
     border-bottom: 1px solid #c8d7e1;
 }
 
+.mailoptin-settings-wrap h2.nav-tab-wrapper .nav-tab .dashicons {
+    display: none;
+}
+
 .mailoptin-settings-wrap h2.nav-tab-wrapper a.nav-tab-active {
     background: #fff !important;
     border-right: 1px solid #c8d7e1;
     width: 99%;
     color: #2e4453;
+    border-left: 4px solid #046BD2;
 }
 
 .mailoptin-settings-wrap .metabox-holder {
@@ -1025,7 +1030,6 @@ form.mo-inline {
 .mo-admin-banner__helplinks a {
     color: rgba(255,255,255,.92);
     text-decoration: none;
-    padding-right: 15px;
 }
 
 .mailoptin-admin div#screen-meta-links {
