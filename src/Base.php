@@ -8,7 +8,6 @@ if ( ! defined('ABSPATH')) {
 
 use MailOptin\Core\Admin\AdminNotices;
 use MailOptin\Core\Admin\Customizer\SafeModeMUInstaller;
-use MailOptin\Core\Admin\FuseWP;
 use MailOptin\Core\Admin\SettingsPage\ConversionExport;
 use MailOptin\Core\Admin\SettingsPage\PreviewCampaignLog;
 use MailOptin\Core\Admin\SettingsPage\ProUpgrade;
@@ -131,10 +130,6 @@ class Base
         new SafeModeMUInstaller();
 
         \ProperP_Shogun::get_instance();
-
-        add_action('plugins_loaded', function () {
-            FuseWP::get_instance();
-        }, 99);
 
         add_action('widgets_init', ['MailOptin\Core\OptinForms\SidebarWidgets', 'widget_registration']);
 
