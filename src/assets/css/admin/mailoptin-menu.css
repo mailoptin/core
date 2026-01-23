@@ -1,6 +1,6 @@
 #adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-integrations"]:after,
 #adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-emails"]:after,
-#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-fusewp"]:after
+#adminmenu ul>li:not(:last-child) a[href$="page=mailoptin-statistics"]:after
 {
     border-bottom: 1px solid hsla(0,0%,100%,.2);
     display: block;

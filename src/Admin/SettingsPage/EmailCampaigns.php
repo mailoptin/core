@@ -48,7 +48,7 @@ class EmailCampaigns extends AbstractSettingsPage
             }
         });
 
-        add_action('mailoptin_register_menu_page', array($this, 'register_menu_page'), 20);
+        add_action('mailoptin_register_menu_page', array($this, 'register_menu_page'), 40);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_email_campaign_per_page', array($this, 'set_screen'), 10, 3);
