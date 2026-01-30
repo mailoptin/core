@@ -1032,6 +1032,10 @@ form.mo-inline {
     text-decoration: none;
 }
 
+.mo-admin-banner__helplinks a svg {
+    vertical-align: text-bottom;
+}
+
 .mailoptin-admin div#screen-meta-links {
     position: absolute;
     right: 0;

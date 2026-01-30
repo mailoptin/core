@@ -237,7 +237,7 @@ class ControlsHelpers
     {
         $data = get_transient('mo_get_authors');
 
-        if (empty($data) || false === $data) {
+        if (empty($data)) {
 
             $args = ['capability' => ['edit_posts'], 'fields' => ['ID', 'display_name']];
 
