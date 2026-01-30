@@ -260,9 +260,9 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
         $content_text_color                       = $this->content_text_color();
         $content_headline_color                   = $this->content_headline_color();
 
-        $footer_removal                = ($this->footer_removal() === true) ? 'display:none' : '';
-        $header_removal                = ($this->header_removal() === true) ? 'display:none' : '';
-        $ellipsis_button_removal       = ($this->content_remove_ellipsis_button() === true) ? 'display:none' : '';
+        $footer_removal                = $this->footer_removal() ? 'display:none;visibility:hidden;max-height:0;line-height:0;font-size:0;height:0;padding:0;mso-hide:all' : '';
+        $header_removal                = $this->header_removal() ? 'display:none;visibility:hidden;max-height:0;line-height:0;font-size:0;height:0;padding:0;mso-hide:all;' : '';
+        $ellipsis_button_removal       = $this->content_remove_ellipsis_button() ? 'display:none;visibility:hidden;max-height:0;line-height:0;font-size:0;height:0;padding:0;mso-hide:all;' : '';
         $footer_background_color       = absint($this->footer_background_color());
         $footer_font_size              = absint($this->footer_font_size());
         $footer_text_color             = $this->footer_text_color();
