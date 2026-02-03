@@ -43,15 +43,15 @@ class Lucid extends AbstractTemplate
     public function default_customizer_values()
     {
         return [
-            'page_background_color'                    => '#f2f4f6',
-            'header_text_color'                        => '#bbbfc3',
-            'header_web_version_link_color'            => '#74787e',
-            'content_background_color'                 => '#ffffff',
-            'content_text_color'                       => '#74787e',
-            'content_ellipsis_button_background_color' => '#dc4d2f',
-            'content_ellipsis_button_text_color'       => '#ffffff',
-            'footer_text_color'                        => '#aeaeae',
-            'footer_unsubscribe_link_color'            => '#74787e',
+                'page_background_color'                    => '#f2f4f6',
+                'header_text_color'                        => '#bbbfc3',
+                'header_web_version_link_color'            => '#74787e',
+                'content_background_color'                 => '#ffffff',
+                'content_text_color'                       => '#74787e',
+                'content_ellipsis_button_background_color' => '#dc4d2f',
+                'content_ellipsis_button_text_color'       => '#ffffff',
+                'footer_text_color'                        => '#aeaeae',
+                'footer_unsubscribe_link_color'            => '#74787e',
         ];
     }
 
@@ -172,6 +172,29 @@ class Lucid extends AbstractTemplate
     {
     }
 
+    protected function get_footer_html()
+    {
+        $unsubscribe_link = apply_filters('mo_email_template_unsubscribe_link', '<a class="unsubscribe mo-footer-unsubscribe-link-label mo-footer-unsubscribe-link-color" href="{{unsubscribe}}">[mo_footer_unsubscribe_link_label]</a>', $this);
+        ob_start();
+        ?>
+        <tr class="mo-footer-container">
+            <td>
+                <table class="email-footer mo-footer-text-color mo-footer-font-size" align="center" width="570" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="content-cell">
+                            <p class="sub center mo-footer-copyright-line">[mo_footer_copyright_line]</p>
+                            <p class="sub center mo-footer-description">[mo_footer_description]</p>
+                            <p class="sub center"><span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span>
+                            $unsubscribe_link.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <?php
+        return apply_filters('mo_newsletter_lucid_email_template_footer_html', ob_get_clean(), $this);
+    }
+
     /**
      * Template body.
      *
@@ -179,8 +202,7 @@ class Lucid extends AbstractTemplate
      */
     public function get_body()
     {
-        $view_web_version = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}">[mo_header_web_version_link_label]</a>');
-        $unsubscribe_link = apply_filters('mo_email_template_unsubscribe_link', '<a class="unsubscribe mo-footer-unsubscribe-link-label mo-footer-unsubscribe-link-color" href="{{unsubscribe}}">[mo_footer_unsubscribe_link_label]</a>');
+        $view_web_version = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}">[mo_header_web_version_link_label]</a>', $this);
 
         $body = <<<HTML
   <table class="email-wrapper mo-page-bg-color" width="100%" cellpadding="0" cellspacing="0">
@@ -204,26 +226,14 @@ class Lucid extends AbstractTemplate
               </table>
             </td>
           </tr>
-          <tr class="mo-footer-container">
-            <td>
-              <table class="email-footer mo-footer-text-color mo-footer-font-size" align="center" width="570" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td class="content-cell">
-                    <p class="sub center mo-footer-copyright-line">[mo_footer_copyright_line]</p>
-                    <p class="sub center mo-footer-description">[mo_footer_description]</p>
-                    <p class="sub center"><span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span>  $unsubscribe_link.</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+          {$this->get_footer_html()}
         </table>
       </td>
     </tr>
   </table>
 HTML;
 
-        return apply_filters('mo_ped_lucid_email_template_body', $body, $this);
+        return apply_filters('mo_newsletter_lucid_email_template_body', $body, $this);
     }
 
 
@@ -468,47 +478,47 @@ CSS;
         $defaults['button']['button_font_size']        = '16';
         $defaults['button']['button_border_radius']    = '3';
         $defaults['button']['block_padding']           = [
-            'top'    => '10',
-            'bottom' => '10',
-            'right'  => '0',
-            'left'   => '0'
+                'top'    => '10',
+                'bottom' => '10',
+                'right'  => '0',
+                'left'   => '0'
         ];
         $defaults['button']['button_padding']          = [
-            'top'    => '15',
-            'bottom' => '15',
-            'right'  => '10',
-            'left'   => '10'
+                'top'    => '15',
+                'bottom' => '15',
+                'right'  => '10',
+                'left'   => '10'
         ];
 
         $defaults['divider']['block_padding'] = [
-            'top'    => '10',
-            'bottom' => '10',
-            'right'  => '0',
-            'left'   => '0'
+                'top'    => '10',
+                'bottom' => '10',
+                'right'  => '0',
+                'left'   => '0'
         ];
 
         $defaults['image']['block_padding'] = [
-            'top'    => '10',
-            'bottom' => '10',
-            'right'  => '0',
-            'left'   => '0'
+                'top'    => '10',
+                'bottom' => '10',
+                'right'  => '0',
+                'left'   => '0'
         ];
 
         $defaults['posts']['block_padding'] = [
-            'top'    => '10',
-            'bottom' => '10',
-            'right'  => '0',
-            'left'   => '0'
+                'top'    => '10',
+                'bottom' => '10',
+                'right'  => '0',
+                'left'   => '0'
         ];
 
         $defaults['posts']['post_title_color'] = '#2F3133';
         $defaults['posts']['read_more_color']  = '#3869D4';
         $defaults['posts']['post_font_family'] = 'Arial';
         $defaults['posts']['block_padding']    = [
-            'top'    => '10',
-            'bottom' => '10',
-            'right'  => '0',
-            'left'   => '0'
+                'top'    => '10',
+                'bottom' => '10',
+                'right'  => '0',
+                'left'   => '0'
         ];
 
         return $defaults;

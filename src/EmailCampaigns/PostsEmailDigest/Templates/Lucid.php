@@ -35,16 +35,16 @@ class Lucid extends AbstractTemplate
     public function default_customizer_values()
     {
         return [
-            'page_background_color'                    => '#f2f4f6',
-            'header_text_color'                        => '#bbbfc3',
-            'header_web_version_link_color'            => '#74787e',
-            'content_background_color'                 => '#ffffff',
-            'content_text_color'                       => '#74787e',
-            'content_headline_color'                   => '#2F3133',
-            'content_ellipsis_button_background_color' => '#dc4d2f',
-            'content_ellipsis_button_text_color'       => '#ffffff',
-            'footer_text_color'                        => '#aeaeae',
-            'footer_unsubscribe_link_color'            => '#74787e',
+                'page_background_color'                    => '#f2f4f6',
+                'header_text_color'                        => '#bbbfc3',
+                'header_web_version_link_color'            => '#74787e',
+                'content_background_color'                 => '#ffffff',
+                'content_text_color'                       => '#74787e',
+                'content_headline_color'                   => '#2F3133',
+                'content_ellipsis_button_background_color' => '#dc4d2f',
+                'content_ellipsis_button_text_color'       => '#ffffff',
+                'footer_text_color'                        => '#aeaeae',
+                'footer_unsubscribe_link_color'            => '#74787e',
         ];
     }
 
@@ -176,9 +176,7 @@ class Lucid extends AbstractTemplate
         if ($content_remove_post_link == false) : ?>
             <a href="{{post.url}}">
                 <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
-                {{post.meta}}
-                <img class"mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}">
-            </a>
+                {{post.meta}} <img class"mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}"> </a>
         <?php endif;
 
         if ($content_remove_post_link == true) : ?>
@@ -200,10 +198,8 @@ class Lucid extends AbstractTemplate
                             <center>
                         <![endif]-->
                         <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
-                        <!--[if mso]>
-                            </center>
-                            </v:roundrect>
-                        <![endif]-->
+                        <!--[if mso]></center>
+                        </v:roundrect><![endif]-->
                     </div>
                 </td>
             </tr>
@@ -231,6 +227,29 @@ class Lucid extends AbstractTemplate
         return ob_get_clean();
     }
 
+    protected function get_footer_html()
+    {
+        $unsubscribe_link = apply_filters('mo_email_template_unsubscribe_link', '<a class="unsubscribe mo-footer-unsubscribe-link-label mo-footer-unsubscribe-link-color" href="{{unsubscribe}}">[mo_footer_unsubscribe_link_label]</a>');
+        ob_start();
+        ?>
+        <tr class="mo-footer-container">
+            <td>
+                <table class="email-footer mo-footer-text-color mo-footer-font-size" align="center" width="570" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="content-cell">
+                            <p class="sub center mo-footer-copyright-line">[mo_footer_copyright_line]</p>
+                            <p class="sub center mo-footer-description">[mo_footer_description]</p>
+                            <p class="sub center"><span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span>
+                                $unsubscribe_link.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <?php
+        return apply_filters('mo_ped_lucid_email_template_footer_html', ob_get_clean(), $this);
+    }
+
     /**
      * Template body.
      *
@@ -239,7 +258,6 @@ class Lucid extends AbstractTemplate
     public function get_body()
     {
         $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}">[mo_header_web_version_link_label]</a>');
-        $unsubscribe_link    = apply_filters('mo_email_template_unsubscribe_link', '<a class="unsubscribe mo-footer-unsubscribe-link-label mo-footer-unsubscribe-link-color" href="{{unsubscribe}}">[mo_footer_unsubscribe_link_label]</a>');
         $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
         $after_main_content  = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_after_main_content');
         $content             = $this->parsed_post_list();
@@ -272,19 +290,7 @@ class Lucid extends AbstractTemplate
               </table>
             </td>
           </tr>
-          <tr class="mo-footer-container">
-            <td>
-              <table class="email-footer mo-footer-text-color mo-footer-font-size" align="center" width="570" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td class="content-cell">
-                    <p class="sub center mo-footer-copyright-line">[mo_footer_copyright_line]</p>
-                    <p class="sub center mo-footer-description">[mo_footer_description]</p>
-                    <p class="sub center"><span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span>  $unsubscribe_link.</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+          {$this->get_footer_html()}
         </table>
       </td>
     </tr>
