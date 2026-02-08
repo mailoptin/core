@@ -2,7 +2,7 @@
 
 namespace MailOptin\Core\EmailCampaigns\PostsEmailDigest;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
@@ -133,9 +133,28 @@ class PostsEmailDigest extends AbstractTriggers
     }
 
     /**
-     * @param $email_campaign_id
-     * @param Carbon $schedule_hour
+     * Check if two dates fall within the same custom week.
      *
+     * @param CarbonImmutable $date
+     * @param CarbonImmutable $now
+     *
+     * @return bool
+     */
+    public function is_same_week(CarbonImmutable $date, CarbonImmutable $now)
+    {
+        $start_of_week = absint(get_option('start_of_week', 1));
+
+        $end_of_week = $start_of_week == 0 ? 6 : $start_of_week - 1;
+
+        $week_start = $now->startOfWeek($start_of_week);
+        $week_end   = $now->endOfWeek($end_of_week);
+
+        return $date->between($week_start, $week_end);
+    }
+
+    /**
+     * @param $email_campaign_id
+     * @param CarbonImmutable $schedule_hour
      * @param $digest_type
      *
      * @return bool
@@ -143,14 +162,16 @@ class PostsEmailDigest extends AbstractTriggers
     public function should_send($email_campaign_id, $schedule_hour, $digest_type)
     {
         $timezone   = $this->timezone();
-        $carbon_now = $this->carbon_set_week_start_end(Carbon::now($timezone));
+        $carbon_now = CarbonImmutable::now($timezone);
 
         $last_processed_at = EmailCampaignMeta::get_meta_data($email_campaign_id, 'last_processed_at');
 
         if ( ! empty($last_processed_at)) {
 
-            $last_processed_at_carbon_instance = $this->carbon_set_week_start_end(
-                Carbon::createFromFormat('Y-m-d H:i:s', $this->last_processed_at($email_campaign_id), $timezone)
+            $last_processed_at_carbon_instance = CarbonImmutable::createFromFormat(
+                'Y-m-d H:i:s',
+                $this->last_processed_at($email_campaign_id),
+                $timezone
             );
 
             if ($digest_type == 'every_day') {
@@ -160,7 +181,7 @@ class PostsEmailDigest extends AbstractTriggers
             }
 
             if ($digest_type == 'every_week') {
-                if ($last_processed_at_carbon_instance->isSameAs('o-W', $carbon_now)) {
+                if ($this->is_same_week($last_processed_at_carbon_instance, $carbon_now)) {
                     return false;
                 }
             }
@@ -178,24 +199,6 @@ class PostsEmailDigest extends AbstractTriggers
         }
 
         return false;
-    }
-
-    /**
-     * Set start and end day of a week.
-     *
-     * @param Carbon $carbon
-     *
-     * @return Carbon
-     */
-    public function carbon_set_week_start_end($carbon)
-    {
-        $start_of_week = absint(get_option('start_of_week', 1));
-        $end_of_week   = $start_of_week == 0 ? 6 : $start_of_week - 1;
-
-        $carbon->setWeekStartsAt($start_of_week);
-        $carbon->setWeekEndsAt($end_of_week);
-
-        return $carbon;
     }
 
     /**
@@ -222,9 +225,8 @@ class PostsEmailDigest extends AbstractTriggers
 
             $timezone = $this->timezone();
 
-            $carbon_now = $this->carbon_set_week_start_end(Carbon::now($timezone));
-
-            $carbon_today = $this->carbon_set_week_start_end(Carbon::today($timezone));
+            $carbon_now   = CarbonImmutable::now($timezone);
+            $carbon_today = CarbonImmutable::today($timezone);
 
             $schedule_hour = $carbon_today->hour($schedule_time);
 
