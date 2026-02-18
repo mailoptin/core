@@ -208,8 +208,9 @@ abstract class AbstractConnect
             $main_message = apply_filters(
                 'mo_email_campaign_error_email_message',
                 sprintf(
-                    __('The email campaign "%s" had the following error "%s".', 'mailoptin'),
+                    __('The email campaign "%s" in %s had the following error "%s".', 'mailoptin'),
                     $email_campaign_name,
+                    home_url(),
                     $message
                 )
             );
@@ -218,7 +219,7 @@ abstract class AbstractConnect
 
             $subject = apply_filters('mo_email_campaign_error_email_subject', sprintf(__('Warning! "%s" Email Campaign Is Not Working', 'mailoptin'), $email_campaign_name), $email_campaign_id);
 
-            @wp_mail($email, $subject, $main_message);
+            wp_mail($email, $subject, $main_message);
         }
     }
 
@@ -378,7 +379,7 @@ $footer_content";
                 __('This e-mail was sent by %s plugin on %s (%s)', 'mailoptin'),
                 'MailOptin',
                 \MailOptin\Core\site_title(),
-                site_url()
+                home_url()
             );
 
             $url = 'https://bit.ly/2KyV3Ng';
@@ -392,24 +393,24 @@ $footer_content";
 
             $response = wp_mail($email, $subject, $html_message, ['Content-Type' => 'text/html']);
 
-            if ( ! $response) @wp_mail($email, $subject, $plain_text_message);
+            if ( ! $response) wp_mail($email, $subject, $plain_text_message);
 
         } else {
 
             $message = apply_filters(
                 'mo_optin_form_email_error_email_message',
                 sprintf(
-                    __('The optin campaign "%s" is failing to convert leads due to the following error "%s". %6$s -- %6$sThis e-mail was sent by %s plugin on %s (%s)', 'mailoptin'),
+                    __('The optin campaign "%1$s" is failing to convert leads due to the following error "%2$s". %6$s -- %6$sThis e-mail was sent by %3$s plugin on %4$s (%5$s)', 'mailoptin'),
                     $optin_campaign_name,
                     $error_message,
                     'MailOptin',
                     \MailOptin\Core\site_title(),
-                    site_url(),
+                    home_url(),
                     "\r\n\n"
                 )
             );
 
-            @wp_mail($email, $subject, $message);
+            wp_mail($email, $subject, $message);
         }
     }
 
