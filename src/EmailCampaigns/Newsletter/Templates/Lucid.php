@@ -184,8 +184,10 @@ class Lucid extends AbstractTemplate
                         <td class="content-cell">
                             <p class="sub center mo-footer-copyright-line">[mo_footer_copyright_line]</p>
                             <p class="sub center mo-footer-description">[mo_footer_description]</p>
-                            <p class="sub center"><span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span>
-                            $unsubscribe_link.</p>
+                            <p class="sub center">
+                                <span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span>
+                                <?php echo $unsubscribe_link; ?>.
+                            </p>
                         </td>
                     </tr>
                 </table>
