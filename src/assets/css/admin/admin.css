@@ -14,6 +14,10 @@
     line-height: 1.2;
 }
 
+.moWP7higher .mo-action-icon.hellip {
+    vertical-align: text-bottom;
+}
+
 #mailoptin_affiliate_url_row:target {
     background-color: #e5eecc;
     border: 2px solid #d4d4d4;
@@ -1028,7 +1032,7 @@ form.mo-inline {
 }
 
 .mo-admin-banner__helplinks a {
-    color: rgba(255,255,255,.92);
+    color: rgba(255, 255, 255, .92);
     text-decoration: none;
 }
 
@@ -1742,7 +1746,7 @@ a.mailoptin-nav-tab.nav-tab {
 
 .mailoptin-admin .mailoptin-integration-modal .postbox {
     border: 0;
-    box-shadow:none;
+    box-shadow: none;
 }
 
 .mailoptin-admin .mailoptin-integration-modal {
@@ -1773,4 +1777,26 @@ a.mailoptin-nav-tab.nav-tab {
 
 .mailoptin-admin .mailoptin-integration-modal .postbox {
     padding: 15px;
+}
+
+.moWP7higher .wp_csa_view .tablenav .button {
+    line-height: 2.30769231;
+    min-height: auto;
+}
+
+/* increase customizer sidebar width to accomodate > wp 7.0 ui changes that made submit buttons large */
+.moWP7higher .wp-full-overlay-sidebar {
+    min-width: 320px;
+}
+
+.moWP7higher .wp-full-overlay.collapsed .wp-full-overlay-sidebar {
+    margin-left: -320px;
+}
+
+.moWP7higher .expanded .wp-full-overlay-footer {
+    width: 319px;
+}
+
+.moWP7higher .wp-full-overlay.expanded {
+    margin-left: 320px;
 }

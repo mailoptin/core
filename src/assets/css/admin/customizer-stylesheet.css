@@ -167,6 +167,11 @@ li#accordion-section-mailoptin_upsell_section {
     padding-left: 5px;
 }
 
+.moWP7higher #mo-send-newsletter-btn {
+    line-height: 2.30769231;
+    min-height: auto;
+}
+
 .in-sub-panel #mo-optin-active-switch {
     margin-left: 0;
 }

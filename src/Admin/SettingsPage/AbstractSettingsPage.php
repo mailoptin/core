@@ -47,6 +47,20 @@ abstract class AbstractSettingsPage
         do_action('mailoptin_register_menu_page');
 
         add_filter('admin_body_class', array($this, 'add_admin_body_class'));
+
+        add_action('customize_controls_print_footer_scripts', function () {
+            global $wp_version;
+
+            if (version_compare($wp_version, '6.9.4', '>')) {
+                ?>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        document.body.classList.add('moWP7higher');
+                    });
+                </script>
+                <?php
+            }
+        });
     }
 
     /** --------------------------------------------------------------- */
@@ -214,6 +228,12 @@ abstract class AbstractSettingsPage
             } else {
                 $classes .= ' mailoptin-lite ';
             }
+        }
+
+        global $wp_version;
+
+        if (version_compare($wp_version, '6.9.4', '>')) {
+            $classes .= ' moWP7higher';
         }
 
         return $classes;
