@@ -13,7 +13,7 @@ class Misc
     {
         add_shortcode('mo_date', function ($atts) {
 
-            if (isset($atts['format']) && ! empty($atts['format'])) {
+            if ( ! empty($atts['format'])) {
                 return wp_date(sanitize_text_field($atts['format']));
             }
 

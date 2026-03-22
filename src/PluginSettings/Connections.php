@@ -22,7 +22,7 @@ class Connections
      */
     public function __call($name, $arguments)
     {
-        return isset($this->cpp_settings[$name]) ? $this->cpp_settings[$name] : '';
+        return $this->cpp_settings[$name] ?? '';
     }
 
     /**
