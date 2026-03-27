@@ -111,6 +111,7 @@
             var cache = $('.mo-content-button-alignment');
             cache.attr('align', to);
             cache.css('text-align', to);
+            cache.css('float', to === 'center' ? 'none' : to);
         });
     });
 
