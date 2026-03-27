@@ -176,13 +176,13 @@ class Lucid extends AbstractTemplate
         if ($content_remove_post_link == false) : ?>
             <a href="{{post.url}}">
                 <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
-                {{post.meta}} <img class"mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}"> </a>
+                {{post.meta}} <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}"> </a>
         <?php endif;
 
         if ($content_remove_post_link == true) : ?>
             <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
             {{post.meta}}
-            <img class"mo-imgix" src="{{post.feature.image}}">
+            <img class="mo-imgix" src="{{post.feature.image}}">
         <?php endif;
         do_action('mailoptin_email_campaign_lucid_before_post_content');
         ?>
