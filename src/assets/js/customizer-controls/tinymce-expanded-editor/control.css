@@ -1,6 +1,7 @@
 .mo-tinymce-expanded-editor-btn span.dashicons {
     margin-top: 12px;
     margin-right: 5px;
+    line-height: normal !important;
 }
 
 .mo-tinymce-expanded-control-wrapper {
