@@ -108,7 +108,7 @@
 
     wp.customize(mailoptin_email_campaign_option_prefix + '[' + mailoptin_email_campaign_id + '][content_ellipsis_button_alignment]', function (value) {
         value.bind(function (to) {
-            var cache = $('div.mo-content-button-alignment');
+            var cache = $('.mo-content-button-alignment');
             cache.attr('align', to);
             cache.css('text-align', to);
         });
