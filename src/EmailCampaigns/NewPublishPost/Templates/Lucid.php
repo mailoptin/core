@@ -200,10 +200,10 @@ class Lucid extends AbstractTemplate
             <td style="padding:0;">
                 <table class="email-footer mo-footer-text-color mo-footer-font-size" align="center" width="570" style="width:570px;" cellpadding="0" cellspacing="0" role="presentation">
                     <tr>
-                        <td class="content-cell" style="padding:35px;text-align:center;">
-                            <p class="sub center mo-footer-copyright-line" style="margin-top:0;text-align:center;">[mo_footer_copyright_line]</p>
-                            <p class="sub center mo-footer-description" style="margin-top:0;text-align:center;">[mo_footer_description]</p>
-                            <p class="sub center" style="margin-top:0;text-align:center;">
+                        <td class="content-cell">
+                            <p class="sub center mo-footer-copyright-line">[mo_footer_copyright_line]</p>
+                            <p class="sub center mo-footer-description">[mo_footer_description]</p>
+                            <p class="sub center">
                                 <span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span>
                                 <?php echo $unsubscribe_link; ?>.
                             </p>
@@ -248,13 +248,13 @@ class Lucid extends AbstractTemplate
         <table class="email-content" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0;padding:0;">
           <!-- Logo -->
           <tr class="mo-header-container">
-            <td class="email-masthead" style="padding:25px 0;text-align:center;">
+            <td class="email-masthead">
             $view_web_version
             <br><br>
               <!--[if mso]>
               <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td style="text-align:center;">
               <![endif]-->
-              <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="display:inline-block;"><tr><td class="email-masthead_name mo-header-text mo-header-text-color" style="font-size:25px;font-weight:bold;text-decoration:none;">[mo_header_logo_text]</td></tr></table>
+              <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="display:inline-block;"><tr><td class="email-masthead_name mo-header-text mo-header-text-color">[mo_header_logo_text]</td></tr></table>
               <!--[if mso]>
               </td></tr></table>
               <![endif]-->
@@ -269,7 +269,7 @@ class Lucid extends AbstractTemplate
               <table class="email-body_inner mo-content-body-font-size mo-content-alignment" align="center" width="570" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:570px;max-width:570px;margin:0 auto;">
                 <!-- Body content -->
                 <tr>
-                  <td class="content-cell mo-content-text-color" style="padding:35px;width:570px;max-width:570px;">
+                  <td class="content-cell mo-content-text-color" style="width:570px;max-width:570px;">
                   <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tr><td class="mo-before-main-content">$before_main_content</td></tr></table>
                     $post_title_feature_img
                     $before_post_content

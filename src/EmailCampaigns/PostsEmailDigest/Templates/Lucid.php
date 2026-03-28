@@ -176,31 +176,35 @@ class Lucid extends AbstractTemplate
         if ($content_remove_post_link == false) : ?>
             <a href="{{post.url}}">
                 <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
-                {{post.meta}} <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}"> </a>
+            </a>
+            {{post.meta}}
+            <a href="{{post.url}}">
+                <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+            </a>
         <?php endif;
 
         if ($content_remove_post_link == true) : ?>
-            <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
+            <h1 class="mo-content-title-font-size mo-content-headline-color" style="margin-top:0;">{{post.title}}</h1>
             {{post.meta}}
-            <img class="mo-imgix" src="{{post.feature.image}}">
+            <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
         <?php endif;
         do_action('mailoptin_email_campaign_lucid_before_post_content');
         ?>
         {{post.content}}
         <!-- Action -->
-        <table class="body-action mo-content-remove-ellipsis-button" width="100%" cellpadding="0" cellspacing="0">
+        <table class="body-action mo-content-remove-ellipsis-button" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
             <tr>
-                <td>
-                    <div class="mo-content-button-alignment">
-                        <!--[if mso]>
-                            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{post.url}}" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="<?= $content_ellipsis_button_background_color ?>">
-                            <w:anchorlock/>
-                            <center>
-                        <![endif]-->
-                        <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
-                        <!--[if mso]></center>
-                        </v:roundrect><![endif]-->
-                    </div>
+                <td align="center" class="mo-content-button-alignment" style="padding:0;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{post.url}}" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="<?= $content_ellipsis_button_background_color ?>">
+                        <w:anchorlock/>
+                        <center style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#ffffff;">
+                    <![endif]-->
+                    <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
+                    <!--[if mso]>
+                    </center>
+                    </v:roundrect>
+                    <![endif]-->
                 </td>
             </tr>
         </table>
@@ -213,7 +217,9 @@ class Lucid extends AbstractTemplate
     {
         ob_start();
         ?>
+        <!--[if !mso]><!-->
         <p style="border-top:solid 1px lightgrey;margin:10px auto 50px;width:100%;"></p>
+        <!--<![endif]-->
 
         <!--[if mso | IE]>
         <table align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 1px lightgrey;margin:10px auto 50px;width:550px;" role="presentation" width="550px">
@@ -233,8 +239,8 @@ class Lucid extends AbstractTemplate
         ob_start();
         ?>
         <tr class="mo-footer-container">
-            <td>
-                <table class="email-footer mo-footer-text-color mo-footer-font-size" align="center" width="570" cellpadding="0" cellspacing="0">
+            <td style="padding:0;">
+                <table class="email-footer mo-footer-text-color mo-footer-font-size" align="center" width="570" style="width:570px;" cellpadding="0" cellspacing="0" border="0" role="presentation">
                     <tr>
                         <td class="content-cell">
                             <p class="sub center mo-footer-copyright-line">[mo_footer_copyright_line]</p>
@@ -259,37 +265,56 @@ class Lucid extends AbstractTemplate
      */
     public function get_body()
     {
-        $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}">[mo_header_web_version_link_label]</a>');
+        $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="font-size:10px;">[mo_header_web_version_link_label]</a>');
         $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
         $after_main_content  = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_after_main_content');
         $content             = $this->parsed_post_list();
 
         $body = <<<HTML
-  <table class="email-wrapper mo-page-bg-color" width="100%" cellpadding="0" cellspacing="0">
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
+    table {border-collapse: collapse;}
+    img {-ms-interpolation-mode: bicubic; border: 0;}
+  </style>
+  <![endif]-->
+  <table class="email-wrapper mo-page-bg-color" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0;padding:0;">
     <tr>
-      <td align="center">
-        <table class="email-content" width="100%" cellpadding="0" cellspacing="0">
+      <td align="center" style="padding:0;">
+        <table class="email-content" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0;padding:0;">
           <!-- Logo -->
           <tr class="mo-header-container">
             <td class="email-masthead">
             $view_web_version
             <br><br>
-              <div class="email-masthead_name mo-header-text mo-header-text-color">[mo_header_logo_text]</div>
+              <!--[if mso]>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td style="text-align:center;">
+              <![endif]-->
+              <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="display:inline-block;"><tr><td class="email-masthead_name mo-header-text mo-header-text-color">[mo_header_logo_text]</td></tr></table>
+              <!--[if mso]>
+              </td></tr></table>
+              <![endif]-->
             </td>
           </tr>
           <!-- Email Body -->
           <tr>
-            <td class="email-body mo-content-background-color" width="100%">
-              <table class="email-body_inner mo-content-body-font-size mo-content-alignment" align="center" width="570" cellpadding="0" cellspacing="0">
+            <td class="email-body mo-content-background-color" width="100%" style="margin:0;padding:0;">
+              <!--[if mso]>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" width="570" role="presentation"><tr><td width="570" style="width:570px;">
+              <![endif]-->
+              <table class="email-body_inner mo-content-body-font-size mo-content-alignment" align="center" width="570" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:570px;max-width:570px;margin:0 auto;">
                 <!-- Body content -->
                 <tr>
-                  <td class="content-cell mo-content-text-color" style="width: 570px;max-width: 570px;">
-                  <div class="mo-before-main-content">$before_main_content</div>
+                  <td class="content-cell mo-content-text-color" style="width:570px;max-width:570px;">
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tr><td class="mo-before-main-content">$before_main_content</td></tr></table>
                     $content
-                  <div class="mo-after-main-content">$after_main_content</div>
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tr><td class="mo-after-main-content">$after_main_content</td></tr></table>
                   </td>
                 </tr>
               </table>
+              <!--[if mso]>
+              </td></tr></table>
+              <![endif]-->
             </td>
           </tr>
           {$this->get_footer_html()}
@@ -322,6 +347,21 @@ HTML;
       line-height: 1.4;
       color: #74787E;
       -webkit-text-size-adjust: none;
+      mso-line-height-rule: exactly;
+    }
+    table {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    td {
+      mso-line-height-rule: exactly;
+    }
+    img {
+      -ms-interpolation-mode: bicubic;
+      border: 0;
+      outline: none;
+      text-decoration: none;
     }
     a {
       color: #3869D4;
@@ -374,11 +414,14 @@ HTML;
     }
 
     .email-body img {
-      max-width:500px;
+      max-width: 500px;
+      width: auto;
       height: auto;
       padding-bottom: 10px;
       display: block;
       margin: 0 auto;
+      border: 0;
+      outline: none;
     }
     
     .email-body figure {
@@ -395,12 +438,14 @@ HTML;
 
     .email-body_inner {
       width: 570px;
+      max-width: 570px;
       margin: 0 auto;
       padding: 0;
     }
 
     .email-footer {
       width: 570px;
+      max-width: 570px;
       margin: 0 auto;
       padding: 0;
       text-align: center;
@@ -417,6 +462,7 @@ HTML;
       font-size: 12px;
       font-weight: 400;
       line-height: 22px;
+      mso-line-height-rule: exactly;
       padding: 0 0 5px 0;
     }
 
@@ -445,6 +491,9 @@ HTML;
       margin-top: 0;
       color: #2F3133;
       font-weight: bold;
+      font-size: 22px;
+      line-height: 30px;
+      mso-line-height-rule: exactly;
     }
     h2 {
       margin-top: 0;
@@ -460,7 +509,8 @@ HTML;
     }
     p {
       margin-top: 0;
-      line-height: 1.5em;
+      line-height: 21px;
+      mso-line-height-rule: exactly;
     }
     
     p.center {
@@ -477,6 +527,7 @@ HTML;
       text-align: center;
       text-decoration: none;
       -webkit-text-size-adjust: none;
+      mso-hide: all;
     }
 
     /*Media Queries ------------------------------ */
