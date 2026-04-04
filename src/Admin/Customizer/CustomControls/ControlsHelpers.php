@@ -63,7 +63,9 @@ class ControlsHelpers
             foreach ($filtered_post_types as $post_type) {
                 $post_type_label = get_post_type_object($post_type)->label;
 
-                $result[$post_type_label] = self::get_post_type_posts($post_type, $total_per_post_types, 'publish', $search);
+                $post_status = apply_filters('mailoptin_get_all_post_types_posts_status', 'publish', $post_type);
+
+                $result[$post_type_label] = self::get_post_type_posts($post_type, $total_per_post_types, $post_status, $search);
             }
 
             set_transient($cache_key, $result, apply_filters('mo_get_all_post_types_posts_cache_expiration', MINUTE_IN_SECONDS));
