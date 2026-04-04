@@ -20,7 +20,7 @@ class PostsEmailDigestTemplatePreview extends Templatify
 
         $default_params = [
             'posts_per_page' => $item_count,
-            'post_status'    => 'publish',
+            'post_status'    => apply_filters('mailoptin_post_digest_post_status', 'publish', $email_campaign_id),
             'post_type'      => 'post',
             'order'          => 'DESC',
             'orderby'        => 'post_date'

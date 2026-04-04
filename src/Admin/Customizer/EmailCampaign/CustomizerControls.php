@@ -947,7 +947,7 @@ HTML;
 
     public function preview_control()
     {
-        $choices     = ControlsHelpers::get_post_type_posts('post');
+        $choices     = ControlsHelpers::get_post_type_posts('post', 200, apply_filters('mailoptin_new_publish_post_preview_status', 'publish'));
         $search_type = 'posts_never_load';
         if (defined('MAILOPTIN_DETACH_LIBSODIUM')) {
             $choices     = ControlsHelpers::get_all_post_types_posts();

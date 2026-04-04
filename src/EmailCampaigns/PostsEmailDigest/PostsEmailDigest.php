@@ -40,7 +40,7 @@ class PostsEmailDigest extends AbstractTriggers
 
         $parameters = [
             'posts_per_page' => $item_count,
-            'post_status'    => 'publish',
+            'post_status'    => apply_filters('mailoptin_post_digest_post_status', 'publish', $email_campaign_id),
             'order'          => 'DESC',
             'orderby'        => 'post_date'
         ];
