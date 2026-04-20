@@ -91,6 +91,6 @@ class ConnectionsRepository
             set_transient($cache_key, $email_list, MINUTE_IN_SECONDS);
         }
 
-        return $email_list;
+        return apply_filters('mo_connection_email_list', $email_list, $connection);
     }
 }
