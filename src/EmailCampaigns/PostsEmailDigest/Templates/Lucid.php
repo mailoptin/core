@@ -10,7 +10,7 @@ class Lucid extends AbstractTemplate
 {
     public $template_name = 'Lucid';
 
-    const COLUMN_COUNT = 2;
+    const COLUMN_COUNT = 3;
 
     public function __construct($email_campaign_id, $posts)
     {
@@ -608,19 +608,31 @@ HTML;
             width: 100% !important;
         }
         
+        .mo-posts-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
         .mo-posts-grid td.mo-post-cell {
-    width: 210px;
-    vertical-align: top;
-    padding: 0 8px;
-    box-sizing: border-box;
-}
+            vertical-align: top;
+            padding: 0 8px;
+            box-sizing: border-box;
+        }
 
-.mo-post-cell img.mo-imgix {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    object-fit: cover;
-}
+        .column-count-2  .mo-posts-grid td.mo-post-cell {
+          width: 250px;
+        }
+        
+      .column-count-3  .mo-posts-grid td.mo-post-cell {
+        width: 166px;
+      }
+
+      .mo-post-cell img.mo-imgix {
+          width: 100% !important;
+          max-width: 100% !important;
+          height: auto !important;
+          object-fit: cover;
+      }
 CSS;
 
     }
