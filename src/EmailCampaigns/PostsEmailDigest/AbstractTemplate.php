@@ -30,6 +30,36 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
      */
     abstract function single_post_item();
 
+    public function list_wrapper_start()
+    {
+        return '';
+    }
+
+    public function list_wrapper_end()
+    {
+        return '';
+    }
+
+    public function row_wrapper_start()
+    {
+        return '';
+    }
+
+    public function row_wrapper_end()
+    {
+        return '';
+    }
+
+    public function item_wrapper_start()
+    {
+        return '';
+    }
+
+    public function item_wrapper_end()
+    {
+        return '';
+    }
+
     /**
      * Eg a Divider
      *
@@ -37,19 +67,28 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
      */
     abstract function delimiter();
 
-    public function parsed_post_list()
+    public function parsed_post_list($column_count = 1)
     {
-        $delimiter = $this->delimiter();
+        $delimiter   = $this->delimiter();
+        $posts_count = count($this->posts);
 
         ob_start();
-        $posts_count = count($this->posts);
+        echo $this->list_wrapper_start();
+
         /**
          * @var int $index
          * @var WP_Post $post
          */
+
+
         foreach ($this->posts as $index => $post) {
             // index starts at 0. so we increment by one.
             $index++;
+
+            // Start a new row at the beginning and after every $column_count items
+            if (($index - 1) % $column_count === 0) {
+                echo $this->row_wrapper_start();
+            }
 
             $search = apply_filters('mo_email_campaign_ped_search_args', [
                 '{{post.title}}',
@@ -69,14 +108,25 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
                 apply_filters('mo_posts_email_digest_post_meta', $this->post_meta($post), $post, $this->email_campaign_id)
             ], $post, $this->email_campaign_id, $this);
 
+            echo $this->item_wrapper_start();
             echo apply_filters(
                 'mo_email_campaign_ped_single_post_item',
                 str_replace($search, $replace, $this->single_post_item()),
                 $post, $this->email_campaign_id, $this
             );
+            echo $this->item_wrapper_end();
 
-            if ( ! empty($delimiter) && ($index % $posts_count) > 0) echo $delimiter;
+            // End the row after every $column_count items or at the last item
+            if ($index % $column_count === 0 || $index === $posts_count) {
+                echo $this->row_wrapper_end();
+                // Echo delimiter after row end, but not after the last row
+                if ( ! empty($delimiter) && $index < $posts_count) echo $delimiter;
+            }
+
+//            if ( ! empty($delimiter) && ($index % $posts_count) > 0) echo $delimiter;
         }
+
+        echo $this->list_wrapper_end();
 
         return ob_get_clean();
     }

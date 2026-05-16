@@ -10,6 +10,8 @@ class Lucid extends AbstractTemplate
 {
     public $template_name = 'Lucid';
 
+    const COLUMN_COUNT = 2;
+
     public function __construct($email_campaign_id, $posts)
     {
         // -------------- Template header logo width and height dimension --------------------------------- //
@@ -165,6 +167,26 @@ class Lucid extends AbstractTemplate
     {
     }
 
+    public function row_wrapper_start()
+    {
+        return '<table class="mo-posts-grid" cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tbody><tr>';
+    }
+
+    public function row_wrapper_end()
+    {
+        return '</tr></tbody></table>';
+    }
+
+    public function item_wrapper_start()
+    {
+        return '<td class="mo-post-cell" valign="top" style="vertical-align:top;padding:0 8px;">';
+    }
+
+    public function item_wrapper_end()
+    {
+        return '</td>';
+    }
+
     public function single_post_item()
     {
         $content_remove_post_link = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_remove_post_link');
@@ -172,41 +194,48 @@ class Lucid extends AbstractTemplate
         $content_ellipsis_button_background_color = $this->content_ellipsis_button_background_color();
 
         ob_start();
-
-        if ($content_remove_post_link == false) : ?>
-            <a href="{{post.url}}">
-                <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
-            </a>
-            {{post.meta}}
-            <a href="{{post.url}}">
-                <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
-            </a>
-        <?php endif;
-
-        if ($content_remove_post_link == true) : ?>
-            <h1 class="mo-content-title-font-size mo-content-headline-color" style="margin-top:0;">{{post.title}}</h1>
-            {{post.meta}}
-            <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
-        <?php endif;
-        do_action('mailoptin_email_campaign_lucid_before_post_content');
         ?>
-        {{post.content}}
-        <!-- Action -->
-        <table class="body-action mo-content-remove-ellipsis-button" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+        <table>
+            <tbody>
             <tr>
-                <td align="center" class="mo-content-button-alignment" style="padding:0;">
-                    <!--[if mso]>
+                <td>
+                    <?php if ($content_remove_post_link == false) : ?>
+                        <a href="{{post.url}}">
+                            <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
+                        </a>
+                        {{post.meta}}
+                        <a href="{{post.url}}">
+                            <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+                        </a>
+                    <?php endif;
+
+                    if ($content_remove_post_link == true) : ?>
+                        <h1 class="mo-content-title-font-size mo-content-headline-color" style="margin-top:0;">
+                            {{post.title}}</h1>
+                        {{post.meta}}
+                        <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+                    <?php endif;
+                    do_action('mailoptin_email_campaign_lucid_before_post_content');
+                    ?>
+                    {{post.content}}
+                    <!-- Action -->
+                    <table class="body-action mo-content-remove-ellipsis-button" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
+                        <tr>
+                            <td align="center" class="mo-content-button-alignment" style="padding:0;">
+                                <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{post.url}}" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="<?= $content_ellipsis_button_background_color ?>">
                         <w:anchorlock/>
                         <center style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#ffffff;">
                     <![endif]-->
-                    <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
-                    <!--[if mso]>
-                    </center>
-                    </v:roundrect>
-                    <![endif]-->
+                                <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
+                                <!--[if mso]></center>
+                                </v:roundrect><![endif]-->
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
+            </tbody>
         </table>
         <?php
 
@@ -268,7 +297,8 @@ class Lucid extends AbstractTemplate
         $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="font-size:10px;">[mo_header_web_version_link_label]</a>');
         $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
         $after_main_content  = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_after_main_content');
-        $content             = $this->parsed_post_list();
+        $content             = $this->parsed_post_list(self::COLUMN_COUNT);
+        $column_count        = self::COLUMN_COUNT;
 
         $body = <<<HTML
   <!--[if mso]>
@@ -278,7 +308,7 @@ class Lucid extends AbstractTemplate
     img {-ms-interpolation-mode: bicubic; border: 0;}
   </style>
   <![endif]-->
-  <table class="email-wrapper mo-page-bg-color" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0;padding:0;">
+  <table class="email-wrapper mo-page-bg-color column-count-$column_count" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0;padding:0;">
     <tr>
       <td align="center" style="padding:0;">
         <table class="email-content" width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0;padding:0;">
@@ -306,9 +336,9 @@ class Lucid extends AbstractTemplate
                 <!-- Body content -->
                 <tr>
                   <td class="content-cell mo-content-text-color" style="width:570px;max-width:570px;">
-                  <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tr><td class="mo-before-main-content">$before_main_content</td></tr></table>
-                    $content
-                  <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tr><td class="mo-after-main-content">$after_main_content</td></tr></table>
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tbody><tr><td class="mo-before-main-content">$before_main_content</td></tr></tbody></table>
+                  $content
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation"><tbody><tr><td class="mo-after-main-content">$after_main_content</td></tr></tbody></table>
                   </td>
                 </tr>
               </table>
@@ -492,7 +522,7 @@ HTML;
       color: #2F3133;
       font-weight: bold;
       font-size: 22px;
-      line-height: 30px;
+      line-height: 25px;
       mso-line-height-rule: exactly;
     }
     h2 {
@@ -556,6 +586,41 @@ HTML;
         white-space: -o-pre-wrap;              /* Opera 7 and up */
         word-wrap: break-word;                 /* IE 5.5+ and up */
         }
+        
+        .mo-wc-price ins{
+        text-decoration: none;
+        }
+        
+        .mo-wc-price .screen-reader-text {
+        display: none;
+        max-height:0;
+        overflow: hidden;
+        color:transparent;
+        font-size:1px;
+        line-height: 1px;
+        max-width:0;
+        opacity:0;
+        }
+        
+        
+
+        .mo-post-cell .button {
+            width: 100% !important;
+        }
+        
+        .mo-posts-grid td.mo-post-cell {
+    width: 210px;
+    vertical-align: top;
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+
+.mo-post-cell img.mo-imgix {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: cover;
+}
 CSS;
 
     }
