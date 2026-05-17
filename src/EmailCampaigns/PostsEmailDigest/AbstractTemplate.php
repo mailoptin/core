@@ -30,16 +30,6 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
      */
     abstract function single_post_item();
 
-    public function list_wrapper_start()
-    {
-        return '';
-    }
-
-    public function list_wrapper_end()
-    {
-        return '';
-    }
-
     public function row_wrapper_start()
     {
         return '';
@@ -73,7 +63,6 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
         $posts_count = count($this->posts);
 
         ob_start();
-        echo $this->list_wrapper_start();
 
         /**
          * @var int $index
@@ -122,11 +111,7 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
                 // Echo delimiter after row end, but not after the last row
                 if ( ! empty($delimiter) && $index < $posts_count) echo $delimiter;
             }
-
-//            if ( ! empty($delimiter) && ($index % $posts_count) > 0) echo $delimiter;
         }
-
-        echo $this->list_wrapper_end();
 
         return ob_get_clean();
     }

@@ -10,8 +10,6 @@ class Lucid extends AbstractTemplate
 {
     public $template_name = 'Lucid';
 
-    const COLUMN_COUNT = 3;
-
     public function __construct($email_campaign_id, $posts)
     {
         // -------------- Template header logo width and height dimension --------------------------------- //
@@ -113,6 +111,12 @@ class Lucid extends AbstractTemplate
      */
     public function customizer_content_settings($content_settings)
     {
+        $content_settings['column_count'] = [
+                'default'   => '1',
+                'type'      => 'option',
+                'transport' => 'refresh',
+        ];
+
         return $content_settings;
     }
 
@@ -128,6 +132,19 @@ class Lucid extends AbstractTemplate
      */
     public function customizer_content_controls($content_controls, $wp_customize, $option_prefix, $customizerClassInstance)
     {
+        $content_controls['column_count'] = array(
+                'label'    => __('Columns', 'mailoptin'),
+                'section'  => $customizerClassInstance->campaign_content_section_id,
+                'settings' => $option_prefix . '[column_count]',
+                'type'     => 'select',
+                'choices'  => array(
+                        '1' => __('One', 'mailoptin'),
+                        '2' => __('Two', 'mailoptin'),
+                        '3' => __('Three', 'mailoptin'),
+                ),
+                'priority' => 21
+        );
+
         return $content_controls;
     }
 
@@ -294,11 +311,14 @@ class Lucid extends AbstractTemplate
      */
     public function get_body()
     {
+        $column_count = (int)EmailCampaignRepository::get_customizer_value($this->email_campaign_id, 'column_count', '1');
+
+        if (empty($column_count) || $column_count <= 1) $column_count = 1;
+
         $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="font-size:10px;">[mo_header_web_version_link_label]</a>');
         $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
         $after_main_content  = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_after_main_content');
-        $content             = $this->parsed_post_list(self::COLUMN_COUNT);
-        $column_count        = self::COLUMN_COUNT;
+        $content             = $this->parsed_post_list($column_count);
 
         $body = <<<HTML
   <!--[if mso]>
