@@ -196,7 +196,7 @@ class Lucid extends AbstractTemplate
 
     public function item_wrapper_start()
     {
-        return '<td class="mo-post-cell" valign="top" style="vertical-align:top;padding:0 8px;">';
+        return '<td class="mo-post-cell" valign="top">';
     }
 
     public function item_wrapper_end()
@@ -240,13 +240,16 @@ class Lucid extends AbstractTemplate
                         <tr>
                             <td align="center" class="mo-content-button-alignment" style="padding:0;">
                                 <!--[if mso]>
-                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{post.url}}" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="<?= $content_ellipsis_button_background_color ?>">
-                        <w:anchorlock/>
-                        <center style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#ffffff;">
-                    <![endif]-->
+            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{post.url}}" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="<?= $content_ellipsis_button_background_color ?>">
+                <w:anchorlock/>
+                <center style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#ffffff;font-weight:bold;">
+                    [mo_content_ellipsis_button_label]
+                </center>
+            </v:roundrect>
+            <![endif]-->
+                                <!--[if !mso]><!-->
                                 <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
-                                <!--[if mso]></center>
-                                </v:roundrect><![endif]-->
+                                <!--<![endif]-->
                             </td>
                         </tr>
                     </table>
@@ -570,7 +573,7 @@ HTML;
     /* Buttons ------------------------------ */
     .button {
       display: inline-block;
-      width: 200px;
+      width: 100%;
       border-radius: 3px;
       font-size: 15px;
       line-height: 45px;
@@ -653,6 +656,19 @@ HTML;
           height: auto !important;
           object-fit: cover;
       }
+
+@media only screen and (max-width: 600px) {
+    .mo-posts-grid td.mo-post-cell {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 0 20px 0 !important;
+    }
+
+    .mo-post-cell img.mo-imgix {
+        width: 100% !important;
+        max-width: 500px !important;
+    }
+}
 CSS;
 
     }
