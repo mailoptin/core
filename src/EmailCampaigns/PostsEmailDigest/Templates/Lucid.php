@@ -316,7 +316,7 @@ class Lucid extends AbstractTemplate
     {
         $column_count = (int)EmailCampaignRepository::get_customizer_value($this->email_campaign_id, 'column_count', '1');
 
-        if (empty($column_count) || $column_count <= 1) $column_count = 1;
+        if (empty($column_count) || $column_count <= 1 || $column_count > 3) $column_count = 1;
 
         $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="font-size:10px;">[mo_header_web_version_link_label]</a>');
         $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
