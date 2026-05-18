@@ -1083,12 +1083,17 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             $webfont[] = "'$cta_button_font'";
         }
 
-        $custom_fields_fonts = array_filter(wp_list_pluck(OCR::form_custom_fields($this->optin_campaign_id), 'font'));
+        $custom_fields = OCR::form_custom_fields($this->optin_campaign_id);
 
-        if (is_array($custom_fields_fonts) && ! empty($custom_fields_fonts)) {
-            foreach ($custom_fields_fonts as $font) {
-                if ($cta_button_font != 'inherit') {
-                    $webfont[] = sprintf("'%s'", self::_remove_web_safe_font($font));
+        if (is_array($custom_fields) && ! empty($custom_fields)) {
+
+            $custom_fields_fonts = array_filter(wp_list_pluck($custom_fields, 'font'));
+
+            if (is_array($custom_fields_fonts) && ! empty($custom_fields_fonts)) {
+                foreach ($custom_fields_fonts as $font) {
+                    if ($cta_button_font != 'inherit') {
+                        $webfont[] = sprintf("'%s'", self::_remove_web_safe_font($font));
+                    }
                 }
             }
         }
