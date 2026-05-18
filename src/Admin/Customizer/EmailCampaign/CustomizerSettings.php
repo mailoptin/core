@@ -498,11 +498,6 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),
-                'content_ellipsis_button_alignment'        => array(
-                    'default'   => $this->customizer_defaults['content_ellipsis_button_alignment'],
-                    'type'      => 'option',
-                    'transport' => 'postMessage',
-                ),
                 'content_ellipsis_button_background_color' => array(
                     'default'   => $this->customizer_defaults['content_ellipsis_button_background_color'],
                     'type'      => 'option',

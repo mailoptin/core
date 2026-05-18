@@ -231,6 +231,7 @@ class Lucid extends AbstractTemplate
         $post_title_feature_img = $this->_post_title_feature_img();
 
         $content_ellipsis_button_background_color = $this->content_ellipsis_button_background_color();
+        $content_ellipsis_button_label = $this->content_ellipsis_button_label();
 
         $before_post_content = apply_filters('mailoptin_email_campaign_lucid_npp_before_post_content', '', $this);
 
@@ -282,12 +283,13 @@ class Lucid extends AbstractTemplate
                               <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{post.url}}" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="$content_ellipsis_button_background_color">
                                 <w:anchorlock/>
                                   <center style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#ffffff;">
-                            <![endif]-->
-                            <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
-                            <!--[if mso]>
-                                </center>
+                                    $content_ellipsis_button_label
+                                  </center>
                               </v:roundrect>
                             <![endif]-->
+                            <!--[if mso]><!-->
+                                <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">$content_ellipsis_button_label</a>
+                            <!--<![endif]-->
                         </td>
                       </tr>
                     </table>
@@ -473,7 +475,7 @@ HTML;
       color: #2F3133;
       font-weight: bold;
       font-size: 22px;
-      line-height: 30px;
+      line-height: 25px;
       mso-line-height-rule: exactly;
     }
     h2 {
@@ -499,7 +501,7 @@ HTML;
     /* Buttons ------------------------------ */
     .button {
       display: inline-block;
-      width: 200px;
+      width: 100%;
       border-radius: 3px;
       font-size: 15px;
       line-height: 45px;
@@ -513,11 +515,6 @@ HTML;
     @media only screen and (max-width: 600px) {
       .email-body_inner,
       .email-footer {
-        width: 100% !important;
-      }
-    }
-    @media only screen and (max-width: 500px) {
-      .button {
         width: 100% !important;
       }
     }
@@ -535,6 +532,21 @@ HTML;
         white-space: -o-pre-wrap;              /* Opera 7 and up */
         word-wrap: break-word;                 /* IE 5.5+ and up */
         }
+
+    .mo-wc-price ins{
+        text-decoration: none;
+    }
+        
+    .mo-wc-price .screen-reader-text {
+       display: none;
+       max-height:0;
+       overflow: hidden;
+       color:transparent;
+       font-size:1px;
+       line-height: 1px;
+       max-width:0;
+       opacity:0;
+    }
 CSS;
 
     }

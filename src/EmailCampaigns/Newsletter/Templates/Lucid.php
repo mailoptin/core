@@ -207,6 +207,13 @@ class Lucid extends AbstractTemplate
         $view_web_version = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}">[mo_header_web_version_link_label]</a>', $this);
 
         $body = <<<HTML
+<!--[if mso]>
+  <style type="text/css">
+    body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
+    table {border-collapse: collapse;}
+    img {-ms-interpolation-mode: bicubic; border: 0;}
+  </style>
+  <![endif]-->
   <table class="email-wrapper mo-page-bg-color" width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td align="center">
@@ -261,13 +268,13 @@ HTML;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
     }
-    
+
     body * {
         -moz-box-sizing:    border-box;
         -webkit-box-sizing: border-box;
         box-sizing:         border-box;
     }
-    
+
     a {
       color: #3869D4;
       text-decoration: underline;
@@ -310,11 +317,11 @@ HTML;
       margin: 0;
       padding: 0;
     }
-    
+
     .email-body a {
       text-decoration: none;
     }
-    
+
     .email-body .mo-content-button-alignment {
       margin-bottom: 10px;
     }
@@ -326,7 +333,7 @@ HTML;
       display: block;
       margin: 0 auto;
     }
-    
+
     .email-body figure {
         margin: 0;
         padding: 0;
@@ -383,25 +390,20 @@ HTML;
       margin-top: 0;
       color: #2F3133;
       font-weight: bold;
-      /*text-align: left;*/
     }
     h2 {
       margin-top: 0;
-      /*color: #2F3133;*/
       font-weight: bold;
-      /*text-align: left;*/
     }
     h3 {
       margin-top: 0;
-      /*color: #2F3133;*/
       font-weight: bold;
-      /*text-align: left;*/
     }
     p {
       margin-top: 0;
       line-height: 1.5em;
     }
-    
+
     p.center {
       text-align: center;
     }
@@ -425,13 +427,19 @@ HTML;
       .email-footer {
         width: 100% !important;
       }
+
+      .email-body_inner td[width="50%"] {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 0 20px 0 !important;
+      }
     }
     @media only screen and (max-width: 500px) {
       .button {
         width: 100% !important;
       }
     }
-    
+
     pre {
         overflow: auto;
         border: 1px dashed #888;
@@ -449,13 +457,13 @@ HTML;
         #outlook a {
               padding: 0;
         }
-        
+    
          td {
             border-collapse: collapse;
             mso-table-lspace: 0pt;
             mso-table-rspace: 0pt;
          }
-        
+    
          img {
             border: 0;
             height: auto;
@@ -464,6 +472,26 @@ HTML;
             text-decoration: none;
             -ms-interpolation-mode: bicubic;
          }
+
+        /* Multi-column posts layout ------------------------------ */
+        .mo-posts-row {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .mo-posts-row td.mo-post-column {
+            vertical-align: top;
+            padding: 0 5px;
+            box-sizing: border-box;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .mo-posts-row td.mo-post-column {
+                display: block !important;
+                width: 100% !important;
+                padding: 0 0 20px 0 !important;
+            }
+        }
 CSS;
 
     }
@@ -571,8 +599,8 @@ CSS;
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                     <tbody>
                     <tr>
-                        <td style="width:550px;">
-                            <img class="mo-email-builder-element" alt="<?= $this->feature_image_alt($post) ?>" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, ($settings['default_image_url'] ?? '')) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550"/>
+                        <td>
+                            <img class="mo-email-builder-element" alt="<?= $this->feature_image_alt($post) ?>" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, ($settings['default_image_url'] ?? '')) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;"/>
                         </td>
                     </tr>
                     </tbody>
@@ -624,13 +652,50 @@ CSS;
 
     public function posts_block($id, $settings)
     {
-        $post_list = $settings['post_list'];
+        $post_list    = $settings['post_list'];
+        $column_count = (int)$settings['post_column_count'];
+        if (empty($column_count) || $column_count <= 1 || $column_count > 3) $column_count = 1;
 
         $html = '';
 
+        // Ensure column count is between 1 and 3
+        $column_count = max(1, min(3, (int)$column_count));
+
         if (is_array($post_list) && ! empty($post_list)) {
-            foreach ($post_list as $post) {
-                $html .= $this->posts_block_tmpl($id, $post, $settings);
+
+            // For single column, use original simple layout
+            if ($column_count === 1) {
+                foreach ($post_list as $post) {
+                    $html .= $this->posts_block_tmpl($id, $post, $settings);
+                }
+
+                return $html;
+            }
+
+            // Multi-column layout
+            $posts_chunked = array_chunk($post_list, $column_count);
+
+            // Calculate width percentages
+            $width_map = [
+                    2 => '50%',
+                    3 => '33.33%'
+            ];
+
+            foreach ($posts_chunked as $row) {
+
+                $html .= '<tr><td style="padding:0;"><table class="mo-posts-row" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>';
+
+                foreach ($row as $post) {
+                    // If row has fewer posts than column count, calculate appropriate width
+                    $width = count($row) < $column_count ? (100 / count($row)) . '%' : $width_map[$column_count];
+                    $html  .= '<td class="mo-post-column" valign="top" width="' . $width . '" style="width:' . $width . ';">';
+                    $html  .= '<table width="100%" cellpadding="0" cellspacing="0" border="0">';
+                    $html  .= $this->posts_block_tmpl($id, $post, $settings);
+                    $html  .= '</table>';
+                    $html  .= '</td>';
+                }
+
+                $html .= '</tr></table></td></tr>';
             }
         }
 
@@ -776,7 +841,7 @@ HTML;
                             <?php if ( ! empty($image_link)) : ?>
                             <a href="<?= $image_link ?>" target="_blank">
                                 <?php endif; ?>
-                                <img class="mo-email-builder-element" id="<?= $id ?>" alt="<?= $image_alt_text ?>" height="auto" src="<?= $image_url ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="<?= $image_width ?>"/>
+                                <img class="mo-email-builder-element" id="<?= $id ?>" alt="<?= $image_alt_text ?>" height="auto" src="<?= $image_url ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;" width="<?= $image_width ?>"/>
                                 <?php if ( ! empty($image_link)) : ?>
                             </a>
                         <?php endif; ?>

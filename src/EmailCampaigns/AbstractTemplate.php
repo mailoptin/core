@@ -23,7 +23,6 @@ use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
  * @method string content_ellipsis_button_background_color()
  * @method string content_ellipsis_button_text_color()
  * @method string content_alignment()
- * @method string content_ellipsis_button_alignment()
  * @method string content_ellipsis_button_label()
  * @method string content_remove_ellipsis_button()
  * @method string header_removal()
@@ -207,9 +206,6 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
         add_shortcode('mo_content_alignment', function () {
             return $this->content_alignment();
         });
-        add_shortcode('mo_content_ellipsis_button_alignment', function () {
-            return $this->content_ellipsis_button_alignment();
-        });
         add_shortcode('mo_content_ellipsis_button_label', function () {
             return $this->content_ellipsis_button_label();
         });
@@ -253,7 +249,6 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
         $content_background_color                 = $this->content_background_color();
         $content_alignment                        = $this->content_alignment();
         $content_title_font_size                  = absint($this->content_title_font_size());
-        $content_ellipsis_button_alignment        = $this->content_ellipsis_button_alignment();
         $content_ellipsis_button_background_color = $this->content_ellipsis_button_background_color();
         $content_ellipsis_button_text_color       = $this->content_ellipsis_button_text_color();
         $content_body_font_size                   = absint($this->content_body_font_size());
@@ -282,8 +277,6 @@ abstract class AbstractTemplate extends AbstractCustomizer implements TemplateIn
     .mo-content-remove-ellipsis-button {{$ellipsis_button_removal}}
     .mo-content-button-text-color {color: $content_ellipsis_button_text_color;}
     .mo-content-alignment {text-align: $content_alignment;}
-    /* comment no longer valid i believe - must be applied to a DIV so text-align can work for child button which follows where the text is align to */
-    .mo-content-button-alignment {text-align: $content_ellipsis_button_alignment; float: $content_ellipsis_button_alignment}
     /* two enclosing braces are used because the first is assumed to be indicating a variable name but we need {} for css.*/
     .mo-header-container {{$header_removal}}
     /* two enclosing braces are used because the first is assumed to be indicating a variable name but we need {} for css.*/

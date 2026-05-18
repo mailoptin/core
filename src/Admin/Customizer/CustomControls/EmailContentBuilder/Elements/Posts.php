@@ -76,6 +76,16 @@ class Posts extends AbstractElement
                     'max'         => 1000,
                     'step'        => 1,
                 ],
+                'post_column_count'     => [
+                    'label'   => esc_html__('Columns', 'mailoptin'),
+                    'type'    => 'select',
+                    'choices' => [
+                        '1' => esc_html__('One', 'mailoptin'),
+                        '2' => esc_html__('Two', 'mailoptin'),
+                        '3' => esc_html__('Three', 'mailoptin'),
+                    ],
+                    'tab'     => 'tab-content'
+                ],
                 'post_metas'            => [
                     'label'    => esc_html__('Post Meta Data', 'mailoptin'),
                     'type'     => 'select',
