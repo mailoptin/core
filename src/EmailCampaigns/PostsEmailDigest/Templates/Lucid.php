@@ -10,6 +10,8 @@ class Lucid extends AbstractTemplate
 {
     public $template_name = 'Lucid';
 
+    public $column_count;
+
     public function __construct($email_campaign_id, $posts)
     {
         // -------------- Template header logo width and height dimension --------------------------------- //
@@ -25,6 +27,10 @@ class Lucid extends AbstractTemplate
         });
 
         parent::__construct($email_campaign_id, $posts);
+
+        $this->column_count = (int)EmailCampaignRepository::get_customizer_value($this->email_campaign_id, 'column_count', '1');
+
+        if (empty($this->column_count) || $this->column_count <= 1 || $this->column_count > 3) $this->column_count = 1;
     }
 
     /**
@@ -204,11 +210,20 @@ class Lucid extends AbstractTemplate
         return '</td>';
     }
 
+    public function get_post_item_width()
+    {
+        return [2 => 235, 3 => 150][$this->column_count] ?? 500;
+    }
+
     public function single_post_item()
     {
         $content_remove_post_link = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_remove_post_link');
 
         $content_ellipsis_button_background_color = $this->content_ellipsis_button_background_color();
+
+        $width = $this->get_post_item_width();
+
+        $content_ellipsis_button_label = $this->content_ellipsis_button_label();
 
         ob_start();
         ?>
@@ -222,7 +237,7 @@ class Lucid extends AbstractTemplate
                         </a>
                         {{post.meta}}
                         <a href="{{post.url}}">
-                            <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+                            <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
                         </a>
                     <?php endif;
 
@@ -230,7 +245,7 @@ class Lucid extends AbstractTemplate
                         <h1 class="mo-content-title-font-size mo-content-headline-color" style="margin-top:0;">
                             {{post.title}}</h1>
                         {{post.meta}}
-                        <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+                        <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
                     <?php endif;
                     do_action('mailoptin_email_campaign_lucid_before_post_content');
                     ?>
@@ -243,12 +258,12 @@ class Lucid extends AbstractTemplate
             <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{post.url}}" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="<?= $content_ellipsis_button_background_color ?>">
                 <w:anchorlock/>
                 <center style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#ffffff;font-weight:bold;">
-                    [mo_content_ellipsis_button_label]
+                    <?= $content_ellipsis_button_label ?>
                 </center>
             </v:roundrect>
             <![endif]-->
                                 <!--[if !mso]><!-->
-                                <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}">[mo_content_ellipsis_button_label]</a>
+                                <a class="button button--red mo-content-button-background-color mo-content-button-text-color mo-content-read-more-label" href="{{post.url}}"><?= $content_ellipsis_button_label ?></a>
                                 <!--<![endif]-->
                             </td>
                         </tr>
@@ -314,9 +329,7 @@ class Lucid extends AbstractTemplate
      */
     public function get_body()
     {
-        $column_count = (int)EmailCampaignRepository::get_customizer_value($this->email_campaign_id, 'column_count', '1');
-
-        if (empty($column_count) || $column_count <= 1 || $column_count > 3) $column_count = 1;
+        $column_count = $this->column_count;
 
         $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="font-size:10px;">[mo_header_web_version_link_label]</a>');
         $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
@@ -468,13 +481,19 @@ HTML;
 
     .email-body img {
       max-width: 500px;
-      width: auto;
+      max-height: 500px;
+      width: 100%;
       height: auto;
       padding-bottom: 10px;
       display: block;
       margin: 0 auto;
       border: 0;
       outline: none;
+      object-fit: cover;
+    }
+    
+    .mo-post-cell tr td:only-child img {
+      max-width: 100% !important;
     }
     
     .email-body figure {
@@ -625,8 +644,6 @@ HTML;
         opacity:0;
         }
         
-        
-
         .mo-post-cell .button {
             width: 100% !important;
         }
@@ -650,23 +667,11 @@ HTML;
         width: 166px;
       }
 
-      .mo-post-cell img.mo-imgix {
-          width: 100% !important;
-          max-width: 100% !important;
-          height: auto !important;
-          object-fit: cover;
-      }
-
 @media only screen and (max-width: 600px) {
     .mo-posts-grid td.mo-post-cell {
         display: block !important;
         width: 100% !important;
         padding: 0 0 20px 0 !important;
-    }
-
-    .mo-post-cell img.mo-imgix {
-        width: 100% !important;
-        max-width: 500px !important;
     }
 }
 CSS;

@@ -142,7 +142,8 @@ class Customizer_Control extends WP_Customize_Control
                     text = '<?=esc_html__('Embedded list of posts', 'mailoptin');?>';
                 }
 
-                return text;
+                // strip html tags
+                return text.replace(/<[^>]*>/g, '');
             }
 
             function mo_ece_get_field_value(key, obj) {

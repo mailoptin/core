@@ -328,10 +328,12 @@ HTML;
 
     .email-body img {
       max-width:500px;
+      max-height: 500px;
       height: auto;
       padding-bottom: 10px;
       display: block;
       margin: 0 auto;
+      object-fit: cover;
     }
 
     .email-body figure {
@@ -485,6 +487,27 @@ HTML;
             box-sizing: border-box;
         }
         
+        
+        
+        .mo-wc-price ins{
+        text-decoration: none;
+        }
+        
+        .mo-wc-price .screen-reader-text {
+        display: none;
+        max-height:0;
+        overflow: hidden;
+        color:transparent;
+        font-size:1px;
+        line-height: 1px;
+        max-width:0;
+        opacity:0;
+        }
+        
+        .mo-post-column tr td:only-child img {
+          max-width: 100% !important;
+        }
+        
         @media only screen and (max-width: 600px) {
             .mo-posts-row td.mo-post-column {
                 display: block !important;
@@ -494,6 +517,11 @@ HTML;
         }
 CSS;
 
+    }
+
+    public function get_post_item_width($column_count)
+    {
+        return [2 => 235, 3 => 150][$column_count] ?? 500;
     }
 
     public function email_content_builder_element_defaults($defaults)
@@ -555,11 +583,14 @@ CSS;
     }
 
     /**
+     * @param $id
      * @param \WP_Post $post
+     * @param $settings
+     * @param $column_count
      *
      * @return false|string
      */
-    public function posts_block_tmpl($id, $post, $settings)
+    public function posts_block_tmpl($id, $post, $settings, $column_count)
     {
         $block_padding         = $settings['block_padding'];
         $read_more_link_text   = $settings['read_more_text'];
@@ -572,10 +603,12 @@ CSS;
         $remove_read_more_link = $settings['remove_read_more_link'];
         $post_content_length   = $settings['post_content_length'];
 
+        $width = $this->get_post_item_width($column_count);
+
         ob_start();
         ?>
         <tr>
-            <td align="left" style="font-size:0px;padding-top:<?= $block_padding['top'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-bottom:0;word-break:break-word;">
+            <td align="left" style="font-size:0;padding-top:<?= $block_padding['top'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-bottom:0;word-break:break-word;">
                 <div class="mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
                     <a href="<?= $this->post_url($post) ?>">
                         <h1 style="color:<?= $post_title_color ?>"><?= $this->post_title($post) ?></h1></a>
@@ -600,7 +633,7 @@ CSS;
                     <tbody>
                     <tr>
                         <td>
-                            <img class="mo-email-builder-element" alt="<?= $this->feature_image_alt($post) ?>" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, ($settings['default_image_url'] ?? '')) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;"/>
+                            <img class="mo-email-builder-element" alt="<?= $this->feature_image_alt($post) ?>" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, ($settings['default_image_url'] ?? '')) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width:<?= esc_attr($width) ?>px;" width="<?= esc_attr($width) ?>"/>
                         </td>
                     </tr>
                     </tbody>
@@ -659,14 +692,14 @@ CSS;
         $html = '';
 
         // Ensure column count is between 1 and 3
-        $column_count = max(1, min(3, (int)$column_count));
+        $column_count = max(1, min(3, $column_count));
 
         if (is_array($post_list) && ! empty($post_list)) {
 
             // For single column, use original simple layout
             if ($column_count === 1) {
                 foreach ($post_list as $post) {
-                    $html .= $this->posts_block_tmpl($id, $post, $settings);
+                    $html .= $this->posts_block_tmpl($id, $post, $settings, $column_count);
                 }
 
                 return $html;
@@ -690,7 +723,7 @@ CSS;
                     $width = count($row) < $column_count ? (100 / count($row)) . '%' : $width_map[$column_count];
                     $html  .= '<td class="mo-post-column" valign="top" width="' . $width . '" style="width:' . $width . ';">';
                     $html  .= '<table width="100%" cellpadding="0" cellspacing="0" border="0">';
-                    $html  .= $this->posts_block_tmpl($id, $post, $settings);
+                    $html  .= $this->posts_block_tmpl($id, $post, $settings, $column_count);
                     $html  .= '</table>';
                     $html  .= '</td>';
                 }
@@ -833,15 +866,15 @@ HTML;
         ob_start();
         ?>
         <tr>
-            <td align="<?= $image_alignment ?>" style="font-size:0px;padding:<?= $block_padding ?>;word-break:break-word;">
+            <td align="<?= esc_attr($image_alignment) ?>" style="font-size:0px;padding:<?= esc_attr($block_padding) ?>;word-break:break-word;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                     <tbody>
                     <tr>
                         <td style="width:<?= $image_width ?>px;">
                             <?php if ( ! empty($image_link)) : ?>
-                            <a href="<?= $image_link ?>" target="_blank">
+                            <a href="<?= esc_url($image_link) ?>" target="_blank">
                                 <?php endif; ?>
-                                <img class="mo-email-builder-element" id="<?= $id ?>" alt="<?= $image_alt_text ?>" height="auto" src="<?= $image_url ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;" width="<?= $image_width ?>"/>
+                                <img class="mo-email-builder-element" id="<?= $id ?>" alt="<?= esc_attr($image_alt_text) ?>" height="auto" src="<?= esc_attr($image_url) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width:<?= esc_attr($image_width) ?>" width="<?= esc_attr($image_width) ?>"/>
                                 <?php if ( ! empty($image_link)) : ?>
                             </a>
                         <?php endif; ?>
