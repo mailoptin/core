@@ -51,66 +51,6 @@ class Recaptcha
         wp_enqueue_script('mo-recaptcha-script', $src, ['mailoptin'], MAILOPTIN_VERSION_NUMBER, true);
     }
 
-    public function validate_submission($response, ConversionDataBuilder $conversion_data)
-    {
-        $site_key       = Settings::instance()->recaptcha_site_key();
-        $site_secret    = Settings::instance()->recaptcha_site_secret();
-        $recaptcha_type = Settings::instance()->recaptcha_type();
-
-        if (empty($site_key) || empty($site_secret)) return $response;
-
-        $optin_campaign_id = $conversion_data->optin_campaign_id;
-        $fields            = OptinCampaignsRepository::form_custom_fields($optin_campaign_id);
-        $has_recaptcha     = false;
-        foreach ($fields as $field) {
-            if (in_array($field['field_type'], ['recaptcha_v2', 'recaptcha_v3'])) {
-                $has_recaptcha = true;
-                break;
-            }
-        }
-
-        if ( ! $has_recaptcha) return $response;
-
-        if (empty($conversion_data->payload['g-recaptcha-response'])) {
-            return new WP_Error('mo-empty-captcha', __('reCAPTCHA is required.', 'mailoptin'));
-        }
-
-        $request = [
-            'body' => [
-                'secret'   => $site_secret,
-                'response' => $conversion_data->payload['g-recaptcha-response'],
-                'remoteip' => \MailOptin\Core\get_ip_address(),
-            ],
-        ];
-
-        $result        = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', $request);
-        $response_code = wp_remote_retrieve_response_code($result);
-
-        if (200 !== (int)$response_code) {
-            /* translators: %d: Response code. */
-            return new WP_Error('mo-captcha-cant-connect', sprintf(esc_html__('Can not connect to the reCAPTCHA server (%d).', 'mailoptin'), $response_code));
-        }
-
-        $body = json_decode(wp_remote_retrieve_body($result), true);
-
-        if ( ! isset($body['success']) || ! $body['success']) {
-            return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
-        }
-
-        if ($recaptcha_type == 'v3') {
-            $score           = $body['score'];
-            $threshold_score = Settings::instance()->recaptcha_score();
-            if (empty($threshold_score)) {
-                $threshold_score = '0.5';
-            }
-            if ($score < $threshold_score) {
-                return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
-            }
-        }
-
-        return $response;
-    }
-
     public function render_field($output, $field_type, $field, $atts)
     {
         if ( ! in_array($field_type, ['recaptcha_v2', 'recaptcha_v3'])) return $output;
@@ -247,6 +187,112 @@ $("#recaptcha_api_platform").on("change", function() {
         ];
 
         return $settings;
+    }
+
+    public function validate_submission($response, ConversionDataBuilder $conversion_data)
+    {
+        $site_key        = Settings::instance()->recaptcha_site_key();
+        $site_secret     = Settings::instance()->recaptcha_site_secret();
+        $recaptcha_type  = Settings::instance()->recaptcha_type();
+        $api_key         = Settings::instance()->recaptcha_api_key();
+        $project_id      = Settings::instance()->recaptcha_project_id();
+        $threshold_score = Settings::instance()->recaptcha_score();
+
+        $token = $conversion_data->payload['g-recaptcha-response'] ?? '';
+
+        if (empty($site_key) || empty($site_secret)) return $response;
+
+        $optin_campaign_id = $conversion_data->optin_campaign_id;
+        $fields            = OptinCampaignsRepository::form_custom_fields($optin_campaign_id);
+        $has_recaptcha     = false;
+        foreach ($fields as $field) {
+            if (in_array($field['field_type'], ['recaptcha_v2', 'recaptcha_v3'])) {
+                $has_recaptcha = true;
+                break;
+            }
+        }
+
+        if ( ! $has_recaptcha) return $response;
+
+        if (empty($token)) return new WP_Error('mo-empty-captcha', __('reCAPTCHA is required.', 'mailoptin'));
+
+        if (self::is_enterprise_api_platform()) {
+
+            $url = sprintf('https://recaptchaenterprise.googleapis.com/v1/projects/%s/assessments?key=%s', $project_id, $api_key);
+
+            $body = [
+                'event' => [
+                    'token'          => $token,
+                    'siteKey'        => $site_key,
+                    'expectedAction' => 'form',
+                ]
+            ];
+
+            $result = wp_remote_post($url, [
+                'headers' => ['Content-Type' => 'application/json'],
+                'body'    => wp_json_encode($body),
+            ]);
+
+            $response_code = wp_remote_retrieve_response_code($result);
+
+            if (200 !== (int)$response_code) {
+                /* translators: %d: Response code. */
+                return new WP_Error('mo-captcha-cant-connect', sprintf(esc_html__('Can not connect to the reCAPTCHA server (%d).', 'mailoptin'), $response_code));
+            }
+
+            $response_body = json_decode(wp_remote_retrieve_body($result), true);
+
+            if ( ! isset($response_body['tokenProperties']['valid']) || ! $response_body['tokenProperties']['valid']) {
+                return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
+            }
+
+            if ($recaptcha_type == 'v3') {
+
+                $score = $response_body['riskAnalysis']['score'] ?? 0;
+
+                $action = $response_body['tokenProperties']['action'] ?? '';
+
+                if ($score < $threshold_score || $action !== 'form') {
+                    return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
+                }
+            }
+
+        } else {
+
+            $request = [
+                'body' => [
+                    'secret'   => $site_secret,
+                    'response' => $token,
+                    'remoteip' => \MailOptin\Core\get_ip_address(),
+                ],
+            ];
+
+            $result        = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', $request);
+            $response_code = wp_remote_retrieve_response_code($result);
+
+            if (200 !== (int)$response_code) {
+                /* translators: %d: Response code. */
+                return new WP_Error('mo-captcha-cant-connect', sprintf(esc_html__('Can not connect to the reCAPTCHA server (%d).', 'mailoptin'), $response_code));
+            }
+
+            $body = json_decode(wp_remote_retrieve_body($result), true);
+
+            if ( ! isset($body['success']) || ! $body['success']) {
+                return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
+            }
+
+            if ($recaptcha_type == 'v3') {
+                $score = $body['score'];
+                if (empty($threshold_score)) {
+                    $threshold_score = '0.5';
+                }
+                if ($score < $threshold_score) {
+                    return new WP_Error('mo-empty-captcha', esc_html__('Google reCAPTCHA verification failed, please try again.', 'mailoptin'));
+                }
+            }
+        }
+
+        return $response;
     }
 
     public static function get_instance()
