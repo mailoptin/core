@@ -3,13 +3,14 @@
 namespace MailOptin\Core;
 
 use MailOptin\AdvanceAnalytics\AdvanceAnalytics;
+use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 15;
+    const DB_VER = 16;
 
     public function init_options()
     {
@@ -260,6 +261,15 @@ class DBUpdates
         $table = $wpdb->prefix . Core::conversions_table_name;
 
         $wpdb->query("ALTER TABLE $table ADD COLUMN meta_data longtext NULL DEFAULT NULL;");
+    }
+
+    public function update_routine_16()
+    {
+        $recaptcha_site_key = Settings::instance()->recaptcha_site_key();
+
+        if ( ! empty($recaptcha_site_key)) {
+            Settings::instance()->update('recaptcha_api_platform', 'classic');
+        }
     }
 
     public static function get_instance()
