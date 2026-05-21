@@ -17,18 +17,35 @@ class Recaptcha
         add_filter('mo_subscription_form_error', [$this, 'validate_submission'], 10, 2);
     }
 
+    public static function is_enterprise_api_platform(): bool
+    {
+        $api_platform = Settings::instance()->recaptcha_api_platform();
+        $api_key      = Settings::instance()->recaptcha_api_key();
+        $project_id   = Settings::instance()->recaptcha_project_id();
+
+        return $api_platform == 'enterprise' && ! empty($project_id) && ! empty($api_key);
+    }
+
     public function enqueue_script()
     {
         $site_key    = Settings::instance()->recaptcha_site_key();
         $site_secret = Settings::instance()->recaptcha_site_secret();
+        $api_key     = Settings::instance()->recaptcha_api_key();
 
-        if (empty($site_key) || empty($site_secret)) return;
+        if (empty($site_key) || (empty($site_secret) && empty($api_key))) return;
 
         $type = Settings::instance()->recaptcha_type();
-        $src  = 'https://www.google.com/recaptcha/api.js?onload=moFormRecaptchaLoadCallback&render=explicit';
+
+        if (self::is_enterprise_api_platform()) {
+            $base_url = 'https://www.google.com/recaptcha/enterprise.js';
+        } else {
+            $base_url = 'https://www.google.com/recaptcha/api.js';
+        }
+
+        $src = $base_url . '?onload=moFormRecaptchaLoadCallback&render=explicit';
+
         if ($type === 'v3') {
-            $site_key = Settings::instance()->recaptcha_site_key();
-            $src      = 'https://www.google.com/recaptcha/api.js?onload=moFormRecaptchaLoadCallback&render=' . $site_key;
+            $src = $base_url . '?onload=moFormRecaptchaLoadCallback&render=' . $site_key;
         }
 
         wp_enqueue_script('mo-recaptcha-script', $src, ['mailoptin'], MAILOPTIN_VERSION_NUMBER, true);
@@ -147,13 +164,13 @@ class Recaptcha
         $html = sprintf(
             '<label><input class="mo-recaptcha-type" type="radio" name="mailoptin_settings[recaptcha_type]" value="v2" %s>%s</label>&nbsp;&nbsp;',
             checked($value, 'v2', false),
-            __('reCAPTCHA v2', 'mailoptin')
+            __('Checkbox Challenge (v2)', 'mailoptin')
         );
 
         $html .= sprintf(
             '<label><input class="mo-recaptcha-type" type="radio" name="mailoptin_settings[recaptcha_type]" value="v3" %s>%s</label>',
             checked($value, 'v3', false),
-            __('reCAPTCHA v3', 'mailoptin')
+            __('Score-Based (v3)', 'mailoptin')
         );
 
         $html .= '<script type="text/javascript">
@@ -167,27 +184,60 @@ $("input.mo-recaptcha-type").on("change", function() {
        $("#recaptcha_score_row").hide();
    }
 }).trigger("change");
+
+
+$("#recaptcha_api_platform").on("change", function() {
+   var type = $(this).val();
+   if(type === "enterprise") {
+       $("#recaptcha_project_id_row").show();
+       $("#recaptcha_api_key_row").show();
+       $("#recaptcha_site_secret_row").hide();
+}
+   else {
+       $("#recaptcha_project_id_row").hide();
+       $("#recaptcha_api_key_row").hide();
+       $("#recaptcha_site_secret_row").show();
+   }
+}).trigger("change");
 });
 </script>';
 
         $settings['recaptcha_settings'] = [
             'tab_title' => __('reCAPTCHA', 'mailoptin'),
             [
-                'section_title'         => __('reCAPTCHA Settings', 'mailoptin'),
-                'recaptcha_type'        => [
+                'section_title'          => __('reCAPTCHA Settings', 'mailoptin'),
+                'recaptcha_api_platform' => [
+                    'type'        => 'select',
+                    'options'     => [
+                        'enterprise' => esc_html__('reCAPTCHA Enterprise', 'mailoptin'),
+                        'classic'    => esc_html__('reCAPTCHA Classic', 'mailoptin')
+                    ],
+                    'label'       => esc_html__('API Platform', 'mailoptin'),
+                    'description' => esc_html__('Select the reCAPTCHA API platform to use.', 'mailoptin')
+                ],
+                'recaptcha_type'         => [
                     'label' => __('Type', 'mailoptin'),
                     'type'  => 'custom_field_block',
                     'data'  => $html
                 ],
-                'recaptcha_site_key'    => [
+                'recaptcha_project_id'   => [
                     'type'  => 'text',
-                    'label' => __('Site Key', 'mailoptin')
+                    'label' => esc_html__('Google Cloud Project ID', 'mailoptin')
                 ],
-                'recaptcha_site_secret' => [
+                'recaptcha_api_key'      => [
+                    'type'        => 'text',
+                    'label'       => esc_html__('Google Cloud API Key', 'mailoptin'),
+                    'description' => sprintf(__('API key for the reCAPTCHA Enterprise API. Create one in the %sGoogle Cloud Console%s with reCAPTCHA Enterprise API access.', 'mailoptin'), '<a href="https://console.cloud.google.com/apis/credentials" target="_blank">', '</a>')
+                ],
+                'recaptcha_site_key'     => [
                     'type'  => 'text',
-                    'label' => __('Site Secret', 'mailoptin')
+                    'label' => __('Key ID / Site Key', 'mailoptin')
                 ],
-                'recaptcha_score'       => [
+                'recaptcha_site_secret'  => [
+                    'type'  => 'text',
+                    'label' => __('Secret Key', 'mailoptin')
+                ],
+                'recaptcha_score'        => [
                     'type'        => 'text',
                     'label'       => __('Score Threshold', 'mailoptin'),
                     'value'       => '0.5',
