@@ -881,20 +881,33 @@ class AjaxHandler
 
             if ( ! empty($ls_integration) && ! empty($ls_lists) && $ls_integration == $integration['connection_service']) {
 
-                if (is_array($ls_lists)) {
-                    foreach ($ls_lists as $ls_list) {
+                // check if form has list selection custom field
+                $fields            = OptinCampaignsRepository::form_custom_fields($optin_campaign_id);
+                $has_list_selection_field     = false;
+                foreach ($fields as $field) {
+                    if ($field['field_type'] === 'list_subscription') {
+                        $has_list_selection_field = true;
+                        break;
+                    }
+                }
+
+                if ($has_list_selection_field) {
+
+                    if (is_array($ls_lists)) {
+                        foreach ($ls_lists as $ls_list) {
+                            $responses[] = self::add_lead_to_connection(
+                                    $integration['connection_service'],
+                                    $ls_list,
+                                    $conversion_data
+                            );
+                        }
+                    } else {
                         $responses[] = self::add_lead_to_connection(
-                            $integration['connection_service'],
-                            $ls_list,
-                            $conversion_data
+                                $integration['connection_service'],
+                                $ls_lists,
+                                $conversion_data
                         );
                     }
-                } else {
-                    $responses[] = self::add_lead_to_connection(
-                        $integration['connection_service'],
-                        $ls_lists,
-                        $conversion_data
-                    );
                 }
 
                 // list subscription shim ends here
