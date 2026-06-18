@@ -1779,11 +1779,6 @@ a.mailoptin-nav-tab.nav-tab {
     padding: 15px;
 }
 
-.moWP7higher .wp_csa_view .tablenav .button {
-    line-height: 2.30769231;
-    min-height: auto;
-}
-
 /* increase customizer sidebar width to accomodate > wp 7.0 ui changes that made submit buttons large */
 .moWP7higher .wp-full-overlay-sidebar {
     min-width: 320px;
