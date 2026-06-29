@@ -287,6 +287,7 @@ trait CustomizerTrait
             'SalesforceConnect'                => __('Select Salesforce Object', 'mailoptin'),
             'ConvertKitConnect'                => __('Select Kit (ConvertKit) Form', 'mailoptin'),
             'BeehiivConnect'                   => __('Select beehiiv Tier', 'mailoptin'),
+            'CopperConnect'                   => __('Select Record Type', 'mailoptin'),
             'ZohoCRMConnect'                   => __('Select ZohoCRM Module', 'mailoptin'),
             'FacebookCustomAudienceConnect'    => __('Select Custom Audience', 'mailoptin'),
             'WebHookConnect'                   => __('Request Method', 'mailoptin'),
