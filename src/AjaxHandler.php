@@ -882,11 +882,14 @@ class AjaxHandler
             if ( ! empty($ls_integration) && ! empty($ls_lists) && $ls_integration == $integration['connection_service']) {
 
                 // check if form has list selection custom field
-                $fields            = OptinCampaignsRepository::form_custom_fields($optin_campaign_id);
-                $has_list_selection_field     = false;
+                $fields = OptinCampaignsRepository::form_custom_fields($optin_campaign_id);
+                $valid_options = [];
+
+                $has_list_selection_field = false;
                 foreach ($fields as $field) {
                     if ($field['field_type'] === 'list_subscription') {
                         $has_list_selection_field = true;
+                        $valid_options = $field['list_subscription_lists'] ?? [];
                         break;
                     }
                 }
@@ -895,18 +898,23 @@ class AjaxHandler
 
                     if (is_array($ls_lists)) {
                         foreach ($ls_lists as $ls_list) {
+                            if (in_array($ls_list, $valid_options)) {
+                                $responses[] = self::add_lead_to_connection(
+                                        $integration['connection_service'],
+                                        $ls_list,
+                                        $conversion_data
+                                );
+                            }
+                        }
+                    } else {
+
+                        if (in_array($ls_lists, $valid_options)) {
                             $responses[] = self::add_lead_to_connection(
                                     $integration['connection_service'],
-                                    $ls_list,
+                                    $ls_lists,
                                     $conversion_data
                             );
                         }
-                    } else {
-                        $responses[] = self::add_lead_to_connection(
-                                $integration['connection_service'],
-                                $ls_lists,
-                                $conversion_data
-                        );
                     }
                 }
 
