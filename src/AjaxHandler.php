@@ -810,6 +810,8 @@ class AjaxHandler
             'meta_data'           => json_encode(['ip_address' => get_ip_address()]),
         ];
 
+        $lead_data = apply_filters('mo_leadbank_lead_data', $lead_data, $conversion_data);
+
         $conversionRepoResponse = false;
 
         // lite should also store leads in leadbank albeit locked.
