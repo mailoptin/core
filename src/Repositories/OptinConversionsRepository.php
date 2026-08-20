@@ -32,14 +32,14 @@ class OptinConversionsRepository extends AbstractRepository
         $response = parent::wpdb()->insert(
             parent::conversions_table(),
             array(
-                'optin_id'        => absint($data['optin_campaign_id']),
-                'optin_type'      => sanitize_text_field($data['optin_campaign_type']),
-                'name'            => sanitize_text_field($data['name']),
-                'email'           => sanitize_text_field($data['email']),
+                'optin_id'        => absint(moVar($data, 'optin_campaign_id', 0)),
+                'optin_type'      => sanitize_text_field(moVar($data, 'optin_campaign_type', '')),
+                'name'            => sanitize_text_field(moVar($data, 'name', '')),
+                'email'           => sanitize_text_field(moVar($data, 'email', '')),
                 'custom_fields'   => sanitize_text_field(moVar($data, 'custom_fields', '[]')),
-                'user_agent'      => sanitize_text_field($data['user_agent']),
-                'conversion_page' => sanitize_text_field($data['conversion_page']),
-                'referrer'        => sanitize_text_field($data['referrer']),
+                'user_agent'      => sanitize_text_field(moVar($data, 'user_agent', '')),
+                'conversion_page' => sanitize_text_field(moVar($data, 'conversion_page', '')),
+                'referrer'        => sanitize_text_field(moVar($data, 'referrer', '')),
                 'meta_data'       => sanitize_text_field(moVar($data, 'meta_data', '[]')),
                 'date_added'      => current_time('mysql'),
             ),
@@ -82,14 +82,14 @@ class OptinConversionsRepository extends AbstractRepository
     public static function update($id, $data)
     {
         $update_data = array(
-            'optin_id'        => absint($data['optin_campaign_id']),
-            'optin_type'      => sanitize_text_field($data['optin_campaign_type']),
-            'name'            => sanitize_text_field($data['name']),
-            'email'           => sanitize_text_field($data['email']),
+            'optin_id'        => absint(moVar($data, 'optin_campaign_id', 0)),
+            'optin_type'      => sanitize_text_field(moVar($data, 'optin_campaign_type', '')),
+            'name'            => sanitize_text_field(moVar($data, 'name', '')),
+            'email'           => sanitize_text_field(moVar($data, 'email', '')),
             'custom_fields'   => sanitize_text_field(moVar($data, 'custom_fields', '[]')),
-            'user_agent'      => sanitize_text_field($data['user_agent']),
-            'conversion_page' => sanitize_text_field($data['conversion_page']),
-            'referrer'        => sanitize_text_field($data['referrer']),
+            'user_agent'      => sanitize_text_field(moVar($data, 'user_agent', '')),
+            'conversion_page' => sanitize_text_field(moVar($data, 'conversion_page', '')),
+            'referrer'        => sanitize_text_field(moVar($data, 'referrer', '')),
             'meta_data'       => sanitize_text_field(moVar($data, 'meta_data', '[]'))
         );
 
