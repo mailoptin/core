@@ -6,6 +6,12 @@ use W3Guy\Custom_Settings_Page_Api;
 
 class LicenseUpgrader
 {
+    /** @var int Token validity in seconds (5 minutes) */
+    const TOKEN_EXPIRY_SECONDS = 300;
+
+    /** @var string Allowed download domain for plugin files */
+    const ALLOWED_DOWNLOAD_DOMAIN = 'mailoptin.io';
+
     public function __construct()
     {
         add_action('plugins_loaded', function () {
@@ -79,18 +85,18 @@ class LicenseUpgrader
             <p class="description" style="margin-bottom: 8px;">
                 <?php
                 echo wp_kses_post(
-                    sprintf(
-                    /* translators: %1$s Opening anchor tag, do not translate. %2$s Closing anchor tag, do not translate. */
-                        __(
-                            'Already purchased? Simply %1$sretrieve your license key%2$s and enter it below to connect with MailOptin Pro.',
-                            'wp-user-avatar'
-                        ),
                         sprintf(
-                            '<a href="%s" target="_blank" rel="noopener noreferrer">',
-                            'https://my.mailoptin.io/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page'
-                        ),
-                        '</a>'
-                    )
+                        /* translators: %1$s Opening anchor tag, do not translate. %2$s Closing anchor tag, do not translate. */
+                                __(
+                                        'Already purchased? Simply %1$sretrieve your license key%2$s and enter it below to connect with MailOptin Pro.',
+                                        'wp-user-avatar'
+                                ),
+                                sprintf(
+                                        '<a href="%s" target="_blank" rel="noopener noreferrer">',
+                                        'https://my.mailoptin.io/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page'
+                                ),
+                                '</a>'
+                        )
                 );
                 ?>
             </p>
@@ -229,27 +235,27 @@ class LicenseUpgrader
 
                     <?php
                     echo wp_kses(
-                        sprintf(
-                        /* translators: %1$s Opening anchor tag, do not translate. %2$s Closing anchor tag, do not translate. */
-                            __(
-                                '<strong>Bonus</strong>: Loyal MailOptin Lite users get <u>10%% off</u> regular price using the coupon code <u>10PERCENTOFF</u>, automatically applied at checkout. %1$sUpgrade to Premium →%2$s',
-                                'wp-user-avatar'
-                            ),
                             sprintf(
-                                '<a href="%s" rel="noopener noreferrer" target="_blank">',
-                                'https://mailoptin.com/pricing/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page'
+                            /* translators: %1$s Opening anchor tag, do not translate. %2$s Closing anchor tag, do not translate. */
+                                    __(
+                                            '<strong>Bonus</strong>: Loyal MailOptin Lite users get <u>10%% off</u> regular price using the coupon code <u>10PERCENTOFF</u>, automatically applied at checkout. %1$sUpgrade to Premium →%2$s',
+                                            'wp-user-avatar'
+                                    ),
+                                    sprintf(
+                                            '<a href="%s" rel="noopener noreferrer" target="_blank">',
+                                            'https://mailoptin.com/pricing/?utm_source=wp_dashboard&utm_medium=retrieve_license&utm_campaign=lite_license_page'
+                                    ),
+                                    '</a>'
                             ),
-                            '</a>'
-                        ),
-                        array(
-                            'a'      => array(
-                                'href'   => true,
-                                'rel'    => true,
-                                'target' => true,
-                            ),
-                            'strong' => array(),
-                            'u'      => array(),
-                        )
+                            array(
+                                    'a'      => array(
+                                            'href'   => true,
+                                            'rel'    => true,
+                                            'target' => true,
+                                    ),
+                                    'strong' => array(),
+                                    'u'      => array(),
+                            )
                     );
                     ?>
                 </div>
@@ -262,11 +268,11 @@ class LicenseUpgrader
     public function settings_enqueues()
     {
         wp_enqueue_script(
-            'mailoptin-license-connect',
-            MAILOPTIN_ASSETS_URL . "/js/admin/license.js",
-            ['jquery', 'wp-util'],
-            MAILOPTIN_VERSION_NUMBER,
-            true
+                'mailoptin-license-connect',
+                MAILOPTIN_ASSETS_URL . "/js/admin/license.js",
+                ['jquery', 'wp-util'],
+                MAILOPTIN_VERSION_NUMBER,
+                true
         );
     }
 
@@ -289,26 +295,35 @@ class LicenseUpgrader
             wp_send_json_error(['message' => esc_html__('Only the Lite version can be upgraded.', 'wp-user-avatar')]);
         }
 
-        $oth = hash('sha512', wp_rand());
+        try {
+            // Use cryptographically secure random bytes instead of wp_rand()
+            $oth = bin2hex(random_bytes(32));
+        } catch (\Exception $e) {
+            wp_send_json_error(['message' => esc_html__('No sources of randomness found on the server.', 'wp-user-avatar')]);
+        }
 
-        update_option('mailoptin_connect_token', $oth);
+        // Store token with timestamp for expiration
+        update_option('mailoptin_connect_token', [
+                'token'      => $oth,
+                'created_at' => time()
+        ]);
         update_option('mo_license_key', $key);
 
         $version  = MAILOPTIN_VERSION_NUMBER;
         $endpoint = admin_url('admin-ajax.php');
         $redirect = MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE;
         $url      = add_query_arg(
-            [
-                'key'      => $key,
-                'oth'      => $oth,
-                'endpoint' => $endpoint,
-                'version'  => $version,
-                'siteurl'  => \admin_url(),
-                'homeurl'  => \home_url(),
-                'redirect' => rawurldecode(base64_encode($redirect)), // phpcs:ignore
-                'v'        => 1,
-            ],
-            'https://upgrade.mailoptin.io'
+                [
+                        'key'      => $key,
+                        'oth'      => $oth,
+                        'endpoint' => $endpoint,
+                        'version'  => $version,
+                        'siteurl'  => \admin_url(),
+                        'homeurl'  => \home_url(),
+                        'redirect' => rawurldecode(base64_encode($redirect)), // phpcs:ignore
+                        'v'        => 1,
+                ],
+                'https://upgrade.mailoptin.io'
         );
 
         wp_send_json_success(['url' => $url]);
@@ -317,19 +332,19 @@ class LicenseUpgrader
     public function process()
     {
         $error = wp_kses(
-            sprintf(
-            /* translators: %1$s Opening anchor tag, do not translate. %2$s Closing anchor tag, do not translate. */
-                __(
-                    'Oops! We could not automatically install an upgrade. Please download the plugin from my.mailoptin.io and install it manually.',
-                    'wp-user-avatar'
-                )
-            ),
-            [
-                'a' => [
-                    'target' => true,
-                    'href'   => true,
-                ],
-            ]
+                sprintf(
+                /* translators: %1$s Opening anchor tag, do not translate. %2$s Closing anchor tag, do not translate. */
+                        __(
+                                'Oops! We could not automatically install an upgrade. Please download the plugin from my.mailoptin.io and install it manually.',
+                                'wp-user-avatar'
+                        )
+                ),
+                [
+                        'a' => [
+                                'target' => true,
+                                'href'   => true,
+                        ],
+                ]
         );
 
         $post_oth = ! empty($_REQUEST['oth']) ? sanitize_text_field($_REQUEST['oth']) : '';
@@ -339,17 +354,41 @@ class LicenseUpgrader
             wp_send_json_error(['message' => $error, 'code_err' => '1']);
         }
 
-        $oth = get_option('mailoptin_connect_token');
+        // Validate URL is from allowed domain
+        $parsed_url = wp_parse_url($post_url);
+        $url_host   = isset($parsed_url['host']) ? strtolower($parsed_url['host']) : '';
 
-        if (empty($oth)) {
+        // Allow mailoptin.io and subdomains (e.g., downloads.mailoptin.io)
+        if ($url_host !== self::ALLOWED_DOWNLOAD_DOMAIN &&
+                ! preg_match('/\.' . preg_quote(self::ALLOWED_DOWNLOAD_DOMAIN, '/') . '$/', $url_host)) {
+            wp_send_json_error(['message' => $error, 'code_err' => 'invalid_domain']);
+        }
+
+        // Verify URL uses HTTPS
+        if ( ! isset($parsed_url['scheme']) || strtolower($parsed_url['scheme']) !== 'https') {
+            wp_send_json_error(['message' => $error, 'code_err' => 'insecure_url']);
+        }
+
+        $token_data = get_option('mailoptin_connect_token');
+
+        // Always delete token on any attempt (success or failure) to prevent brute-force
+        delete_option('mailoptin_connect_token');
+
+        if (empty($token_data) || ! is_array($token_data)) {
             wp_send_json_error(['message' => $error, 'code_err' => '2']);
         }
 
-        if ( ! hash_equals($oth, $post_oth)) {
-            wp_send_json_error(['message' => $error, 'code_err' => '3']);
+        $stored_token = $token_data['token'] ?? '';
+        $created_at   = isset($token_data['created_at']) ? (int) $token_data['created_at'] : 0;
+
+        // Verify token hasn't expired
+        if ((time() - $created_at) > self::TOKEN_EXPIRY_SECONDS) {
+            wp_send_json_error(['message' => esc_html__('The connection token has expired. Please try again.', 'wp-user-avatar'), 'code_err' => 'token_expired']);
         }
 
-        delete_option('mailoptin_connect_token');
+        if ( ! hash_equals($stored_token, $post_oth)) {
+            wp_send_json_error(['message' => $error, 'code_err' => '3']);
+        }
 
         // Set the current screen to avoid undefined notices.
         set_current_screen('toplevel_page_mailoptin-settings');
@@ -379,9 +418,9 @@ class LicenseUpgrader
 
         if ( ! file_exists($upgrader)) {
             wp_send_json_error(
-                array(
-                    'message' => $error,
-                )
+                    array(
+                            'message' => $error,
+                    )
             );
         }
 
@@ -399,8 +438,8 @@ class LicenseUpgrader
 
         if (empty($license)) {
             wp_send_json_error([
-                'message'  => esc_html__('You are not licensed.', 'wp-user-avatar'),
-                'code_err' => '6'
+                    'message'  => esc_html__('You are not licensed.', 'wp-user-avatar'),
+                    'code_err' => '6'
             ]);
         }
 
