@@ -21,7 +21,7 @@ if ( ! class_exists('\MoBFnote')) {
             add_action('admin_init', array($this, 'dismiss_admin_notice'));
 
             // Intentional: using manually written string instead of gmdate( 'Y' ).
-            $this->this_year = '2025';
+            $this->this_year = '2026';
             $this->last_year = $this->this_year - 1;
             $this->start     = strtotime('november 26, ' . $this->this_year);
             $this->end       = strtotime('december 2, ' . $this->this_year);
