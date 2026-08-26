@@ -33,7 +33,6 @@ class LicenseUpgrader
             }
 
             add_action('wp_ajax_nopriv_mailoptin_connect_process', [$this, 'process']);
-
         });
     }
 
