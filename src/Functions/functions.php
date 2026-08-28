@@ -2,11 +2,11 @@
 
 namespace MailOptin\Core;
 
-use Html2Text\Html2Text;
 use MailOptin\Core\Logging\CampaignLogPersistence;
 use MailOptin\Core\Logging\CampaignLogRepository;
 use MailOptin\Core\PluginSettings\Settings;
 use Pelago\Emogrifier\CssInliner;
+use Soundasleep\Html2Text;
 use W3Guy\Custom_Settings_Page_Api;
 use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
@@ -49,14 +49,16 @@ function custom_settings_page_api()
  * @param string $content
  *
  * @return string string
- * @throws \Html2Text\Html2TextException
  */
 function html_to_text($content)
 {
-    // #^\[.+\](.+Bwebversion.+)# removes the webversion link if found as the first plain-text content.
-    // this is done to make the email preview n email clients not show the tags as
-    return preg_replace('#^\[.+\](.+Bwebversion.+)#', '', Html2Text::convert($content));
-
+    try {
+        // #^\[.+\](.+Bwebversion.+)# removes the webversion link if found as the first plain-text content.
+        // this is done to make the email preview n email clients not show the tags as
+        return preg_replace('#^\[.+\](.+Bwebversion.+)#', '', Html2Text::convert($content));
+    } catch (\Exception $e) {
+        return $content;
+    }
 }
 
 /**
