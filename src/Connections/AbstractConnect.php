@@ -349,12 +349,29 @@ $footer_content";
 
         if ( ! isset($optin_campaign_id, $error_message)) return;
 
+        $notification_key = 'mailoptin_optin_error_email_' . md5(
+            $optin_campaign_id . '|' . $optin_campaign_type . '|' . $error_message
+        );
+        $notification_interval = absint(
+            apply_filters('mailoptin_optin_error_email_interval', DAY_IN_SECONDS, $optin_campaign_id, $error_message)
+        );
+
+        if ($notification_interval > 0 && get_transient($notification_key)) return;
+
+        if ($notification_interval > 0) {
+            set_transient($notification_key, true, $notification_interval);
+        }
+
         $email = apply_filters('mo_optin_campaign_error_email_address', get_option('admin_email'));
 
         $optin_campaign_name = OptinCampaignsRepository::get_optin_campaign_name($optin_campaign_id);
 
         if (intval($optin_campaign_id) === 0) {
             $optin_campaign_name = $optin_campaign_type;
+        }
+
+        if (empty($optin_campaign_name)) {
+            $optin_campaign_name = __('Unknown optin campaign', 'mailoptin');
         }
 
         $subject = apply_filters(
