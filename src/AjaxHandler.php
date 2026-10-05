@@ -703,6 +703,10 @@ class AjaxHandler
 
         if ($optin_campaign_id === 0) wp_send_json_error();
 
+        if (self::is_optin_subscription_rate_limited()) {
+            wp_send_json_error(__('Too many subscription attempts. Please try again later.', 'mailoptin'), 429);
+        }
+
         $builder                    = new ConversionDataBuilder();
         $builder->payload           = $payload;
         $builder->optin_uuid        = $payload['optin_uuid'] ?? '';
@@ -740,6 +744,39 @@ class AjaxHandler
         if ( ! is_array($optin_campaign) || $optin_campaign_id === 0) return 0;
 
         return $optin_campaign_id;
+    }
+
+    public static function is_optin_subscription_rate_limited($ip_address = null)
+    {
+        if ( ! is_string($ip_address)) {
+            $ip_address = isset($_SERVER['REMOTE_ADDR']) && is_string($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        }
+
+        if (filter_var($ip_address, FILTER_VALIDATE_IP) === false) return false;
+
+        $limit  = apply_filters('mailoptin_optin_subscription_rate_limit', 10);
+        $window = apply_filters('mailoptin_optin_subscription_rate_limit_window', MINUTE_IN_SECONDS);
+
+        $limit  = is_numeric($limit) ? absint($limit) : 10;
+        $window = is_numeric($window) ? absint($window) : MINUTE_IN_SECONDS;
+
+        if ($limit === 0 || $window === 0) return false;
+
+        $transient_key = 'mailoptin_subscription_rate_limit_' . md5($ip_address);
+        $attempts      = get_transient($transient_key);
+        $attempts      = is_array($attempts) ? $attempts : [];
+        $now           = time();
+
+        $attempts = array_filter($attempts, function ($attempt_time) use ($now, $window) {
+            return is_numeric($attempt_time) && (int) $attempt_time > $now - $window;
+        });
+
+        if (count($attempts) >= $limit) return true;
+
+        $attempts[] = $now;
+        set_transient($transient_key, array_values($attempts), $window);
+
+        return false;
     }
 
     public static function no_email_provider_or_list_error()
