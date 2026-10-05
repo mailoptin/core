@@ -6,3 +6,7 @@ composer.lock
 .DS_Store
 src/BlockEditor/node_modules/*
 !/src/BlockEditor/build/
+!tests/Admin/
+!tests/Admin/Customizer/
+!tests/Admin/Customizer/OptinForm/
+!tests/Admin/Customizer/OptinForm/CustomizerSettingsTest.php
