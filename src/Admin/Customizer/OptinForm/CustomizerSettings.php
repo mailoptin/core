@@ -30,6 +30,79 @@ class CustomizerSettings extends AbstractCustomizer
         $this->optin_campaign_id = $customizerClassInstance->optin_campaign_id;
 
         parent::__construct($this->optin_campaign_id);
+
+        // Customizer controls expect scalar values; normalize this campaign's saved values as WordPress reads the shared option.
+        add_filter('option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, [$this, 'normalize_saved_customizer_values']);
+    }
+
+    /**
+     * Normalize values for the campaign currently being customized.
+     *
+     * @param mixed $settings Saved values for all campaigns.
+     *
+     * @return array
+     */
+    public function normalize_saved_customizer_values($settings)
+    {
+        return self::normalize_campaign_customizer_values($settings, $this->optin_campaign_id, $this->customizer_defaults);
+    }
+
+    /**
+     * Make the selected campaign's settings safe for Customizer controls without changing other campaigns.
+     *
+     * Structured values are JSON-encoded because WordPress may pass saved values to string escaping functions.
+     *
+     * @param mixed $settings Saved values for all campaigns.
+     * @param mixed $optin_campaign_id Campaign whose settings are being customized.
+     * @param array $customizer_defaults Scalar defaults used if a structured value cannot be encoded.
+     *
+     * @return array
+     */
+    public static function normalize_campaign_customizer_values($settings, $optin_campaign_id, $customizer_defaults = [])
+    {
+        // Options can be returned as objects by integrations or other option filters.
+        if (is_object($settings)) {
+            $settings = get_object_vars($settings);
+        }
+
+        if ( ! is_array($settings)) return [];
+
+        $optin_campaign_id = absint($optin_campaign_id);
+
+        // Leave every other campaign untouched; this filter is attached to an option shared by all campaigns.
+        if ( ! isset($settings[$optin_campaign_id])) return $settings;
+
+        $campaign_settings = $settings[$optin_campaign_id];
+
+        if (is_object($campaign_settings)) {
+            $campaign_settings = get_object_vars($campaign_settings);
+        }
+
+        if ( ! is_array($campaign_settings)) {
+            $settings[$optin_campaign_id] = [];
+
+            return $settings;
+        }
+
+        foreach ($campaign_settings as $key => $value) {
+            if ( ! is_array($value) && ! is_object($value)) continue;
+
+            // Convert complex control values to strings so Customizer rendering can safely escape them.
+            $encoded_value = wp_json_encode($value);
+
+            if (is_string($encoded_value)) {
+                $campaign_settings[$key] = $encoded_value;
+                continue;
+            }
+
+            // Fall back to the control's scalar default when JSON encoding fails (for example, on unsupported data).
+            $default_value = isset($customizer_defaults[$key]) ? $customizer_defaults[$key] : '';
+            $campaign_settings[$key] = is_scalar($default_value) ? $default_value : '';
+        }
+
+        $settings[$optin_campaign_id] = $campaign_settings;
+
+        return $settings;
     }
 
     /**
