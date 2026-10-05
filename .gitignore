@@ -1,6 +1,7 @@
 build/
 node_modules/*
 vendor/*
+tests/*
 composer.lock
 .DS_Store
 src/BlockEditor/node_modules/*
