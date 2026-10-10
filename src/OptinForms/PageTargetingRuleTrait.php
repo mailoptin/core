@@ -87,15 +87,13 @@ trait PageTargetingRuleTrait
         // to stop the optin display otherwise return the default filter var which is basically not doing anything.
         $custom_check_circuit = apply_filters('mailoptin_page_targeting_optin_rule_short_circuit', null, $id, $post_id);
 
-        if ( ! is_null($custom_check_circuit) && is_bool($custom_check_circuit)) {
+        if (is_bool($custom_check_circuit)) {
             return $custom_check_circuit;
         }
 
         $custom_check = apply_filters('mailoptin_page_targeting_optin_rule', null, $id, $post_id);
 
-        if ( ! is_null($custom_check) && is_bool($custom_check)) {
-            return $custom_check;
-        }
+        if (is_bool($custom_check)) return $custom_check;
 
         // if current view is neither frontpage, homepage, archive page or search page, return false.
         if ( ! empty($load_optin_index) && (is_front_page() || is_home() || is_archive() || is_search())) {
@@ -169,7 +167,7 @@ trait PageTargetingRuleTrait
 
         $custom_check = apply_filters('mailoptin_page_targeting_optin_rule_after', null, $id, $post_id);
 
-        if ( ! is_null($custom_check) && is_bool($custom_check)) {
+        if (is_bool($custom_check)) {
             return $custom_check;
         }
 
