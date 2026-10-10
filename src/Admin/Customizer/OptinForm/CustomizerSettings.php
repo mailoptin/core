@@ -44,13 +44,17 @@ class CustomizerSettings extends AbstractCustomizer
      */
     public function normalize_saved_customizer_values($settings)
     {
-        return self::normalize_campaign_customizer_values($settings, $this->optin_campaign_id, $this->customizer_defaults);
+        if(apply_filters('mailoptin_customizer_normalize_saved_values', false, $this->optin_campaign_id)) {
+            return self::normalize_campaign_customizer_values($settings, $this->optin_campaign_id, $this->customizer_defaults);
+        }
+
+        return $settings;
     }
 
     /**
      * Make the selected campaign's settings safe for Customizer controls without changing other campaigns.
      *
-     * Structured values are JSON-encoded because WordPress may pass saved values to string escaping functions.
+     * Non-list structured values are JSON-encoded because WordPress may pass them to string escaping functions.
      *
      * @param mixed $settings Saved values for all campaigns.
      * @param mixed $optin_campaign_id Campaign whose settings are being customized.
@@ -84,7 +88,35 @@ class CustomizerSettings extends AbstractCustomizer
             return $settings;
         }
 
+        // Chosen multi-select controls and role selectors require arrays, not scalar strings.
+        $array_settings = [
+            'exclusive_post_types_posts_load',
+            'post_categories_load',
+            'post_tags_load',
+            'exclusive_post_types_load',
+            'posts_never_load',
+            'post_categories_hide',
+            'post_tags_hide',
+            'pages_never_load',
+            'cpt_never_load',
+            'show_to_roles',
+        ];
+
         foreach ($campaign_settings as $key => $value) {
+            if (in_array($key, $array_settings, true)) {
+                // Decode values previously stored as JSON by the old normalizer; retain current arrays.
+                if (is_string($value)) {
+                    if ($value !== '') {
+                        $decoded_value = json_decode($value, true);
+                        $campaign_settings[$key] = is_array($decoded_value) ? $decoded_value : [];
+                    }
+                } elseif (is_object($value)) {
+                    $campaign_settings[$key] = get_object_vars($value);
+                }
+
+                continue;
+            }
+
             if ( ! is_array($value) && ! is_object($value)) continue;
 
             // Convert complex control values to strings so Customizer rendering can safely escape them.
@@ -96,7 +128,7 @@ class CustomizerSettings extends AbstractCustomizer
             }
 
             // Fall back to the control's scalar default when JSON encoding fails (for example, on unsupported data).
-            $default_value = isset($customizer_defaults[$key]) ? $customizer_defaults[$key] : '';
+            $default_value = $customizer_defaults[$key] ?? '';
             $campaign_settings[$key] = is_scalar($default_value) ? $default_value : '';
         }
 
@@ -845,6 +877,11 @@ class CustomizerSettings extends AbstractCustomizer
                 ),
                 'post_categories_hide'            => array(
                     'default'   => apply_filters('mo_optin_form_post_categories_hide', ''),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                'post_tags_hide'                  => array(
+                    'default'   => apply_filters('mo_optin_form_post_tags_hide', ''),
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),

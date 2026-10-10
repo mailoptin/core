@@ -42,6 +42,7 @@ trait PageTargetingRuleTrait
         $cpt_never_load                  = OCR::get_customizer_value($id, 'cpt_never_load');
         $post_categories_load            = OCR::get_customizer_value($id, 'post_categories_load');
         $post_categories_hide            = OCR::get_customizer_value($id, 'post_categories_hide');
+        $post_tags_hide                  = OCR::get_customizer_value($id, 'post_tags_hide');
         $post_tags_load                  = OCR::get_customizer_value($id, 'post_tags_load');
         $exclusive_post_types_posts_load = OCR::get_customizer_value($id, 'exclusive_post_types_posts_load');
         $post_types_load                 = OCR::get_customizer_value($id, 'exclusive_post_types_load');
@@ -66,6 +67,14 @@ trait PageTargetingRuleTrait
             if ( ! empty($post_categories_hide) && is_singular('post')) {
 
                 $intersect = array_intersect($post_categories, $post_categories_hide);
+                if ( ! empty($intersect)) {
+                    return false;
+                }
+            }
+
+            // If current post has a tag that the optin should not load for, return false.
+            if ( ! empty($post_tags_hide) && is_singular('post')) {
+                $intersect = array_intersect($post_tags, $post_tags_hide);
                 if ( ! empty($intersect)) {
                     return false;
                 }
@@ -107,6 +116,14 @@ trait PageTargetingRuleTrait
         if ( ! empty($post_categories_hide) && is_singular('post')) {
 
             $intersect = array_intersect($post_categories, $post_categories_hide);
+            if ( ! empty($intersect)) {
+                return false;
+            }
+        }
+
+        // If current post has a tag that the optin should not load for, return false.
+        if ( ! empty($post_tags_hide) && is_singular('post')) {
+            $intersect = array_intersect($post_tags, $post_tags_hide);
             if ( ! empty($intersect)) {
                 return false;
             }

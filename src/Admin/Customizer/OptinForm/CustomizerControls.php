@@ -1398,6 +1398,20 @@ class CustomizerControls
                     )
                 )
             );
+            $page_filter_control_args['post_tags_hide']             = new WP_Customize_Chosen_Select_Control(
+                $this->wp_customize,
+                $this->option_prefix . '[post_tags_hide]',
+                apply_filters('mo_optin_form_customizer_post_tags_hide_args', array(
+                        'label'       => __('Never show on these post tags:', 'mailoptin'),
+                        'section'     => $this->customizerClassInstance->page_filter_display_rule_section_id,
+                        'settings'    => $this->option_prefix . '[post_tags_hide]',
+                        'description' => __('Hide the optin on posts that have any of the selected tags.', 'mailoptin'),
+                        'search_type' => 'post_tags',
+                        'choices'     => ControlsHelpers::get_tags(),
+                        'priority'    => 67
+                    )
+                )
+            );
             $page_filter_control_args['pages_never_load']          = new WP_Customize_Chosen_Select_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[pages_never_load]',
