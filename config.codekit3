@@ -25,14 +25,6 @@
       "oAP" : "\/.gitignore",
       "oF" : 1
     },
-    "\/.travis.yml" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/.travis.yml",
-      "oF" : 1
-    },
     "\/bin" : {
       "ft" : 65536,
       "oA" : 1,
