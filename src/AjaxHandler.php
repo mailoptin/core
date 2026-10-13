@@ -699,6 +699,9 @@ class AjaxHandler
         if ( ! isset($_REQUEST['optin_data']) || ! is_array($_REQUEST['optin_data'])) wp_send_json_error();
 
         $payload = apply_filters('mailoptin_optin_subscription_request_body', sanitize_data($_REQUEST['optin_data']));
+
+        $payload = self::strip_reserved_payload_keys($payload);
+
         $optin_campaign_id = self::get_valid_optin_subscription_campaign_id($payload);
 
         if ($optin_campaign_id === 0) wp_send_json_error();
@@ -720,6 +723,37 @@ class AjaxHandler
         $response = self::do_optin_conversion($builder);
 
         wp_send_json($response);
+    }
+
+    /**
+     * Remove internal keys that must never be supplied by the (unauthenticated) form submitter.
+     *
+     * @param mixed $payload
+     *
+     * @return mixed
+     */
+    public static function strip_reserved_payload_keys($payload)
+    {
+        if ( ! is_array($payload)) return $payload;
+
+        $reserved_keys = [
+            'form_custom_field_mappings',
+            'form_tags',
+            'integration_data',
+            'index',
+            'is_double_optin',
+            'connection_service',
+            'connection_email_list',
+            'optin_campaign_type',
+            'mo_ip_address',
+            'mo_campaign_name',
+        ];
+
+        foreach ($reserved_keys as $reserved_key) {
+            unset($payload[$reserved_key]);
+        }
+
+        return $payload;
     }
 
     public static function get_valid_optin_subscription_campaign_id($payload)
@@ -1051,7 +1085,9 @@ class AjaxHandler
             return AbstractConnect::ajax_failure(__('Email address is not valid. Please try again.', 'mailoptin'));
         }
 
-        $extras                          = $conversion_data->payload;
+        $extras = is_array($conversion_data->payload) ? $conversion_data->payload : [];
+        // never trust field mappings or tags from the submitted payload; only from the server-side builder.
+        unset($extras['form_custom_field_mappings'], $extras['form_tags']);
         $extras['optin_campaign_id']     = $optin_campaign_id;
         $extras['optin_campaign_type']   = $conversion_data->optin_campaign_type;
         $extras['connection_service']    = $connection_service;
