@@ -106,6 +106,69 @@ class Subscription
         return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_PENDING];
     }
 
+    const ADMIN_ADDED = 'added';
+    const ADMIN_CONFIRMATION_SENT = 'confirmation_sent';
+    const ADMIN_REFUSED_UNSUBSCRIBED = 'refused_unsubscribed';
+
+    /**
+     * Add someone from the admin screen.
+     *
+     * @param string $email
+     * @param int[] $list_ids
+     * @param array $names first_name, last_name
+     * @param bool $has_consent true when the admin confirms they have permission; otherwise a confirmation email is sent
+     *
+     * @return string|\WP_Error one of the ADMIN_* constants
+     */
+    public static function add_by_admin($email, $list_ids, $names = [], $has_consent = false)
+    {
+        $email    = Subscribers::normalize_email($email);
+        $list_ids = array_filter(array_map('absint', (array)$list_ids));
+
+        if ( ! is_email($email)) return new \WP_Error('mo_invalid_email', __('Enter a valid email address.', 'mailoptin'));
+
+        if (empty($list_ids)) return new \WP_Error('mo_no_list', __('Choose at least one list.', 'mailoptin'));
+
+        // Someone who unsubscribed has to sign up again themselves.
+        if (SuppressionRepository::is_suppressed($email)) return self::ADMIN_REFUSED_UNSUBSCRIBED;
+
+        $names = array_filter([
+            'first_name' => sanitize_text_field($names['first_name'] ?? ''),
+            'last_name'  => sanitize_text_field($names['last_name'] ?? ''),
+        ]);
+
+        $subscriber = Subscribers::get_by_email($email);
+
+        if ( ! $subscriber) {
+            $subscriber_id = Subscribers::create(array_merge(['email' => $email, 'source' => 'admin', 'consent_at' => Subscribers::now()], $names));
+
+            if ( ! $subscriber_id) return new \WP_Error('mo_subscriber_not_saved', __('The subscriber could not be saved.', 'mailoptin'));
+        } else {
+            $subscriber_id = (int)$subscriber['id'];
+            if ( ! empty($names)) Subscribers::update($subscriber_id, $names);
+        }
+
+        $status = $has_consent ? Subscribers::STATUS_SUBSCRIBED : Subscribers::STATUS_PENDING;
+
+        foreach ($list_ids as $list_id) {
+            if ( ! ListsRepository::get($list_id)) continue;
+
+            $membership = Subscribers::get_membership($subscriber_id, $list_id);
+            if ($membership && Subscribers::STATUS_SUBSCRIBED === $membership['status']) continue;
+
+            Subscribers::set_membership($subscriber_id, $list_id, $status);
+        }
+
+        Subscribers::sync_status($subscriber_id);
+        Subscribers::log_event($subscriber_id, Subscribers::EVENT_SIGNUP, ['added_by_admin' => get_current_user_id(), 'list_ids' => array_values($list_ids)]);
+
+        if ($has_consent) return self::ADMIN_ADDED;
+
+        self::send_confirmation($subscriber_id, '', true);
+
+        return self::ADMIN_CONFIRMATION_SENT;
+    }
+
     /**
      * Send the double opt-in email, within the limits in ConfirmationThrottle.
      *

@@ -165,6 +165,8 @@ class Base
         Admin\SettingsPage\CampaignLog::get_instance();
         Admin\SettingsPage\OptinCampaigns::get_instance();
         Admin\SettingsPage\LeadBank::get_instance();
+        Admin\SettingsPage\Subscribers_Page::get_instance();
+        Admin\SettingsPage\SendingSettings::get_instance();
         Admin\SettingsPage\AdvanceAnalytics::get_instance();
         AdminNotices::get_instance();
         ConversionExport::get_instance();
@@ -188,6 +190,12 @@ class Base
         $tables[] = $db_prefix . Core::conversions_table_name;
         $tables[] = $db_prefix . Core::email_campaigns_table_name;
         $tables[] = $db_prefix . Core::email_campaign_meta_table_name;
+        $tables[] = $db_prefix . Core::subscribers_table_name;
+        $tables[] = $db_prefix . Core::lists_table_name;
+        $tables[] = $db_prefix . Core::list_subscribers_table_name;
+        $tables[] = $db_prefix . Core::suppressions_table_name;
+        $tables[] = $db_prefix . Core::subscriber_events_table_name;
+        $tables[] = $db_prefix . Core::send_queue_table_name;
 
         $tables = apply_filters('mo_drop_mu_database_tables', $tables, $db_prefix);
 

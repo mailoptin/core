@@ -8,6 +8,8 @@ use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter as NL;
 use MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
+use MailOptin\Core\Repositories\SendQueueRepository;
+use MailOptin\Core\SendQueue\QueueRunner;
 
 if ( ! class_exists('WP_List_Table')) {
     require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
@@ -95,6 +97,8 @@ class Campaign_Log_List extends \WP_List_Table
      */
     public function delete_a_campaign_log($id)
     {
+        SendQueueRepository::delete_campaign($id);
+
         return $this->wpdb->delete(
             $this->table,
             array('id' => $id),
@@ -109,6 +113,8 @@ class Campaign_Log_List extends \WP_List_Table
      */
     public function delete_all_campaign_log()
     {
+        $this->wpdb->query("DELETE FROM " . SendQueueRepository::table());
+
         return $this->wpdb->query("DELETE FROM $this->table");
     }
 
@@ -229,6 +235,19 @@ class Campaign_Log_List extends \WP_List_Table
             __('Resend', 'mailoptin')
         );
 
+        if (QueueRunner::LOG_STATUS_SENDING === $item['status'] || QueueRunner::LOG_STATUS_PAUSED === $item['status']) {
+            $queue_action = QueueRunner::LOG_STATUS_SENDING === $item['status'] ? 'pause' : 'resume';
+
+            $actions[$queue_action] = sprintf(
+                '<a href="%s">%s</a>',
+                esc_url(wp_nonce_url(
+                    add_query_arg(['action' => $queue_action, 'campaign-log-id' => $campaign_log_id], MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE),
+                    'mo_' . $queue_action . '_campaign_' . $campaign_log_id
+                )),
+                'pause' === $queue_action ? esc_html__('Pause', 'mailoptin') : esc_html__('Resume', 'mailoptin')
+            );
+        }
+
         return $name . $this->row_actions($actions);
     }
 
@@ -312,7 +331,46 @@ class Campaign_Log_List extends \WP_List_Table
             $err_log .= "<div><a target='_blank' class=\"mo-open-link-fancybox\" href=\"$preview_url\">" . __('Error logs', 'mailoptin') . "</span></a></div>";
         }
 
-        return $item['status'] . $err_log;
+        return $this->queue_progress_html($item) . $err_log;
+    }
+
+    /**
+     * Status, plus live progress for campaigns sent through the send queue.
+     *
+     * @param array $item
+     *
+     * @return string
+     */
+    protected function queue_progress_html($item)
+    {
+        $counts = SendQueueRepository::counts(absint($item['id']));
+        $total  = array_sum($counts);
+
+        if (0 === $total) return esc_html($item['status']);
+
+        $done    = $counts['sent'] + $counts['failed'] + $counts['skipped'];
+        $percent = (int)floor($done / $total * 100);
+        $labels  = [
+            QueueRunner::LOG_STATUS_SENDING => sprintf(__('Sending · %d%%', 'mailoptin'), $percent),
+            QueueRunner::LOG_STATUS_PAUSED  => sprintf(__('Paused · %d%%', 'mailoptin'), $percent),
+            'processed'                     => __('Completed', 'mailoptin'),
+        ];
+
+        $details = sprintf(
+            __('%1$s of %2$s sent', 'mailoptin'),
+            number_format_i18n($counts['sent']),
+            number_format_i18n($total)
+        );
+
+        if ($counts['failed'] > 0) $details .= ', ' . sprintf(_n('%s failed', '%s failed', $counts['failed'], 'mailoptin'), number_format_i18n($counts['failed']));
+        if ($counts['skipped'] > 0) $details .= ', ' . sprintf(_n('%s skipped', '%s skipped', $counts['skipped'], 'mailoptin'), number_format_i18n($counts['skipped']));
+
+        return sprintf(
+            '<strong>%s</strong><div style="height:6px;background:#dcdcde;border-radius:3px;overflow:hidden;margin:4px 0;max-width:180px"><div style="height:100%%;width:%d%%;background:#00a32a"></div></div><span style="color:#646970">%s</span>',
+            esc_html($labels[$item['status']] ?? $item['status']),
+            $percent,
+            esc_html($details)
+        );
     }
 
     /**
@@ -394,6 +452,20 @@ class Campaign_Log_List extends \WP_List_Table
                 // add_query_arg() return the current url
                 \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
             }
+        }
+
+        if (in_array($this->current_action(), ['pause', 'resume'], true)) {
+            $campaign_log_id = absint($_GET['campaign-log-id'] ?? 0);
+
+            check_admin_referer('mo_' . $this->current_action() . '_campaign_' . $campaign_log_id);
+
+            'pause' === $this->current_action()
+                ? QueueRunner::get_instance()->pause($campaign_log_id)
+                : QueueRunner::get_instance()->resume($campaign_log_id);
+
+            \MailOptin\Core\do_admin_redirect(esc_url_raw(MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
+
+            return;
         }
 
         /**

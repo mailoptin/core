@@ -106,6 +106,115 @@ class SubscribersRepository extends AbstractRepository
     }
 
     /**
+     * Subscribers for the admin list table.
+     *
+     * @param array $args status, list_id, source_optin_id, search, per_page, page, orderby (created_at|email), order
+     *
+     * @return array ['items' => rows, each with 'lists' => [list_id => list name], 'total' => int]
+     */
+    public static function query($args = [])
+    {
+        $table             = self::table();
+        $memberships_table = self::memberships_table();
+
+        $where  = ['1=1'];
+        $params = [];
+
+        if ( ! empty($args['status'])) {
+            $where[]  = 's.status = %s';
+            $params[] = $args['status'];
+        }
+
+        if ( ! empty($args['list_id'])) {
+            $where[]  = "EXISTS (SELECT 1 FROM $memberships_table m WHERE m.subscriber_id = s.id AND m.list_id = %d AND m.status != %s)";
+            $params[] = absint($args['list_id']);
+            $params[] = self::STATUS_UNSUBSCRIBED;
+        }
+
+        if ( ! empty($args['source_optin_id'])) {
+            $where[]  = 's.source_optin_id = %d';
+            $params[] = absint($args['source_optin_id']);
+        }
+
+        if ( ! empty($args['search'])) {
+            $like     = '%' . self::wpdb()->esc_like($args['search']) . '%';
+            $where[]  = '(s.email LIKE %s OR s.first_name LIKE %s OR s.last_name LIKE %s)';
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        $where_sql = implode(' AND ', $where);
+
+        $orderby  = in_array($args['orderby'] ?? '', ['email', 'created_at'], true) ? $args['orderby'] : 'created_at';
+        $order    = 'ASC' === strtoupper($args['order'] ?? '') ? 'ASC' : 'DESC';
+        $per_page = max(1, absint($args['per_page'] ?? 20));
+        $offset   = (max(1, absint($args['page'] ?? 1)) - 1) * $per_page;
+
+        $count_sql = "SELECT COUNT(*) FROM $table s WHERE $where_sql";
+        $total     = (int)self::wpdb()->get_var(empty($params) ? $count_sql : self::wpdb()->prepare($count_sql, $params));
+
+        $items = self::wpdb()->get_results(
+            self::wpdb()->prepare(
+                "SELECT s.* FROM $table s WHERE $where_sql ORDER BY s.$orderby $order, s.id $order LIMIT %d OFFSET %d",
+                array_merge($params, [$per_page, $offset])
+            ),
+            'ARRAY_A'
+        );
+
+        if ( ! empty($items)) {
+            $ids   = implode(',', array_map('absint', wp_list_pluck($items, 'id')));
+            $lists = ListsRepository::table();
+            $rows  = self::wpdb()->get_results(
+                self::wpdb()->prepare(
+                    "SELECT m.subscriber_id, l.id, l.name FROM $memberships_table m INNER JOIN $lists l ON l.id = m.list_id
+                    WHERE m.subscriber_id IN ($ids) AND m.status != %s ORDER BY l.name",
+                    self::STATUS_UNSUBSCRIBED
+                ),
+                'ARRAY_A'
+            );
+
+            $by_subscriber = [];
+            foreach ($rows as $row) {
+                $by_subscriber[$row['subscriber_id']][$row['id']] = $row['name'];
+            }
+
+            foreach ($items as &$item) {
+                $item['lists'] = $by_subscriber[$item['id']] ?? [];
+            }
+        }
+
+        return ['items' => $items, 'total' => $total];
+    }
+
+    /**
+     * @return array status => count, with every status present
+     */
+    public static function count_by_status()
+    {
+        $table  = self::table();
+        $counts = array_fill_keys([self::STATUS_SUBSCRIBED, self::STATUS_PENDING, self::STATUS_UNSUBSCRIBED, self::STATUS_BOUNCED, self::STATUS_COMPLAINED], 0);
+
+        foreach (self::wpdb()->get_results("SELECT status, COUNT(*) AS total FROM $table GROUP BY status", 'ARRAY_A') as $row) {
+            $counts[$row['status']] = (int)$row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Delete a subscriber with their memberships and events. This is not an unsubscribe:
+     * the address can be added again later.
+     */
+    public static function delete($subscriber_id)
+    {
+        self::wpdb()->delete(self::memberships_table(), ['subscriber_id' => $subscriber_id], ['%d']);
+        self::wpdb()->delete(self::events_table(), ['subscriber_id' => $subscriber_id], ['%d']);
+
+        return (bool)self::wpdb()->delete(self::table(), ['id' => $subscriber_id], ['%d']);
+    }
+
+    /**
      * @return array|null membership row for one list
      */
     public static function get_membership($subscriber_id, $list_id)
