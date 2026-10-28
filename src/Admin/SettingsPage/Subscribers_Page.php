@@ -3,6 +3,7 @@
 namespace MailOptin\Core\Admin\SettingsPage;
 
 use MailOptin\Core\Audience\ConfirmationThrottle;
+use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
@@ -290,7 +291,7 @@ class Subscribers_Page extends AbstractSettingsPage
                 $list  = ! empty($meta['list_id']) ? ListsRepository::get($meta['list_id']) : null;
                 $label = $list ? sprintf(__('Signed up for %s', 'mailoptin'), $list['name']) : __('Signed up', 'mailoptin');
                 if ( ! empty($meta['form'])) $label .= ' ' . sprintf(__('from %s', 'mailoptin'), $meta['form']);
-                if ( ! empty($meta['conversion_page'])) $label .= ' ' . sprintf(__('on %s', 'mailoptin'), wp_parse_url($meta['conversion_page'], PHP_URL_PATH) ?: $meta['conversion_page']);
+                if ( ! empty($meta['conversion_page'])) $label .= ' ' . sprintf(__('on %s', 'mailoptin'), self::page_path($meta['conversion_page']));
 
                 return $label;
             case Subscribers::EVENT_CONFIRMATION_SENT:
@@ -308,6 +309,31 @@ class Subscribers_Page extends AbstractSettingsPage
         }
 
         return $event['type'];
+    }
+
+    /**
+     * Path and query of a page URL, so "/?page_id=6" doesn't show as "/".
+     */
+    public static function page_path($url)
+    {
+        $parts = wp_parse_url($url);
+
+        if ( ! is_array($parts) || empty($parts['path']) && empty($parts['query'])) return $url;
+
+        return ($parts['path'] ?? '/') . ( ! empty($parts['query']) ? '?' . $parts['query'] : '');
+    }
+
+    protected function latest_signup_page($subscriber_id)
+    {
+        foreach (Subscribers::get_events($subscriber_id, 50) as $event) {
+            if (Subscribers::EVENT_SIGNUP !== $event['type']) continue;
+
+            $meta = json_decode((string)$event['meta'], true) ?: [];
+
+            return empty($meta['conversion_page']) ? '' : self::page_path($meta['conversion_page']);
+        }
+
+        return '';
     }
 
     protected function profile_html($subscriber_id)
@@ -372,8 +398,16 @@ class Subscribers_Page extends AbstractSettingsPage
                         <dt><?php esc_html_e('Source', 'mailoptin'); ?></dt>
                         <dd><?php echo esc_html(self::source_label($subscriber)); ?></dd>
                         <?php if ( ! empty($subscriber['consent_text'])) : ?>
-                            <dt><?php esc_html_e('Consent text', 'mailoptin'); ?></dt>
-                            <dd><?php echo esc_html($subscriber['consent_text']); ?></dd>
+                            <dt><?php esc_html_e('Agreed to', 'mailoptin'); ?></dt>
+                            <dd>&ldquo;<?php echo esc_html($subscriber['consent_text']); ?>&rdquo;</dd>
+                        <?php endif; ?>
+                        <?php if (Consent::method_label($subscriber['consent_method'] ?? '')) : ?>
+                            <dt><?php esc_html_e('How', 'mailoptin'); ?></dt>
+                            <dd class="mo-consent-<?php echo esc_attr($subscriber['consent_method']); ?>"><?php echo esc_html(Consent::method_label($subscriber['consent_method'])); ?></dd>
+                        <?php endif; ?>
+                        <?php if ($signup_page = $this->latest_signup_page($subscriber_id)) : ?>
+                            <dt><?php esc_html_e('Page', 'mailoptin'); ?></dt>
+                            <dd><?php echo esc_html($signup_page); ?></dd>
                         <?php endif; ?>
                         <dt><?php esc_html_e('IP address', 'mailoptin'); ?></dt>
                         <dd><?php echo esc_html($subscriber['ip_address'] ?: '—'); ?></dd>
@@ -728,6 +762,8 @@ class Subscribers_Page extends AbstractSettingsPage
 .mo-kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;margin:0}
 .mo-kv dt{color:#646970}
 .mo-kv dd{margin:0}
+.mo-consent-checkbox{color:#00701a;font-weight:600}
+.mo-consent-checkbox_not_ticked{color:#b32d2e;font-weight:600}
 .wp-list-table.subscribers .column-email{width:26%}
 .wp-list-table.subscribers .column-name{width:15%}
 .wp-list-table.subscribers .column-status{width:120px}
