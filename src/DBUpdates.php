@@ -4,13 +4,14 @@ namespace MailOptin\Core;
 
 use MailOptin\AdvanceAnalytics\AdvanceAnalytics;
 use MailOptin\Core\PluginSettings\Settings;
+use MailOptin\Core\RegisterActivation\CreateDBTables;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 16;
+    const DB_VER = 17;
 
     public function init_options()
     {
@@ -269,6 +270,22 @@ class DBUpdates
 
         if ( ! empty($recaptcha_site_key)) {
             Settings::instance()->update('recaptcha_api_platform', 'classic');
+        }
+    }
+
+    public function update_routine_17()
+    {
+        global $wpdb;
+
+        $collate = '';
+        if ($wpdb->has_cap('collation')) {
+            $collate = $wpdb->get_charset_collate();
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::audience_tables_sql($collate) as $sql) {
+            dbDelta($sql);
         }
     }
 
