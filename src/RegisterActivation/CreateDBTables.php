@@ -179,7 +179,8 @@ class CreateDBTables
   created_at datetime NOT NULL,
   PRIMARY KEY  (id),
   KEY subscriber_id (subscriber_id),
-  KEY campaign_log_id (campaign_log_id)
+  KEY campaign_log_id (campaign_log_id),
+  KEY type_created (type,created_at)
 ) $collate;";
 
         $sqls[] = "CREATE TABLE $send_queue_table (

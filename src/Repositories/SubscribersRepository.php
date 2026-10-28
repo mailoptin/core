@@ -17,6 +17,7 @@ class SubscribersRepository extends AbstractRepository
 
     const EVENT_SIGNUP = 'signup';
     const EVENT_CONFIRMATION_SENT = 'confirmation_sent';
+    const EVENT_CONFIRMATION_THROTTLED = 'confirmation_throttled';
     const EVENT_CONFIRMED = 'confirmed';
     const EVENT_UNSUBSCRIBED = 'unsubscribed';
     const EVENT_SENT = 'sent';
@@ -248,6 +249,60 @@ class SubscribersRepository extends AbstractRepository
         return self::wpdb()->get_var(
             self::wpdb()->prepare("SELECT MAX(created_at) FROM $table WHERE subscriber_id = %d AND type = %s", $subscriber_id, $type)
         );
+    }
+
+    /**
+     * @param string $type
+     * @param string $since UTC datetime
+     * @param int $subscriber_id 0 for every subscriber
+     *
+     * @return int
+     */
+    public static function count_events_since($type, $since, $subscriber_id = 0)
+    {
+        $table = self::events_table();
+
+        if ($subscriber_id) {
+            return (int)self::wpdb()->get_var(
+                self::wpdb()->prepare("SELECT COUNT(*) FROM $table WHERE subscriber_id = %d AND type = %s AND created_at >= %s", $subscriber_id, $type, $since)
+            );
+        }
+
+        return (int)self::wpdb()->get_var(
+            self::wpdb()->prepare("SELECT COUNT(*) FROM $table WHERE type = %s AND created_at >= %s", $type, $since)
+        );
+    }
+
+    /**
+     * Delete signups that never confirmed, with their memberships and events.
+     *
+     * @param string $before UTC datetime; pending subscribers created before it are deleted
+     * @param int $limit
+     *
+     * @return int number deleted
+     */
+    public static function delete_stale_pending($before, $limit = 500)
+    {
+        $table = self::table();
+
+        $ids = array_map('absint', self::wpdb()->get_col(
+            self::wpdb()->prepare(
+                "SELECT id FROM $table WHERE status = %s AND confirmed_at IS NULL AND created_at < %s ORDER BY id LIMIT %d",
+                self::STATUS_PENDING,
+                $before,
+                $limit
+            )
+        ));
+
+        if (empty($ids)) return 0;
+
+        $in = implode(',', $ids);
+
+        self::wpdb()->query("DELETE FROM " . self::memberships_table() . " WHERE subscriber_id IN ($in)");
+        self::wpdb()->query("DELETE FROM " . self::events_table() . " WHERE subscriber_id IN ($in)");
+        self::wpdb()->query("DELETE FROM $table WHERE id IN ($in)");
+
+        return count($ids);
     }
 
     /**
