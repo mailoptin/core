@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core;
 
+use MailOptin\Core\Repositories\SubscribersRepository;
 use Carbon\Carbon;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Libsodium\LibsodiumSettingsPage;
@@ -15,6 +16,7 @@ class Cron
         add_action('init', [$this, 'create_recurring_schedule']);
 
         add_action('mo_daily_recurring_job', [$this, 'cleanup_old_leadbank_data']);
+        add_action('mo_daily_recurring_job', [$this, 'cleanup_unconfirmed_subscribers']);
 
         add_action('mailoptin_admin_notices', function () {
             add_action('admin_notices', [$this, 'catch_late_email_digest_event_notice']);
@@ -95,6 +97,32 @@ class Cron
         return $wpdb->query(
             "DELETE FROM $table WHERE DATEDIFF(NOW(), date_added) >= 90"
         );
+    }
+
+    /**
+     * Delete signups that never confirmed their email after 30 days. Bot signups pile up here,
+     * and keeping an unconfirmed address indefinitely isn't needed.
+     *
+     * @return int number deleted
+     */
+    public function cleanup_unconfirmed_subscribers()
+    {
+        $days = (int)apply_filters('mo_unconfirmed_subscriber_retention_days', 30);
+
+        if ($days <= 0) return 0;
+
+        $before  = gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
+        $deleted = 0;
+
+        // Batches keep each query small; the cap keeps one run from taking too long.
+        for ($i = 0; $i < 20; $i++) {
+            $batch   = SubscribersRepository::delete_stale_pending($before, 500);
+            $deleted += $batch;
+
+            if ($batch < 500) break;
+        }
+
+        return $deleted;
     }
 
     /**

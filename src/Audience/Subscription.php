@@ -101,28 +101,38 @@ class Subscription
         Subscribers::set_membership($subscriber_id, $list_id, Subscribers::STATUS_PENDING);
         Subscribers::sync_status($subscriber_id);
 
-        self::send_confirmation($subscriber_id);
+        self::send_confirmation($subscriber_id, $context['ip_address'] ?? '');
 
         return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_PENDING];
     }
 
     /**
-     * Send the double opt-in email, at most once per cooldown period per subscriber.
+     * Send the double opt-in email, within the limits in ConfirmationThrottle.
      *
      * @param int $subscriber_id
+     * @param string $ip_address IP of the signup; empty for an admin resending from the subscriber's profile
+     * @param bool $by_admin an admin resend skips the limits
      *
      * @return bool true if an email was sent
      */
-    public static function send_confirmation($subscriber_id)
+    public static function send_confirmation($subscriber_id, $ip_address = '', $by_admin = false)
     {
         $subscriber = Subscribers::get($subscriber_id);
 
         if ( ! $subscriber) return false;
 
-        $cooldown  = (int)apply_filters('mo_confirmation_email_cooldown', 10 * MINUTE_IN_SECONDS);
-        $last_sent = Subscribers::last_event_at($subscriber_id, Subscribers::EVENT_CONFIRMATION_SENT);
+        if ( ! $by_admin) {
+            $allowed = ConfirmationThrottle::check($subscriber_id, $ip_address);
 
-        if ($last_sent && strtotime($last_sent . ' UTC') > time() - $cooldown) return false;
+            if (true !== $allowed) {
+                // The cooldown is routine (a double click); the other limits are worth a note on the timeline.
+                if (ConfirmationThrottle::REASON_COOLDOWN !== $allowed) {
+                    Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMATION_THROTTLED, ['reason' => $allowed]);
+                }
+
+                return false;
+            }
+        }
 
         $list_names = [];
         foreach (Subscribers::get_memberships($subscriber_id) as $membership) {
@@ -174,6 +184,8 @@ class Subscription
 
         if ($sent) {
             Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMATION_SENT, ['lists' => $list_names]);
+
+            if ( ! $by_admin) ConfirmationThrottle::record_ip($ip_address);
         }
 
         return $sent;
