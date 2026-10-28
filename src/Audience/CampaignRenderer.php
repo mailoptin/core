@@ -26,6 +26,36 @@ class CampaignRenderer
         add_filter('mo_send_queue_email_content', [$this, 'personalize'], 10, 3);
         add_filter('mo_send_queue_email_headers', [$this, 'headers'], 10, 3);
         add_action('mo_send_queue_email_sent', [$this, 'log_sent'], 10, 2);
+        add_filter('mo_send_queue_skip_reason', [$this, 'skip_reason'], 10, 3);
+    }
+
+    /**
+     * Things change between queueing and sending: skip subscribers who were deleted, unsubscribed
+     * or left the campaign's list in the meantime.
+     */
+    public function skip_reason($reason, $row, $campaign_log_id)
+    {
+        if ('' !== (string)$reason || self::RECIPIENT_TYPE !== ($row['recipient_type'] ?? '')) return $reason;
+
+        $subscriber = Subscribers::get($row['recipient_id']);
+
+        if ( ! $subscriber) return __('The subscriber was deleted.', 'mailoptin');
+
+        if (Subscribers::STATUS_SUBSCRIBED !== $subscriber['status']) {
+            return __('The subscriber is no longer subscribed.', 'mailoptin');
+        }
+
+        $list_id = self::campaign_content($campaign_log_id)['list_id'];
+
+        if ($list_id) {
+            $membership = Subscribers::get_membership($subscriber['id'], $list_id);
+
+            if ( ! $membership || Subscribers::STATUS_SUBSCRIBED !== $membership['status']) {
+                return __('The subscriber left this list.', 'mailoptin');
+            }
+        }
+
+        return $reason;
     }
 
     /**

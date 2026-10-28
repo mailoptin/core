@@ -96,16 +96,21 @@ class ConsentTest extends WP_UnitTestCase
         $this->assertSame(Consent::METHOD_NONE, $subscriber['consent_method']);
     }
 
-    public function test_later_signup_replaces_wording_and_method_together()
+    public function test_later_signup_keeps_the_recorded_consent_and_logs_its_own()
     {
         $with_text    = $this->form(['note' => self::AGREEMENT, 'note_acceptance_checkbox' => true]);
         $without_text = $this->form(['hide_note' => true]);
 
         $this->signup($with_text, ['mo-acceptance' => 'yes']);
+        // Anyone can submit a form with someone else's address, so it must not rewrite their record.
         $subscriber = $this->signup($without_text);
 
-        $this->assertNull($subscriber['consent_text'], 'Old wording must not stay next to a new method.');
-        $this->assertSame(Consent::METHOD_NONE, $subscriber['consent_method']);
+        $this->assertSame(self::AGREEMENT, $subscriber['consent_text']);
+        $this->assertSame(Consent::METHOD_CHECKBOX, $subscriber['consent_method']);
+
+        $signups = wp_list_filter(Subscribers::get_events($subscriber['id']), ['type' => 'signup']);
+        $latest  = json_decode(reset($signups)['meta'], true);
+        $this->assertSame(Consent::METHOD_NONE, $latest['consent_method'], 'The later signup is on the timeline.');
     }
 
     public function test_admin_added_subscriber()

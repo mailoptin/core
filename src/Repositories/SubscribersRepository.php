@@ -396,7 +396,7 @@ class SubscribersRepository extends AbstractRepository
 
         $ids = array_map('absint', self::wpdb()->get_col(
             self::wpdb()->prepare(
-                "SELECT id FROM $table WHERE status = %s AND confirmed_at IS NULL AND created_at < %s ORDER BY id LIMIT %d",
+                "SELECT id FROM $table WHERE status = %s AND confirmed_at IS NULL AND updated_at < %s ORDER BY id LIMIT %d",
                 self::STATUS_PENDING,
                 $before,
                 $limit

@@ -53,6 +53,22 @@ class PublicEndpoints
             $this->invalid_link();
         }
 
+        // Confirm on POST only, so link scanners that open every link in an inbox can't confirm
+        // signups someone else made. The page submits itself, so for people it's still one click.
+        if ('POST' !== strtoupper($_SERVER['REQUEST_METHOD'] ?? '')) {
+            $form = sprintf(
+                '<form method="post" action="%s" id="mo-confirm-form"><button type="submit" class="button">%s</button></form><script>document.getElementById("mo-confirm-form").submit();</script>',
+                esc_url(Tokens::confirm_url($subscriber)),
+                esc_html__('Confirm subscription', 'mailoptin')
+            );
+
+            $this->page(
+                __('Confirm your subscription', 'mailoptin'),
+                esc_html__('Confirming your subscription…', 'mailoptin'),
+                $form
+            );
+        }
+
         Subscription::confirm($subscriber['id']);
 
         $redirect = apply_filters('mo_subscription_confirmed_redirect', '', $subscriber);
@@ -136,13 +152,16 @@ class PublicEndpoints
 
         if (empty($html)) return '';
 
-        return CampaignRenderer::replace_tags($html, [
+        // Not personalized, so recipient merge tags are blanked. Connections add their own tags with the filter.
+        $tags = apply_filters('mo_web_version_blank_tags', [
             '{{unsubscribe}}'           => '#',
             '{{webversion}}'            => '#',
             '{{subscriber.email}}'      => '',
             '{{subscriber.first_name}}' => '',
             '{{subscriber.last_name}}'  => '',
-        ], true);
+        ], $campaign_log_id);
+
+        return CampaignRenderer::replace_tags($html, $tags, true);
     }
 
     /**

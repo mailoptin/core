@@ -180,6 +180,23 @@ class SubscribersPageTest extends WP_UnitTestCase
         $this->assertSame('subscribed', $subscriber['status']);
     }
 
+    public function test_profile_update_does_not_resubscribe_a_list_they_left()
+    {
+        $workshops = ListsRepository::create(['name' => 'Workshops', 'double_optin' => 0]);
+        Subscription::add_by_admin('amara@example.com', [$this->list_id, $workshops], [], true);
+        $subscriber = Subscribers::get_by_email('amara@example.com');
+        Subscription::unsubscribe($subscriber['id'], $workshops);
+
+        $this->request(['subscriber' => $subscriber['id']], [
+            'mo_subscriber_action' => 'update',
+            'subscriber'           => $subscriber['id'],
+            'list_ids'             => [$this->list_id, $workshops],
+        ], 'mo_update_subscriber_' . $subscriber['id']);
+
+        $this->assertSame('unsubscribed', Subscribers::get_membership($subscriber['id'], $workshops)['status']);
+        $this->assertSame('subscribed', Subscribers::get_membership($subscriber['id'], $this->list_id)['status']);
+    }
+
     public function test_bulk_add_to_list_skips_people_who_unsubscribed_from_it()
     {
         $workshops = ListsRepository::create(['name' => 'Workshops', 'double_optin' => 0]);

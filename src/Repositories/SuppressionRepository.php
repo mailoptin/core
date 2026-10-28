@@ -25,19 +25,53 @@ class SuppressionRepository extends AbstractRepository
         return hash('sha256', strtolower(trim($email)));
     }
 
+    /**
+     * An address already suppressed keeps its reason, except that a bounce or complaint replaces an
+     * unsubscribe: those are stickier, since confirming again only lifts an unsubscribe.
+     */
     public static function add($email, $reason, $source = '')
     {
         $table = self::table();
 
         return (bool)self::wpdb()->query(
             self::wpdb()->prepare(
-                "INSERT IGNORE INTO $table (email_hash, reason, source, created_at) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO $table (email_hash, reason, source, created_at) VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE reason = IF(reason = 'unsubscribed' AND VALUES(reason) IN ('bounced', 'complained'), VALUES(reason), reason)",
                 self::hash($email),
                 $reason,
                 $source,
                 gmdate('Y-m-d H:i:s')
             )
         );
+    }
+
+    /**
+     * Add many addresses at once. Addresses already suppressed keep their original reason.
+     *
+     * @param string[] $emails
+     * @param string $reason
+     * @param string $source
+     *
+     * @return int number of addresses added
+     */
+    public static function add_many($emails, $reason, $source = '')
+    {
+        $table = self::table();
+        $now   = gmdate('Y-m-d H:i:s');
+        $added = 0;
+
+        $rows = [];
+        foreach (array_unique(array_map('strtolower', array_map('trim', (array)$emails))) as $email) {
+            if ( ! is_email($email)) continue;
+
+            $rows[] = self::wpdb()->prepare('(%s, %s, %s, %s)', self::hash($email), $reason, $source, $now);
+        }
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            $added += (int)self::wpdb()->query("INSERT IGNORE INTO $table (email_hash, reason, source, created_at) VALUES " . implode(',', $chunk));
+        }
+
+        return $added;
     }
 
     /**

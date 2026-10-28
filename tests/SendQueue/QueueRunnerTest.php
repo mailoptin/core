@@ -74,7 +74,7 @@ class QueueRunnerTest extends WP_UnitTestCase
     protected function recipients($emails)
     {
         return array_map(function ($email) {
-            return ['email' => $email, 'recipient_type' => 'subscriber', 'recipient_id' => 0];
+            return ['email' => $email, 'recipient_type' => 'test', 'recipient_id' => 0];
         }, $emails);
     }
 

@@ -59,6 +59,12 @@ class QueueRunner
     {
         $added = Queue::enqueue($campaign_log_id, $email_campaign_id, $recipients);
 
+        // A paused campaign stays paused; new recipients wait for Resume. For example, a paused
+        // welcome email keeps queueing new subscribers without sending to them.
+        if (self::STATE_PAUSED === AbstractCampaignLogMeta::get_campaignlog_meta($campaign_log_id, self::STATE_META_KEY)) {
+            return $added;
+        }
+
         AbstractCampaignLogMeta::update_campaignlog_meta($campaign_log_id, self::STATE_META_KEY, self::STATE_SENDING);
         $this->update_log_status($campaign_log_id, self::LOG_STATUS_SENDING);
 
@@ -171,6 +177,15 @@ class QueueRunner
                     continue;
                 }
 
+                // A connection can return a reason to skip a recipient, such as a deleted user.
+                $skip_reason = apply_filters('mo_send_queue_skip_reason', '', $row, $campaign_log_id);
+
+                if ('' !== (string)$skip_reason) {
+                    Queue::mark_skipped($row['id'], (string)$skip_reason);
+                    $handled++;
+                    continue;
+                }
+
                 if ( ! Queue::mark_sending($row['id'], $this->worker_id)) continue;
 
                 $this->send_row($row, $campaign_log_id);
@@ -224,6 +239,16 @@ class QueueRunner
 
         AbstractCampaignLogMeta::delete_campaignlog_meta($campaign_log_id, self::STATE_META_KEY);
         $this->update_log_status($campaign_log_id, self::LOG_STATUS_PROCESSED);
+
+        // Recipients queued while this was finishing (a welcome email for a new signup) would otherwise
+        // wait for the next start(), so pick the campaign back up.
+        if (Queue::has_unfinished($campaign_log_id)) {
+            AbstractCampaignLogMeta::update_campaignlog_meta($campaign_log_id, self::STATE_META_KEY, self::STATE_SENDING);
+            $this->update_log_status($campaign_log_id, self::LOG_STATUS_SENDING);
+            $this->dispatch($campaign_log_id);
+
+            return;
+        }
 
         do_action('mo_send_queue_campaign_completed', $campaign_log_id, Queue::counts($campaign_log_id));
     }

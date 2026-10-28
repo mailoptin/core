@@ -177,6 +177,23 @@ abstract class AbstractConnect
      * @param int $campaign_log_id
      * @param int $email_campaign_id
      */
+    /**
+     * Logs without an email campaign, such as a list's welcome email, would otherwise be named md5() of
+     * a small number, so they get a keyed name that can't be guessed.
+     *
+     * @return string
+     */
+    public static function campaign_error_log_filename($email_campaign_id, $campaign_log_id)
+    {
+        $email_campaign_name = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
+
+        if (empty($email_campaign_name)) {
+            return hash_hmac('md5', 'campaign-error-log|' . $campaign_log_id, wp_salt('auth'));
+        }
+
+        return md5($email_campaign_name . $campaign_log_id);
+    }
+
     public static function save_campaign_error_log($message, $campaign_log_id, $email_campaign_id)
     {
         if ( ! isset($message) || ! isset($campaign_log_id) || ! isset($email_campaign_id)) return;
@@ -189,14 +206,19 @@ abstract class AbstractConnect
 
         $cache_bucket[$cache_key] = true;
 
-        $email_campaign_name = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
-        $filename            = md5($email_campaign_name . $campaign_log_id);
+        $filename = self::campaign_error_log_filename($email_campaign_id, $campaign_log_id);
 
         $error_log_folder = MAILOPTIN_CAMPAIGN_ERROR_LOG;
 
         // does bugs folder exist? if NO, create it.
         if ( ! file_exists($error_log_folder)) {
             mkdir($error_log_folder, 0755);
+        }
+
+        // The logs contain recipient addresses, so block direct downloads where the server honours these.
+        if ( ! file_exists($error_log_folder . '.htaccess')) {
+            @file_put_contents($error_log_folder . '.htaccess', "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n");
+            @file_put_contents($error_log_folder . 'index.php', "<?php\n// Silence is golden.\n");
         }
 
         error_log(current_time('mysql') . ': ' . $message . "\r\n\r\n", 3, "{$error_log_folder}{$filename}.log");

@@ -33,6 +33,9 @@ class AbuseProtectionTest extends WP_UnitTestCase
 
     protected function subscribe($email, $ip = '198.51.100.7')
     {
+        // The rate limits use the connection's address; the form's reported IP is only recorded.
+        $_SERVER['REMOTE_ADDR'] = $ip;
+
         return Subscription::subscribe($email, $this->list_id, ['ip_address' => $ip]);
     }
 
@@ -110,7 +113,7 @@ class AbuseProtectionTest extends WP_UnitTestCase
         Subscription::confirm(Subscribers::get_by_email('old-confirmed@example.com')['id']);
 
         $table = Subscribers::table();
-        $wpdb->query("UPDATE $table SET created_at = '2020-01-01 00:00:00' WHERE email IN ('old-pending@example.com', 'old-confirmed@example.com')");
+        $wpdb->query("UPDATE $table SET created_at = '2020-01-01 00:00:00', updated_at = '2020-01-01 00:00:00' WHERE email IN ('old-pending@example.com', 'old-confirmed@example.com')");
 
         $old_pending_id = Subscribers::get_by_email('old-pending@example.com')['id'];
 
