@@ -11,9 +11,9 @@ use MailOptin\Core\SendQueue\QueueRunner;
 use MailOptin\Core\SendQueue\WpMailSender;
 
 /**
- * A list's welcome email, sent once to each person who joins the list through a form: when they
- * confirm, or straight away on lists without double opt-in. People added from the admin screen
- * don't get it.
+ * A list's welcome email, sent once to each person who joins the list: when they confirm, or
+ * straight away on lists without double opt-in. People an admin adds with permission already on
+ * file don't get it; people an admin invites get it once they confirm.
  *
  * Each list's welcome email has one campaign log. Its send queue rows are keyed by email, so
  * nobody is welcomed to the same list twice, and the log shows how many were sent.

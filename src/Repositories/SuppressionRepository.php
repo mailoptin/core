@@ -25,13 +25,18 @@ class SuppressionRepository extends AbstractRepository
         return hash('sha256', strtolower(trim($email)));
     }
 
+    /**
+     * An address already suppressed keeps its reason, except that a bounce or complaint replaces an
+     * unsubscribe: those are stickier, since confirming again only lifts an unsubscribe.
+     */
     public static function add($email, $reason, $source = '')
     {
         $table = self::table();
 
         return (bool)self::wpdb()->query(
             self::wpdb()->prepare(
-                "INSERT IGNORE INTO $table (email_hash, reason, source, created_at) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO $table (email_hash, reason, source, created_at) VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE reason = IF(reason = 'unsubscribed' AND VALUES(reason) IN ('bounced', 'complained'), VALUES(reason), reason)",
                 self::hash($email),
                 $reason,
                 $source,

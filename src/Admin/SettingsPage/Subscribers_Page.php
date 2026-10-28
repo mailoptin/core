@@ -487,7 +487,7 @@ class Subscribers_Page extends AbstractSettingsPage
                     </p>
                     <p>
                         <label class="mo-check"><input type="checkbox" name="welcome_email" value="1" <?php checked( ! empty($editing['welcome_email'])); ?>> <strong><?php esc_html_e('Send a welcome email', 'mailoptin'); ?></strong></label>
-                        <span class="description"><?php esc_html_e('Sent once when someone joins this list from a form: right after they confirm, or straight away on lists without double opt-in. People you add yourself don\'t get it.', 'mailoptin'); ?></span>
+                        <span class="description"><?php esc_html_e('Sent once when someone joins this list from a form: right after they confirm, or straight away on lists without double opt-in. People you add with permission already on file don\'t get it; people you invite get it once they confirm.', 'mailoptin'); ?></span>
                     </p>
                     <?php if ($editing) : ?>
                         <p class="mo-welcome-summary">
@@ -722,10 +722,18 @@ class Subscribers_Page extends AbstractSettingsPage
 
         $wanted  = array_map('absint', (array)($_POST['list_ids'] ?? []));
         $current = [];
+        $left    = [];
 
         foreach (Subscribers::get_memberships($subscriber_id) as $membership) {
-            if (Subscribers::STATUS_UNSUBSCRIBED !== $membership['status']) $current[] = (int)$membership['list_id'];
+            if (Subscribers::STATUS_UNSUBSCRIBED === $membership['status']) {
+                $left[] = (int)$membership['list_id'];
+            } else {
+                $current[] = (int)$membership['list_id'];
+            }
         }
+
+        // Someone who unsubscribed from a list can only rejoin it themselves, like the bulk "Add to list".
+        $wanted = array_diff($wanted, $left);
 
         // Add before removing: moving someone from one list to another must not leave them on no list
         // in between, which would unsubscribe and suppress them.

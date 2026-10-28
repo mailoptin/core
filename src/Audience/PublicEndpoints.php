@@ -53,6 +53,22 @@ class PublicEndpoints
             $this->invalid_link();
         }
 
+        // Confirm on POST only, so link scanners that open every link in an inbox can't confirm
+        // signups someone else made. The page submits itself, so for people it's still one click.
+        if ('POST' !== strtoupper($_SERVER['REQUEST_METHOD'] ?? '')) {
+            $form = sprintf(
+                '<form method="post" action="%s" id="mo-confirm-form"><button type="submit" class="button">%s</button></form><script>document.getElementById("mo-confirm-form").submit();</script>',
+                esc_url(Tokens::confirm_url($subscriber)),
+                esc_html__('Confirm subscription', 'mailoptin')
+            );
+
+            $this->page(
+                __('Confirm your subscription', 'mailoptin'),
+                esc_html__('Confirming your subscription…', 'mailoptin'),
+                $form
+            );
+        }
+
         Subscription::confirm($subscriber['id']);
 
         $redirect = apply_filters('mo_subscription_confirmed_redirect', '', $subscriber);

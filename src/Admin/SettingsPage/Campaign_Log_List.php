@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Core;
 use MailOptin\Core\EmailCampaigns\NewPublishPost\NewPublishPost;
 use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter as NL;
@@ -340,8 +341,7 @@ class Campaign_Log_List extends \WP_List_Table
     {
         $campaign_log_id      = absint($item['id']);
         $email_campaign_id    = absint($item['email_campaign_id']);
-        $email_campaign_title = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
-        $error_log_filename   = md5($email_campaign_title . $campaign_log_id);
+        $error_log_filename   = AbstractConnect::campaign_error_log_filename($email_campaign_id, $campaign_log_id);
 
         $preview_url = add_query_arg(
             ['mailoptin' => 'preview-campaign-error-log', 'id' => $error_log_filename],

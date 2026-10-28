@@ -17,6 +17,8 @@ class Subscription
     const RESULT_SUBSCRIBED = 'subscribed';
     const RESULT_PENDING = 'pending';
     const RESULT_ALREADY_SUBSCRIBED = 'already_subscribed';
+    // Bounced or complained: nothing is sent, but the form still thanks them.
+    const RESULT_REFUSED = 'refused';
 
     /**
      * @param string $email
@@ -69,12 +71,20 @@ class Subscription
 
             $subscriber = Subscribers::get($subscriber_id);
         } else {
-            Subscribers::update($subscriber['id'], array_merge($names, $consent));
+            // Anyone can submit a form with someone else's address, so a signup only fills in what's
+            // missing. The full details of every signup are kept on its timeline event.
+            $missing = array_filter($names, function ($value, $field) use ($subscriber) {
+                return '' === trim((string)$subscriber[$field]);
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (empty($subscriber['consent_at'])) $missing = array_merge($missing, $consent);
+
+            if ( ! empty($missing)) Subscribers::update($subscriber['id'], $missing);
         }
 
         $subscriber_id = (int)$subscriber['id'];
 
-        Subscribers::log_event($subscriber_id, Subscribers::EVENT_SIGNUP, array_merge(['list_id' => (int)$list_id], (array)($context['meta'] ?? [])));
+        Subscribers::log_event($subscriber_id, Subscribers::EVENT_SIGNUP, array_merge(['list_id' => (int)$list_id], $names, $consent, (array)($context['meta'] ?? [])));
 
         $membership = Subscribers::get_membership($subscriber_id, $list_id);
 
@@ -82,14 +92,24 @@ class Subscription
             return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_ALREADY_SUBSCRIBED];
         }
 
+        $suppression = SuppressionRepository::get_reason($email);
+
+        // Bounced and complained addresses are never emailed, not even to confirm.
+        if (
+            in_array($suppression, [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED], true) ||
+            in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)
+        ) {
+            return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_REFUSED];
+        }
+
         // An address that already confirmed and is receiving email doesn't need to confirm again for another list.
         $verified = ! empty($subscriber['confirmed_at']) && Subscribers::STATUS_SUBSCRIBED === $subscriber['status'];
 
-        if ( ! $list['double_optin'] || $verified) {
+        // Someone who unsubscribed must confirm by email to come back, even on a single opt-in list,
+        // otherwise anyone could resubscribe them by submitting a form with their address.
+        $opted_out = $suppression || ($membership && Subscribers::STATUS_UNSUBSCRIBED === $membership['status']);
 
-            if (SuppressionRepository::REASON_UNSUBSCRIBED === SuppressionRepository::get_reason($email)) {
-                SuppressionRepository::remove($email);
-            }
+        if (( ! $list['double_optin'] || $verified) && ! $opted_out) {
 
             Subscribers::set_membership($subscriber_id, $list_id, Subscribers::STATUS_SUBSCRIBED);
             Subscribers::sync_status($subscriber_id);
@@ -107,9 +127,20 @@ class Subscription
         Subscribers::set_membership($subscriber_id, $list_id, Subscribers::STATUS_PENDING);
         Subscribers::sync_status($subscriber_id);
 
-        self::send_confirmation($subscriber_id, $context['ip_address'] ?? '');
+        self::send_confirmation($subscriber_id, self::request_ip());
 
         return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_PENDING];
+    }
+
+    /**
+     * The address the request came from, for rate limits. Unlike the IP stored with the consent record,
+     * it ignores forwarding headers, which a client can set to anything.
+     */
+    public static function request_ip()
+    {
+        $ip = isset($_SERVER['REMOTE_ADDR']) && is_string($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+
+        return (string)apply_filters('mo_confirmation_rate_limit_ip', filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '');
     }
 
     const ADMIN_ADDED = 'added';
@@ -280,7 +311,10 @@ class Subscription
             Subscribers::update($subscriber_id, ['status' => Subscribers::STATUS_PENDING]);
         }
 
-        SuppressionRepository::remove($subscriber['email']);
+        // Clicking proves they want email again, but not that an address that bounced or complained is safe.
+        if (SuppressionRepository::REASON_UNSUBSCRIBED === SuppressionRepository::get_reason($subscriber['email'])) {
+            SuppressionRepository::remove($subscriber['email']);
+        }
 
         Subscribers::confirm($subscriber_id);
         Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMED);
@@ -302,6 +336,9 @@ class Subscription
         $subscriber = Subscribers::get($subscriber_id);
 
         if ( ! $subscriber) return false;
+
+        // A link for a list that has since been deleted can't stop that list, so it stops everything.
+        if ($list_id && ! ListsRepository::get($list_id)) $list_id = 0;
 
         foreach (Subscribers::get_memberships($subscriber_id) as $membership) {
             if ($list_id && (int)$membership['list_id'] !== (int)$list_id) continue;

@@ -21,6 +21,9 @@ class SendQueueRepository extends AbstractRepository
 
     const INSERT_BATCH_SIZE = 500;
 
+    // Marks a row whose send was interrupted part way. It may have gone out, so it is never retried.
+    const ATTEMPTS_INTERRUPTED = 9999;
+
     public static function table()
     {
         return self::wpdb()->prefix . Core::send_queue_table_name;
@@ -138,9 +141,10 @@ class SendQueueRepository extends AbstractRepository
 
         self::wpdb()->query(
             self::wpdb()->prepare(
-                "UPDATE $table SET status = %s, claimed_by = '', claimed_until = NULL, error = %s
+                "UPDATE $table SET status = %s, claimed_by = '', claimed_until = NULL, attempts = %d, error = %s
                 WHERE campaign_log_id = %d AND status = %s AND claimed_until < %s",
                 self::STATUS_FAILED,
+                self::ATTEMPTS_INTERRUPTED,
                 __('Sending stopped before it finished. Not retried, to avoid sending this email twice.', 'mailoptin'),
                 $campaign_log_id,
                 self::STATUS_SENDING,
@@ -241,7 +245,7 @@ class SendQueueRepository extends AbstractRepository
 
     /**
      * Put a campaign's failed rows back in the queue, for the Campaign Log "Resend" action.
-     * Rows already sent are left alone, so nobody gets the email twice.
+     * Rows already sent, and rows whose send was interrupted part way, are left alone, so nobody gets the email twice.
      *
      * @return int rows requeued
      */
@@ -251,11 +255,12 @@ class SendQueueRepository extends AbstractRepository
 
         return (int)self::wpdb()->query(
             self::wpdb()->prepare(
-                "UPDATE $table SET status = %s, attempts = 0, next_attempt_at = %s, error = NULL WHERE campaign_log_id = %d AND status = %s",
+                "UPDATE $table SET status = %s, attempts = 0, next_attempt_at = %s, error = NULL WHERE campaign_log_id = %d AND status = %s AND attempts <> %d",
                 self::STATUS_PENDING,
                 self::now(),
                 $campaign_log_id,
-                self::STATUS_FAILED
+                self::STATUS_FAILED,
+                self::ATTEMPTS_INTERRUPTED
             )
         );
     }

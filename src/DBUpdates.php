@@ -304,7 +304,8 @@ class DBUpdates
 
         foreach ($legacy as $option_name => $source) {
             $emails = array_map(function ($encoded) {
-                return (string)base64_decode((string)$encoded, true);
+                // Older handlers stored the value as it arrived in the URL, where "+" becomes a space.
+                return (string)base64_decode(str_replace(' ', '+', (string)$encoded), true);
             }, (array)get_option($option_name, []));
 
             SuppressionRepository::add_many($emails, SuppressionRepository::REASON_UNSUBSCRIBED, $source);

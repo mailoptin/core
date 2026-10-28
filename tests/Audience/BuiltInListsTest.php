@@ -145,7 +145,12 @@ class BuiltInListsTest extends WP_UnitTestCase
         $this->assertStringContainsString('invalid', $bad);
         $this->assertSame('pending', Subscribers::get($subscriber['id'])['status']);
 
+        // GET only shows a self-submitting form, so link scanners don't confirm anyone.
         $page = $this->call_endpoint($this->query_from_url(Tokens::confirm_url($subscriber)));
+        $this->assertStringContainsString('<form method="post"', $page);
+        $this->assertSame('pending', Subscribers::get($subscriber['id'])['status']);
+
+        $page = $this->call_endpoint($this->query_from_url(Tokens::confirm_url($subscriber)), 'POST');
         $this->assertStringContainsString("You're subscribed", $page);
 
         $subscriber = Subscribers::get($subscriber['id']);
