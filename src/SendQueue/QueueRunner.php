@@ -5,6 +5,7 @@ namespace MailOptin\Core\SendQueue;
 use MailOptin\Core\AsyncHandler\AsyncHandler;
 use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Logging\CampaignLogRepository;
+use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\SendQueueRepository as Queue;
 use MailOptin\Core\Repositories\SuppressionRepository;
@@ -235,7 +236,8 @@ class QueueRunner
 
     public function hourly_allowance()
     {
-        $limit = (int)apply_filters('mo_send_queue_hourly_limit', 1000);
+        $setting = absint(Settings::instance()->send_queue_hourly_limit(1000));
+        $limit   = (int)apply_filters('mo_send_queue_hourly_limit', $setting > 0 ? $setting : 1000);
 
         return $limit - Queue::sent_since(Queue::now(-HOUR_IN_SECONDS));
     }

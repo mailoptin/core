@@ -65,6 +65,35 @@ class ListsRepository extends AbstractRepository
         return (bool)self::wpdb()->delete(self::table(), ['id' => $list_id], ['%d']);
     }
 
+    /**
+     * @return array list_id => ['subscribed' => int, 'pending' => int]
+     */
+    public static function member_counts()
+    {
+        $memberships = SubscribersRepository::memberships_table();
+        $subscribers = SubscribersRepository::table();
+        $counts      = [];
+
+        $rows = self::wpdb()->get_results(
+            "SELECT m.list_id, m.status, COUNT(*) AS total FROM $memberships m
+            INNER JOIN $subscribers s ON s.id = m.subscriber_id
+            WHERE s.status NOT IN ('bounced', 'complained')
+            GROUP BY m.list_id, m.status",
+            'ARRAY_A'
+        );
+
+        foreach ($rows as $row) {
+            $counts[$row['list_id']][$row['status']] = (int)$row['total'];
+        }
+
+        return array_map(function ($statuses) {
+            return [
+                'subscribed' => $statuses[SubscribersRepository::STATUS_SUBSCRIBED] ?? 0,
+                'pending'    => $statuses[SubscribersRepository::STATUS_PENDING] ?? 0,
+            ];
+        }, $counts);
+    }
+
     public static function is_double_optin($list_id)
     {
         $list = self::get($list_id);
