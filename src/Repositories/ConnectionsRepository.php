@@ -3,7 +3,7 @@
 namespace MailOptin\Core\Repositories;
 
 use MailOptin\Core\Connections\ConnectionFactory;
-use MailOptin\RegisteredUsersConnect\Connect as RegisteredUsersConnect;
+use MailOptin\MailOptinConnect\Connect as MailOptinConnect;
 
 class ConnectionsRepository
 {
@@ -52,7 +52,7 @@ class ConnectionsRepository
                 if ($key == '') {
                     continue;
                 }
-                if ($key != RegisteredUsersConnect::$connectionName) {
+                if ( ! in_array($key, ['RegisteredUsersConnect', MailOptinConnect::$connectionName], true)) {
                     unset($connections[$key]);
                 }
             }

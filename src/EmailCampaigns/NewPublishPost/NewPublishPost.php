@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\EmailCampaigns\NewPublishPost;
 
+use MailOptin\Core\SendQueue\QueueRunner;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
@@ -271,7 +272,10 @@ class NewPublishPost extends AbstractTriggers
         );
 
         if (isset($response['success']) && (true === $response['success'])) {
-            $this->update_campaign_status($campaign_log_id, 'processed');
+            // The send queue marks the campaign processed itself once every email has gone out.
+            if (($response['status'] ?? '') !== QueueRunner::LOG_STATUS_SENDING) {
+                $this->update_campaign_status($campaign_log_id, 'processed');
+            }
         } else {
             $this->update_campaign_status($campaign_log_id, 'failed');
         }

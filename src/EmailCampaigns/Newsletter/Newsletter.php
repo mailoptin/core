@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\EmailCampaigns\Newsletter;
 
+use MailOptin\Core\SendQueue\QueueRunner;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
 use MailOptin\Core\EmailCampaigns\Misc;
@@ -72,7 +73,10 @@ class Newsletter extends AbstractTriggers
         );
 
         if (isset($response['success']) && (true === $response['success'])) {
-            $this->update_campaign_status($campaign_log_id, 'processed');
+            // The send queue marks the campaign processed itself once every email has gone out.
+            if (($response['status'] ?? '') !== QueueRunner::LOG_STATUS_SENDING) {
+                $this->update_campaign_status($campaign_log_id, 'processed');
+            }
             EmailCampaignMeta::update_meta_data($email_campaign_id, 'newsletter_date_sent', current_time('mysql'));
         } else {
             $this->update_campaign_status($campaign_log_id, 'failed');

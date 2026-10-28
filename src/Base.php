@@ -108,6 +108,9 @@ class Base
         Cron::get_instance();
         AsyncHandler::get_instance();
         SendQueue\QueueRunner::get_instance();
+        Audience\PublicEndpoints::get_instance();
+        Audience\CampaignRenderer::get_instance();
+        \MailOptin\MailOptinConnect\Connect::get_instance();
 
         $this->admin_hooks();
         Admin\Customizer\EmailCampaign\Customizer::instance();

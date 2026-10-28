@@ -13,7 +13,8 @@
   },
   "autoload": {
     "psr-4": {
-      "MailOptin\\Core\\": "src/"
+      "MailOptin\\Core\\": "src/",
+      "MailOptin\\MailOptinConnect\\": "src/MailOptinConnect/"
     },
     "classmap": [
       "src/Libs/WPBGProcessing"
