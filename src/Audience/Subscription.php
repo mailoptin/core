@@ -228,14 +228,11 @@ class Subscription
         $ignore = __("If you didn't sign up, ignore this email and you won't hear from us.", 'mailoptin');
         $footer = self::postal_footer();
 
-        $html = sprintf(
-            '<p>%s</p><p>%s</p><p><a href="%s" style="display:inline-block;padding:10px 18px;background:#2271b1;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:600;">%s</a></p><p style="color:#646970;font-size:13px;">%s</p>%s',
-            esc_html($greeting),
-            esc_html($intro),
-            esc_url($confirm_url),
-            esc_html($button),
-            esc_html($ignore),
-            $footer ? '<p style="color:#646970;font-size:12px;">' . esc_html($footer) . '</p>' : ''
+        $html = EmailBranding::frame(
+            sprintf('<p>%s</p><p>%s</p>', esc_html($greeting), esc_html($intro)) .
+            EmailBranding::button($confirm_url, $button) .
+            sprintf('<p style="color:#646970;font-size:13px">%s</p>', esc_html($ignore)),
+            esc_html($footer)
         );
 
         $text = implode("\n\n", array_filter([$greeting, $intro, $button . ': ' . $confirm_url, $ignore, $footer]));
@@ -334,7 +331,8 @@ class Subscription
      */
     public static function postal_footer()
     {
-        $settings = Settings::instance();
+        // Fresh, not Settings::instance(), so an address saved earlier in the same request is used.
+        $settings = new Settings();
 
         return implode(', ', array_filter([
             $settings->company_name(),

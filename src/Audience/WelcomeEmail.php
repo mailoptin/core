@@ -24,6 +24,8 @@ class WelcomeEmail
     {
         add_action('mo_subscriber_subscribed', [$this, 'on_subscribed'], 10, 2);
         add_action('mo_subscriber_confirmed', [$this, 'on_confirmed'], 10, 2);
+        // Stored welcome emails embed the branding and postal address, so rebuild them when settings change.
+        add_action('update_option_' . MAILOPTIN_SETTINGS_DB_OPTION_NAME, [__CLASS__, 'refresh_all']);
     }
 
     public function on_subscribed($subscriber_id, $list_id)
@@ -59,7 +61,7 @@ class WelcomeEmail
     }
 
     /**
-     * The message inside a plain email frame, with the postal address and an unsubscribe link.
+     * The message in the branded email frame, with the postal address and an unsubscribe link.
      * Developers can replace the frame with the mo_welcome_email_html filter.
      */
     public static function html($list, $body)
@@ -67,21 +69,13 @@ class WelcomeEmail
         $address = Subscription::postal_footer();
 
         $footer = sprintf(
-            '%s%s <a href="{{unsubscribe}}" style="color:#2271b1">%s</a>',
+            '%s%s <a href="{{unsubscribe}}">%s</a>',
             '' !== $address ? esc_html($address) . '<br>' : '',
             esc_html(sprintf(__("You're receiving this because you subscribed to %s.", 'mailoptin'), $list['name'])),
             esc_html__('Unsubscribe', 'mailoptin')
         );
 
-        $html = sprintf(
-            '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>' .
-            '<body style="margin:0;padding:24px 12px;background:#f0f0f1">' .
-            '<div style="max-width:600px;margin:0 auto;background:#ffffff;padding:28px 32px;font:15px/1.6 -apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;color:#1d2327">' .
-            '%s<div style="border-top:1px solid #eeeeee;margin-top:24px;padding-top:12px;color:#646970;font-size:12px;line-height:1.5">%s</div>' .
-            '</div></body></html>',
-            wpautop(wp_kses_post($body)),
-            $footer
-        );
+        $html = EmailBranding::frame(wpautop(wp_kses_post($body)), $footer);
 
         return apply_filters('mo_welcome_email_html', $html, $list, $body);
     }
@@ -106,6 +100,18 @@ class WelcomeEmail
 
         if ($list && self::existing_log_id($list)) {
             self::write_log_content(self::existing_log_id($list), $list);
+        }
+    }
+
+    /**
+     * Rebuild every list's stored welcome email, after branding or the postal address changes.
+     */
+    public static function refresh_all()
+    {
+        foreach (ListsRepository::get_all() as $list) {
+            $log_id = self::existing_log_id($list);
+
+            if ($log_id) self::write_log_content($log_id, $list);
         }
     }
 
