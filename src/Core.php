@@ -11,6 +11,12 @@ final class Core
     const conversions_table_name = 'mo_conversions';
     const email_campaigns_table_name = 'mo_email_campaigns';
     const email_campaign_meta_table_name = 'mo_email_campaignmeta';
+    const subscribers_table_name = 'mo_subscribers';
+    const lists_table_name = 'mo_lists';
+    const list_subscribers_table_name = 'mo_list_subscribers';
+    const suppressions_table_name = 'mo_suppressions';
+    const subscriber_events_table_name = 'mo_subscriber_events';
+    const send_queue_table_name = 'mo_send_queue';
 
     public function __construct()
     {
