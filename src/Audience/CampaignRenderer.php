@@ -4,6 +4,7 @@ namespace MailOptin\Core\Audience;
 
 use MailOptin\Core\Logging\CampaignLogRepository;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
+use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 
 /**
@@ -85,7 +86,10 @@ class CampaignRenderer
 
         $campaign = self::campaign_content($campaign_log_id);
 
+        $list = $campaign['list_id'] ? ListsRepository::get($campaign['list_id']) : null;
+
         $tags = [
+            '{{list.name}}'             => $list['name'] ?? '',
             '{{unsubscribe}}'           => Tokens::unsubscribe_url($subscriber, $campaign['list_id'], $campaign_log_id),
             '{{webversion}}'            => Tokens::web_version_url($campaign_log_id),
             '{{subscriber.email}}'      => $subscriber['email'],
@@ -94,10 +98,22 @@ class CampaignRenderer
         ];
 
         return [
-            'subject' => self::replace_tags($campaign['subject'], $tags, false),
-            'html'    => self::replace_tags($campaign['html'], $tags, true),
-            'text'    => self::replace_tags($campaign['text'], $tags, false),
+            'subject' => self::replace_tags(self::replace_fallback_tags($campaign['subject'], $subscriber, false), $tags, false),
+            'html'    => self::replace_tags(self::replace_fallback_tags($campaign['html'], $subscriber, true), $tags, true),
+            'text'    => self::replace_tags(self::replace_fallback_tags($campaign['text'], $subscriber, false), $tags, false),
         ];
+    }
+
+    /**
+     * {{subscriber.first_name|there}} uses "there" when the subscriber has no first name.
+     */
+    public static function replace_fallback_tags($content, $subscriber, $escape_html)
+    {
+        return preg_replace_callback('/\{\{subscriber\.(first_name|last_name)\|([^}]*)\}\}/', function ($match) use ($subscriber, $escape_html) {
+            $value = '' !== trim((string)$subscriber[$match[1]]) ? $subscriber[$match[1]] : $match[2];
+
+            return $escape_html ? esc_html($value) : $value;
+        }, (string)$content);
     }
 
     public function headers($headers, $row, $campaign_log_id)

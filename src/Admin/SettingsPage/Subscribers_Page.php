@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
 use MailOptin\Core\Audience\ConfirmationThrottle;
 use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
+use MailOptin\Core\Audience\WelcomeEmail;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
@@ -178,6 +179,9 @@ class Subscribers_Page extends AbstractSettingsPage
             'list_saved'           => [__('List saved.', 'mailoptin'), 'success'],
             'list_deleted'         => [__('List deleted. Its subscribers were kept.', 'mailoptin'), 'success'],
             'list_invalid'         => [__('Give the list a name.', 'mailoptin'), 'error'],
+            'welcome_saved'        => [__('Welcome email saved.', 'mailoptin'), 'success'],
+            'welcome_test_sent'    => [__('Test email sent. Check your inbox.', 'mailoptin'), 'success'],
+            'welcome_test_failed'  => [__('The test email could not be sent. Check your site can send email, for example with an SMTP plugin.', 'mailoptin'), 'error'],
         ];
 
         $key = sanitize_key($_GET['mo_notice'] ?? '');
@@ -454,6 +458,12 @@ class Subscribers_Page extends AbstractSettingsPage
     {
         if ( ! $this->is_this_page()) return;
 
+        if ( ! empty($_GET['welcome']) && ($welcome_list = ListsRepository::get(absint($_GET['welcome'])))) {
+            $this->build_page($this->notice_html() . $this->welcome_editor_html($welcome_list));
+
+            return;
+        }
+
         $editing = ! empty($_GET['edit']) ? ListsRepository::get(absint($_GET['edit'])) : null;
         $lists   = ListsRepository::get_all();
         $counts  = ListsRepository::member_counts();
@@ -475,6 +485,16 @@ class Subscribers_Page extends AbstractSettingsPage
                         <label class="mo-check"><input type="checkbox" name="double_optin" value="1" <?php checked( ! $editing || $editing['double_optin']); ?>> <?php esc_html_e('Require double opt-in', 'mailoptin'); ?></label>
                         <span class="description"><?php esc_html_e('New subscribers get a confirmation email and stay pending until they click it.', 'mailoptin'); ?></span>
                     </p>
+                    <p>
+                        <label class="mo-check"><input type="checkbox" name="welcome_email" value="1" <?php checked( ! empty($editing['welcome_email'])); ?>> <strong><?php esc_html_e('Send a welcome email', 'mailoptin'); ?></strong></label>
+                        <span class="description"><?php esc_html_e('Sent once when someone joins this list from a form: right after they confirm, or straight away on lists without double opt-in. People you add yourself don\'t get it.', 'mailoptin'); ?></span>
+                    </p>
+                    <?php if ($editing) : ?>
+                        <p class="mo-welcome-summary">
+                            <?php printf(esc_html__('Subject: %s', 'mailoptin'), '<strong>' . esc_html(WelcomeEmail::subject($editing)) . '</strong>'); ?><br>
+                            <a class="button" href="<?php echo esc_url(add_query_arg('welcome', absint($editing['id']), self::page_url('lists'))); ?>"><?php esc_html_e('Edit welcome email', 'mailoptin'); ?></a>
+                        </p>
+                    <?php endif; ?>
                     <?php submit_button($editing ? __('Save list', 'mailoptin') : __('Add list', 'mailoptin')); ?>
                     <?php if ($editing) : ?>
                         <a href="<?php echo esc_url(self::page_url('lists')); ?>"><?php esc_html_e('Cancel', 'mailoptin'); ?></a>
@@ -482,7 +502,7 @@ class Subscribers_Page extends AbstractSettingsPage
                 </form>
             </div>
             <div class="mo-col-main">
-                <table class="wp-list-table widefat fixed striped mo-lists-table">
+                <table class="wp-list-table widefat striped mo-lists-table">
                     <thead>
                     <tr>
                         <th><?php esc_html_e('List', 'mailoptin'); ?></th>
@@ -490,11 +510,12 @@ class Subscribers_Page extends AbstractSettingsPage
                         <th><?php esc_html_e('Pending', 'mailoptin'); ?></th>
                         <th><?php esc_html_e('Double opt-in', 'mailoptin'); ?></th>
                         <th><?php esc_html_e('Forms using it', 'mailoptin'); ?></th>
+                        <th><?php esc_html_e('Welcome email', 'mailoptin'); ?></th>
                     </tr>
                     </thead>
                     <tbody>
                     <?php if (empty($lists)) : ?>
-                        <tr><td colspan="5"><?php esc_html_e('No lists yet. Add your first list, then connect a form to "MailOptin (built-in)".', 'mailoptin'); ?></td></tr>
+                        <tr><td colspan="6"><?php esc_html_e('No lists yet. Add your first list, then connect a form to "MailOptin (built-in)".', 'mailoptin'); ?></td></tr>
                     <?php endif; ?>
                     <?php foreach ($lists as $list) :
                         $list_id = absint($list['id']);
@@ -514,6 +535,15 @@ class Subscribers_Page extends AbstractSettingsPage
                             <td><?php echo esc_html(number_format_i18n($counts[$list_id]['pending'] ?? 0)); ?></td>
                             <td><?php echo $list['double_optin'] ? esc_html__('On', 'mailoptin') : esc_html__('Off', 'mailoptin'); ?></td>
                             <td><?php echo esc_html(number_format_i18n($forms[$list_id] ?? 0)); ?></td>
+                            <td>
+                                <?php if ( ! empty($list['welcome_email'])) : ?>
+                                    <span class="mo-pill mo-pill-subscribed"><?php esc_html_e('On', 'mailoptin'); ?></span>
+                                    <span class="mo-muted"><?php printf(esc_html(_n('%s sent', '%s sent', WelcomeEmail::sent_count($list), 'mailoptin')), esc_html(number_format_i18n(WelcomeEmail::sent_count($list)))); ?></span>
+                                <?php else : ?>
+                                    <span class="mo-muted"><?php esc_html_e('Off', 'mailoptin'); ?></span>
+                                <?php endif; ?>
+                                <div class="row-actions"><a href="<?php echo esc_url(add_query_arg('welcome', $list_id, self::page_url('lists'))); ?>"><?php esc_html_e('Edit welcome email', 'mailoptin'); ?></a></div>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -523,6 +553,61 @@ class Subscribers_Page extends AbstractSettingsPage
         </div>
         <?php
         $this->build_page(ob_get_clean());
+    }
+
+    protected function welcome_editor_html($list)
+    {
+        $list_id  = absint($list['id']);
+        $back_url = add_query_arg('edit', $list_id, self::page_url('lists'));
+        $test_url = wp_nonce_url(add_query_arg(['mo_subscriber_action' => 'send_welcome_test', 'list_id' => $list_id], self::page_url('lists')), 'mo_send_welcome_test_' . $list_id);
+        $tags     = ['{{subscriber.first_name|there}}', '{{subscriber.first_name}}', '{{subscriber.last_name}}', '{{subscriber.email}}', '{{list.name}}'];
+
+        ob_start();
+        ?>
+        <p><a href="<?php echo esc_url($back_url); ?>">&larr; <?php echo esc_html($list['name']); ?></a></p>
+        <?php if ('' === Subscription::postal_footer()) : ?>
+            <div class="notice notice-warning inline"><p><?php esc_html_e('Add your company name and postal address under MailOptin Settings › Email Campaign. Anti-spam law (CAN-SPAM) requires a postal address in marketing email, and it\'s added to the footer automatically.', 'mailoptin'); ?></p></div>
+        <?php endif; ?>
+        <?php if (empty($list['welcome_email'])) : ?>
+            <div class="notice notice-info inline"><p><?php esc_html_e('The welcome email is off for this list. Turn it on in the list settings, or save here with "Send this email" ticked.', 'mailoptin'); ?></p></div>
+        <?php endif; ?>
+        <div class="mo-columns">
+            <form method="post" action="<?php echo esc_url(add_query_arg('welcome', $list_id, self::page_url('lists'))); ?>" class="mo-card mo-col-main">
+                <?php wp_nonce_field('mo_save_welcome_' . $list_id); ?>
+                <input type="hidden" name="mo_subscriber_action" value="save_welcome">
+                <input type="hidden" name="list_id" value="<?php echo $list_id; ?>">
+                <h3><?php printf(esc_html__('Welcome email for %s', 'mailoptin'), esc_html($list['name'])); ?></h3>
+                <p><label class="mo-check"><input type="checkbox" name="welcome_email" value="1" <?php checked( ! empty($list['welcome_email'])); ?>> <?php esc_html_e('Send this email to new subscribers of this list', 'mailoptin'); ?></label></p>
+                <p><label for="mo-welcome-subject"><?php esc_html_e('Subject', 'mailoptin'); ?></label><br><input class="widefat" type="text" id="mo-welcome-subject" name="welcome_subject" value="<?php echo esc_attr(WelcomeEmail::subject($list)); ?>"></p>
+                <p><label for="mo_welcome_body"><?php esc_html_e('Message', 'mailoptin'); ?></label></p>
+                <?php wp_editor(WelcomeEmail::body($list), 'mo_welcome_body', ['textarea_name' => 'welcome_body', 'textarea_rows' => 12, 'media_buttons' => true]); ?>
+                <p class="description"><?php esc_html_e('Your company name, postal address and an unsubscribe link are added at the bottom automatically.', 'mailoptin'); ?></p>
+                <p>
+                    <?php submit_button(__('Save', 'mailoptin'), 'primary', 'submit', false); ?>
+                    <a class="button" href="<?php echo esc_url($test_url); ?>"><?php printf(esc_html__('Send test to %s', 'mailoptin'), esc_html(wp_get_current_user()->user_email)); ?></a>
+                </p>
+                <p class="description"><?php esc_html_e('The test uses the saved version, so save your changes first.', 'mailoptin'); ?></p>
+            </form>
+            <div class="mo-card mo-col-side">
+                <h3><?php esc_html_e('Merge tags', 'mailoptin'); ?></h3>
+                <p class="description"><?php esc_html_e('Click to insert into the message.', 'mailoptin'); ?></p>
+                <p><?php foreach ($tags as $tag) : ?><button type="button" class="button-link mo-merge-tag" data-tag="<?php echo esc_attr($tag); ?>"><code><?php echo esc_html($tag); ?></code></button><br><?php endforeach; ?></p>
+                <p class="description"><?php esc_html_e('{{subscriber.first_name|there}} shows "there" for people who didn\'t give a first name.', 'mailoptin'); ?></p>
+                <h3><?php esc_html_e('Delivery', 'mailoptin'); ?></h3>
+                <p class="description"><?php esc_html_e('Goes through the send queue like campaigns, so it counts toward the hourly limit and is retried if sending fails. Each person gets it once per list.', 'mailoptin'); ?></p>
+                <p class="description"><?php printf(esc_html__('Sent so far: %s', 'mailoptin'), esc_html(number_format_i18n(WelcomeEmail::sent_count($list)))); ?></p>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('click', function (e) {
+                var button = e.target.closest('.mo-merge-tag');
+                if (!button) return;
+                window.wpActiveEditor = 'mo_welcome_body';
+                if (window.send_to_editor) window.send_to_editor(button.getAttribute('data-tag'));
+            });
+        </script>
+        <?php
+        return ob_get_clean();
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -601,6 +686,20 @@ class Subscribers_Page extends AbstractSettingsPage
                 $this->save_list();
                 break;
 
+            case 'save_welcome':
+                $list_id = absint($_POST['list_id'] ?? 0);
+                check_admin_referer('mo_save_welcome_' . $list_id);
+                WelcomeEmail::save($list_id, ! empty($_POST['welcome_email']), wp_unslash($_POST['welcome_subject'] ?? ''), wp_unslash($_POST['welcome_body'] ?? ''));
+
+                return $this->redirect('welcome_saved', add_query_arg('welcome', $list_id, self::page_url('lists')));
+
+            case 'send_welcome_test':
+                $list_id = absint($_GET['list_id'] ?? 0);
+                check_admin_referer('mo_send_welcome_test_' . $list_id);
+                $sent = WelcomeEmail::send_test($list_id, wp_get_current_user()->user_email);
+
+                return $this->redirect($sent ? 'welcome_test_sent' : 'welcome_test_failed', add_query_arg('welcome', $list_id, self::page_url('lists')));
+
             case 'delete_list':
                 $list_id = absint($_GET['list_id'] ?? 0);
                 check_admin_referer('mo_delete_list_' . $list_id);
@@ -654,6 +753,7 @@ class Subscribers_Page extends AbstractSettingsPage
             'name'         => $name,
             'description'  => sanitize_textarea_field(wp_unslash($_POST['description'] ?? '')),
             'double_optin' => empty($_POST['double_optin']) ? 0 : 1,
+            'welcome_email' => empty($_POST['welcome_email']) ? 0 : 1,
         ];
 
         $list_id ? ListsRepository::update($list_id, $data) : ListsRepository::create($data);
@@ -768,7 +868,8 @@ class Subscribers_Page extends AbstractSettingsPage
 .wp-list-table.subscribers .column-name{width:15%}
 .wp-list-table.subscribers .column-status{width:120px}
 .wp-list-table.subscribers .column-created_at{width:150px}
-.mo-lists-table th:first-child{width:34%}
+.mo-lists-table th{white-space:nowrap}
+.mo-lists-table th:first-child{width:30%}
 fieldset{margin:12px 0}
 fieldset legend{font-weight:600}
 </style>';

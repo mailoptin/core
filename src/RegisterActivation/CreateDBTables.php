@@ -147,6 +147,9 @@ class CreateDBTables
   description text NULL,
   double_optin tinyint(1) NOT NULL DEFAULT 1,
   welcome_email tinyint(1) NOT NULL DEFAULT 0,
+  welcome_subject varchar(255) NOT NULL DEFAULT '',
+  welcome_body longtext NULL,
+  welcome_campaign_log_id bigint(20) unsigned NOT NULL DEFAULT 0,
   created_at datetime NOT NULL,
   PRIMARY KEY  (id)
 ) $collate;";
