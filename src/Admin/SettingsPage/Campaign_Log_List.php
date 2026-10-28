@@ -8,6 +8,8 @@ use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter as NL;
 use MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
+use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
+use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SendQueueRepository;
 use MailOptin\Core\SendQueue\QueueRunner;
 
@@ -70,6 +72,17 @@ class Campaign_Log_List extends \WP_List_Table
      */
     public function resend_email_campaign($campaign_log_id)
     {
+        // A list's welcome email has no email campaign; resending retries its failed recipients.
+        if (AbstractCampaignLogMeta::get_campaignlog_meta($campaign_log_id, 'mo_welcome_list_id')) {
+            if (SendQueueRepository::retry_failed($campaign_log_id) > 0) {
+                QueueRunner::get_instance()->start($campaign_log_id, 0, []);
+            }
+
+            \MailOptin\Core\do_admin_redirect(add_query_arg('failed-campaign', 'retried', MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE));
+
+            return;
+        }
+
         $email_campaign_id = $this->get_email_campaign_id_from_campaign_log($campaign_log_id);
         $campaign_type     = ER::get_email_campaign_type($email_campaign_id);
 
@@ -296,6 +309,18 @@ class Campaign_Log_List extends \WP_List_Table
      */
     public function column_email_campaign($item)
     {
+        $welcome_list_id = absint(AbstractCampaignLogMeta::get_campaignlog_meta(absint($item['id']), 'mo_welcome_list_id'));
+
+        if ($welcome_list_id) {
+            $list = ListsRepository::get($welcome_list_id);
+
+            return sprintf(
+                '<a href="%s">%s</a>',
+                esc_url(add_query_arg('welcome', $welcome_list_id, Subscribers_Page::page_url('lists'))),
+                esc_html(sprintf(__('Welcome email · %s', 'mailoptin'), $list['name'] ?? __('Deleted list', 'mailoptin')))
+            );
+        }
+
         $email_campaign_id    = absint($item['email_campaign_id']);
         $email_campaign_title = EmailCampaignRepository::get_email_campaign_name($email_campaign_id);
 

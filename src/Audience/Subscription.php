@@ -271,9 +271,12 @@ class Subscription
 
         if ( ! $subscriber) return false;
 
-        $had_pending = in_array(Subscribers::STATUS_PENDING, wp_list_pluck(Subscribers::get_memberships($subscriber_id), 'status'), true);
+        $pending_list_ids = [];
+        foreach (Subscribers::get_memberships($subscriber_id) as $membership) {
+            if (Subscribers::STATUS_PENDING === $membership['status']) $pending_list_ids[] = (int)$membership['list_id'];
+        }
 
-        if ( ! $had_pending) return true;
+        if (empty($pending_list_ids)) return true;
 
         // Clicking the link proves the inbox works and they want email again.
         if (Subscribers::STATUS_SUBSCRIBED !== $subscriber['status']) {
@@ -285,7 +288,7 @@ class Subscription
         Subscribers::confirm($subscriber_id);
         Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMED);
 
-        do_action('mo_subscriber_confirmed', (int)$subscriber_id);
+        do_action('mo_subscriber_confirmed', (int)$subscriber_id, $pending_list_ids);
 
         return true;
     }

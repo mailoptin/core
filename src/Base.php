@@ -110,6 +110,7 @@ class Base
         SendQueue\QueueRunner::get_instance();
         Audience\PublicEndpoints::get_instance();
         Audience\CampaignRenderer::get_instance();
+        Audience\WelcomeEmail::get_instance();
         \MailOptin\MailOptinConnect\Connect::get_instance();
 
         $this->admin_hooks();
