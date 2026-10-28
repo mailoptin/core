@@ -240,6 +240,49 @@ class SendQueueRepository extends AbstractRepository
     }
 
     /**
+     * Put a campaign's failed rows back in the queue, for the Campaign Log "Resend" action.
+     * Rows already sent are left alone, so nobody gets the email twice.
+     *
+     * @return int rows requeued
+     */
+    public static function retry_failed($campaign_log_id)
+    {
+        $table = self::table();
+
+        return (int)self::wpdb()->query(
+            self::wpdb()->prepare(
+                "UPDATE $table SET status = %s, attempts = 0, next_attempt_at = %s, error = NULL WHERE campaign_log_id = %d AND status = %s",
+                self::STATUS_PENDING,
+                self::now(),
+                $campaign_log_id,
+                self::STATUS_FAILED
+            )
+        );
+    }
+
+    /**
+     * Cancel a recipient's unsent email in one campaign, for example after they unsubscribe mid-send.
+     * A row another worker is sending right now is left alone.
+     */
+    public static function skip_unsent($campaign_log_id, $email, $reason)
+    {
+        $table = self::table();
+
+        return (bool)self::wpdb()->query(
+            self::wpdb()->prepare(
+                "UPDATE $table SET status = %s, claimed_by = '', claimed_until = NULL, error = %s
+                WHERE campaign_log_id = %d AND email = %s AND status IN (%s, %s)",
+                self::STATUS_SKIPPED,
+                $reason,
+                $campaign_log_id,
+                strtolower(trim($email)),
+                self::STATUS_PENDING,
+                self::STATUS_CLAIMED
+            )
+        );
+    }
+
+    /**
      * @param int $campaign_log_id
      *
      * @return array status => count, with every status present.

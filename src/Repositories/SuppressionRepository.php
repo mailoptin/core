@@ -40,6 +40,16 @@ class SuppressionRepository extends AbstractRepository
         );
     }
 
+    /**
+     * @return string|null why the address is suppressed, or null if it isn't
+     */
+    public static function get_reason($email)
+    {
+        $table = self::table();
+
+        return self::wpdb()->get_var(self::wpdb()->prepare("SELECT reason FROM $table WHERE email_hash = %s", self::hash($email)));
+    }
+
     public static function remove($email)
     {
         return (bool)self::wpdb()->delete(self::table(), ['email_hash' => self::hash($email)], ['%s']);
