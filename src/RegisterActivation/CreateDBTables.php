@@ -131,6 +131,7 @@ class CreateDBTables
   source_optin_id bigint(20) unsigned NOT NULL DEFAULT 0,
   ip_address varchar(45) NOT NULL DEFAULT '',
   consent_text text NULL,
+  consent_method varchar(30) NOT NULL DEFAULT '',
   consent_at datetime NULL,
   confirmed_at datetime NULL,
   created_at datetime NOT NULL,

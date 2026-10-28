@@ -3,6 +3,7 @@
 namespace MailOptin\MailOptinConnect;
 
 use MailOptin\Core\Audience\CampaignRenderer;
+use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
 use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionInterface;
@@ -82,7 +83,11 @@ class Connect extends AbstractConnect implements ConnectionInterface
 
         $names = self::get_first_last_names($name);
 
+        $consent = Consent::from_form(absint($this->extras['optin_campaign_id'] ?? 0), $this->extras);
+
         $response = Subscription::subscribe($email, absint($list_id), [
+            'consent_text'    => $consent['consent_text'],
+            'consent_method'  => $consent['consent_method'],
             'first_name'      => $names[0] ?? '',
             'last_name'       => $names[1] ?? '',
             'source'          => 'form',

@@ -47,6 +47,12 @@ class Subscription
             'consent_at'      => Subscribers::now(),
         ]);
 
+        // The wording and how it was agreed to describe one signup, so they're always replaced together.
+        if (isset($context['consent_method'])) {
+            $consent['consent_text']   = '' === (string)($context['consent_text'] ?? '') ? null : $context['consent_text'];
+            $consent['consent_method'] = $context['consent_method'];
+        }
+
         $names = array_filter([
             'first_name' => sanitize_text_field($context['first_name'] ?? ''),
             'last_name'  => sanitize_text_field($context['last_name'] ?? ''),
@@ -140,7 +146,7 @@ class Subscription
         $subscriber = Subscribers::get_by_email($email);
 
         if ( ! $subscriber) {
-            $subscriber_id = Subscribers::create(array_merge(['email' => $email, 'source' => 'admin', 'consent_at' => Subscribers::now()], $names));
+            $subscriber_id = Subscribers::create(array_merge(['email' => $email, 'source' => 'admin', 'consent_at' => Subscribers::now(), 'consent_method' => Consent::METHOD_ADMIN], $names));
 
             if ( ! $subscriber_id) return new \WP_Error('mo_subscriber_not_saved', __('The subscriber could not be saved.', 'mailoptin'));
         } else {
