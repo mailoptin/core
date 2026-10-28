@@ -41,6 +41,35 @@ class SuppressionRepository extends AbstractRepository
     }
 
     /**
+     * Add many addresses at once. Addresses already suppressed keep their original reason.
+     *
+     * @param string[] $emails
+     * @param string $reason
+     * @param string $source
+     *
+     * @return int number of addresses added
+     */
+    public static function add_many($emails, $reason, $source = '')
+    {
+        $table = self::table();
+        $now   = gmdate('Y-m-d H:i:s');
+        $added = 0;
+
+        $rows = [];
+        foreach (array_unique(array_map('strtolower', array_map('trim', (array)$emails))) as $email) {
+            if ( ! is_email($email)) continue;
+
+            $rows[] = self::wpdb()->prepare('(%s, %s, %s, %s)', self::hash($email), $reason, $source, $now);
+        }
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            $added += (int)self::wpdb()->query("INSERT IGNORE INTO $table (email_hash, reason, source, created_at) VALUES " . implode(',', $chunk));
+        }
+
+        return $added;
+    }
+
+    /**
      * @return string|null why the address is suppressed, or null if it isn't
      */
     public static function get_reason($email)

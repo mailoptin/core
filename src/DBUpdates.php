@@ -5,13 +5,14 @@ namespace MailOptin\Core;
 use MailOptin\AdvanceAnalytics\AdvanceAnalytics;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\RegisterActivation\CreateDBTables;
+use MailOptin\Core\Repositories\SuppressionRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 17;
+    const DB_VER = 18;
 
     public function init_options()
     {
@@ -286,6 +287,27 @@ class DBUpdates
 
         foreach (CreateDBTables::audience_tables_sql($collate) as $sql) {
             dbDelta($sql);
+        }
+    }
+
+    /**
+     * Copy the unsubscribe lists kept by the MailOptin Leads and WordPress Registered Users
+     * newsletters into the suppression table, which the send queue checks before every email.
+     * The options are left in place so downgrading doesn't email anyone who opted out.
+     */
+    public function update_routine_18()
+    {
+        $legacy = [
+            'mo_leadbank_unsubscribers' => 'mo_leadbank_unsubscribe',
+            'mo_wp_user_unsubscribers'  => 'mo_wp_user_unsubscribe',
+        ];
+
+        foreach ($legacy as $option_name => $source) {
+            $emails = array_map(function ($encoded) {
+                return (string)base64_decode((string)$encoded, true);
+            }, (array)get_option($option_name, []));
+
+            SuppressionRepository::add_many($emails, SuppressionRepository::REASON_UNSUBSCRIBED, $source);
         }
     }
 

@@ -136,13 +136,16 @@ class PublicEndpoints
 
         if (empty($html)) return '';
 
-        return CampaignRenderer::replace_tags($html, [
+        // Not personalized, so recipient merge tags are blanked. Connections add their own tags with the filter.
+        $tags = apply_filters('mo_web_version_blank_tags', [
             '{{unsubscribe}}'           => '#',
             '{{webversion}}'            => '#',
             '{{subscriber.email}}'      => '',
             '{{subscriber.first_name}}' => '',
             '{{subscriber.last_name}}'  => '',
-        ], true);
+        ], $campaign_log_id);
+
+        return CampaignRenderer::replace_tags($html, $tags, true);
     }
 
     /**
