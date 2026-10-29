@@ -199,7 +199,7 @@ class Subscribers_Page extends AbstractSettingsPage
             'tag_merged'           => [__('Tags merged.', 'mailoptin'), 'success'],
             'tag_not_merged'       => [__('Choose a different tag to merge into.', 'mailoptin'), 'error'],
             'tag_deleted'          => [__('Tag deleted. Its subscribers were kept.', 'mailoptin'), 'success'],
-            'field_added'          => [__('Field added. Map it to a form field in the form\'s Integrations settings, or use its merge tag in emails.', 'mailoptin'), 'success'],
+            'field_added'          => [defined('MAILOPTIN_DETACH_LIBSODIUM') ? __('Field added. Map it to a form field in the form\'s Integrations settings, or use its merge tag in emails.', 'mailoptin') : __('Field added. Use its merge tag in emails, set it on profiles or in bulk, and map it from forms that send custom fields.', 'mailoptin'), 'success'],
             'field_saved'          => [__('Field saved.', 'mailoptin'), 'success'],
             'field_deleted'        => [__('Field deleted.', 'mailoptin'), 'success'],
             'fields_reordered'     => [__('Order saved.', 'mailoptin'), 'success'],

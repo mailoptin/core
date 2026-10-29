@@ -77,7 +77,7 @@ class TagsFieldsFormsTest extends WP_UnitTestCase
         $response = $this->signup('amara@example.com', [
             'optin_campaign_id'          => 0,
             'form_custom_field_mappings' => ['company' => 'mo_company', 'zone' => 'mo_zone', 'orders' => 'mo_orders', 'missing' => 'mo_x'],
-            'form_tags'                  => [(string)$vip, 'new-tag'],
+            'form_tags'                  => ['VIP', 'new-tag'],
             'mo_company'                 => '<i>Okafor</i> Landscaping',
             'mo_zone'                    => '7B',
             'mo_orders'                  => 'many',

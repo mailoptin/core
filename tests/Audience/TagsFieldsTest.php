@@ -61,7 +61,7 @@ class TagsFieldsTest extends WP_UnitTestCase
     {
         $roses = Tags::create('roses');
 
-        $ids = Tags::ensure([(string)$roses, 'seeds', 'Seeds', '99999']);
+        $ids = Tags::ensure([$roses, 'seeds', 'Seeds', 99999]);
 
         $this->assertCount(2, $ids);
         $this->assertSame($roses, $ids[0]);

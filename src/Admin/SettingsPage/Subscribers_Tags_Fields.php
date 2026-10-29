@@ -667,7 +667,7 @@ class Subscribers_Tags_Fields
             return 'bulk_done';
         }
 
-        $names = array_filter(array_map('trim', explode(',', (string)wp_unslash($request['mo_bulk_tags'] ?? ''))), 'strlen');
+        $names = array_filter(array_map('trim', explode(',', is_scalar($request['mo_bulk_tags'] ?? '') ? (string)wp_unslash($request['mo_bulk_tags'] ?? '') : '')), 'strlen');
 
         if (empty($names)) {
             self::set_error(__('Enter the tags to add or remove in "Tags for bulk action" first.', 'mailoptin'));
@@ -744,7 +744,9 @@ class Subscribers_Tags_Fields
                 break;
             case Fields::TYPE_CHECKBOX:
                 $label = sprintf('<span>%s</span>', esc_html($field['label']));
-                $input = sprintf('<input type="hidden" name="%2$s" value="0"><label class="mo-check"><input type="checkbox" id="%1$s" name="%2$s" value="1" %3$s> %4$s</label>', esc_attr($id), esc_attr($name), checked('1', $value, false), esc_html__('Yes', 'mailoptin'));
+                // Unticked means "No" only once it has a value; otherwise saving the profile would set
+                // every checkbox field, and form signups (which only fill empty fields) couldn't any more.
+                $input = sprintf('<input type="hidden" name="%2$s" value="%5$s"><label class="mo-check"><input type="checkbox" id="%1$s" name="%2$s" value="1" %3$s> %4$s</label>', esc_attr($id), esc_attr($name), checked('1', $value, false), esc_html__('Yes', 'mailoptin'), '' === $value ? '' : '0');
                 break;
             case Fields::TYPE_MULTISELECT:
                 $label = sprintf('<span>%s</span>', esc_html($field['label']));
@@ -824,8 +826,9 @@ class Subscribers_Tags_Fields
         }
 
         if ( ! empty($post['tags_submitted'])) {
-            $tag_ids = array_map('absint', (array)($post['tag_ids'] ?? []));
-            $new     = array_filter(array_map('trim', explode(',', (string)wp_unslash($post['new_tags'] ?? ''))), 'strlen');
+            // Only tags that still exist; one could have been deleted while the profile was open.
+            $tag_ids = array_values(array_intersect(array_map('absint', array_filter((array)($post['tag_ids'] ?? []), 'is_scalar')), array_keys(Tags::names())));
+            $new     = array_filter(array_map('trim', explode(',', (string)wp_unslash(is_scalar($post['new_tags'] ?? '') ? $post['new_tags'] ?? '' : ''))), 'strlen');
             $tag_ids = array_merge($tag_ids, Tags::ensure($new));
 
             $result = Tags::set_for_subscriber($subscriber_id, $tag_ids);
@@ -1074,7 +1077,6 @@ class Subscribers_Tags_Fields
 .mo-js .mo-no-js{display:none}
 .mo-js .mo-field-filter:not(.mo-between-on) .mo-between{display:none}
 .mo-field-filter .mo-between .description{display:none}
-.mo-js .mo-bulk-inputs{display:none}
 .mo-bulk-bar{position:sticky;bottom:12px;z-index:60;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:#1d2327;color:#fff;padding:8px 12px;border-radius:6px;margin:12px 0;box-shadow:0 6px 20px rgba(0,0,0,.25);width:fit-content;max-width:100%}
 .mo-bulk-bar .button{background:#2c3338;border-color:#50575e;color:#fff}
 .mo-bulk-bar .button:hover{background:#3c434a;color:#fff}
@@ -1113,7 +1115,7 @@ class Subscribers_Tags_Fields
         ?>
         <script>
             (function () {
-                document.documentElement.classList.add('mo-js');
+                if (typeof HTMLDialogElement !== 'undefined') document.documentElement.classList.add('mo-js');
                 var q = function (sel, root) { return (root || document).querySelector(sel); };
                 var qa = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 

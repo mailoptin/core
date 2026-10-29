@@ -141,7 +141,8 @@ class CampaignRenderer
     /**
      * Subscriber merge tags: {{subscriber.first_name}}, {{subscriber.email}} and any custom field
      * by its merge key, like {{subscriber.company}}. Add a fallback for when the subscriber has no
-     * value: {{subscriber.first_name|there}}. Tags that aren't a built-in or custom field are left as they are.
+     * value: {{subscriber.first_name|there}}. Unknown tags with a fallback show the fallback; without
+     * one they're left as they are, for connections that add their own.
      *
      * @param string $content
      * @param array $subscriber subscriber row; custom field values are looked up by its "id"
@@ -166,7 +167,12 @@ class CampaignRenderer
                     $field_values = TagsRepository::is_ready() ? CustomFieldsRepository::merge_values(absint($subscriber['id'] ?? 0)) : [];
                 }
 
-                if ( ! array_key_exists($key, $field_values)) return $match[0];
+                // Not ours, unless it has a fallback: then it's a field that was deleted or misspelled.
+                if ( ! array_key_exists($key, $field_values)) {
+                    if ( ! isset($match[2])) return $match[0];
+
+                    return $escape_html ? esc_html($match[2]) : $match[2];
+                }
 
                 $value = (string)$field_values[$key];
             }

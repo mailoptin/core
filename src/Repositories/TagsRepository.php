@@ -33,7 +33,8 @@ class TagsRepository extends AbstractRepository
 
     public static function sanitize_name($name)
     {
-        $name = trim(preg_replace('/\s+/', ' ', sanitize_text_field((string)$name)));
+        // Commas separate tags wherever they're typed, so a name can't contain one.
+        $name = trim(preg_replace('/\s+/', ' ', str_replace(',', ' ', sanitize_text_field((string)$name))));
 
         return mb_substr($name, 0, self::MAX_LENGTH);
     }
@@ -122,7 +123,7 @@ class TagsRepository extends AbstractRepository
     /**
      * IDs for tag names and IDs, creating tags that don't exist yet.
      *
-     * @param array $tags names, or numeric IDs of existing tags
+     * @param array $tags names (strings, even "2024"), or IDs of existing tags as integers
      *
      * @return int[]
      */
@@ -131,10 +132,12 @@ class TagsRepository extends AbstractRepository
         $ids = [];
 
         foreach ((array)$tags as $tag) {
-            if (is_int($tag) || (is_string($tag) && ctype_digit($tag))) {
-                if (self::get($tag)) $ids[] = (int)$tag;
+            if (is_int($tag)) {
+                if (self::get($tag)) $ids[] = $tag;
                 continue;
             }
+
+            if ( ! is_string($tag)) continue;
 
             $id = self::create($tag);
             if ( ! is_wp_error($id)) $ids[] = $id;
@@ -182,6 +185,9 @@ class TagsRepository extends AbstractRepository
                 $from_id
             )
         );
+
+        // Forms that applied the old tag apply the new one.
+        do_action('mo_tag_merged', $from_id, $into_id);
 
         return self::delete($from_id);
     }

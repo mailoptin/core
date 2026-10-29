@@ -22,27 +22,36 @@ class Subscriber_Filters
 
         if ( ! Tags::is_ready()) return $filters;
 
-        $filters['tag_ids'] = array_values(array_unique(array_filter(array_map('absint', (array)($request['tags'] ?? [])))));
+        $filters['tag_ids'] = array_values(array_unique(array_filter(array_map('absint', array_filter((array)($request['tags'] ?? []), 'is_scalar')))));
 
-        $match = sanitize_key($request['tag_match'] ?? 'any');
+        $match = is_scalar($request['tag_match'] ?? '') ? sanitize_key($request['tag_match'] ?? 'any') : 'any';
         if (in_array($match, ['any', 'all', 'none'], true)) $filters['tag_match'] = $match;
 
         foreach ((array)($request['f'] ?? []) as $condition) {
             if ( ! is_array($condition)) continue;
 
-            $field = Fields::get(absint($condition['field'] ?? 0));
-            $op    = sanitize_key($condition['op'] ?? '');
+            $field = is_scalar($condition['field'] ?? 0) ? Fields::get(absint($condition['field'] ?? 0)) : null;
+            $op    = is_scalar($condition['op'] ?? '') ? sanitize_key($condition['op'] ?? '') : '';
 
             if ( ! $field || ! isset(Fields::operators($field['type'])[$op])) continue;
 
             $value = wp_unslash($condition['value'] ?? '');
-            $value = is_array($value) ? array_map('sanitize_text_field', $value) : sanitize_text_field((string)$value);
+
+            // Only option fields take a list of values.
+            if (is_array($value)) {
+                if ( ! Fields::has_options($field['type'])) continue;
+                $value = array_map('sanitize_text_field', array_filter($value, 'is_scalar'));
+            } else {
+                $value = sanitize_text_field((string)$value);
+            }
+
+            $value2 = $condition['value2'] ?? '';
 
             $filters['field_conditions'][] = [
                 'field_id' => $field['id'],
                 'op'       => $op,
                 'value'    => $value,
-                'value2'   => sanitize_text_field((string)wp_unslash($condition['value2'] ?? '')),
+                'value2'   => is_scalar($value2) ? sanitize_text_field((string)wp_unslash($value2)) : '',
             ];
         }
 

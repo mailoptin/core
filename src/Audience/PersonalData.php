@@ -100,6 +100,11 @@ class PersonalData
             return ['items_removed' => false, 'items_retained' => false, 'messages' => [], 'done' => true];
         }
 
+        global $wpdb;
+
+        // Queued and sent emails keep the address for delivery records.
+        $wpdb->delete($wpdb->prefix . \MailOptin\Core\Core::send_queue_table_name, ['email' => $subscriber['email']]);
+
         return ['items_removed' => Subscribers::delete($subscriber['id']), 'items_retained' => false, 'messages' => [], 'done' => true];
     }
 

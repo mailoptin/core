@@ -164,7 +164,7 @@ class PublicEndpoints
         $html = CampaignRenderer::replace_tags($html, $tags, true);
 
         // Blank custom fields too, keeping fallbacks: "Hi {{subscriber.first_name|there}}" reads "Hi there".
-        $blank = \MailOptin\Core\Repositories\TagsRepository::is_ready() ? array_fill_keys(wp_list_pluck(\MailOptin\Core\Repositories\CustomFieldsRepository::all(), 'merge_key'), '') : [];
+        $blank = \MailOptin\Core\Repositories\TagsRepository::is_ready() ? array_map('__return_empty_string', \MailOptin\Core\Repositories\CustomFieldsRepository::merge_values(0)) : [];
 
         return CampaignRenderer::replace_fallback_tags($html, [], true, $blank);
     }

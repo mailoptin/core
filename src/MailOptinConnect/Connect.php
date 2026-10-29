@@ -31,6 +31,8 @@ class Connect extends AbstractConnect implements ConnectionInterface
         add_filter('mailoptin_registered_connections', [$this, 'register_connection']);
         add_filter('mo_optin_form_integrations_default', [$this, 'integration_customizer_settings']);
         add_filter('mo_optin_integrations_controls_after', [$this, 'integration_customizer_controls']);
+        add_action('mo_tag_merged', [$this, 'replace_tag_in_forms'], 10, 2);
+        add_action('mo_tag_deleted', [$this, 'replace_tag_in_forms']);
 
         parent::__construct();
     }
@@ -133,6 +135,43 @@ class Connect extends AbstractConnect implements ConnectionInterface
     }
 
     /**
+     * Keep forms' Tags settings pointing at tags that exist after a merge or delete.
+     *
+     * @param int $tag_id
+     * @param int $into_id the tag it was merged into; 0 when it was deleted
+     */
+    public function replace_tag_in_forms($tag_id, $into_id = 0)
+    {
+        $settings = \MailOptin\Core\Repositories\OptinCampaignsRepository::get_settings();
+        $changed  = [];
+
+        foreach ((array)$settings as $optin_campaign_id => $optin_settings) {
+            $integrations = json_decode((string)($optin_settings['integrations'] ?? ''), true);
+
+            if ( ! is_array($integrations)) continue;
+
+            foreach ($integrations as $index => $integration) {
+                $tags = $integration['MailOptinConnect_lead_tags'] ?? null;
+
+                if (($integration['connection_service'] ?? '') !== 'MailOptinConnect' || ! is_array($tags) || ! in_array((string)$tag_id, array_map('strval', $tags), true)) continue;
+
+                $tags = array_diff(array_map('strval', $tags), [(string)$tag_id]);
+                if ($into_id) $tags[] = (string)$into_id;
+
+                $integrations[$index]['MailOptinConnect_lead_tags'] = array_values(array_unique($tags));
+                $changed[] = $optin_campaign_id;
+            }
+
+            if (in_array($optin_campaign_id, $changed, true)) $settings[$optin_campaign_id]['integrations'] = wp_json_encode($integrations);
+        }
+
+        if ( ! empty($changed)) {
+            \MailOptin\Core\Repositories\OptinCampaignsRepository::updateSettings($settings);
+            foreach (array_unique($changed) as $optin_campaign_id) \MailOptin\Core\Repositories\OptinCampaignsRepository::burst_cache($optin_campaign_id);
+        }
+    }
+
+    /**
      * Values of form fields mapped to custom fields.
      *
      * @return array merge key => raw value
@@ -152,7 +191,8 @@ class Connect extends AbstractConnect implements ConnectionInterface
 
             $value = $this->extras[$form_field_id];
 
-            $values[$merge_key] = is_array($value) ? array_map('sanitize_text_field', $value) : sanitize_text_field((string)$value);
+            // Validated and cleaned by the field's type when saved.
+            $values[$merge_key] = is_array($value) ? array_values(array_filter($value, 'is_scalar')) : (string)$value;
         }
 
         return $values;
@@ -165,12 +205,16 @@ class Connect extends AbstractConnect implements ConnectionInterface
     {
         if (empty($this->extras['optin_campaign_id']) && empty($this->extras['integration_data']) && empty($this->extras['form_tags'])) return [];
 
-        $tags = $this->get_integration_tags('MailOptinConnect_lead_tags');
+        // Page builder and third-party forms pass tag names, sometimes as comma separated text.
+        if ( ! empty($this->extras['form_tags'])) {
+            $names = $this->extras['form_tags'];
+            if (is_string($names)) $names = explode(',', $names);
 
-        // Tags from page builder forms can arrive as comma separated text.
-        if (is_string($tags)) $tags = explode(',', $tags);
+            return array_values(array_filter(array_map('trim', array_map('strval', array_filter((array)$names, 'is_scalar'))), 'strlen'));
+        }
 
-        return array_values(array_filter(array_map('trim', array_map('strval', (array)$tags)), 'strlen'));
+        // The form's own Tags setting holds tag IDs.
+        return array_values(array_filter(array_map('absint', array_filter((array)$this->get_integration_data('MailOptinConnect_lead_tags'), 'is_scalar'))));
     }
 
     public function subscribe($email, $name, $list_id, $extras = null)

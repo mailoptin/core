@@ -25,6 +25,9 @@ class CustomFieldsRepository extends AbstractRepository
     const MAX_TEXT_LENGTH = 1000;
     const MAX_KEY_LENGTH = 64;
 
+    // Merge keys of deleted fields, so emails that still use them don't show the raw tag.
+    const DELETED_KEYS_OPTION = 'mo_deleted_custom_field_keys';
+
     public static function table()
     {
         return self::wpdb()->prefix . Core::custom_fields_table_name;
@@ -146,7 +149,8 @@ class CustomFieldsRepository extends AbstractRepository
         $clean = [];
 
         foreach ($options as $option) {
-            $option = trim(sanitize_text_field((string)$option));
+            // Commas separate options in bulk edits and form submissions, so an option can't contain one.
+            $option = trim(preg_replace('/\s+/', ' ', str_replace(',', ' ', sanitize_text_field((string)$option))));
 
             if ('' !== $option && ! in_array(mb_strtolower($option), array_map('mb_strtolower', $clean), true)) {
                 $clean[] = mb_substr($option, 0, 200);
@@ -200,9 +204,13 @@ class CustomFieldsRepository extends AbstractRepository
             'created_at'          => Subscribers::now(),
         ]);
 
+        $field_id = $inserted ? (int)self::wpdb()->insert_id : 0;
+
         self::flush_cache();
 
-        return $inserted ? (int)self::wpdb()->insert_id : new \WP_Error('mo_field_not_saved', __('The field could not be saved.', 'mailoptin'));
+        if ($inserted) update_option(self::DELETED_KEYS_OPTION, array_values(array_diff((array)get_option(self::DELETED_KEYS_OPTION, []), [$key])), false);
+
+        return $inserted ? $field_id : new \WP_Error('mo_field_not_saved', __('The field could not be saved.', 'mailoptin'));
     }
 
     /**
@@ -247,6 +255,14 @@ class CustomFieldsRepository extends AbstractRepository
      */
     public static function delete($field_id)
     {
+        $field = self::get($field_id);
+
+        // Emails may still use its merge tag; they show the fallback, or nothing, from now on.
+        if ($field) {
+            $deleted = (array)get_option(self::DELETED_KEYS_OPTION, []);
+            update_option(self::DELETED_KEYS_OPTION, array_values(array_unique(array_merge($deleted, [$field['merge_key']]))), false);
+        }
+
         self::wpdb()->delete(self::values_table(), ['field_id' => $field_id], ['%d']);
         $deleted = (bool)self::wpdb()->delete(self::table(), ['id' => $field_id], ['%d']);
 
@@ -364,8 +380,19 @@ class CustomFieldsRepository extends AbstractRepository
                 return ['text' => $phone, 'number' => null, 'date' => null];
 
             default:
-                return ['text' => mb_substr(sanitize_text_field($raw), 0, self::MAX_TEXT_LENGTH), 'number' => null, 'date' => null];
+                return ['text' => mb_substr(self::plain_text($raw), 0, self::MAX_TEXT_LENGTH), 'number' => null, 'date' => null];
         }
+    }
+
+    /**
+     * Text as typed, without tags or line breaks. Stored unescaped; it's escaped where it's shown.
+     * Form submissions arrive through sanitize_text_field(), which encodes "<" and "&".
+     */
+    public static function plain_text($raw)
+    {
+        $text = wp_strip_all_tags(wp_check_invalid_utf8((string)$raw), true);
+
+        return trim(preg_replace('/\s+/', ' ', wp_specialchars_decode($text, ENT_NOQUOTES)));
     }
 
     /**
@@ -403,6 +430,9 @@ class CustomFieldsRepository extends AbstractRepository
             $old = $current[$field['id']]['value_text'] ?? null;
 
             if ($only_empty && null !== $old) continue;
+
+            // The stored value sent back unchanged, even if it's no longer valid (an option that was removed).
+            if (null !== $old && self::form_value($field, $old) === (is_array($raw) ? array_values($raw) : (string)$raw)) continue;
 
             $value = self::normalize_value($field, $raw);
 
@@ -558,6 +588,10 @@ class CustomFieldsRepository extends AbstractRepository
         $values = $subscriber_id ? self::get_values($subscriber_id) : [];
         $merge  = [];
 
+        foreach ((array)get_option(self::DELETED_KEYS_OPTION, []) as $key) {
+            if (is_string($key)) $merge[$key] = '';
+        }
+
         foreach (self::all() as $field) {
             $merge[$field['merge_key']] = self::display_value($field, $values[$field['id']]['value_text'] ?? null);
         }
@@ -656,6 +690,8 @@ class CustomFieldsRepository extends AbstractRepository
 
             return self::TYPE_NUMBER === $field['type'] ? $normalized['number'] : (self::TYPE_DATE === $field['type'] ? $normalized['date'] : $normalized['text']);
         };
+
+        if (is_array($value)) return null;
 
         if (in_array($op, ['contains', 'not_contains'], true)) {
             if ('' === trim((string)$value)) return null;
