@@ -73,6 +73,17 @@ class PersonalData
             }
         }
 
+        if (\MailOptin\Core\Repositories\CampaignActivityRepository::is_ready()) {
+            $activity = \MailOptin\Core\Repositories\CampaignActivityRepository::subscriber_summary($subscriber['id']);
+
+            if ($activity['opened'] || $activity['clicked']) {
+                $data[] = ['name' => __('Email activity', 'mailoptin'), 'value' => sprintf(
+                    __('Opened %1$d of %2$d emails sent, clicked a link in %3$d. Last opened %4$s.', 'mailoptin'),
+                    $activity['opened'], $activity['sent'], $activity['clicked'], (string)$activity['last_opened']
+                )];
+            }
+        }
+
         $data = array_values(array_filter($data, function ($item) {
             return '' !== trim((string)$item['value']);
         }));

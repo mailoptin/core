@@ -275,4 +275,23 @@ class SegmentsTest extends WP_UnitTestCase
 
         $this->assertSame([Segments::SEGMENT_SETTING, Segments::EXCLUDE_TAGS_SETTING, 'MailOptinConnect_audience_count'], $this->control_names($campaign_id));
     }
+
+    public function test_resend_retries_the_original_recipients_only()
+    {
+        global $wpdb;
+
+        $this->member('a@example.com');
+        $campaign_id = $this->campaign();
+
+        Connect::get_instance()->send_newsletter($campaign_id, 9301, 'Hi', '<p>Hi</p>', 'Hi');
+        $wpdb->update(SendQueueRepository::table(), ['status' => 'failed'], ['campaign_log_id' => 9301]);
+
+        // Joined after the send: not part of it.
+        $this->member('later@example.com');
+
+        Connect::get_instance()->send_newsletter($campaign_id, 9301, 'Hi', '<p>Hi</p>', 'Hi');
+
+        $this->assertSame(['a@example.com'], $wpdb->get_col('SELECT email FROM ' . SendQueueRepository::table() . ' WHERE campaign_log_id = 9301'));
+        $this->assertSame('pending', $wpdb->get_var('SELECT status FROM ' . SendQueueRepository::table() . ' WHERE campaign_log_id = 9301'), 'The failed row is retried.');
+    }
 }

@@ -45,6 +45,10 @@ class Subscribers_Segments
             );
         }
 
+        if (Segments::uses_not_opened($filters)) {
+            return '<span class="mo-save-segment-upsell description">' . esc_html__('Can\'t save "Didn\'t open" as a segment', 'mailoptin') . '</span>';
+        }
+
         $segment = Segments::get(absint($_GET['segment'] ?? 0));
         $url     = Subscribers_Page::page_url('segments');
 

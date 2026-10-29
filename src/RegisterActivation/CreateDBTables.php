@@ -93,6 +93,7 @@ class CreateDBTables
         $sqls[] = self::conversion_syncs_table_sql($collate);
         $sqls = array_merge($sqls, self::tags_fields_tables_sql($collate));
         $sqls[] = self::segments_table_sql($collate);
+        $sqls = array_merge($sqls, self::tracking_tables_sql($collate));
 
         $sqls = apply_filters('mo_create_database_tables', $sqls, $collate);
 
@@ -207,7 +208,8 @@ class CreateDBTables
   PRIMARY KEY  (id),
   UNIQUE KEY campaign_email (campaign_log_id,email),
   KEY claim (campaign_log_id,status,next_attempt_at),
-  KEY sent_at (status,sent_at)
+  KEY sent_at (status,sent_at),
+  KEY recipient (recipient_id,sent_at)
 ) $collate;";
 
         return $sqls;
@@ -321,5 +323,56 @@ class CreateDBTables
   PRIMARY KEY  (id),
   UNIQUE KEY name (name)
 ) $collate;";
+    }
+
+    /**
+     * Opens and clicks of campaigns sent to built-in lists.
+     *
+     * Links: each link of a sent campaign, so a click link carries a short ID instead of the address.
+     * Activity: one row per subscriber, campaign and kind (open, click on any link, click on one
+     * link), with how many times and when. Rows are deleted after the retention period.
+     * Stats: running totals per campaign, kept when activity is deleted.
+     */
+    public static function tracking_tables_sql($collate)
+    {
+        global $wpdb;
+
+        $links    = $wpdb->prefix . Core::campaign_links_table_name;
+        $activity = $wpdb->prefix . Core::campaign_activity_table_name;
+        $stats    = $wpdb->prefix . Core::campaign_stats_table_name;
+
+        $sqls[] = "CREATE TABLE $links (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  campaign_log_id bigint(20) unsigned NOT NULL,
+  url_hash char(40) NOT NULL,
+  url text NOT NULL,
+  label varchar(200) NOT NULL DEFAULT '',
+  clicks int(10) unsigned NOT NULL DEFAULT 0,
+  people int(10) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY  (id),
+  UNIQUE KEY campaign_url (campaign_log_id,url_hash)
+) $collate;";
+
+        $sqls[] = "CREATE TABLE $activity (
+  campaign_log_id bigint(20) unsigned NOT NULL,
+  subscriber_id bigint(20) unsigned NOT NULL,
+  type varchar(10) NOT NULL,
+  link_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  hits int(10) unsigned NOT NULL DEFAULT 1,
+  first_at datetime NOT NULL,
+  last_at datetime NOT NULL,
+  PRIMARY KEY  (campaign_log_id,type,subscriber_id,link_id),
+  KEY subscriber (subscriber_id,type,last_at),
+  KEY last_at (last_at)
+) $collate;";
+
+        $sqls[] = "CREATE TABLE $stats (
+  campaign_log_id bigint(20) unsigned NOT NULL,
+  metric varchar(20) NOT NULL,
+  value int(10) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY  (campaign_log_id,metric)
+) $collate;";
+
+        return $sqls;
     }
 }

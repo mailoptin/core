@@ -29,6 +29,13 @@ class SendQueueRepository extends AbstractRepository
         return self::wpdb()->prefix . Core::send_queue_table_name;
     }
 
+    public static function get($id)
+    {
+        $table = self::table();
+
+        return self::wpdb()->get_row(self::wpdb()->prepare("SELECT * FROM $table WHERE id = %d", $id), 'ARRAY_A');
+    }
+
     public static function now($offset_seconds = 0)
     {
         return gmdate('Y-m-d H:i:s', time() + $offset_seconds);

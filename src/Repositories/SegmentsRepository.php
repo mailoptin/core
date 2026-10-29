@@ -7,7 +7,7 @@ use MailOptin\Core\Repositories\CustomFieldsRepository as Fields;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 
 /**
- * Saved segments: named tag and custom field filters. A campaign sending to a built-in list can be
+ * Saved segments: named tag, custom field and engagement filters. A campaign sending to a built-in list can be
  * limited to one, and the filters are applied when it sends, so new matches are included.
  *
  * Segments are a premium feature. Free sites keep any saved ones, but campaigns using them don't send.
@@ -56,6 +56,7 @@ class SegmentsRepository extends AbstractRepository
             'tag_ids'          => array_values(array_unique(array_filter(array_map('absint', (array)($filters['tag_ids'] ?? []))))),
             'tag_match'        => in_array($match, ['any', 'all', 'none'], true) ? $match : 'any',
             'field_conditions' => array_values(array_filter((array)($filters['field_conditions'] ?? []), 'is_array')),
+            'engagement'       => array_values(array_filter(array_map([CampaignActivityRepository::class, 'clean_condition'], (array)($filters['engagement'] ?? [])))),
         ];
     }
 
@@ -111,11 +112,29 @@ class SegmentsRepository extends AbstractRepository
             return new \WP_Error('mo_segment_exists', sprintf(__('There is already a segment called "%s".', 'mailoptin'), $name));
         }
 
-        if (null !== $filters && empty($filters['tag_ids']) && empty($filters['field_conditions'])) {
-            return new \WP_Error('mo_segment_empty', __('Add at least one tag or custom field filter before saving a segment.', 'mailoptin'));
+        if (null !== $filters && empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement'])) {
+            return new \WP_Error('mo_segment_empty', __('Add at least one filter before saving a segment.', 'mailoptin'));
+        }
+
+        if (null !== $filters && self::uses_not_opened($filters)) {
+            return new \WP_Error('mo_segment_not_opened', self::not_opened_message());
         }
 
         return true;
+    }
+
+    /**
+     * Opens are an estimate, so a campaign to people who "didn't open" would email people who
+     * read it. Segments are for sending, so they can't use that filter.
+     */
+    public static function uses_not_opened($filters)
+    {
+        return in_array('not_opened', wp_list_pluck((array)($filters['engagement'] ?? []), 'what'), true);
+    }
+
+    public static function not_opened_message()
+    {
+        return __('A segment can\'t use "Didn\'t open". Opens are an estimate, so it would email people who did read the campaign. Use "Didn\'t click" instead, or tag these people and review them first.', 'mailoptin');
     }
 
     /**
@@ -184,8 +203,14 @@ class SegmentsRepository extends AbstractRepository
         $filters  = $segment['filters'];
 
         // Saved segments always have a filter, so none means the stored filters couldn't be read.
-        if (empty($filters['tag_ids']) && empty($filters['field_conditions'])) {
+        if (empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement'])) {
             return [__('Its filters couldn\'t be read.', 'mailoptin')];
+        }
+
+        if (self::uses_not_opened($filters)) $problems[] = self::not_opened_message();
+
+        if ( ! empty($filters['engagement']) && ! CampaignActivityRepository::is_ready()) {
+            $problems[] = __('It filters by opens and clicks, which aren\'t set up yet.', 'mailoptin');
         }
 
         if ( ! empty($filters['tag_ids'])) {
