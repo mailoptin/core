@@ -24,6 +24,7 @@ class SubscribersRepository extends AbstractRepository
     const EVENT_TAGS_ADDED = 'tags_added';
     const EVENT_TAGS_REMOVED = 'tags_removed';
     const EVENT_FIELDS_CHANGED = 'fields_changed';
+    const EVENT_IMPORTED = 'imported';
 
     public static function table()
     {
@@ -135,6 +136,12 @@ class SubscribersRepository extends AbstractRepository
             $params[] = self::STATUS_UNSUBSCRIBED;
         }
 
+        // Keyset paging for exports: faster than OFFSET on large lists.
+        if ( ! empty($args['after_id'])) {
+            $where[]  = 's.id > %d';
+            $params[] = absint($args['after_id']);
+        }
+
         if ( ! empty($args['source_optin_id'])) {
             $where[]  = 's.source_optin_id = %d';
             $params[] = absint($args['source_optin_id']);
@@ -175,13 +182,13 @@ class SubscribersRepository extends AbstractRepository
 
         $where_sql = implode(' AND ', $where);
 
-        $orderby  = in_array($args['orderby'] ?? '', ['email', 'created_at'], true) ? $args['orderby'] : 'created_at';
+        $orderby  = in_array($args['orderby'] ?? '', ['email', 'created_at', 'id'], true) ? $args['orderby'] : 'created_at';
         $order    = 'ASC' === strtoupper($args['order'] ?? '') ? 'ASC' : 'DESC';
         $per_page = max(1, absint($args['per_page'] ?? 20));
         $offset   = (max(1, absint($args['page'] ?? 1)) - 1) * $per_page;
 
         $count_sql = "SELECT COUNT(*) FROM $table s WHERE $where_sql";
-        $total     = (int)self::wpdb()->get_var(empty($params) ? $count_sql : self::wpdb()->prepare($count_sql, $params));
+        $total     = ! empty($args['skip_count']) ? 0 : (int)self::wpdb()->get_var(empty($params) ? $count_sql : self::wpdb()->prepare($count_sql, $params));
 
         $items = self::wpdb()->get_results(
             self::wpdb()->prepare(
@@ -420,9 +427,16 @@ class SubscribersRepository extends AbstractRepository
      *
      * @return int
      */
-    public static function count_events_since($type, $since, $subscriber_id = 0)
+    public static function count_events_since($type, $since, $subscriber_id = 0, $direct_only = false)
     {
         $table = self::events_table();
+
+        // Events of emails sent straight away, not through a campaign's send queue.
+        if ($direct_only) {
+            return (int)self::wpdb()->get_var(
+                self::wpdb()->prepare("SELECT COUNT(*) FROM $table WHERE type = %s AND created_at >= %s AND campaign_log_id = 0", $type, $since)
+            );
+        }
 
         if ($subscriber_id) {
             return (int)self::wpdb()->get_var(
@@ -447,11 +461,20 @@ class SubscribersRepository extends AbstractRepository
     {
         $table = self::table();
 
+        $queue = self::wpdb()->prefix . Core::send_queue_table_name;
+
+        // Not people whose confirmation email from an import is still waiting in the send queue.
         $ids = array_map('absint', self::wpdb()->get_col(
             self::wpdb()->prepare(
-                "SELECT id FROM $table WHERE status = %s AND confirmed_at IS NULL AND updated_at < %s ORDER BY id LIMIT %d",
+                "SELECT id FROM $table s WHERE status = %s AND confirmed_at IS NULL AND updated_at < %s
+                AND NOT EXISTS (SELECT 1 FROM $queue q WHERE q.recipient_type = %s AND q.recipient_id = s.id AND q.status IN (%s, %s, %s))
+                ORDER BY id LIMIT %d",
                 self::STATUS_PENDING,
                 $before,
+                \MailOptin\Core\Audience\ImportConfirmations::RECIPIENT_TYPE,
+                SendQueueRepository::STATUS_PENDING,
+                SendQueueRepository::STATUS_CLAIMED,
+                SendQueueRepository::STATUS_SENDING,
                 $limit
             )
         ));

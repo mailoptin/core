@@ -113,6 +113,8 @@ class Base
         Audience\CampaignRenderer::get_instance();
         Audience\WelcomeEmail::get_instance();
         Audience\PersonalData::get_instance();
+        Audience\ImportConfirmations::get_instance();
+        Audience\SubscriberImport::get_instance();
         \MailOptin\MailOptinConnect\Connect::get_instance();
 
         $this->admin_hooks();
