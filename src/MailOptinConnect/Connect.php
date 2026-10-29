@@ -110,7 +110,7 @@ class Connect extends AbstractConnect implements ConnectionInterface
     {
         if ( ! TagsRepository::is_ready()) return $controls;
 
-        $tags_url = add_query_arg(['page' => \MailOptin\Core\Admin\SettingsPage\Subscribers_Page::SLUG, 'tab' => 'tags'], admin_url('admin.php'));
+        $tags_url = \MailOptin\Core\Admin\SettingsPage\Subscribers_Page::page_url('tags');
         $tags     = array_map('esc_html', TagsRepository::names());
 
         if (empty($tags)) {
@@ -123,21 +123,31 @@ class Connect extends AbstractConnect implements ConnectionInterface
                         '</a>'
                     ) . '</p>',
             ];
-
-            return $controls;
+        } else {
+            $controls[] = [
+                'field'       => 'chosen_select',
+                'name'        => 'MailOptinConnect_lead_tags',
+                'choices'     => $tags,
+                'label'       => __('Tags', 'mailoptin'),
+                'description' => sprintf(
+                    esc_html__('Added to everyone who signs up with this form. %sManage tags%s', 'mailoptin'),
+                    '<a target="_blank" href="' . esc_url($tags_url) . '">',
+                    '</a>'
+                ),
+            ];
         }
 
-        $controls[] = [
-            'field'       => 'chosen_select',
-            'name'        => 'MailOptinConnect_lead_tags',
-            'choices'     => $tags,
-            'label'       => __('Tags', 'mailoptin'),
-            'description' => sprintf(
-                esc_html__('Added to everyone who signs up with this form. %sManage tags%s', 'mailoptin'),
-                '<a target="_blank" href="' . esc_url($tags_url) . '">',
-                '</a>'
-            ),
-        ];
+        if ( ! self::has_custom_form_fields()) {
+            $controls[] = [
+                'field'   => 'custom_content',
+                'name'    => 'MailOptinConnect_upgrade_notice',
+                'content' => '<p class="description customize-control-description">' . sprintf(
+                        esc_html__('%sMailOptin Premium%s adds custom fields to your forms and saves what people enter into their subscriber profile, for filtering and merge tags.', 'mailoptin'),
+                        '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=builtin_custom_fields">',
+                        '</a>'
+                    ) . '</p>',
+            ];
+        }
 
         return $controls;
     }
