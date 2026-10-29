@@ -4,8 +4,10 @@ namespace MailOptin\Core\Audience;
 
 use MailOptin\Core\Logging\CampaignLogRepository;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
+use MailOptin\Core\Repositories\CustomFieldsRepository;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
+use MailOptin\Core\Repositories\TagsRepository;
 
 /**
  * Personalizes queued campaign emails for built-in list subscribers: unsubscribe and web version
@@ -127,23 +129,58 @@ class CampaignRenderer
             '{{subscriber.last_name}}'  => $subscriber['last_name'],
         ];
 
+        $fields = TagsRepository::is_ready() ? CustomFieldsRepository::merge_values($subscriber['id']) : [];
+
         return [
-            'subject' => self::replace_tags(self::replace_fallback_tags($campaign['subject'], $subscriber, false), $tags, false),
-            'html'    => self::replace_tags(self::replace_fallback_tags($campaign['html'], $subscriber, true), $tags, true),
-            'text'    => self::replace_tags(self::replace_fallback_tags($campaign['text'], $subscriber, false), $tags, false),
+            'subject' => self::replace_tags(self::replace_fallback_tags($campaign['subject'], $subscriber, false, $fields), $tags, false),
+            'html'    => self::replace_tags(self::replace_fallback_tags($campaign['html'], $subscriber, true, $fields), $tags, true),
+            'text'    => self::replace_tags(self::replace_fallback_tags($campaign['text'], $subscriber, false, $fields), $tags, false),
         ];
     }
 
     /**
-     * {{subscriber.first_name|there}} uses "there" when the subscriber has no first name.
+     * Subscriber merge tags: {{subscriber.first_name}}, {{subscriber.email}} and any custom field
+     * by its merge key, like {{subscriber.company}}. Add a fallback for when the subscriber has no
+     * value: {{subscriber.first_name|there}}. Unknown tags with a fallback show the fallback; without
+     * one they're left as they are, for connections that add their own.
+     *
+     * @param string $content
+     * @param array $subscriber subscriber row; custom field values are looked up by its "id"
+     * @param bool $escape_html
+     * @param array|null $field_values merge key => value, instead of looking them up
      */
-    public static function replace_fallback_tags($content, $subscriber, $escape_html)
+    public static function replace_fallback_tags($content, $subscriber, $escape_html, $field_values = null)
     {
-        return preg_replace_callback('/\{\{subscriber\.(first_name|last_name)\|([^}]*)\}\}/', function ($match) use ($subscriber, $escape_html) {
-            $value = '' !== trim((string)$subscriber[$match[1]]) ? $subscriber[$match[1]] : $match[2];
+        $content = (string)$content;
+
+        if (false === strpos($content, '{{subscriber.')) return $content;
+
+        $builtin = ['email', 'first_name', 'last_name'];
+
+        return preg_replace_callback('/\{\{subscriber\.([a-z][a-z0-9_]*)(?:\|([^}]*))?\}\}/', function ($match) use ($subscriber, $escape_html, $builtin, &$field_values) {
+            $key = $match[1];
+
+            if (in_array($key, $builtin, true)) {
+                $value = (string)($subscriber[$key] ?? '');
+            } else {
+                if (null === $field_values) {
+                    $field_values = TagsRepository::is_ready() ? CustomFieldsRepository::merge_values(absint($subscriber['id'] ?? 0)) : [];
+                }
+
+                // Not ours, unless it has a fallback: then it's a field that was deleted or misspelled.
+                if ( ! array_key_exists($key, $field_values)) {
+                    if ( ! isset($match[2])) return $match[0];
+
+                    return $escape_html ? esc_html($match[2]) : $match[2];
+                }
+
+                $value = (string)$field_values[$key];
+            }
+
+            if ('' === trim($value)) $value = $match[2] ?? '';
 
             return $escape_html ? esc_html($value) : $value;
-        }, (string)$content);
+        }, $content);
     }
 
     public function headers($headers, $row, $campaign_log_id)

@@ -112,6 +112,7 @@ class Base
         Audience\PublicEndpoints::get_instance();
         Audience\CampaignRenderer::get_instance();
         Audience\WelcomeEmail::get_instance();
+        Audience\PersonalData::get_instance();
         \MailOptin\MailOptinConnect\Connect::get_instance();
 
         $this->admin_hooks();
@@ -199,6 +200,10 @@ class Base
         $tables[] = $db_prefix . Core::subscriber_events_table_name;
         $tables[] = $db_prefix . Core::send_queue_table_name;
         $tables[] = $db_prefix . Core::conversion_syncs_table_name;
+        $tables[] = $db_prefix . Core::tags_table_name;
+        $tables[] = $db_prefix . Core::subscriber_tags_table_name;
+        $tables[] = $db_prefix . Core::custom_fields_table_name;
+        $tables[] = $db_prefix . Core::field_values_table_name;
 
         $tables = apply_filters('mo_drop_mu_database_tables', $tables, $db_prefix);
 

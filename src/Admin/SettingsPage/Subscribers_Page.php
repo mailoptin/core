@@ -35,13 +35,16 @@ class Subscribers_Page extends AbstractSettingsPage
 
             $instance = Custom_Settings_Page_Api::instance();
             $instance->option_name(self::OPTION_NAME);
-            $instance->page_header('lists' === $active_menu ? __('Lists', 'mailoptin') : __('Subscribers', 'mailoptin'));
+            $headers = ['lists' => __('Lists', 'mailoptin'), 'tags' => __('Tags', 'mailoptin'), 'fields' => __('Custom fields', 'mailoptin')];
+            $instance->page_header($headers[$active_menu] ?? __('Subscribers', 'mailoptin'));
             $instance->remove_h2_header();
             $this->set_settings_page_instance($instance);
         });
 
         add_action('mailoptin_admin_settings_submenu_page_subscribers', [$this, 'render_subscribers']);
         add_action('mailoptin_admin_settings_submenu_page_lists', [$this, 'render_lists']);
+        add_action('mailoptin_admin_settings_submenu_page_tags', [$this, 'render_tags']);
+        add_action('mailoptin_admin_settings_submenu_page_fields', [$this, 'render_fields']);
 
         add_action('admin_init', [$this, 'handle_actions']);
         add_action('admin_notices', [$this, 'confirmation_limit_notice']);
@@ -83,7 +86,7 @@ class Subscribers_Page extends AbstractSettingsPage
 
     public function screen_option()
     {
-        if ('lists' === $this->active_menu_tab() || isset($_GET['subscriber']) || isset($_GET['new'])) return;
+        if ('subscribers' !== $this->active_menu_tab() || isset($_GET['subscriber']) || isset($_GET['new'])) return;
 
         add_screen_option('per_page', [
             'label'   => __('Subscribers per page', 'mailoptin'),
@@ -105,10 +108,17 @@ class Subscribers_Page extends AbstractSettingsPage
 
     public function header_menu_tabs()
     {
-        return [
+        $tabs = [
             ['id' => 'subscribers', 'url' => self::page_url(), 'label' => __('Subscribers', 'mailoptin')],
             ['id' => 'lists', 'url' => self::page_url('lists'), 'label' => __('Lists', 'mailoptin')],
         ];
+
+        if (Subscribers_Tags_Fields::is_ready()) {
+            $tabs[] = ['id' => 'tags', 'url' => self::page_url('tags'), 'label' => __('Tags', 'mailoptin')];
+            $tabs[] = ['id' => 'fields', 'url' => self::page_url('fields'), 'label' => __('Custom fields', 'mailoptin')];
+        }
+
+        return $tabs;
     }
 
     /**
@@ -118,7 +128,9 @@ class Subscribers_Page extends AbstractSettingsPage
     protected function build_page($html)
     {
         echo $this->styles();
+        if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::styles();
         echo '<div class="wrap mo-subscribers-wrap">' . $html . '</div>';
+        if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::script();
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -182,9 +194,30 @@ class Subscribers_Page extends AbstractSettingsPage
             'welcome_saved'        => [__('Welcome email saved.', 'mailoptin'), 'success'],
             'welcome_test_sent'    => [__('Test email sent. Check your inbox.', 'mailoptin'), 'success'],
             'welcome_test_failed'  => [__('The test email could not be sent. Check your site can send email, for example with an SMTP plugin.', 'mailoptin'), 'error'],
+            'tag_added'            => [__('Tag added.', 'mailoptin'), 'success'],
+            'tag_renamed'          => [__('Tag renamed.', 'mailoptin'), 'success'],
+            'tag_merged'           => [__('Tags merged.', 'mailoptin'), 'success'],
+            'tag_not_merged'       => [__('Choose a different tag to merge into.', 'mailoptin'), 'error'],
+            'tag_deleted'          => [__('Tag deleted. Its subscribers were kept.', 'mailoptin'), 'success'],
+            'field_added'          => [defined('MAILOPTIN_DETACH_LIBSODIUM') ? __('Field added. Map it to a form field in the form\'s Integrations settings, or use its merge tag in emails.', 'mailoptin') : __('Field added. Use its merge tag in emails, set it on profiles or in bulk, and map it from forms that send custom fields.', 'mailoptin'), 'success'],
+            'field_saved'          => [__('Field saved.', 'mailoptin'), 'success'],
+            'field_deleted'        => [__('Field deleted.', 'mailoptin'), 'success'],
+            'fields_reordered'     => [__('Order saved.', 'mailoptin'), 'success'],
+            'error'                => [__('That didn\'t work. Please try again.', 'mailoptin'), 'error'],
         ];
 
         $key = sanitize_key($_GET['mo_notice'] ?? '');
+
+        // Errors with details, like which field value wasn't valid. The field panel shows its own.
+        if (in_array($key, ['error', 'saved'], true) && ! ('fields' === $this->active_menu_tab() && isset($_GET['field']))) {
+            $error = Subscribers_Tags_Fields::take_error();
+
+            if ($error) {
+                $prefix = 'saved' === $key ? __('Changes saved, except:', 'mailoptin') . ' ' : '';
+
+                return sprintf('<div class="notice notice-%s is-dismissible"><p>%s</p></div>', 'saved' === $key ? 'warning' : 'error', esc_html($prefix . $error['message']));
+            }
+        }
 
         if ( ! isset($notices[$key])) return '';
 
@@ -220,14 +253,18 @@ class Subscribers_Page extends AbstractSettingsPage
         <?php echo $this->notice_html(); ?>
         <p><a class="button button-primary" href="<?php echo esc_url(add_query_arg('new', '1', self::page_url())); ?>"><?php esc_html_e('Add New', 'mailoptin'); ?></a></p>
         <?php $this->list_table->views(); ?>
+        <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::filter_bar_html($this->list_table->filters); ?>
         <form method="get">
             <input type="hidden" name="page" value="<?php echo esc_attr(self::SLUG); ?>">
             <?php if ( ! empty($_GET['status'])) : ?>
                 <input type="hidden" name="status" value="<?php echo esc_attr(sanitize_key($_GET['status'])); ?>">
             <?php endif; ?>
-            <?php $this->list_table->search_box(__('Search email or name', 'mailoptin'), 'mo-subscriber-search'); ?>
+            <?php echo Subscriber_Filters::hidden_inputs($this->list_table->filters); ?>
+            <?php $this->list_table->search_box(Subscribers_Tags_Fields::is_ready() ? __('Search name, email or any field', 'mailoptin') : __('Search email or name', 'mailoptin'), 'mo-subscriber-search'); ?>
             <?php $this->list_table->display(); ?>
         </form>
+        <?php // Outside the table's form: the dialogs have forms of their own, and browsers drop nested forms. ?>
+        <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::bulk_bar_html(); ?>
         <?php
         $this->build_page(ob_get_clean());
     }
@@ -288,6 +325,10 @@ class Subscribers_Page extends AbstractSettingsPage
     {
         $meta = json_decode((string)$event['meta'], true) ?: [];
 
+        $label = Subscribers_Tags_Fields::event_label($event, $meta);
+
+        if (null !== $label) return $label;
+
         switch ($event['type']) {
             case Subscribers::EVENT_SIGNUP:
                 if ( ! empty($meta['added_by_admin'])) return __('Added by an admin', 'mailoptin');
@@ -297,7 +338,7 @@ class Subscribers_Page extends AbstractSettingsPage
                 if ( ! empty($meta['form'])) $label .= ' ' . sprintf(__('from %s', 'mailoptin'), $meta['form']);
                 if ( ! empty($meta['conversion_page'])) $label .= ' ' . sprintf(__('on %s', 'mailoptin'), self::page_path($meta['conversion_page']));
 
-                return $label;
+                return $label . Subscribers_Tags_Fields::signup_suffix($meta);
             case Subscribers::EVENT_CONFIRMATION_SENT:
                 return sprintf(__('Confirmation email sent for %s', 'mailoptin'), implode(', ', (array)($meta['lists'] ?? [])));
             case Subscribers::EVENT_CONFIRMATION_THROTTLED:
@@ -374,13 +415,14 @@ class Subscribers_Page extends AbstractSettingsPage
         </div>
         <div class="mo-columns">
             <div class="mo-col-main">
-                <form method="post" action="<?php echo esc_url(add_query_arg('subscriber', $subscriber_id, self::page_url())); ?>" class="mo-card">
+                <form method="post" action="<?php echo esc_url(add_query_arg('subscriber', $subscriber_id, self::page_url())); ?>" class="mo-card" id="mo-profile-form">
                     <?php wp_nonce_field('mo_update_subscriber_' . $subscriber_id); ?>
                     <input type="hidden" name="mo_subscriber_action" value="update">
                     <input type="hidden" name="subscriber" value="<?php echo absint($subscriber_id); ?>">
                     <h3><?php esc_html_e('Details', 'mailoptin'); ?></h3>
                     <p><label for="mo-first-name"><?php esc_html_e('First name', 'mailoptin'); ?></label><br><input class="regular-text" type="text" id="mo-first-name" name="first_name" value="<?php echo esc_attr($subscriber['first_name']); ?>"></p>
                     <p><label for="mo-last-name"><?php esc_html_e('Last name', 'mailoptin'); ?></label><br><input class="regular-text" type="text" id="mo-last-name" name="last_name" value="<?php echo esc_attr($subscriber['last_name']); ?>"></p>
+                    <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::profile_fields_html($subscriber_id); ?>
                     <h3><?php esc_html_e('Lists', 'mailoptin'); ?></h3>
                     <p class="description"><?php esc_html_e('Unticking a list unsubscribes them from it. Ticking a list adds them; if they haven\'t confirmed their email yet they stay pending.', 'mailoptin'); ?></p>
                     <?php echo $this->list_checkboxes($memberships); ?>
@@ -396,6 +438,7 @@ class Subscribers_Page extends AbstractSettingsPage
                 </div>
             </div>
             <div class="mo-col-side">
+                <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::profile_tags_html($subscriber_id, 'mo-profile-form'); ?>
                 <div class="mo-card">
                     <h3><?php esc_html_e('Consent record', 'mailoptin'); ?></h3>
                     <dl class="mo-kv">
@@ -425,6 +468,24 @@ class Subscribers_Page extends AbstractSettingsPage
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    /* ---------------------------------------------------------------------------------------------
+     * Tags and Custom fields tabs
+     * ------------------------------------------------------------------------------------------ */
+
+    public function render_tags()
+    {
+        if ( ! $this->is_this_page() || ! Subscribers_Tags_Fields::is_ready()) return;
+
+        $this->build_page($this->notice_html() . Subscribers_Tags_Fields::tags_html());
+    }
+
+    public function render_fields()
+    {
+        if ( ! $this->is_this_page() || ! Subscribers_Tags_Fields::is_ready()) return;
+
+        $this->build_page($this->notice_html() . Subscribers_Tags_Fields::fields_html());
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -560,7 +621,7 @@ class Subscribers_Page extends AbstractSettingsPage
         $list_id  = absint($list['id']);
         $back_url = add_query_arg('edit', $list_id, self::page_url('lists'));
         $test_url = wp_nonce_url(add_query_arg(['mo_subscriber_action' => 'send_welcome_test', 'list_id' => $list_id], self::page_url('lists')), 'mo_send_welcome_test_' . $list_id);
-        $tags     = ['{{subscriber.first_name|there}}', '{{subscriber.first_name}}', '{{subscriber.last_name}}', '{{subscriber.email}}', '{{list.name}}'];
+        $tags     = array_merge(['{{subscriber.first_name|there}}', '{{subscriber.first_name}}', '{{subscriber.last_name}}', '{{subscriber.email}}', '{{list.name}}'], Subscribers_Tags_Fields::merge_tag_list());
 
         ob_start();
         ?>
@@ -637,6 +698,12 @@ class Subscribers_Page extends AbstractSettingsPage
         if (empty($action)) return;
 
         $subscriber_id = absint($_REQUEST['subscriber'] ?? 0);
+
+        if (Subscribers_Tags_Fields::is_ready()) {
+            $handled = Subscribers_Tags_Fields::handle_action($action);
+
+            if ($handled) return $this->redirect($handled[0], $handled[1]);
+        }
 
         switch ($action) {
             case 'add':
@@ -720,6 +787,12 @@ class Subscribers_Page extends AbstractSettingsPage
             'last_name'  => sanitize_text_field(wp_unslash($_POST['last_name'] ?? '')),
         ]);
 
+        if (Subscribers_Tags_Fields::is_ready()) {
+            $errors = Subscribers_Tags_Fields::save_profile($subscriber_id, $_POST);
+
+            if ( ! empty($errors)) Subscribers_Tags_Fields::set_error(implode(' ', $errors));
+        }
+
         $wanted  = array_map('absint', (array)($_POST['list_ids'] ?? []));
         $current = [];
         $left    = [];
@@ -793,6 +866,14 @@ class Subscribers_Page extends AbstractSettingsPage
 
         if (in_array($action, ['add_to_list', 'remove_from_list'], true) && ! ListsRepository::get($list_id)) {
             return $this->redirect('bulk_no_list', $back);
+        }
+
+        if (Subscribers_Tags_Fields::is_ready()) {
+            $notice = Subscribers_Tags_Fields::handle_bulk($action, array_values(array_filter(array_map(function ($id) {
+                return Subscribers::get($id) ? $id : 0;
+            }, $ids))), $_REQUEST);
+
+            if (null !== $notice) return $this->redirect($notice, $back);
         }
 
         foreach ($ids as $subscriber_id) {
@@ -872,10 +953,11 @@ class Subscribers_Page extends AbstractSettingsPage
 .mo-kv dd{margin:0}
 .mo-consent-checkbox{color:#00701a;font-weight:600}
 .mo-consent-checkbox_not_ticked{color:#b32d2e;font-weight:600}
-.wp-list-table.subscribers .column-email{width:26%}
-.wp-list-table.subscribers .column-name{width:15%}
-.wp-list-table.subscribers .column-status{width:120px}
-.wp-list-table.subscribers .column-created_at{width:150px}
+.wp-list-table.subscribers .column-email{width:22%}
+.wp-list-table.subscribers .column-name{width:13%}
+.wp-list-table.subscribers .column-status{width:110px}
+.wp-list-table.subscribers .column-source{width:11%}
+.wp-list-table.subscribers .column-created_at{width:130px}
 .mo-lists-table th{white-space:nowrap}
 .mo-lists-table th:first-child{width:30%}
 fieldset{margin:12px 0}

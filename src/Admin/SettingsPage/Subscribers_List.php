@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use MailOptin\Core\Repositories\CustomFieldsRepository as Fields;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 
@@ -11,6 +12,9 @@ if ( ! class_exists('WP_List_Table')) {
 
 class Subscribers_List extends \WP_List_Table
 {
+    /** @var array tag and custom field filters from the URL, see Subscriber_Filters */
+    public $filters;
+
     public function __construct()
     {
         parent::__construct([
@@ -18,6 +22,30 @@ class Subscribers_List extends \WP_List_Table
             'plural'   => 'subscribers',
             'ajax'     => false,
         ]);
+
+        // Custom field columns start hidden; Screen Options turns them on.
+        add_filter('default_hidden_columns', function ($hidden, $screen) {
+            if ($this->screen && $screen->id === $this->screen->id) {
+                $hidden = array_merge((array)$hidden, array_keys($this->field_columns()));
+            }
+
+            return $hidden;
+        }, 10, 2);
+    }
+
+    /**
+     * @return array column => field label
+     */
+    protected function field_columns()
+    {
+        if ( ! Subscribers_Tags_Fields::is_ready()) return [];
+
+        $columns = [];
+        foreach (Fields::all() as $field) {
+            $columns['field_' . $field['id']] = $field['label'];
+        }
+
+        return $columns;
     }
 
     public function get_columns()
@@ -28,6 +56,7 @@ class Subscribers_List extends \WP_List_Table
             'name'       => __('Name', 'mailoptin'),
             'status'     => __('Status', 'mailoptin'),
             'lists'      => __('Lists', 'mailoptin'),
+        ] + (Subscribers_Tags_Fields::is_ready() ? ['tags' => __('Tags', 'mailoptin')] : []) + $this->field_columns() + [
             'source'     => __('Source', 'mailoptin'),
             'created_at' => __('Subscribed', 'mailoptin'),
         ];
@@ -43,7 +72,7 @@ class Subscribers_List extends \WP_List_Table
 
     public function no_items()
     {
-        if ( ! empty($_GET['s']) || ! empty($_GET['status']) || ! empty($_GET['list'])) {
+        if ( ! empty($_GET['s']) || ! empty($_GET['status']) || ! empty($_GET['list']) || Subscriber_Filters::is_active($this->filters)) {
             esc_html_e('No subscribers match these filters.', 'mailoptin');
 
             return;
@@ -54,9 +83,10 @@ class Subscribers_List extends \WP_List_Table
 
     public function prepare_items()
     {
-        $per_page = $this->get_items_per_page('mo_subscribers_per_page', 20);
+        $per_page      = $this->get_items_per_page('mo_subscribers_per_page', 20);
+        $this->filters = Subscriber_Filters::from_request($_GET);
 
-        $result = Subscribers::query([
+        $result = Subscribers::query($this->filters + [
             'status'   => sanitize_key($_GET['status'] ?? ''),
             'list_id'  => absint($_GET['list'] ?? 0),
             'search'   => sanitize_text_field(wp_unslash($_GET['s'] ?? '')),
@@ -68,19 +98,33 @@ class Subscribers_List extends \WP_List_Table
 
         $this->items = $result['items'];
 
+        $this->field_values = [];
+        $columns            = $this->get_column_info();
+        $visible            = array_diff(array_keys($this->field_columns()), $columns[1]);
+
+        if ( ! empty($visible) && ! empty($this->items)) {
+            $this->field_values = Fields::values_for_subscribers(wp_list_pluck($this->items, 'id'), array_map(function ($column) {
+                return (int)substr($column, 6);
+            }, $visible));
+        }
+
         $this->set_pagination_args([
             'total_items' => $result['total'],
             'per_page'    => $per_page,
         ]);
 
-        $this->_column_headers = [$this->get_columns(), [], $this->get_sortable_columns()];
+        $this->_column_headers = null;
+        $this->_column_headers = $this->get_column_info();
     }
+
+    /** @var array subscriber_id => [field_id => value row], for the visible field columns */
+    protected $field_values = [];
 
     protected function get_views()
     {
         $counts  = Subscribers::count_by_status();
         $current = sanitize_key($_GET['status'] ?? '');
-        $base    = remove_query_arg(['status', 'paged', 'mo_notice']);
+        $base    = remove_query_arg(['status', 'paged', 'mo_notice', 'mo_add_filter']);
 
         $labels = [
             ''                               => __('All', 'mailoptin'),
@@ -113,7 +157,7 @@ class Subscribers_List extends \WP_List_Table
 
     protected function get_bulk_actions()
     {
-        return [
+        return (Subscribers_Tags_Fields::is_ready() ? Subscribers_Tags_Fields::bulk_actions() : []) + [
             'add_to_list'         => __('Add to list', 'mailoptin'),
             'remove_from_list'    => __('Remove from list', 'mailoptin'),
             'resend_confirmation' => __('Resend confirmation', 'mailoptin'),
@@ -149,6 +193,7 @@ class Subscribers_List extends \WP_List_Table
             <?php submit_button(__('Filter', 'mailoptin'), '', 'mo_filter', false); ?>
         </div>
         <?php
+        if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::bulk_inputs_html();
     }
 
     protected function column_cb($item)
@@ -196,6 +241,29 @@ class Subscribers_List extends \WP_List_Table
         if (empty($item['lists'])) return '<span class="mo-muted">' . esc_html__('none', 'mailoptin') . '</span>';
 
         return esc_html(implode(', ', $item['lists']));
+    }
+
+    protected function column_tags($item)
+    {
+        if (empty($item['tags'])) return '<span class="mo-muted">&mdash;</span>';
+
+        $chips = '';
+        foreach ($item['tags'] as $tag_id => $name) {
+            // Each chip filters the list by that tag.
+            $chips .= sprintf('<a href="%s">%s</a>', esc_url(add_query_arg(['tags' => [$tag_id]], Subscribers_Page::page_url())), Subscribers_Tags_Fields::tag_chip($name));
+        }
+
+        return $chips;
+    }
+
+    protected function column_default($item, $column_name)
+    {
+        if (0 !== strpos($column_name, 'field_')) return '';
+
+        $field = Fields::get((int)substr($column_name, 6));
+        $value = $this->field_values[(int)$item['id']][(int)substr($column_name, 6)]['value_text'] ?? null;
+
+        return $field ? esc_html(Fields::display_value($field, $value)) : '';
     }
 
     protected function column_source($item)

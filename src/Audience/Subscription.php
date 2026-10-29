@@ -3,10 +3,12 @@
 namespace MailOptin\Core\Audience;
 
 use MailOptin\Core\PluginSettings\Settings;
+use MailOptin\Core\Repositories\CustomFieldsRepository;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SendQueueRepository;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 use MailOptin\Core\Repositories\SuppressionRepository;
+use MailOptin\Core\Repositories\TagsRepository;
 use MailOptin\Core\SendQueue\WpMailSender;
 
 /**
@@ -23,7 +25,8 @@ class Subscription
     /**
      * @param string $email
      * @param int $list_id
-     * @param array $context first_name, last_name, source, source_optin_id, ip_address, consent_text, meta
+     * @param array $context first_name, last_name, source, source_optin_id, ip_address, consent_text, meta,
+     *                       fields (custom field merge key => value), tags (tag IDs or names)
      *
      * @return array|\WP_Error ['subscriber_id' => int, 'result' => one of the RESULT_* constants]
      */
@@ -84,7 +87,9 @@ class Subscription
 
         $subscriber_id = (int)$subscriber['id'];
 
-        Subscribers::log_event($subscriber_id, Subscribers::EVENT_SIGNUP, array_merge(['list_id' => (int)$list_id], $names, $consent, (array)($context['meta'] ?? [])));
+        $extra = self::apply_fields_and_tags($subscriber_id, (array)($context['fields'] ?? []), (array)($context['tags'] ?? []));
+
+        Subscribers::log_event($subscriber_id, Subscribers::EVENT_SIGNUP, array_merge(['list_id' => (int)$list_id], $names, $consent, $extra, (array)($context['meta'] ?? [])));
 
         $membership = Subscribers::get_membership($subscriber_id, $list_id);
 
@@ -130,6 +135,35 @@ class Subscription
         self::send_confirmation($subscriber_id, self::request_ip());
 
         return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_PENDING];
+    }
+
+    /**
+     * Custom field values and tags from a signup. Like names, field values only fill in what's
+     * missing, since anyone can submit a form with someone else's address.
+     *
+     * @return array for the signup event: 'fields' => [merge key => value as submitted], 'tags' => names added
+     */
+    protected static function apply_fields_and_tags($subscriber_id, $fields, $tags)
+    {
+        if ( ! TagsRepository::is_ready() || (empty($fields) && empty($tags))) return [];
+
+        $extra = [];
+
+        if ( ! empty($fields)) {
+            $result = CustomFieldsRepository::set_values($subscriber_id, $fields, true);
+            $extra['fields'] = array_filter($fields, function ($value) {
+                return '' !== $value && [] !== $value;
+            });
+            if ( ! empty($result['errors'])) $extra['field_errors'] = array_values($result['errors']);
+        }
+
+        if ( ! empty($tags)) {
+            $tag_ids = TagsRepository::ensure($tags);
+            TagsRepository::add_to_subscribers($tag_ids, [$subscriber_id]);
+            if ( ! empty($tag_ids)) $extra['tags'] = array_values(array_intersect_key(TagsRepository::names(), array_flip($tag_ids)));
+        }
+
+        return array_filter($extra);
     }
 
     /**

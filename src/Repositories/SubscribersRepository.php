@@ -21,6 +21,9 @@ class SubscribersRepository extends AbstractRepository
     const EVENT_CONFIRMED = 'confirmed';
     const EVENT_UNSUBSCRIBED = 'unsubscribed';
     const EVENT_SENT = 'sent';
+    const EVENT_TAGS_ADDED = 'tags_added';
+    const EVENT_TAGS_REMOVED = 'tags_removed';
+    const EVENT_FIELDS_CHANGED = 'fields_changed';
 
     public static function table()
     {
@@ -108,9 +111,10 @@ class SubscribersRepository extends AbstractRepository
     /**
      * Subscribers for the admin list table.
      *
-     * @param array $args status, list_id, source_optin_id, search, per_page, page, orderby (created_at|email), order
+     * @param array $args status, list_id, source_optin_id, search, per_page, page, orderby (created_at|email), order,
+     *                    tag_ids with tag_match (any|all|none), field_conditions (see CustomFieldsRepository::condition_sql())
      *
-     * @return array ['items' => rows, each with 'lists' => [list_id => list name], 'total' => int]
+     * @return array ['items' => rows, each with 'lists' => [list_id => list name] and 'tags' => [tag_id => name], 'total' => int]
      */
     public static function query($args = [])
     {
@@ -136,12 +140,37 @@ class SubscribersRepository extends AbstractRepository
             $params[] = absint($args['source_optin_id']);
         }
 
+        $tags_ready = TagsRepository::is_ready();
+
         if ( ! empty($args['search'])) {
             $like     = '%' . self::wpdb()->esc_like($args['search']) . '%';
-            $where[]  = '(s.email LIKE %s OR s.first_name LIKE %s OR s.last_name LIKE %s)';
+            $fields   = $tags_ready ? ' OR EXISTS (SELECT 1 FROM ' . CustomFieldsRepository::values_table() . ' fv WHERE fv.subscriber_id = s.id AND fv.value_text LIKE %s)' : '';
+            $where[]  = "(s.email LIKE %s OR s.first_name LIKE %s OR s.last_name LIKE %s$fields)";
             $params[] = $like;
             $params[] = $like;
             $params[] = $like;
+            if ($tags_ready) $params[] = $like;
+        }
+
+        $tag_ids = array_values(array_filter(array_map('absint', (array)($args['tag_ids'] ?? []))));
+
+        if ($tags_ready && ! empty($tag_ids)) {
+            $links = TagsRepository::links_table();
+            $in    = implode(',', $tag_ids);
+            $match = $args['tag_match'] ?? 'any';
+
+            if ('all' === $match) {
+                $where[] = "(SELECT COUNT(*) FROM $links t WHERE t.subscriber_id = s.id AND t.tag_id IN ($in)) = " . count($tag_ids);
+            } else {
+                $where[] = ('none' === $match ? 'NOT ' : '') . "EXISTS (SELECT 1 FROM $links t WHERE t.subscriber_id = s.id AND t.tag_id IN ($in))";
+            }
+        }
+
+        if ($tags_ready) {
+            foreach ((array)($args['field_conditions'] ?? []) as $condition) {
+                $sql = is_array($condition) ? CustomFieldsRepository::condition_sql($condition) : null;
+                if ($sql) $where[] = $sql;
+            }
         }
 
         $where_sql = implode(' AND ', $where);
@@ -179,8 +208,11 @@ class SubscribersRepository extends AbstractRepository
                 $by_subscriber[$row['subscriber_id']][$row['id']] = $row['name'];
             }
 
+            $tags = $tags_ready ? TagsRepository::for_subscribers(wp_list_pluck($items, 'id')) : [];
+
             foreach ($items as &$item) {
                 $item['lists'] = $by_subscriber[$item['id']] ?? [];
+                $item['tags']  = $tags[(int)$item['id']] ?? [];
             }
         }
 
@@ -203,13 +235,15 @@ class SubscribersRepository extends AbstractRepository
     }
 
     /**
-     * Delete a subscriber with their memberships and events. This is not an unsubscribe:
-     * the address can be added again later.
+     * Delete a subscriber with their memberships, events, tags and custom field values. This is
+     * not an unsubscribe: the address can be added again later.
      */
     public static function delete($subscriber_id)
     {
         self::wpdb()->delete(self::memberships_table(), ['subscriber_id' => $subscriber_id], ['%d']);
         self::wpdb()->delete(self::events_table(), ['subscriber_id' => $subscriber_id], ['%d']);
+        TagsRepository::delete_for_subscribers([$subscriber_id]);
+        CustomFieldsRepository::delete_values_for_subscribers([$subscriber_id]);
 
         return (bool)self::wpdb()->delete(self::table(), ['id' => $subscriber_id], ['%d']);
     }
@@ -349,6 +383,25 @@ class SubscribersRepository extends AbstractRepository
     }
 
     /**
+     * The same kind of event for many subscribers at once, each with its own meta.
+     *
+     * @param array $meta_by_subscriber subscriber_id => meta
+     */
+    public static function log_events($type, $meta_by_subscriber)
+    {
+        $rows = [];
+        $now  = self::now();
+
+        foreach ($meta_by_subscriber as $subscriber_id => $meta) {
+            $rows[] = self::wpdb()->prepare('(%d, %s, 0, %s, %s)', $subscriber_id, $type, wp_json_encode($meta), $now);
+        }
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            self::wpdb()->query('INSERT INTO ' . self::events_table() . ' (subscriber_id, type, campaign_log_id, meta, created_at) VALUES ' . implode(',', $chunk));
+        }
+    }
+
+    /**
      * @return string|null UTC datetime of the subscriber's most recent event of this type
      */
     public static function last_event_at($subscriber_id, $type)
@@ -409,6 +462,8 @@ class SubscribersRepository extends AbstractRepository
 
         self::wpdb()->query("DELETE FROM " . self::memberships_table() . " WHERE subscriber_id IN ($in)");
         self::wpdb()->query("DELETE FROM " . self::events_table() . " WHERE subscriber_id IN ($in)");
+        TagsRepository::delete_for_subscribers($ids);
+        CustomFieldsRepository::delete_values_for_subscribers($ids);
         self::wpdb()->query("DELETE FROM $table WHERE id IN ($in)");
 
         return count($ids);

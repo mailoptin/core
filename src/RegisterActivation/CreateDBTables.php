@@ -91,6 +91,7 @@ class CreateDBTables
 
         $sqls = array_merge($sqls, self::audience_tables_sql($collate));
         $sqls[] = self::conversion_syncs_table_sql($collate);
+        $sqls = array_merge($sqls, self::tags_fields_tables_sql($collate));
 
         $sqls = apply_filters('mo_create_database_tables', $sqls, $collate);
 
@@ -239,5 +240,64 @@ class CreateDBTables
   KEY due (status,next_attempt_at),
   KEY status_created (status,created_at)
 ) $collate;";
+    }
+
+    /**
+     * Tags and custom fields of built-in list subscribers. Custom fields are shared by all lists.
+     * A field value is kept as text, and also as a number or date for the types that have one, so
+     * filters can compare them.
+     */
+    public static function tags_fields_tables_sql($collate)
+    {
+        global $wpdb;
+
+        $tags_table   = $wpdb->prefix . Core::tags_table_name;
+        $links_table  = $wpdb->prefix . Core::subscriber_tags_table_name;
+        $fields_table = $wpdb->prefix . Core::custom_fields_table_name;
+        $values_table = $wpdb->prefix . Core::field_values_table_name;
+
+        $sqls[] = "CREATE TABLE $tags_table (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(100) NOT NULL,
+  created_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY name (name)
+) $collate;";
+
+        $sqls[] = "CREATE TABLE $links_table (
+  subscriber_id bigint(20) unsigned NOT NULL,
+  tag_id bigint(20) unsigned NOT NULL,
+  created_at datetime NOT NULL,
+  PRIMARY KEY  (subscriber_id,tag_id),
+  KEY tag_id (tag_id)
+) $collate;";
+
+        $sqls[] = "CREATE TABLE $fields_table (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  label varchar(200) NOT NULL,
+  merge_key varchar(64) NOT NULL,
+  type varchar(20) NOT NULL,
+  options longtext NULL,
+  required tinyint(1) NOT NULL DEFAULT 0,
+  subscriber_editable tinyint(1) NOT NULL DEFAULT 1,
+  position int(11) NOT NULL DEFAULT 0,
+  created_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY merge_key (merge_key)
+) $collate;";
+
+        $sqls[] = "CREATE TABLE $values_table (
+  subscriber_id bigint(20) unsigned NOT NULL,
+  field_id bigint(20) unsigned NOT NULL,
+  value_text text NOT NULL,
+  value_number decimal(20,4) NULL,
+  value_date date NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY  (subscriber_id,field_id),
+  KEY field_number (field_id,value_number),
+  KEY field_date (field_id,value_date)
+) $collate;";
+
+        return $sqls;
     }
 }
