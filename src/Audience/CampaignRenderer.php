@@ -203,6 +203,8 @@ class CampaignRenderer
         if (self::RECIPIENT_TYPE !== ($row['recipient_type'] ?? '') || empty($row['recipient_id'])) return;
 
         Subscribers::log_event($row['recipient_id'], Subscribers::EVENT_SENT, [], $campaign_log_id);
+
+        if (\MailOptin\Core\Repositories\CampaignActivityRepository::is_ready()) \MailOptin\Core\Repositories\CampaignActivityRepository::record_sent($campaign_log_id);
     }
 
     /**

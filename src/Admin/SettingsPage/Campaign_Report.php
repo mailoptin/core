@@ -112,13 +112,13 @@ class Campaign_Report
     {
         $repository = CampaignLogRepository::instance();
         $counts     = SendQueueRepository::counts($campaign_log_id);
-        $sent       = $counts['sent'];
         $stats      = Activity::stats($campaign_log_id);
+        $sent       = $stats['sent'] ?: $counts['sent'];
         $content    = CampaignRenderer::campaign_content($campaign_log_id);
         $list       = $content['list_id'] ? ListsRepository::get($content['list_id']) : null;
         $sent_at    = (string)$repository->retrieveStatusTime($campaign_log_id);
         $premium    = SegmentsRepository::is_available();
-        $groups     = $premium ? Activity::engagement_counts($campaign_log_id) + ['unsubscribed' => Activity::unsubscribed_count($campaign_log_id)] : [];
+        $groups     = $premium && ! $stats['pruned'] ? Activity::engagement_counts($campaign_log_id) : [];
         $first_send = $sent_at ?: gmdate('Y-m-d H:i:s');
 
         ob_start();
@@ -148,7 +148,12 @@ class Campaign_Report
                 <?php echo self::links_html($campaign_log_id, $premium); ?>
             </div>
             <div class="mo-report-side">
-                <?php if ($premium) : ?>
+                <?php if ($premium && $stats['pruned']) : ?>
+                    <div class="mo-card">
+                        <h3><?php esc_html_e('Who opened and clicked', 'mailoptin'); ?></h3>
+                        <p class="description"><?php esc_html_e('Who opened and clicked this campaign was deleted after the retention period set in Settings › Sending. The totals are kept.', 'mailoptin'); ?></p>
+                    </div>
+                <?php elseif ($premium) : ?>
                     <div class="mo-card">
                         <h3><?php esc_html_e('Who opened and clicked', 'mailoptin'); ?></h3>
                         <p class="mo-group-buttons">
@@ -261,7 +266,11 @@ class Campaign_Report
         $link_id = $link && (int)$link['campaign_log_id'] === $campaign_log_id ? $link_id : 0;
         $page    = max(1, absint($_GET['paged'] ?? 1));
         $people  = Activity::people($campaign_log_id, $group, $link_id, $page, self::PER_PAGE);
-        $counts  = Activity::engagement_counts($campaign_log_id) + ['unsubscribed' => Activity::unsubscribed_count($campaign_log_id)];
+        if (Activity::is_pruned($campaign_log_id)) {
+            return $back . '<p>' . esc_html__('Who opened and clicked this campaign was deleted after the retention period set in Settings › Sending. The totals are kept.', 'mailoptin') . '</p>';
+        }
+
+        $counts  = Activity::engagement_counts($campaign_log_id);
         $tags    = Tags::for_subscribers(wp_list_pluck($people['items'], 'id'));
         $filter  = $link_id ? null : self::list_filter($campaign_log_id, $group);
 
@@ -299,7 +308,7 @@ class Campaign_Report
                     <a class="button" href="<?php echo esc_url(Subscribers_Import_Page::export_url($filter)); ?>"><?php esc_html_e('Export CSV', 'mailoptin'); ?></a>
                 <?php endif; ?>
             </div>
-            <?php if ($filter) : ?>
+            <?php if ($filter && 'not_opened' !== $group) : ?>
                 <p class="description"><?php esc_html_e('In the subscribers list you can save these people as a segment, or narrow them down with more filters.', 'mailoptin'); ?></p>
             <?php endif; ?>
         <?php endif; ?>

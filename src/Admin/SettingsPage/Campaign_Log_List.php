@@ -129,6 +129,7 @@ class Campaign_Log_List extends \WP_List_Table
     public function delete_all_campaign_log()
     {
         $this->wpdb->query("DELETE FROM " . SendQueueRepository::table());
+        if (\MailOptin\Core\Repositories\CampaignActivityRepository::is_ready()) \MailOptin\Core\Repositories\CampaignActivityRepository::delete_all();
 
         return $this->wpdb->query("DELETE FROM $this->table");
     }
@@ -367,12 +368,15 @@ class Campaign_Log_List extends \WP_List_Table
         return $this->queue_progress_html($item) . $err_log;
     }
 
+    /** @var array campaign log id => tracking totals, for the rows on this page */
+    protected $tracking_stats = [];
+
     /**
      * Whether a campaign went to a built-in list, so it has opens and clicks to report.
      */
     protected function has_report($campaign_log_id)
     {
-        return \MailOptin\Core\Repositories\CampaignActivityRepository::is_ready() && \MailOptin\Core\Repositories\CampaignActivityRepository::sent_count($campaign_log_id) > 0;
+        return ($this->tracking_stats[(int)$campaign_log_id]['sent'] ?? 0) > 0;
     }
 
     public function column_engagement($item)
@@ -383,15 +387,14 @@ class Campaign_Log_List extends \WP_List_Table
             return '<span class="description">&mdash;</span>';
         }
 
-        $sent  = \MailOptin\Core\Repositories\CampaignActivityRepository::sent_count($campaign_log_id);
-        $stats = \MailOptin\Core\Repositories\CampaignActivityRepository::stats($campaign_log_id);
+        $stats = $this->tracking_stats[$campaign_log_id];
 
         return sprintf(
             '<a href="%s"><strong>%s%%</strong> %s · <strong>%s%%</strong> %s</a>',
             esc_url(Campaign_Report::url($campaign_log_id)),
-            esc_html(number_format_i18n($stats['openers'] / $sent * 100, 1)),
+            esc_html(number_format_i18n($stats['openers'] / $stats['sent'] * 100, 1)),
             esc_html__('opened', 'mailoptin'),
-            esc_html(number_format_i18n($stats['clickers'] / $sent * 100, 1)),
+            esc_html(number_format_i18n($stats['clickers'] / $stats['sent'] * 100, 1)),
             esc_html__('clicked', 'mailoptin')
         );
     }
@@ -479,6 +482,11 @@ class Campaign_Log_List extends \WP_List_Table
         ));
 
         $this->items = $this->get_campaign_log($per_page, $current_page);
+
+        // One query for the page, not several per row.
+        if (\MailOptin\Core\Repositories\CampaignActivityRepository::is_ready()) {
+            $this->tracking_stats = \MailOptin\Core\Repositories\CampaignActivityRepository::stats_for(wp_list_pluck((array)$this->items, 'id'));
+        }
     }
 
 

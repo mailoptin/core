@@ -96,4 +96,26 @@ class TrackingReportTest extends TrackingTest
         $this->assertNull(Activity::condition_sql(['what' => 'opened', 'campaign' => 0, 'days' => 7]), 'Only the offered periods.');
         $this->assertNull(Activity::condition_sql(['what' => 'drop table', 'campaign' => 0, 'days' => 0]));
     }
+
+    public function test_group_counts_match_the_lists_after_a_subscriber_is_deleted()
+    {
+        list($clicker, $opener) = $this->engaged();
+
+        Subscribers::delete($opener);
+
+        $counts = Activity::engagement_counts($this->log_id);
+
+        foreach (['clicked', 'opened_not_clicked', 'not_opened'] as $group) {
+            $this->assertSame(Activity::people($this->log_id, $group)['total'], $counts[$group], $group);
+        }
+
+        $this->assertSame(1, $counts['not_opened'], 'The deleted opener is not counted as not opening.');
+    }
+
+    public function test_segments_cannot_use_didnt_open()
+    {
+        $result = \MailOptin\Core\Repositories\SegmentsRepository::create('Non-openers', ['engagement' => [['what' => 'not_opened', 'campaign' => $this->log_id, 'days' => 0]]]);
+
+        $this->assertSame('mo_segment_not_opened', $result->get_error_code());
+    }
 }

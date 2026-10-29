@@ -116,7 +116,25 @@ class SegmentsRepository extends AbstractRepository
             return new \WP_Error('mo_segment_empty', __('Add at least one filter before saving a segment.', 'mailoptin'));
         }
 
+        if (null !== $filters && self::uses_not_opened($filters)) {
+            return new \WP_Error('mo_segment_not_opened', self::not_opened_message());
+        }
+
         return true;
+    }
+
+    /**
+     * Opens are an estimate, so a campaign to people who "didn't open" would email people who
+     * read it. Segments are for sending, so they can't use that filter.
+     */
+    public static function uses_not_opened($filters)
+    {
+        return in_array('not_opened', wp_list_pluck((array)($filters['engagement'] ?? []), 'what'), true);
+    }
+
+    public static function not_opened_message()
+    {
+        return __('A segment can\'t use "Didn\'t open". Opens are an estimate, so it would email people who did read the campaign. Use "Didn\'t click" instead, or tag these people and review them first.', 'mailoptin');
     }
 
     /**
@@ -188,6 +206,8 @@ class SegmentsRepository extends AbstractRepository
         if (empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement'])) {
             return [__('Its filters couldn\'t be read.', 'mailoptin')];
         }
+
+        if (self::uses_not_opened($filters)) $problems[] = self::not_opened_message();
 
         if ( ! empty($filters['engagement']) && ! CampaignActivityRepository::is_ready()) {
             $problems[] = __('It filters by opens and clicks, which aren\'t set up yet.', 'mailoptin');

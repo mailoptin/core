@@ -105,8 +105,9 @@ class Tracking
 
         if (self::tracks_clicks()) {
             $html = preg_replace_callback('#<a\s[^>]*>.*?</a>#is', function ($match) use ($row, $campaign_log_id) {
-                return preg_replace_callback('#(\bhref\s*=\s*)(["\'])(.*?)\2#is', function ($href) use ($match, $row, $campaign_log_id) {
-                    $url = html_entity_decode($href[3], ENT_QUOTES, 'UTF-8');
+                return preg_replace_callback('#(\shref\s*=\s*)(["\'])(.*?)\2#is', function ($href) use ($match, $row, $campaign_log_id) {
+                    // Email apps ignore spaces around the address, so the redirect must too.
+                    $url = trim(html_entity_decode($href[3], ENT_QUOTES, 'UTF-8'));
 
                     if ( ! self::is_trackable($url)) return $href[0];
 
@@ -136,13 +137,16 @@ class Tracking
      * Endpoints
      * ------------------------------------------------------------------------------------------ */
 
-    /**
-     * The sent queue row a tracking link belongs to, if its signature is right.
-     */
-    protected static function queue_row($queue_id, $link_id, $signature)
+    protected static function signed($queue_id, $link_id, $signature)
     {
-        if ( ! is_string($signature) || ! hash_equals(self::signature($queue_id, $link_id), $signature)) return null;
+        return is_string($signature) && hash_equals(self::signature($queue_id, $link_id), $signature);
+    }
 
+    /**
+     * The sent queue row a tracking link belongs to. Gone when the campaign's log was deleted.
+     */
+    protected static function queue_row($queue_id)
+    {
         $row = SendQueueRepository::get(absint($queue_id));
 
         if ( ! $row || CampaignRenderer::RECIPIENT_TYPE !== $row['recipient_type'] || empty($row['recipient_id'])) return null;
@@ -173,11 +177,12 @@ class Tracking
     public static function open_token($token)
     {
         $parts = explode('.', (string)$token);
-        $row   = 2 === count($parts) ? self::queue_row($parts[0], 0, $parts[1]) : null;
 
-        if ( ! $row) return false;
+        if (2 !== count($parts) || ! self::signed($parts[0], 0, $parts[1])) return false;
 
-        if (self::tracks_opens() && self::should_count($row)) Activity::record_open($row['campaign_log_id'], $row['recipient_id']);
+        $row = self::queue_row($parts[0]);
+
+        if ($row && self::tracks_opens() && self::should_count($row)) Activity::record_open($row['campaign_log_id'], $row['recipient_id']);
 
         return true;
     }
@@ -185,17 +190,28 @@ class Tracking
     /**
      * Count a click.
      *
+     * The signature covers the link ID, so a valid token leads to its link even after the
+     * campaign's log is deleted; it just isn't counted then.
+     *
      * @return array|null the link to send them on to, or null when the token isn't valid
      */
     public static function click_token($token)
     {
         $parts = explode('.', (string)$token);
-        $row   = 3 === count($parts) ? self::queue_row($parts[0], $parts[1], $parts[2]) : null;
-        $link  = $row ? Activity::get_link(absint($parts[1])) : null;
 
-        if ( ! $link || (int)$link['campaign_log_id'] !== (int)$row['campaign_log_id']) return null;
+        if (3 !== count($parts) || ! self::signed($parts[0], $parts[1], $parts[2])) return null;
 
-        if (self::tracks_clicks() && self::should_count($row)) Activity::record_click($row['campaign_log_id'], $row['recipient_id'], $link);
+        $link = Activity::get_link(absint($parts[1]));
+
+        if ( ! $link) return null;
+
+        $row = self::queue_row($parts[0]);
+
+        if ($row && (int)$link['campaign_log_id'] !== (int)$row['campaign_log_id']) return null;
+
+        if ($row && self::tracks_clicks() && self::should_count($row)) {
+            Activity::record_click($row['campaign_log_id'], $row['recipient_id'], $link, self::tracks_opens());
+        }
 
         return $link;
     }
@@ -219,9 +235,23 @@ class Tracking
             wp_die(esc_html__('This link is not valid. It may have been copied incompletely.', 'mailoptin'), esc_html__('Invalid link', 'mailoptin'), ['response' => 404]);
         }
 
+        self::redirect($link['url']);
+    }
+
+    /**
+     * Send them on to the link's address as it was in the email. Not through wp_redirect(), which
+     * strips characters like | and ' that addresses can contain. The address was saved from the
+     * campaign, so this can't be used to send people elsewhere.
+     */
+    protected static function redirect($url)
+    {
+        if ( ! preg_match('#^https?://#i', $url) || preg_match('/[\x00-\x1f\x7f]/', $url)) {
+            wp_die(esc_html__('This link is not valid.', 'mailoptin'), esc_html__('Invalid link', 'mailoptin'), ['response' => 404]);
+        }
+
         nocache_headers();
-        // The address was saved from the campaign, so this can't be used to send people elsewhere.
-        wp_redirect($link['url'], 302);
+        status_header(302);
+        header('Location: ' . $url, true, 302);
         exit;
     }
 
@@ -244,8 +274,8 @@ class Tracking
 
         $before = gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
 
-        // In batches, so a first run on a big site doesn't lock the table for long.
-        for ($i = 0; $i < 20 && Activity::prune($before) > 0; $i++) {
+        // A few campaigns at a time, so a first run on a big site doesn't lock the tables for long.
+        for ($i = 0; $i < 10 && Activity::prune($before) > 0; $i++) {
             continue;
         }
     }

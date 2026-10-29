@@ -8,8 +8,8 @@ use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 /**
  * Opens and clicks of campaigns sent to built-in lists. All datetimes are UTC.
  *
- * Activity rows say who did what, and are deleted after the retention period or with the
- * subscriber. Totals are counted separately as they happen, so a campaign's report keeps its
+ * Activity rows say who did what, and are deleted with the subscriber, or for a whole campaign
+ * once it is older than the retention period. Totals are counted separately as they happen, so a campaign's report keeps its
  * numbers after that.
  */
 class CampaignActivityRepository extends AbstractRepository
@@ -27,6 +27,10 @@ class CampaignActivityRepository extends AbstractRepository
     const METRIC_OPENERS = 'openers';
     const METRIC_CLICKS = 'clicks';
     const METRIC_CLICKERS = 'clickers';
+    const METRIC_SENT = 'sent';
+    // Set once a campaign's who-did-what was deleted after the retention period. Its totals stay;
+    // new hits aren't counted, as they'd count people twice.
+    const METRIC_PRUNED = 'pruned';
 
     protected static $link_cache = [];
 
@@ -146,6 +150,8 @@ class CampaignActivityRepository extends AbstractRepository
 
     public static function record_open($campaign_log_id, $subscriber_id)
     {
+        if (self::is_pruned($campaign_log_id)) return false;
+
         $first = self::hit($campaign_log_id, $subscriber_id, self::TYPE_OPEN);
 
         self::bump($campaign_log_id, self::METRIC_OPENS);
@@ -156,11 +162,14 @@ class CampaignActivityRepository extends AbstractRepository
     }
 
     /**
-     * A click also counts as an open: the email was read, even if its images didn't load.
+     * A click also counts as an open: the email was read, even if its images didn't load. Not
+     * when opens aren't tracked, or "opened" would only mean "clicked".
      */
-    public static function record_click($campaign_log_id, $subscriber_id, $link)
+    public static function record_click($campaign_log_id, $subscriber_id, $link, $counts_as_open = true)
     {
-        if (self::hit($campaign_log_id, $subscriber_id, self::TYPE_OPEN)) self::after_first_open($campaign_log_id, $subscriber_id);
+        if (self::is_pruned($campaign_log_id)) return;
+
+        if ($counts_as_open && self::hit($campaign_log_id, $subscriber_id, self::TYPE_OPEN)) self::after_first_open($campaign_log_id, $subscriber_id);
 
         self::bump($campaign_log_id, self::METRIC_CLICKS);
 
@@ -179,6 +188,19 @@ class CampaignActivityRepository extends AbstractRepository
         }
     }
 
+    /**
+     * Count a campaign email sent to a subscriber, so reports don't have to count the send queue.
+     */
+    public static function record_sent($campaign_log_id)
+    {
+        self::bump($campaign_log_id, self::METRIC_SENT);
+    }
+
+    public static function is_pruned($campaign_log_id)
+    {
+        return (bool)self::stats($campaign_log_id)[self::METRIC_PRUNED];
+    }
+
     protected static function after_first_open($campaign_log_id, $subscriber_id)
     {
         self::bump($campaign_log_id, self::METRIC_OPENERS);
@@ -189,6 +211,11 @@ class CampaignActivityRepository extends AbstractRepository
      * Reports
      * ------------------------------------------------------------------------------------------ */
 
+    protected static function metrics()
+    {
+        return [self::METRIC_SENT, self::METRIC_OPENS, self::METRIC_OPENERS, self::METRIC_CLICKS, self::METRIC_CLICKERS, self::METRIC_PRUNED];
+    }
+
     /**
      * @return array metric => value, with every metric present
      */
@@ -198,7 +225,7 @@ class CampaignActivityRepository extends AbstractRepository
         $rows  = self::wpdb()->get_results(self::wpdb()->prepare("SELECT metric, value FROM $table WHERE campaign_log_id = %d", $campaign_log_id), 'ARRAY_A');
 
         return array_merge(
-            array_fill_keys([self::METRIC_OPENS, self::METRIC_OPENERS, self::METRIC_CLICKS, self::METRIC_CLICKERS], 0),
+            array_fill_keys(self::metrics(), 0),
             array_map('intval', wp_list_pluck($rows, 'value', 'metric'))
         );
     }
@@ -216,7 +243,7 @@ class CampaignActivityRepository extends AbstractRepository
 
         $table = self::stats_table();
         $rows  = self::wpdb()->get_results("SELECT campaign_log_id, metric, value FROM $table WHERE campaign_log_id IN (" . implode(',', $ids) . ')', 'ARRAY_A');
-        $empty = array_fill_keys([self::METRIC_OPENS, self::METRIC_OPENERS, self::METRIC_CLICKS, self::METRIC_CLICKERS], 0);
+        $empty = array_fill_keys(self::metrics(), 0);
         $stats = array_fill_keys($ids, $empty);
 
         foreach ($rows as $row) {
@@ -255,28 +282,18 @@ class CampaignActivityRepository extends AbstractRepository
     }
 
     /**
-     * How many people clicked, opened without clicking, and were sent it but didn't open.
+     * How many people clicked, opened without clicking, and were sent it but didn't open, counted
+     * the same way as people() lists them.
      */
     public static function engagement_counts($campaign_log_id)
     {
-        $wpdb     = self::wpdb();
-        $table    = self::table();
-        $queue    = SendQueueRepository::table();
-        $sent_sql = $wpdb->prepare("SELECT COUNT(*) FROM $queue q WHERE q.campaign_log_id = %d AND q.status = 'sent' AND q.recipient_type = 'subscriber'", $campaign_log_id);
+        $counts = [];
 
-        $count = function ($type) use ($wpdb, $table, $campaign_log_id) {
-            return (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE campaign_log_id = %d AND type = %s", $campaign_log_id, $type));
-        };
+        foreach (['clicked', 'opened_not_clicked', 'not_opened', 'unsubscribed'] as $group) {
+            $counts[$group] = (int)self::wpdb()->get_var('SELECT COUNT(*) ' . self::people_sql($campaign_log_id, $group));
+        }
 
-        $sent    = (int)$wpdb->get_var($sent_sql);
-        $opened  = $count(self::TYPE_OPEN);
-        $clicked = $count(self::TYPE_CLICK);
-
-        return [
-            'clicked'            => $clicked,
-            'opened_not_clicked' => max(0, $opened - $clicked),
-            'not_opened'         => max(0, $sent - $opened),
-        ];
+        return $counts;
     }
 
     /**
@@ -459,6 +476,10 @@ class CampaignActivityRepository extends AbstractRepository
 
         if (in_array($condition['what'], ['opened', 'clicked'], true)) return "EXISTS ($activity)";
 
+        // Campaigns whose activity was deleted would make everyone they were sent to look unengaged.
+        $stats = self::stats_table();
+        $sent .= $wpdb->prepare(" AND q.campaign_log_id NOT IN (SELECT p.campaign_log_id FROM $stats p WHERE p.metric = %s)", self::METRIC_PRUNED);
+
         return "(EXISTS ($sent) AND NOT EXISTS ($activity))";
     }
 
@@ -520,29 +541,66 @@ class CampaignActivityRepository extends AbstractRepository
         self::wpdb()->query("DELETE FROM $table WHERE subscriber_id IN (" . implode(',', $ids) . ')');
     }
 
+    /**
+     * A campaign log was deleted. Its links are kept so the emails already delivered still work.
+     */
     public static function delete_campaign($campaign_log_id)
     {
-        foreach ([self::table(), self::links_table(), self::stats_table()] as $table) {
-            self::wpdb()->delete($table, ['campaign_log_id' => absint($campaign_log_id)], ['%d']);
+        $campaign_log_id = absint($campaign_log_id);
+
+        foreach ([self::table(), self::stats_table()] as $table) {
+            self::wpdb()->delete($table, ['campaign_log_id' => $campaign_log_id], ['%d']);
         }
+
+        self::wpdb()->query(self::wpdb()->prepare(
+            'DELETE FROM ' . Subscribers::events_table() . ' WHERE campaign_log_id = %d AND type IN (%s, %s)',
+            $campaign_log_id, Subscribers::EVENT_OPENED, Subscribers::EVENT_CLICKED
+        ));
     }
 
     /**
-     * Delete who-did-what older than the retention period. Totals are kept.
-     *
-     * @return int rows deleted; 0 when there is nothing left to delete
+     * Every campaign log was deleted.
      */
-    public static function prune($before_utc, $limit = 5000)
+    public static function delete_all()
     {
-        $table  = self::table();
-        $events = Subscribers::events_table();
-        $wpdb   = self::wpdb();
+        self::wpdb()->query('DELETE FROM ' . self::table());
+        self::wpdb()->query('DELETE FROM ' . self::stats_table());
+        self::wpdb()->query(self::wpdb()->prepare('DELETE FROM ' . Subscribers::events_table() . ' WHERE type IN (%s, %s)', Subscribers::EVENT_OPENED, Subscribers::EVENT_CLICKED));
+    }
 
-        $events_deleted = (int)$wpdb->query($wpdb->prepare(
-            "DELETE FROM $events WHERE type IN (%s, %s) AND created_at < %s LIMIT %d",
-            Subscribers::EVENT_OPENED, Subscribers::EVENT_CLICKED, $before_utc, $limit
-        ));
+    /**
+     * Delete who-did-what of campaigns that started more than the retention period ago, a few
+     * campaigns at a time. Totals are kept. Whole campaigns, so a report never shows people who
+     * opened as not having opened.
+     *
+     * @return int campaigns pruned; 0 when there is nothing left to do
+     */
+    public static function prune($before_utc, $limit = 20)
+    {
+        $wpdb  = self::wpdb();
+        $table = self::table();
 
-        return $events_deleted + (int)$wpdb->query($wpdb->prepare("DELETE FROM $table WHERE last_at < %s LIMIT %d", $before_utc, $limit));
+        $campaign_ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
+            "SELECT campaign_log_id FROM $table GROUP BY campaign_log_id HAVING MIN(first_at) < %s LIMIT %d",
+            $before_utc,
+            $limit
+        )));
+
+        foreach ($campaign_ids as $campaign_log_id) {
+            $wpdb->query($wpdb->prepare(
+                'INSERT INTO ' . self::stats_table() . ' (campaign_log_id, metric, value) VALUES (%d, %s, 1) ON DUPLICATE KEY UPDATE value = 1',
+                $campaign_log_id,
+                self::METRIC_PRUNED
+            ));
+
+            $wpdb->delete($table, ['campaign_log_id' => $campaign_log_id], ['%d']);
+
+            $wpdb->query($wpdb->prepare(
+                'DELETE FROM ' . Subscribers::events_table() . ' WHERE campaign_log_id = %d AND type IN (%s, %s)',
+                $campaign_log_id, Subscribers::EVENT_OPENED, Subscribers::EVENT_CLICKED
+            ));
+        }
+
+        return count($campaign_ids);
     }
 }

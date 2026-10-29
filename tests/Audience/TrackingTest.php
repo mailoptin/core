@@ -104,12 +104,12 @@ class TrackingTest extends WP_UnitTestCase
         Tracking::click_token($this->click_token($a, $link));
         Tracking::click_token($this->click_token($b, $link));
 
-        $this->assertSame(['opens' => 2, 'openers' => 2, 'clicks' => 3, 'clickers' => 2], Activity::stats($this->log_id), 'A click counts as an open for people whose images were blocked.');
+        $this->assertSame(['sent' => 0, 'opens' => 2, 'openers' => 2, 'clicks' => 3, 'clickers' => 2, 'pruned' => 0], Activity::stats($this->log_id), 'A click counts as an open for people whose images were blocked.');
 
         $link_row = Activity::get_link($link);
         $this->assertSame(['3', '2'], [$link_row['clicks'], $link_row['people']]);
 
-        $this->assertSame(['clicked' => 2, 'opened_not_clicked' => 0, 'not_opened' => 0], Activity::engagement_counts($this->log_id));
+        $this->assertSame(['clicked' => 2, 'opened_not_clicked' => 0, 'not_opened' => 0, 'unsubscribed' => 0], Activity::engagement_counts($this->log_id));
 
         $types = wp_list_pluck(Subscribers::get_events($a['recipient_id']), 'type');
         $this->assertSame(1, count(array_keys($types, Subscribers::EVENT_OPENED)));
@@ -156,7 +156,7 @@ class TrackingTest extends WP_UnitTestCase
         $this->assertSame(0, Activity::subscriber_summary($a['recipient_id'])['opened']);
     }
 
-    public function test_prune_deletes_old_activity_and_keeps_totals()
+    public function test_prune_deletes_old_campaigns_activity_and_keeps_totals()
     {
         global $wpdb;
 
@@ -165,19 +165,72 @@ class TrackingTest extends WP_UnitTestCase
 
         $old = gmdate('Y-m-d H:i:s', time() - 400 * DAY_IN_SECONDS);
         $wpdb->query($wpdb->prepare('UPDATE ' . Activity::table() . ' SET first_at = %s, last_at = %s', $old, $old));
-        $wpdb->query($wpdb->prepare('UPDATE ' . Subscribers::events_table() . ' SET created_at = %s WHERE type = %s', $old, Subscribers::EVENT_OPENED));
 
+        // Forever keeps it.
+        $this->settings([Tracking::RETENTION_SETTING => '0']);
+        Tracking::get_instance()->prune();
+        $this->assertSame(1, Activity::subscriber_summary($a['recipient_id'])['opened']);
+
+        $this->settings([]);
         Tracking::get_instance()->prune();
 
         $this->assertSame(0, Activity::subscriber_summary($a['recipient_id'])['opened']);
         $this->assertNotContains(Subscribers::EVENT_OPENED, wp_list_pluck(Subscribers::get_events($a['recipient_id']), 'type'));
         $this->assertSame(1, Activity::stats($this->log_id)['openers']);
+        $this->assertTrue(Activity::is_pruned($this->log_id));
 
-        // Forever keeps it.
+        // Opening again later doesn't count the same person twice.
         Tracking::open_token($this->open_token($a));
-        $wpdb->query($wpdb->prepare('UPDATE ' . Activity::table() . ' SET last_at = %s', $old));
-        $this->settings([Tracking::RETENTION_SETTING => '0']);
-        Tracking::get_instance()->prune();
-        $this->assertSame(1, Activity::subscriber_summary($a['recipient_id'])['opened']);
+        $this->assertSame(1, Activity::stats($this->log_id)['openers']);
+
+        // Nor does everyone it was sent to now look like they didn't open it.
+        $ids = $wpdb->get_col('SELECT s.id FROM ' . Subscribers::table() . ' s WHERE ' . Activity::condition_sql(['what' => 'not_opened', 'campaign' => 0, 'days' => 0]));
+        $this->assertSame([], $ids);
+    }
+
+    public function test_links_are_matched_exactly_and_trimmed()
+    {
+        $row = $this->sent_row('a@example.com');
+        $out = Tracking::prepare_html('<a data-href="https://other.example/" href=" https://example.com/real ">Real</a>', $row, $this->log_id);
+
+        $this->assertStringContainsString('data-href="https://other.example/"', $out, 'Only the real href is rewritten.');
+        $this->assertStringContainsString('mo_click=', $out);
+        $this->assertSame(['https://example.com/real'], wp_list_pluck(Activity::links($this->log_id), 'url'));
+    }
+
+    public function test_links_keep_working_after_the_campaign_log_is_deleted()
+    {
+        $a    = $this->sent_row('a@example.com');
+        $link = Activity::link_id($this->log_id, 'https://example.com/a|b?q=O\'Reilly', 'Guide');
+        Tracking::open_token($this->open_token($a));
+
+        (new \MailOptin\Core\Admin\SettingsPage\Campaign_Log_List($GLOBALS['wpdb']))->delete_a_campaign_log($this->log_id);
+
+        $this->assertSame('https://example.com/a|b?q=O\'Reilly', Tracking::click_token($this->click_token($a, $link))['url'], 'Stored as written, for the redirect.');
+        $this->assertSame(0, Activity::stats($this->log_id)['clicks']);
+        $this->assertSame(0, Activity::subscriber_summary($a['recipient_id'])['opened']);
+    }
+
+    public function test_clicks_dont_count_as_opens_when_opens_are_not_tracked()
+    {
+        $this->settings([Tracking::OPENS_SETTING => 'off']);
+
+        $a    = $this->sent_row('a@example.com');
+        $link = Activity::link_id($this->log_id, 'https://example.com/', 'Home');
+        Tracking::click_token($this->click_token($a, $link));
+
+        $stats = Activity::stats($this->log_id);
+        $this->assertSame([0, 1], [$stats['openers'], $stats['clickers']]);
+    }
+
+    public function test_deleting_all_logs_removes_tracking_activity()
+    {
+        $a = $this->sent_row('a@example.com');
+        Tracking::open_token($this->open_token($a));
+
+        (new \MailOptin\Core\Admin\SettingsPage\Campaign_Log_List($GLOBALS['wpdb']))->delete_all_campaign_log();
+
+        $this->assertSame(0, Activity::subscriber_summary($a['recipient_id'])['opened']);
+        $this->assertSame(0, Activity::stats($this->log_id)['openers']);
     }
 }
