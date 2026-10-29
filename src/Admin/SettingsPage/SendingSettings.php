@@ -203,6 +203,13 @@ class SendingSettings
                     'value'       => self::DEFAULT_HOURLY_LIMIT,
                     'description' => __('The most emails MailOptin sends in one hour across all campaigns. Check your host\'s or SMTP provider\'s limit; many shared hosts allow 100 to 500 an hour.', 'mailoptin'),
                 ],
+                \MailOptin\Core\Audience\PreferenceCentre::LINK_SETTING => [
+                    'type'        => 'select',
+                    'label'       => __('Preference centre link', 'mailoptin'),
+                    'options'     => ['on' => __('Add "Manage preferences" next to Unsubscribe in every email', 'mailoptin'), 'off' => __('Don\'t add it', 'mailoptin')],
+                    'value'       => 'on',
+                    'description' => __('Subscribers choose their lists and update their name and the custom fields you allow (Subscribers › Custom fields). Use {{preferences}} to place the link yourself.', 'mailoptin'),
+                ],
                 'send_queue_transport'     => [
                     'type'  => 'arbitrary',
                     'label' => __('Send through', 'mailoptin'),

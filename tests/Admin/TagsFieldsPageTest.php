@@ -277,4 +277,18 @@ class TagsFieldsPageTest extends WP_UnitTestCase
         $this->assertSame('', $this->render('render_tags', ['view' => 'tags']));
         $this->assertStringContainsString('Search email or name', $this->render('render_subscribers'));
     }
+
+    public function test_field_panel_sets_whether_subscribers_can_edit_it()
+    {
+        $this->request(['view' => 'fields'], ['mo_subscriber_action' => 'save_field', 'type' => 'text', 'label' => 'Company', 'subscriber_editable' => '1'], 'mo_save_field');
+        $field = Fields::get_by_key('company');
+        $this->assertTrue($field['subscriber_editable']);
+        $this->assertStringContainsString('Subscribers can edit', $this->render('render_fields', ['view' => 'fields']));
+
+        $this->request(['view' => 'fields'], ['mo_subscriber_action' => 'save_field', 'field_id' => $field['id'], 'label' => 'Company', 'subscriber_editable' => '0'], 'mo_save_field');
+        $this->assertFalse(Fields::get($field['id'])['subscriber_editable']);
+
+        Subscription::add_by_admin('a@example.com', [$this->list_id], [], true);
+        $this->assertStringContainsString('mo_prefs=', $this->render('render_subscribers', ['subscriber' => Subscribers::get_by_email('a@example.com')['id']]));
+    }
 }

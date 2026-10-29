@@ -279,7 +279,7 @@ class CreateDBTables
   type varchar(20) NOT NULL,
   options longtext NULL,
   required tinyint(1) NOT NULL DEFAULT 0,
-  subscriber_editable tinyint(1) NOT NULL DEFAULT 1,
+  subscriber_editable tinyint(1) NOT NULL DEFAULT 0,
   position int(11) NOT NULL DEFAULT 0,
   created_at datetime NOT NULL,
   PRIMARY KEY  (id),

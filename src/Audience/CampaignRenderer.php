@@ -123,6 +123,7 @@ class CampaignRenderer
         $tags = [
             '{{list.name}}'             => $list['name'] ?? '',
             '{{unsubscribe}}'           => Tokens::unsubscribe_url($subscriber, $campaign['list_id'], $campaign_log_id),
+            '{{preferences}}'           => PreferenceCentre::url($subscriber),
             '{{webversion}}'            => Tokens::web_version_url($campaign_log_id),
             '{{subscriber.email}}'      => $subscriber['email'],
             '{{subscriber.first_name}}' => $subscriber['first_name'],
@@ -133,8 +134,8 @@ class CampaignRenderer
 
         return [
             'subject' => self::replace_tags(self::replace_fallback_tags($campaign['subject'], $subscriber, false, $fields), $tags, false),
-            'html'    => self::replace_tags(self::replace_fallback_tags($campaign['html'], $subscriber, true, $fields), $tags, true),
-            'text'    => self::replace_tags(self::replace_fallback_tags($campaign['text'], $subscriber, false, $fields), $tags, false),
+            'html'    => self::replace_tags(self::replace_fallback_tags(PreferenceCentre::add_link($campaign['html'], true), $subscriber, true, $fields), $tags, true),
+            'text'    => self::replace_tags(self::replace_fallback_tags(PreferenceCentre::add_link($campaign['text'], false), $subscriber, false, $fields), $tags, false),
         ];
     }
 

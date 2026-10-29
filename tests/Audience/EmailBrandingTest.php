@@ -83,7 +83,8 @@ class EmailBrandingTest extends WP_UnitTestCase
 
         Subscription::subscribe('ines@example.com', $list_id, ['first_name' => 'Ines']);
 
-        $body = tests_retrieve_phpmailer_instance()->mock_sent[0]['body'];
+        // Long lines (the confirmation link) make PHPMailer quoted-printable encode the HTML part.
+        $body = quoted_printable_decode(tests_retrieve_phpmailer_instance()->mock_sent[0]['body']);
         $this->assertStringContainsString('background:#2f7d4f;color:#ffffff', $body);
         $this->assertStringContainsString('background:#f3efe6', $body);
         $this->assertStringContainsString('Yes, subscribe me', $body);

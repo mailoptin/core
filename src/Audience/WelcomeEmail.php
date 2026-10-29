@@ -222,12 +222,13 @@ class WelcomeEmail
             '{{list.name}}'             => $list['name'],
             '{{unsubscribe}}'           => '#',
             '{{webversion}}'            => '#',
+            '{{preferences}}'           => '#',
             '{{subscriber.email}}'      => $sample['email'],
             '{{subscriber.first_name}}' => $sample['first_name'],
             '{{subscriber.last_name}}'  => $sample['last_name'],
         ];
 
-        $html    = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags(self::html($list, self::body($list)), $sample, true), $tags, true);
+        $html    = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags(PreferenceCentre::add_link(self::html($list, self::body($list)), true), $sample, true), $tags, true);
         $subject = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags(self::subject($list), $sample, false), $tags, false);
         $text    = self::text($html);
 
