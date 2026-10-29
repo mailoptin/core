@@ -156,6 +156,7 @@ class PublicEndpoints
         $tags = apply_filters('mo_web_version_blank_tags', [
             '{{unsubscribe}}'           => '#',
             '{{webversion}}'            => '#',
+            '{{preferences}}'           => '#',
             '{{subscriber.email}}'      => '',
             '{{subscriber.first_name}}' => '',
             '{{subscriber.last_name}}'  => '',

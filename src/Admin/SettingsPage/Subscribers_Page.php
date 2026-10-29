@@ -471,6 +471,11 @@ class Subscribers_Page extends AbstractSettingsPage
                         <dt><?php esc_html_e('Confirmed', 'mailoptin'); ?></dt>
                         <dd><?php echo esc_html($this->local_time($subscriber['confirmed_at']) ?: __('Not yet', 'mailoptin')); ?></dd>
                     </dl>
+                    <p>
+                        <label for="mo-prefs-link"><strong><?php esc_html_e('Their preference centre', 'mailoptin'); ?></strong></label><br>
+                        <input type="text" id="mo-prefs-link" class="widefat" readonly value="<?php echo esc_attr(\MailOptin\Core\Audience\PreferenceCentre::url($subscriber)); ?>" onfocus="this.select()">
+                        <span class="description"><?php esc_html_e('Personal to them: anyone with it can change their lists and details. Only send it to them.', 'mailoptin'); ?></span>
+                    </p>
                 </div>
             </div>
         </div>

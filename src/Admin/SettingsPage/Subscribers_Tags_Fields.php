@@ -255,13 +255,14 @@ class Subscribers_Tags_Fields
                 <th><?php esc_html_e('Type', 'mailoptin'); ?></th>
                 <th><?php esc_html_e('Options', 'mailoptin'); ?></th>
                 <th><?php esc_html_e('Subscribers with a value', 'mailoptin'); ?></th>
+                <th><?php esc_html_e('Subscribers can edit', 'mailoptin'); ?></th>
                 <th><?php esc_html_e('Forms', 'mailoptin'); ?></th>
                 <th class="mo-actions-col"><span class="screen-reader-text"><?php esc_html_e('Actions', 'mailoptin'); ?></span></th>
             </tr>
             </thead>
             <tbody class="mo-sortable">
             <?php if (empty($fields)) : ?>
-                <tr><td colspan="8"><?php esc_html_e('No custom fields yet. Add one for anything you want to know about subscribers, like their company or birthday.', 'mailoptin'); ?></td></tr>
+                <tr><td colspan="9"><?php esc_html_e('No custom fields yet. Add one for anything you want to know about subscribers, like their company or birthday.', 'mailoptin'); ?></td></tr>
             <?php endif; ?>
             <?php foreach ($fields as $i => $field) :
                 $move = function ($dir) use ($field, $url) {
@@ -281,6 +282,7 @@ class Subscribers_Tags_Fields
                     <td><?php echo esc_html($types[$field['type']] ?? $field['type']); ?></td>
                     <td class="mo-muted"><?php echo empty($field['options']) ? '&mdash;' : esc_html(wp_trim_words(implode(', ', $field['options']), 8, ' …')); ?></td>
                     <td class="mo-muted"><?php echo esc_html(number_format_i18n($counts[$field['id']] ?? 0)); ?></td>
+                    <td><?php echo $field['subscriber_editable'] ? esc_html__('Yes', 'mailoptin') : '<span class="mo-muted">' . esc_html__('No', 'mailoptin') . '</span>'; ?></td>
                     <td class="mo-muted"><?php echo esc_html(number_format_i18n($forms[$field['merge_key']] ?? 0)); ?></td>
                     <td class="mo-actions-col"><a class="button button-small" href="<?php echo esc_url(add_query_arg('field', $field['id'], $url)); ?>"><?php esc_html_e('Edit', 'mailoptin'); ?></a></td>
                 </tr>
@@ -359,6 +361,12 @@ class Subscribers_Tags_Fields
                         <label for="mo-field-options"><strong><?php esc_html_e('Options', 'mailoptin'); ?></strong></label><br>
                         <textarea class="widefat" id="mo-field-options" name="options" rows="6"><?php echo esc_textarea($options); ?></textarea>
                         <span class="description"><?php esc_html_e('For dropdown and multi-select: one option per line, in the order to show them.', 'mailoptin'); ?></span>
+                    </p>
+
+                    <p>
+                        <input type="hidden" name="subscriber_editable" value="0">
+                        <label class="mo-check"><input type="checkbox" name="subscriber_editable" value="1" <?php checked( ! empty($submitted) ? ! empty($submitted['subscriber_editable']) : ! empty($field['subscriber_editable'])); ?>> <?php esc_html_e('Subscribers can change it in the preference centre', 'mailoptin'); ?></label>
+                        <span class="description"><?php esc_html_e('Off: only you can see and change it.', 'mailoptin'); ?></span>
                     </p>
 
                     <?php if ( ! $is_new) : $with_value = $counts[$field['id']] ?? 0; ?>
@@ -860,6 +868,15 @@ class Subscribers_Tags_Fields
             case Subscribers::EVENT_TAGS_REMOVED:
                 $text = sprintf(_n('Tag %s removed', 'Tags %s removed', count((array)($meta['tags'] ?? [])), 'mailoptin'), implode(', ', (array)($meta['tags'] ?? [])));
                 break;
+            case Subscribers::EVENT_PREFERENCES_CHANGED:
+                $parts = [];
+                if ( ! empty($meta['left'])) $parts[] = sprintf(__('left %s', 'mailoptin'), implode(', ', (array)$meta['left']));
+                if ( ! empty($meta['joined'])) $parts[] = sprintf(__('joined %s', 'mailoptin'), implode(', ', (array)$meta['joined']));
+                foreach ((array)($meta['fields'] ?? []) as $change) {
+                    $parts[] = '' === $change['to'] ? sprintf(__('%s cleared', 'mailoptin'), $change['field']) : sprintf(__('%1$s set to %2$s', 'mailoptin'), $change['field'], $change['to']);
+                }
+
+                return sprintf(__('Changed their preferences: %s', 'mailoptin'), implode('; ', $parts));
             case Subscribers::EVENT_FIELDS_CHANGED:
                 if ( ! empty($meta['changes'])) {
                     $parts = array_map(function ($change) {
@@ -965,6 +982,8 @@ class Subscribers_Tags_Fields
                     'label'     => wp_unslash($_POST['label'] ?? ''),
                     'merge_key' => sanitize_text_field(wp_unslash($_POST['merge_key'] ?? '')),
                     'options'   => wp_unslash($_POST['options'] ?? ''),
+
+                    'subscriber_editable' => ! empty($_POST['subscriber_editable']),
                 ];
 
                 if ($field_id) {

@@ -199,7 +199,8 @@ class CustomFieldsRepository extends AbstractRepository
             'type'                => $type,
             'options'             => empty($options) ? null : wp_json_encode($options),
             'required'            => empty($data['required']) ? 0 : 1,
-            'subscriber_editable' => isset($data['subscriber_editable']) && ! $data['subscriber_editable'] ? 0 : 1,
+            // Subscribers only see a field in the preference centre once the admin allows it.
+            'subscriber_editable' => empty($data['subscriber_editable']) ? 0 : 1,
             'position'            => 1 + (int)self::wpdb()->get_var("SELECT MAX(position) FROM $table"),
             'created_at'          => Subscribers::now(),
         ]);

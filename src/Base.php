@@ -114,6 +114,7 @@ class Base
         Audience\WelcomeEmail::get_instance();
         Audience\PersonalData::get_instance();
         Audience\ImportConfirmations::get_instance();
+        Audience\PreferenceCentre::get_instance();
         Audience\SubscriberImport::get_instance();
         \MailOptin\MailOptinConnect\Connect::get_instance();
 
