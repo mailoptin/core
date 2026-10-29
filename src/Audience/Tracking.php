@@ -10,7 +10,7 @@ use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
  * Open and click tracking for campaigns sent to built-in lists.
  *
  * Each email gets an invisible image and its links go through this site first. Both carry the
- * send queue row's ID and a signature, so they can't be guessed or pointed anywhere else: a click
+ * send queue row, campaign and subscriber IDs and a signature, so they can't be guessed or pointed anywhere else: a click
  * link only leads to an address saved for that campaign. Links keep working when tracking is
  * turned off later; they just stop counting.
  */
@@ -60,20 +60,36 @@ class Tracking
      * Links in emails
      * ------------------------------------------------------------------------------------------ */
 
-    protected static function signature($queue_id, $link_id)
+    /**
+     * The signature covers the queue row and who and which campaign it was for, so a row ID the
+     * database hands out again later can't credit someone else.
+     */
+    protected static function signature($ids, $link_id)
     {
         // Short, since it goes in every link; 64 bits is plenty to stop guessing.
-        return substr(Tokens::make('track', [absint($queue_id), absint($link_id)]), 0, 16);
+        return substr(Tokens::make('track', array_merge(array_map('absint', $ids), [absint($link_id)])), 0, 16);
     }
 
-    public static function open_url($queue_id)
+    /**
+     * @return int[] queue row ID, campaign log ID, subscriber ID
+     */
+    protected static function row_ids($row)
     {
-        return add_query_arg('mo_open', absint($queue_id) . '.' . self::signature($queue_id, 0), home_url('/'));
+        return [absint($row['id']), absint($row['campaign_log_id']), absint($row['recipient_id'])];
     }
 
-    public static function click_url($queue_id, $link_id)
+    public static function open_url($row)
     {
-        return add_query_arg('mo_click', absint($queue_id) . '.' . absint($link_id) . '.' . self::signature($queue_id, $link_id), home_url('/'));
+        $ids = self::row_ids($row);
+
+        return add_query_arg('mo_open', implode('.', $ids) . '.' . self::signature($ids, 0), home_url('/'));
+    }
+
+    public static function click_url($row, $link_id)
+    {
+        $ids = self::row_ids($row);
+
+        return add_query_arg('mo_click', implode('.', $ids) . '.' . absint($link_id) . '.' . self::signature($ids, $link_id), home_url('/'));
     }
 
     /**
@@ -104,6 +120,8 @@ class Tracking
         if (empty($row['id'])) return $html;
 
         if (self::tracks_clicks()) {
+            Activity::mark_tracked($campaign_log_id, Activity::METRIC_CLICK_TRACKED);
+
             $html = preg_replace_callback('#<a\s[^>]*>.*?</a>#is', function ($match) use ($row, $campaign_log_id) {
                 return preg_replace_callback('#(\shref\s*=\s*)(["\'])(.*?)\2#is', function ($href) use ($match, $row, $campaign_log_id) {
                     // Email apps ignore spaces around the address, so the redirect must too.
@@ -119,13 +137,15 @@ class Tracking
 
                     if ( ! $link_id) return $href[0];
 
-                    return $href[1] . $href[2] . esc_url(self::click_url($row['id'], $link_id)) . $href[2];
+                    return $href[1] . $href[2] . esc_url(self::click_url($row, $link_id)) . $href[2];
                 }, $match[0], 1);
             }, $html);
         }
 
         if (self::tracks_opens()) {
-            $pixel = sprintf('<img src="%s" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;margin:0;padding:0" />', esc_url(self::open_url($row['id'])));
+            Activity::mark_tracked($campaign_log_id, Activity::METRIC_OPEN_TRACKED);
+
+            $pixel = sprintf('<img src="%s" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;margin:0;padding:0" />', esc_url(self::open_url($row)));
 
             $html = false !== stripos($html, '</body>') ? preg_replace('#</body>#i', $pixel . '</body>', $html, 1) : $html . $pixel;
         }
@@ -137,19 +157,22 @@ class Tracking
      * Endpoints
      * ------------------------------------------------------------------------------------------ */
 
-    protected static function signed($queue_id, $link_id, $signature)
+    protected static function signed($ids, $link_id, $signature)
     {
-        return is_string($signature) && hash_equals(self::signature($queue_id, $link_id), $signature);
+        return is_string($signature) && hash_equals(self::signature($ids, $link_id), $signature);
     }
 
     /**
-     * The sent queue row a tracking link belongs to. Gone when the campaign's log was deleted.
+     * The sent queue row a tracking link was made for. Gone when the campaign's log was deleted,
+     * and never a row that has since been reused for someone else.
      */
-    protected static function queue_row($queue_id)
+    protected static function queue_row($ids)
     {
-        $row = SendQueueRepository::get(absint($queue_id));
+        $row = SendQueueRepository::get($ids[0]);
 
         if ( ! $row || CampaignRenderer::RECIPIENT_TYPE !== $row['recipient_type'] || empty($row['recipient_id'])) return null;
+
+        if (self::row_ids($row) !== $ids) return null;
 
         return $row;
     }
@@ -178,9 +201,13 @@ class Tracking
     {
         $parts = explode('.', (string)$token);
 
-        if (2 !== count($parts) || ! self::signed($parts[0], 0, $parts[1])) return false;
+        if (4 !== count($parts)) return false;
 
-        $row = self::queue_row($parts[0]);
+        $ids = array_map('absint', array_slice($parts, 0, 3));
+
+        if ( ! self::signed($ids, 0, $parts[3])) return false;
+
+        $row = self::queue_row($ids);
 
         if ($row && self::tracks_opens() && self::should_count($row)) Activity::record_open($row['campaign_log_id'], $row['recipient_id']);
 
@@ -190,8 +217,8 @@ class Tracking
     /**
      * Count a click.
      *
-     * The signature covers the link ID, so a valid token leads to its link even after the
-     * campaign's log is deleted; it just isn't counted then.
+     * The token names its campaign and link, so it leads to the link even after the campaign's
+     * log is deleted; it just isn't counted then.
      *
      * @return array|null the link to send them on to, or null when the token isn't valid
      */
@@ -199,15 +226,18 @@ class Tracking
     {
         $parts = explode('.', (string)$token);
 
-        if (3 !== count($parts) || ! self::signed($parts[0], $parts[1], $parts[2])) return null;
+        if (5 !== count($parts)) return null;
 
-        $link = Activity::get_link(absint($parts[1]));
+        $ids     = array_map('absint', array_slice($parts, 0, 3));
+        $link_id = absint($parts[3]);
 
-        if ( ! $link) return null;
+        if ( ! self::signed($ids, $link_id, $parts[4])) return null;
 
-        $row = self::queue_row($parts[0]);
+        $link = Activity::get_link($link_id);
 
-        if ($row && (int)$link['campaign_log_id'] !== (int)$row['campaign_log_id']) return null;
+        if ( ! $link || (int)$link['campaign_log_id'] !== $ids[1]) return null;
+
+        $row = self::queue_row($ids);
 
         if ($row && self::tracks_clicks() && self::should_count($row)) {
             Activity::record_click($row['campaign_log_id'], $row['recipient_id'], $link, self::tracks_opens());

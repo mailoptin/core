@@ -47,14 +47,24 @@ class Campaign_Report
     /**
      * @return array group => label
      */
-    public static function groups()
+    public static function groups($campaign_log_id = 0)
     {
-        return [
+        $groups = [
             'clicked'            => __('Clicked', 'mailoptin'),
             'opened_not_clicked' => __('Opened, didn\'t click', 'mailoptin'),
             'not_opened'         => __('Didn\'t open', 'mailoptin'),
             'unsubscribed'       => __('Unsubscribed', 'mailoptin'),
         ];
+
+        if ( ! $campaign_log_id) return $groups;
+
+        // A campaign sent without the open image or tracked links can't say who didn't open or click.
+        $stats = Activity::stats($campaign_log_id);
+
+        if ( ! $stats[Activity::METRIC_OPEN_TRACKED]) unset($groups['opened_not_clicked'], $groups['not_opened']);
+        if ( ! $stats[Activity::METRIC_CLICK_TRACKED]) unset($groups['clicked'], $groups['opened_not_clicked']);
+
+        return $groups;
     }
 
     /**
@@ -92,7 +102,7 @@ class Campaign_Report
 
         $group = sanitize_key($_GET['people'] ?? '');
 
-        return self::styles() . '<div class="wrap mo-report">' . self::notice_html() . (isset(self::groups()[$group]) ? self::people_html($campaign_log_id, $title, $group) : self::report_html($campaign_log_id, $title)) . '</div>';
+        return self::styles() . '<div class="wrap mo-report">' . self::notice_html() . (isset(self::groups($campaign_log_id)[$group]) ? self::people_html($campaign_log_id, $title, $group) : self::report_html($campaign_log_id, $title)) . '</div>';
     }
 
     protected static function notice_html()
@@ -157,7 +167,7 @@ class Campaign_Report
                     <div class="mo-card">
                         <h3><?php esc_html_e('Who opened and clicked', 'mailoptin'); ?></h3>
                         <p class="mo-group-buttons">
-                            <?php foreach (self::groups() as $key => $label) : ?>
+                            <?php foreach (self::groups($campaign_log_id) as $key => $label) : ?>
                                 <a class="button" href="<?php echo esc_url(self::url($campaign_log_id, ['people' => $key])); ?>"><?php echo esc_html(sprintf('%s (%s)', $label, number_format_i18n($groups[$key]))); ?></a>
                             <?php endforeach; ?>
                         </p>
@@ -183,6 +193,11 @@ class Campaign_Report
                             ? sprintf(__('Who opened and clicked is kept for %s days; the totals are kept after that. People who were deleted still count, without their details.', 'mailoptin'), number_format_i18n(Tracking::retention_days()))
                             : __('People who were deleted still count, without their details.', 'mailoptin'));
                         ?></p>
+                    <?php if ( ! $stats[Activity::METRIC_OPEN_TRACKED] || ! $stats[Activity::METRIC_CLICK_TRACKED]) : ?>
+                        <p class="description"><?php echo esc_html( ! $stats[Activity::METRIC_OPEN_TRACKED] && ! $stats[Activity::METRIC_CLICK_TRACKED]
+                                ? __('This campaign was sent without open and click tracking, so who didn\'t open or click isn\'t known.', 'mailoptin')
+                                : ( ! $stats[Activity::METRIC_OPEN_TRACKED] ? __('Opens weren\'t tracked for this campaign.', 'mailoptin') : __('Clicks weren\'t tracked for this campaign.', 'mailoptin'))); ?></p>
+                    <?php endif; ?>
                     <?php if ( ! Tracking::tracks_opens() || ! Tracking::tracks_clicks()) : ?>
                         <p class="description"><?php esc_html_e('Tracking is turned off for opens or clicks in Settings › Sending, so new activity isn\'t counted.', 'mailoptin'); ?></p>
                     <?php endif; ?>
@@ -279,7 +294,7 @@ class Campaign_Report
         ?>
         <h1 class="mo-report-title"><?php echo esc_html(sprintf(__('%1$s: "%2$s"', 'mailoptin'), self::groups()[$group], $title)); ?></h1>
         <p class="mo-pills">
-            <?php foreach (self::groups() as $key => $label) : ?>
+            <?php foreach (self::groups($campaign_log_id) as $key => $label) : ?>
                 <a class="<?php echo $key === $group && ! $link_id ? 'on' : ''; ?>" href="<?php echo esc_url(self::url($campaign_log_id, ['people' => $key])); ?>"><?php echo esc_html(sprintf('%s · %s', $label, number_format_i18n($counts[$key]))); ?></a>
             <?php endforeach; ?>
         </p>
@@ -356,6 +371,9 @@ class Campaign_Report
         if ( ! current_user_has_privilege() || ! SegmentsRepository::is_available() || ! Activity::is_ready()) wp_die(esc_html__('You are not allowed to do this.', 'mailoptin'), 403);
 
         $group   = sanitize_key($_POST['people'] ?? '');
+
+        if ( ! isset(self::groups($campaign_log_id)[$group])) wp_die(esc_html__('These people can\'t be listed for this campaign.', 'mailoptin'), 400);
+
         $link_id = absint($_POST['link'] ?? 0);
         $back    = self::url($campaign_log_id, array_filter(['people' => $group, 'link' => $link_id]));
         $tag_ids = Tags::ensure(array_filter(array_map('trim', explode(',', sanitize_text_field(wp_unslash($_POST['tags'] ?? ''))))));

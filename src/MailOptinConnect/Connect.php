@@ -7,6 +7,7 @@ use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
 use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionInterface;
+use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\CustomFieldsRepository;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SegmentsRepository;
@@ -26,6 +27,9 @@ class Connect extends AbstractConnect implements ConnectionInterface
     public static $connectionName = 'MailOptinConnect';
 
     const ENQUEUE_BATCH_SIZE = 1000;
+
+    // Campaign log meta: every recipient was queued.
+    const ENQUEUED_META = 'mo_audience_enqueued';
 
     public function __construct()
     {
@@ -304,9 +308,17 @@ class Connect extends AbstractConnect implements ConnectionInterface
 
         CampaignRenderer::save_campaign_content($campaign_log_id, $list_id, $content_html, $content_text);
 
-        // Resending a campaign retries its failed recipients; anyone already sent is skipped by the queue.
+        // Resending a campaign retries its failed recipients, and only them: people who joined or
+        // started matching since weren't part of it.
         SendQueueRepository::retry_failed($campaign_log_id);
 
+        if (AbstractCampaignLogMeta::get_campaignlog_meta($campaign_log_id, self::ENQUEUED_META)) {
+            QueueRunner::get_instance()->start($campaign_log_id, $email_campaign_id, []);
+
+            return ['success' => true, 'status' => QueueRunner::LOG_STATUS_SENDING];
+        }
+
+        // A send interrupted while queueing picks up the rest; the queue skips anyone already in it.
         $after_id = 0;
 
         do {
@@ -325,6 +337,8 @@ class Connect extends AbstractConnect implements ConnectionInterface
             $after_id = (int)end($recipients)['id'];
 
         } while (count($recipients) === self::ENQUEUE_BATCH_SIZE);
+
+        AbstractCampaignLogMeta::update_campaignlog_meta($campaign_log_id, self::ENQUEUED_META, 1);
 
         QueueRunner::get_instance()->start($campaign_log_id, $email_campaign_id, []);
 
