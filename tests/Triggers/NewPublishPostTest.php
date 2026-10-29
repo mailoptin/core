@@ -11,14 +11,14 @@ class NewPublishPostTest extends WP_UnitTestCase
 {
     public $insert_data;
 
-    public function setUp()
+    public function set_up()
     {
-        parent::setUp();
+        parent::set_up();
     }
 
-    public function tearDown()
+    public function tear_down()
     {
-        parent::tearDown();
+        parent::tear_down();
     }
 
     public function testNewPublishPost()
@@ -32,6 +32,9 @@ class NewPublishPostTest extends WP_UnitTestCase
                 'post_author' => 1,
             )
         );
+
+        $this->assertIsInt($post_id);
+        $this->assertSame('publish', get_post_status($post_id));
     }
 
 //    function test_single() {

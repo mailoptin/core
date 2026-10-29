@@ -57,8 +57,25 @@ class CustomizerSettingsTest extends WP_UnitTestCase
 
     public function testInvalidOptionShapeFallsBackToAnEmptySettingsArray()
     {
-        $this->assertSame([], CustomizerSettings::normalize_campaign_customizer_values((object)['12' => 'invalid'], 12));
+        // Only the campaign being customized is reset; the option is shared by every campaign.
+        $this->assertSame([12 => []], CustomizerSettings::normalize_campaign_customizer_values((object)['12' => 'invalid'], 12));
+        $this->assertSame([12 => [], 13 => ['headline' => 'kept']], CustomizerSettings::normalize_campaign_customizer_values(['12' => 'invalid', '13' => ['headline' => 'kept']], 12));
         $this->assertSame([], CustomizerSettings::normalize_campaign_customizer_values('invalid', 12));
+    }
+
+    public function testLegacyJsonTargetingListDoesNotBreakTheFrontEnd()
+    {
+        $post_id = self::factory()->post->create();
+
+        $id = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Targeting ' . wp_generate_password(6, false), 'BareMetal', 'inpost');
+        $settings      = \MailOptin\Core\Repositories\OptinCampaignsRepository::get_settings();
+        // How the old Customizer normalizer saved a multi-select list.
+        $settings[$id] = ['posts_never_load' => wp_json_encode([(string)$post_id]), 'post_tags_hide' => '["1432"]'];
+        \MailOptin\Core\Repositories\OptinCampaignsRepository::updateSettings($settings);
+
+        $this->go_to(get_permalink($post_id));
+
+        $this->assertFalse((new PageTargetingRuleTraitTestDouble())->page_level_targeting_rule_checker($id), 'The post is excluded, and checking it is not a fatal error.');
     }
 
     public function testPageTargetingListsDecodeLegacyJsonAndRejectInvalidValues()

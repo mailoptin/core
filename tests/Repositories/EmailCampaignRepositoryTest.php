@@ -12,9 +12,9 @@ class EmailCampaignRepositoryTest extends WP_UnitTestCase
 {
     public $insert_data;
 
-    public function setUp()
+    public function set_up()
     {
-        parent::setUp();
+        parent::set_up();
 
         $this->insert_data = [
             'name' => 'Instant New Post Campaign',
@@ -23,9 +23,9 @@ class EmailCampaignRepositoryTest extends WP_UnitTestCase
         ];
     }
 
-    public function tearDown()
+    public function tear_down()
     {
-        parent::tearDown();
+        parent::tear_down();
     }
 
     public function testAddEmailCampaign()
@@ -36,7 +36,7 @@ class EmailCampaignRepositoryTest extends WP_UnitTestCase
             $this->insert_data['template_class']
         );
 
-        $this->assertInternalType('integer', $response);
+        $this->assertIsInt($response);
     }
 
     public function testGetEmailCampaignById()
@@ -49,7 +49,7 @@ class EmailCampaignRepositoryTest extends WP_UnitTestCase
 
         $result = EmailCampaignRepository::get_email_campaign_by_id($id);
 
-        $this->assertInternalType('array', $result);
+        $this->assertIsArray($result);
         $this->assertSame($id, absint($result['id']));
     }
 
@@ -66,7 +66,7 @@ class EmailCampaignRepositoryTest extends WP_UnitTestCase
             $id
         );
 
-        $this->assertInternalType('integer', $result);
+        $this->assertIsInt($result);
         $this->assertSame(1, $result);
     }
 
@@ -80,7 +80,7 @@ class EmailCampaignRepositoryTest extends WP_UnitTestCase
 
         $result = EmailCampaignRepository::delete_campaign_by_id($id);
 
-        $this->assertInternalType('integer', $result);
+        $this->assertIsInt($result);
         $this->assertSame(1, $result);
     }
 
@@ -94,7 +94,7 @@ class EmailCampaignRepositoryTest extends WP_UnitTestCase
 
         $result = EmailCampaignRepository::get_by_email_campaign_type('new_publish_post');
 
-        $this->assertInternalType('array', $result);
+        $this->assertIsArray($result);
         $this->assertSame($this->insert_data['name'], $result[0]['name']);
     }
 }
