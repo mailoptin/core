@@ -105,6 +105,9 @@ class PersonalData
         // Queued and sent emails keep the address for delivery records.
         $wpdb->delete($wpdb->prefix . \MailOptin\Core\Core::send_queue_table_name, ['email' => $subscriber['email']]);
 
+        // Import reports list problem rows with the address and everything else on them.
+        SubscriberImport::forget_email($subscriber['email']);
+
         return ['items_removed' => Subscribers::delete($subscriber['id']), 'items_retained' => false, 'messages' => [], 'done' => true];
     }
 

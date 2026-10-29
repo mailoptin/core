@@ -195,10 +195,11 @@ class SubscriberImportTest extends WP_UnitTestCase
         $new = Subscribers::get_by_email('new@example.com');
         $this->assertSame('pending', $new['status']);
         $this->assertSame('import_confirm', $new['consent_method']);
-        $this->assertSame('subscribed', Subscribers::get_membership(Subscribers::get_by_email('confirmed@example.com')['id'], $this->news)['status'], 'Already confirmed: no need to confirm again.');
+        $this->assertSame('pending', Subscribers::get_membership(Subscribers::get_by_email('confirmed@example.com')['id'], $this->news)['status'], 'Confirmed for another list, but not asked about this one.');
+        $this->assertSame('subscribed', Subscribers::get_by_email('confirmed@example.com')['status']);
 
         $this->assertGreaterThan(0, $job['log_id']);
-        $this->assertSame(1, Queue::counts($job['log_id'])[Queue::STATUS_PENDING] + Queue::counts($job['log_id'])[Queue::STATUS_SENT]);
+        $this->assertSame(2, Queue::counts($job['log_id'])[Queue::STATUS_PENDING] + Queue::counts($job['log_id'])[Queue::STATUS_SENT]);
 
         // What the queue sends for that row.
         $row     = ['recipient_type' => ImportConfirmations::RECIPIENT_TYPE, 'recipient_id' => $new['id'], 'email' => 'new@example.com'];

@@ -46,7 +46,9 @@ class ConfirmationThrottle
 
         $site_limit = (int)apply_filters('mo_confirmation_email_hourly_limit', 200);
 
-        if ($site_limit > 0 && Subscribers::count_events_since(Subscribers::EVENT_CONFIRMATION_SENT, self::ago(HOUR_IN_SECONDS)) >= $site_limit) {
+        // Confirmations from an import go through the send queue at its own hourly limit, so they
+        // don't use up this one, which is there to stop a bot flooding the form.
+        if ($site_limit > 0 && Subscribers::count_events_since(Subscribers::EVENT_CONFIRMATION_SENT, self::ago(HOUR_IN_SECONDS), 0, true) >= $site_limit) {
             update_option(self::SITE_LIMIT_REACHED_OPTION, time(), false);
 
             return self::REASON_SITE_HOURLY;

@@ -187,7 +187,11 @@ class SubscriberImport
 
         $handle = self::normalize_file($path) ? fopen($path, 'r') : false;
 
-        if ( ! $handle) return new \WP_Error('mo_import_read', __('The file could not be read.', 'mailoptin'));
+        if ( ! $handle) {
+            @unlink($path);
+
+            return new \WP_Error('mo_import_read', __('The file could not be read.', 'mailoptin'));
+        }
 
         $lines = [];
         while (count($lines) < 5 && false !== ($line = fgets($handle))) $lines[] = $line;
@@ -813,10 +817,9 @@ class SubscriberImport
 
             if ($membership && in_array($membership['status'], [Subscribers::STATUS_UNSUBSCRIBED, Subscribers::STATUS_SUBSCRIBED], true)) continue;
 
-            // Already confirmed elsewhere: no need to confirm again for another list.
-            $list_status = ! $subscribed && $subscriber && ! empty($subscriber['confirmed_at']) && Subscribers::STATUS_SUBSCRIBED === $subscriber['status'] ? Subscribers::STATUS_SUBSCRIBED : $status;
-
-            Subscribers::set_membership($subscriber_id, $list_id, $list_status);
+            // In confirm mode everyone is asked, even people already confirmed for another list:
+            // the admin hasn't said these people want this list.
+            Subscribers::set_membership($subscriber_id, $list_id, $status);
             $joined[] = $list_id;
         }
 
@@ -946,6 +949,61 @@ class SubscriberImport
 
         fputcsv($handle, array_map([SubscriberExport::class, 'safe_cell'], array_merge([$row, $message], (array)$cells)), ',', '"', '');
         fclose($handle);
+    }
+
+    /**
+     * Remove an address from every import report, for a personal data erasure.
+     *
+     * @return int report entries removed
+     */
+    public static function forget_email($email)
+    {
+        $email   = Subscribers::normalize_email($email);
+        $removed = 0;
+
+        foreach (self::all() as $job) {
+            $before          = count($job['problems']);
+            $job['problems'] = array_values(array_filter($job['problems'], function ($problem) use ($email) {
+                return Subscribers::normalize_email((string)$problem['email']) !== $email;
+            }));
+            $removed += $before - count($job['problems']);
+
+            $path = self::problems_path($job);
+
+            if ($path && is_file($path)) {
+                $rows = [];
+                $in   = fopen($path, 'r');
+                $drop = 0;
+
+                while ($in && false !== ($row = fgetcsv($in, 0, ',', '"', ''))) {
+                    $cells = array_map(function ($cell) {
+                        return Subscribers::normalize_email(self::clean_cell($cell));
+                    }, $row);
+
+                    if (in_array($email, $cells, true)) {
+                        $drop++;
+                        continue;
+                    }
+
+                    $rows[] = $row;
+                }
+
+                if ($in) fclose($in);
+
+                if ($drop) {
+                    $out = fopen($path, 'w');
+                    foreach ($rows as $row) fputcsv($out, $row, ',', '"', '');
+                    fclose($out);
+                    clearstatcache(true, $path);
+                    $job['problems_size'] = filesize($path);
+                    $removed += $drop;
+                }
+            }
+
+            self::save($job);
+        }
+
+        return $removed;
     }
 
     public static function skipped_count($job)

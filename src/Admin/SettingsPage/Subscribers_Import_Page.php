@@ -79,7 +79,7 @@ class Subscribers_Import_Page
 
         if ( ! $job) return self::upload_html();
 
-        if ($job['user_id'] && (int)$job['user_id'] !== get_current_user_id() && ! current_user_can('manage_options')) {
+        if ( ! self::can_manage($job)) {
             return '<p>' . esc_html__('This import belongs to another user.', 'mailoptin') . '</p>';
         }
 
@@ -91,6 +91,11 @@ class Subscribers_Import_Page
             default:
                 return self::report_html($job);
         }
+    }
+
+    protected static function can_manage($job)
+    {
+        return ! $job || ! $job['user_id'] || (int)$job['user_id'] === get_current_user_id() || current_user_can('manage_options');
     }
 
     protected static function back_link()
@@ -453,6 +458,11 @@ class Subscribers_Import_Page
     public static function handle_action($action)
     {
         $id = isset($_REQUEST['import']) && is_scalar($_REQUEST['import']) ? sanitize_key($_REQUEST['import']) : '';
+
+        // Like viewing: another user's import is only for site admins.
+        if (in_array($action, ['start_import', 'cancel_import', 'delete_import', 'download_import_problems'], true) && ! self::can_manage(Import::get($id))) {
+            wp_die(esc_html__('This import belongs to another user.', 'mailoptin'), '', ['response' => 403]);
+        }
 
         switch ($action) {
             case 'upload_import':
