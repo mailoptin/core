@@ -125,4 +125,26 @@ class SegmentsPremiumTest extends SegmentsTest
 
         $_GET = $_REQUEST = [];
     }
+
+    public function test_deleted_or_unreadable_excluded_tags_stop_the_campaign()
+    {
+        $this->member('a@example.com', ['no-promos']);
+        $this->member('b@example.com');
+
+        $tag         = (int)Tags::get_by_name('no-promos')['id'];
+        $campaign_id = $this->campaign([Segments::EXCLUDE_TAGS_SETTING => (string)$tag]);
+
+        $this->assertSame(['exclude_tag_ids' => [$tag]], Segments::campaign_filters($campaign_id));
+
+        Tags::delete($tag);
+        $this->assertSame('mo_segment_exclude_missing', Segments::campaign_filters($campaign_id)->get_error_code());
+        $this->assertFalse(Connect::get_instance()->send_newsletter($campaign_id, 9103, 'Hi', '<p>Hi</p>', 'Hi')['success']);
+        $this->assertSame([], $this->queued_emails(9103));
+
+        $settings = get_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
+        $settings[$campaign_id][Segments::EXCLUDE_TAGS_SETTING] = 'abc';
+        update_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, $settings);
+
+        $this->assertSame('mo_segment_exclude_invalid', Segments::campaign_filters($campaign_id)->get_error_code());
+    }
 }

@@ -174,7 +174,7 @@ class SegmentsRepository extends AbstractRepository
 
     /**
      * Why a segment can't be used as it is. A filter on a deleted tag or field, or on dropdown
-     * options that were removed, would otherwise be skipped and the segment would match more people.
+     * options that were removed, would otherwise be skipped and the segment could match more people.
      *
      * @return string[] empty when the segment is fine
      */
@@ -183,6 +183,11 @@ class SegmentsRepository extends AbstractRepository
         $problems = [];
         $filters  = $segment['filters'];
 
+        // Saved segments always have a filter, so none means the stored filters couldn't be read.
+        if (empty($filters['tag_ids']) && empty($filters['field_conditions'])) {
+            return [__('Its filters couldn\'t be read.', 'mailoptin')];
+        }
+
         if ( ! empty($filters['tag_ids'])) {
             $missing = array_diff($filters['tag_ids'], array_map('intval', array_keys(TagsRepository::names())));
 
@@ -190,7 +195,13 @@ class SegmentsRepository extends AbstractRepository
         }
 
         foreach ($filters['field_conditions'] as $condition) {
-            if (null === Fields::condition_sql($condition)) {
+            $field = Fields::get($condition['field_id'] ?? 0);
+
+            // Values that are no longer options are skipped by the filter, which widens "is none of".
+            $removed_options = $field && Fields::has_options($field['type']) && is_array($condition['value'] ?? null)
+                && array_diff(array_map('strval', $condition['value']), $field['options']);
+
+            if ($removed_options || null === Fields::condition_sql($condition)) {
                 $problems[] = __('It filters by a custom field that was deleted or changed.', 'mailoptin');
                 break;
             }
@@ -276,15 +287,58 @@ class SegmentsRepository extends AbstractRepository
     }
 
     /**
-     * The customizer saves the excluded tags as a comma separated list.
+     * The customizer saves the excluded tags as a comma separated list of IDs.
      *
-     * @return int[]
+     * @return int[]|null null when the list can't be read, which must stop a send rather than be ignored
+     */
+    public static function parse_tag_ids($value)
+    {
+        if (is_array($value)) $value = implode(',', array_filter($value, 'is_scalar'));
+
+        $value = trim((string)$value);
+
+        if ('' === $value) return [];
+
+        $ids = [];
+
+        foreach (explode(',', $value) as $token) {
+            $token = trim($token);
+
+            if ('' === $token) continue;
+            if ( ! ctype_digit($token) || ! (int)$token) return null;
+
+            $ids[] = (int)$token;
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * @return int[]|null see parse_tag_ids()
      */
     public static function excluded_tag_ids($email_campaign_id)
     {
-        $value = EmailCampaignRepository::get_customizer_value($email_campaign_id, self::EXCLUDE_TAGS_SETTING);
+        return self::parse_tag_ids(EmailCampaignRepository::get_customizer_value($email_campaign_id, self::EXCLUDE_TAGS_SETTING));
+    }
 
-        return array_values(array_filter(wp_parse_id_list(is_array($value) ? $value : (string)$value)));
+    /**
+     * Email campaigns that leave out a tag.
+     *
+     * @return array campaign id => name
+     */
+    public static function excluded_by($tag_id)
+    {
+        $campaigns = [];
+
+        foreach (EmailCampaignRepository::get_settings() as $campaign_id => $settings) {
+            if ( ! is_array($settings) || ! in_array((int)$tag_id, (array)self::parse_tag_ids($settings[self::EXCLUDE_TAGS_SETTING] ?? ''), true)) continue;
+
+            $name = EmailCampaignRepository::get_email_campaign_name($campaign_id);
+
+            if (null !== $name) $campaigns[(int)$campaign_id] = $name;
+        }
+
+        return $campaigns;
     }
 
     /**
@@ -300,15 +354,26 @@ class SegmentsRepository extends AbstractRepository
     }
 
     /**
+     * @param int[]|null $exclude_tag_ids null when the stored list couldn't be read
+     *
      * @return array|\WP_Error
      */
     public static function filters_for($segment_id, $exclude_tag_ids)
     {
-        if ( ! $segment_id && empty($exclude_tag_ids)) return [];
+        if ( ! $segment_id && [] === $exclude_tag_ids) return [];
+
+        if (null === $exclude_tag_ids) {
+            return new \WP_Error('mo_segment_exclude_invalid', __('The tags this campaign leaves out couldn\'t be read. Choose them again in the campaign settings.', 'mailoptin'));
+        }
 
         // Never fall back to the whole list: that would email people the campaign was meant to skip.
         if ( ! self::is_available() || ! self::is_ready()) {
             return new \WP_Error('mo_segment_premium', __('This campaign is limited to a segment or leaves out tags, which needs MailOptin Premium. Remove them from the campaign settings to send it to the whole list.', 'mailoptin'));
+        }
+
+        // Leaving out a deleted tag would leave out nobody, so the campaign would reach the people it was meant to skip.
+        if (array_diff($exclude_tag_ids, array_map('intval', array_keys(TagsRepository::names())))) {
+            return new \WP_Error('mo_segment_exclude_missing', __('This campaign leaves out people with a tag that was deleted. Check the tags to leave out in the campaign settings, then send again.', 'mailoptin'));
         }
 
         $filters = ['exclude_tag_ids' => $exclude_tag_ids];

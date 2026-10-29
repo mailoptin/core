@@ -36,8 +36,23 @@ class CampaignAudience
 
     public function settings($settings)
     {
-        $settings[Segments::SEGMENT_SETTING]      = ['default' => '', 'type' => 'option', 'transport' => 'postMessage'];
-        $settings[Segments::EXCLUDE_TAGS_SETTING] = ['default' => '', 'type' => 'option', 'transport' => 'postMessage'];
+        $settings[Segments::SEGMENT_SETTING] = [
+            'default'           => '',
+            'type'              => 'option',
+            'transport'         => 'postMessage',
+            'sanitize_callback' => function ($value) {
+                return absint($value) ? (string)absint($value) : '';
+            },
+        ];
+
+        $settings[Segments::EXCLUDE_TAGS_SETTING] = [
+            'default'           => '',
+            'type'              => 'option',
+            'transport'         => 'postMessage',
+            'sanitize_callback' => function ($value) {
+                return implode(',', (array)Segments::parse_tag_ids($value));
+            },
+        ];
 
         return $settings;
     }
@@ -49,7 +64,7 @@ class CampaignAudience
         $section = $customizer->campaign_settings_section_id;
 
         $campaign_id = $customizer->email_campaign_id;
-        $saved       = absint(EmailCampaignRepository::get_customizer_value($campaign_id, Segments::SEGMENT_SETTING)) || ! empty(Segments::excluded_tag_ids($campaign_id));
+        $saved       = absint(EmailCampaignRepository::get_customizer_value($campaign_id, Segments::SEGMENT_SETTING)) || [] !== Segments::excluded_tag_ids($campaign_id);
 
         // A site that is no longer premium still gets the controls while they are set, to clear them.
         if ( ! Segments::is_available() && ! $saved) {
@@ -184,7 +199,7 @@ class CampaignAudience
         if ( ! current_user_has_privilege()) wp_send_json_error('', 403);
 
         $list_id = absint($_POST['list_id'] ?? 0);
-        $filters = Segments::filters_for(absint($_POST['segment'] ?? 0), wp_parse_id_list(wp_unslash($_POST['exclude'] ?? '')));
+        $filters = Segments::filters_for(absint($_POST['segment'] ?? 0), Segments::parse_tag_ids(wp_unslash($_POST['exclude'] ?? '')));
 
         if (is_wp_error($filters)) wp_send_json_success($filters->get_error_message());
 

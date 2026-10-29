@@ -199,9 +199,8 @@ class TagsRepository extends AbstractRepository
     {
         self::wpdb()->delete(self::links_table(), ['tag_id' => $tag_id], ['%d']);
 
-        // Segments keep a deleted tag, and won't send until edited: dropping the filter would widen them.
-        SegmentsRepository::replace_excluded_tag($tag_id);
-
+        // Segments and campaigns that leave the tag out keep it, and won't send until edited:
+        // dropping it would widen who they reach.
         do_action('mo_tag_deleted', (int)$tag_id);
 
         return (bool)self::wpdb()->delete(self::table(), ['id' => $tag_id], ['%d']);

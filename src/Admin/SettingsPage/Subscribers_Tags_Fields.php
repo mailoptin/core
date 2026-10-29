@@ -982,6 +982,15 @@ class Subscribers_Tags_Fields
             case 'delete_tag':
                 $tag_id = absint($_GET['tag'] ?? 0);
                 check_admin_referer('mo_delete_tag_' . $tag_id);
+
+                $excluded_by = \MailOptin\Core\Repositories\SegmentsRepository::excluded_by($tag_id);
+
+                if ( ! empty($excluded_by)) {
+                    self::set_error(sprintf(__('Campaigns leave out people with this tag: %s. Untick it in those campaigns first.', 'mailoptin'), implode(', ', $excluded_by)));
+
+                    return ['error', $tags_url];
+                }
+
                 Tags::delete($tag_id);
 
                 return ['tag_deleted', $tags_url];

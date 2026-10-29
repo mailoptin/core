@@ -154,7 +154,59 @@ class SegmentsTest extends WP_UnitTestCase
 
         Tags::delete($gone);
 
-        $this->assertSame([$new], Segments::excluded_tag_ids($campaign));
+        $this->assertSame([$gone, $new], Segments::excluded_tag_ids($campaign), 'A deleted tag is kept, so the campaign stops instead of reaching people it skipped.');
+    }
+
+    public function test_excluded_tag_lists_are_read_strictly()
+    {
+        $this->assertSame([], Segments::parse_tag_ids(''));
+        $this->assertSame([3, 4], Segments::parse_tag_ids(' 3, 4,,3 '));
+        $this->assertSame([3, 4], Segments::parse_tag_ids(['3', '4']));
+        $this->assertNull(Segments::parse_tag_ids('3;4'));
+        $this->assertNull(Segments::parse_tag_ids('tag-5'));
+        $this->assertNull(Segments::parse_tag_ids('0'));
+
+        $this->assertSame('mo_segment_exclude_invalid', Segments::filters_for(0, null)->get_error_code());
+    }
+
+    public function test_removing_some_options_makes_an_is_none_of_segment_unusable()
+    {
+        $field   = Fields::create(['type' => Fields::TYPE_DROPDOWN, 'label' => 'Country', 'options' => ['UK', 'US', 'FR']]);
+        $segment = Segments::create('Not UK or US', ['field_conditions' => [['field_id' => $field, 'op' => 'is_not', 'value' => ['UK', 'US'], 'value2' => '']]]);
+
+        $this->assertSame([], Segments::problems(Segments::get($segment)));
+
+        Fields::update($field, ['options' => "UK\nFR"]);
+        Fields::flush_cache();
+
+        $this->assertNotEmpty(Segments::problems(Segments::get($segment)), 'US people would otherwise be included.');
+    }
+
+    public function test_unreadable_segment_filters_make_it_unusable()
+    {
+        global $wpdb;
+
+        $segment = Segments::create('VIP', ['tag_ids' => [Tags::create('vip')]]);
+        $wpdb->update(Segments::table(), ['filters' => '{bad'], ['id' => $segment]);
+
+        $this->assertNotEmpty(Segments::problems(Segments::get($segment)));
+    }
+
+    public function test_a_tag_campaigns_leave_out_cannot_be_deleted_from_the_tags_tab()
+    {
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+
+        $tag = Tags::create('no-promos');
+        $this->campaign([Segments::EXCLUDE_TAGS_SETTING => (string)$tag]);
+
+        $this->assertSame([], Segments::excluded_by($tag + 1));
+
+        $_GET = $_REQUEST = ['tag' => $tag, '_wpnonce' => wp_create_nonce('mo_delete_tag_' . $tag)];
+
+        $this->assertSame('error', \MailOptin\Core\Admin\SettingsPage\Subscribers_Tags_Fields::handle_action('delete_tag')[0]);
+        $this->assertNotNull(Tags::get($tag));
+
+        $_GET = $_REQUEST = [];
     }
 
     public function test_used_by_lists_campaigns_with_the_segment()
