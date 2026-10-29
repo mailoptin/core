@@ -35,7 +35,7 @@ class Subscribers_Page extends AbstractSettingsPage
 
             $instance = Custom_Settings_Page_Api::instance();
             $instance->option_name(self::OPTION_NAME);
-            $headers = ['lists' => __('Lists', 'mailoptin'), 'tags' => __('Tags', 'mailoptin'), 'fields' => __('Custom fields', 'mailoptin')];
+            $headers = ['lists' => __('Lists', 'mailoptin'), 'tags' => __('Tags', 'mailoptin'), 'fields' => __('Custom fields', 'mailoptin'), 'import' => __('Import subscribers', 'mailoptin'), 'export' => __('Export subscribers', 'mailoptin')];
             $instance->page_header($headers[$active_menu] ?? __('Subscribers', 'mailoptin'));
             $instance->remove_h2_header();
             $this->set_settings_page_instance($instance);
@@ -45,6 +45,8 @@ class Subscribers_Page extends AbstractSettingsPage
         add_action('mailoptin_admin_settings_submenu_page_lists', [$this, 'render_lists']);
         add_action('mailoptin_admin_settings_submenu_page_tags', [$this, 'render_tags']);
         add_action('mailoptin_admin_settings_submenu_page_fields', [$this, 'render_fields']);
+        add_action('mailoptin_admin_settings_submenu_page_import', [$this, 'render_import']);
+        add_action('mailoptin_admin_settings_submenu_page_export', [$this, 'render_export']);
 
         add_action('admin_init', [$this, 'handle_actions']);
         add_action('admin_notices', [$this, 'confirmation_limit_notice']);
@@ -129,6 +131,7 @@ class Subscribers_Page extends AbstractSettingsPage
     {
         echo $this->styles();
         if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::styles();
+        if (in_array($this->active_menu_tab(), ['import', 'export'], true)) echo Subscribers_Import_Page::styles();
         echo '<div class="wrap mo-subscribers-wrap">' . $html . '</div>';
         if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::script();
     }
@@ -203,6 +206,7 @@ class Subscribers_Page extends AbstractSettingsPage
             'field_saved'          => [__('Field saved.', 'mailoptin'), 'success'],
             'field_deleted'        => [__('Field deleted.', 'mailoptin'), 'success'],
             'fields_reordered'     => [__('Order saved.', 'mailoptin'), 'success'],
+            'import_deleted'       => [__('Import report deleted. The imported subscribers were kept.', 'mailoptin'), 'success'],
             'error'                => [__('That didn\'t work. Please try again.', 'mailoptin'), 'error'],
         ];
 
@@ -251,7 +255,11 @@ class Subscribers_Page extends AbstractSettingsPage
         ob_start();
         ?>
         <?php echo $this->notice_html(); ?>
-        <p><a class="button button-primary" href="<?php echo esc_url(add_query_arg('new', '1', self::page_url())); ?>"><?php esc_html_e('Add New', 'mailoptin'); ?></a></p>
+        <p class="mo-list-actions">
+            <a class="button button-primary" href="<?php echo esc_url(add_query_arg('new', '1', self::page_url())); ?>"><?php esc_html_e('Add New', 'mailoptin'); ?></a>
+            <a class="button" href="<?php echo esc_url(Subscribers_Import_Page::import_url()); ?>"><?php esc_html_e('Import CSV', 'mailoptin'); ?></a>
+            <a class="button" href="<?php echo esc_url(Subscribers_Import_Page::export_url($_GET)); ?>"><?php esc_html_e('Export', 'mailoptin'); ?></a>
+        </p>
         <?php $this->list_table->views(); ?>
         <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::filter_bar_html($this->list_table->filters); ?>
         <form method="get">
@@ -481,6 +489,20 @@ class Subscribers_Page extends AbstractSettingsPage
         $this->build_page($this->notice_html() . Subscribers_Tags_Fields::tags_html());
     }
 
+    public function render_import()
+    {
+        if ( ! $this->is_this_page()) return;
+
+        $this->build_page($this->notice_html() . Subscribers_Import_Page::import_html());
+    }
+
+    public function render_export()
+    {
+        if ( ! $this->is_this_page()) return;
+
+        $this->build_page($this->notice_html() . Subscribers_Import_Page::export_html());
+    }
+
     public function render_fields()
     {
         if ( ! $this->is_this_page() || ! Subscribers_Tags_Fields::is_ready()) return;
@@ -682,7 +704,9 @@ class Subscribers_Page extends AbstractSettingsPage
      */
     protected function redirect($notice, $url = '')
     {
-        do_admin_redirect(add_query_arg('mo_notice', $notice, $url ?: self::page_url()));
+        $url = $url ?: self::page_url();
+
+        do_admin_redirect('' === $notice ? $url : add_query_arg('mo_notice', $notice, $url));
 
         return true;
     }
@@ -698,6 +722,10 @@ class Subscribers_Page extends AbstractSettingsPage
         if (empty($action)) return;
 
         $subscriber_id = absint($_REQUEST['subscriber'] ?? 0);
+
+        $handled = Subscribers_Import_Page::handle_action($action);
+
+        if ($handled) return $this->redirect($handled[0], $handled[1]);
 
         if (Subscribers_Tags_Fields::is_ready()) {
             $handled = Subscribers_Tags_Fields::handle_action($action);
