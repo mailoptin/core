@@ -514,7 +514,18 @@ class SubscriberImport
     {
         $index = array_search($target, $job['mapping'], true);
 
-        return false === $index ? '' : trim(wp_check_invalid_utf8((string)($cells[$index] ?? ''), true));
+        return false === $index ? '' : self::clean_cell($cells[$index] ?? '');
+    }
+
+    /**
+     * A cell as text, without the apostrophe exports put before a value a spreadsheet would run as
+     * a formula, so an exported file imports unchanged.
+     */
+    public static function clean_cell($value)
+    {
+        $value = trim(wp_check_invalid_utf8((string)$value, true));
+
+        return strlen($value) > 1 && "'" === $value[0] && false !== strpos("=+-@\t\r", $value[1]) ? substr($value, 1) : $value;
     }
 
     /**
@@ -624,7 +635,7 @@ class SubscriberImport
         if (self::can_import_fields()) {
             foreach ($job['mapping'] as $index => $target) {
                 if (0 === strpos($target, 'field:')) {
-                    $value = trim(wp_check_invalid_utf8((string)($cells[$index] ?? ''), true));
+                    $value = self::clean_cell($cells[$index] ?? '');
                     if ('' !== $value) $values[(int)substr($target, 6)] = $value;
                 }
             }

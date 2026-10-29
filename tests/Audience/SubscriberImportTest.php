@@ -299,6 +299,10 @@ class SubscriberImportTest extends WP_UnitTestCase
         $this->assertSame(['amara@example.com', "'=HYPERLINK(\"x\")", 'Okafor', 'subscribed', 'Newsletter', 'vip', '1988-06-02'], array_slice($rows[1], 0, 7));
         $this->assertSame('Added by admin', $rows[1][7]);
 
+        // Values the export protected from spreadsheets import as they were.
+        $this->assertSame('=HYPERLINK("x")', Import::clean_cell($rows[1][1]));
+        $this->assertSame("'quoted", Import::clean_cell("'quoted"));
+
         // The export's column names are recognised by the import.
         $this->assertSame([0 => 'email', 1 => 'first_name', 2 => 'last_name', 5 => 'tags'], array_intersect_key(Import::guess_mapping($rows[0]), array_flip([0, 1, 2, 3, 4, 5])));
     }
