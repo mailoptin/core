@@ -21,6 +21,7 @@ class TrackingTest extends WP_UnitTestCase
         update_option('mo_db_ver', DBUpdates::DB_VER);
         delete_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME);
         Activity::flush_cache();
+        \MailOptin\Core\Base::get_instance()->register_metadata_table();
 
         global $wpdb;
         $wpdb->insert($wpdb->prefix . \MailOptin\Core\Core::campaign_log_table_name, [
@@ -38,6 +39,10 @@ class TrackingTest extends WP_UnitTestCase
         global $wpdb;
         $table = SendQueueRepository::table();
         $wpdb->query($wpdb->prepare("UPDATE $table SET status = 'sent', sent_at = %s WHERE email = %s", gmdate('Y-m-d H:i:s'), $email));
+
+        // As if its email went out with tracking on, as prepare_html() marks it.
+        Activity::mark_tracked($this->log_id, Activity::METRIC_OPEN_TRACKED);
+        Activity::mark_tracked($this->log_id, Activity::METRIC_CLICK_TRACKED);
 
         return SendQueueRepository::get($wpdb->get_var($wpdb->prepare("SELECT id FROM $table WHERE email = %s", $email)));
     }
@@ -80,14 +85,14 @@ class TrackingTest extends WP_UnitTestCase
 
     protected function click_token($row, $link_id)
     {
-        parse_str((string)wp_parse_url(Tracking::click_url($row['id'], $link_id), PHP_URL_QUERY), $query);
+        parse_str((string)wp_parse_url(Tracking::click_url($row, $link_id), PHP_URL_QUERY), $query);
 
         return $query['mo_click'];
     }
 
     protected function open_token($row)
     {
-        parse_str((string)wp_parse_url(Tracking::open_url($row['id']), PHP_URL_QUERY), $query);
+        parse_str((string)wp_parse_url(Tracking::open_url($row), PHP_URL_QUERY), $query);
 
         return $query['mo_open'];
     }
@@ -104,7 +109,7 @@ class TrackingTest extends WP_UnitTestCase
         Tracking::click_token($this->click_token($a, $link));
         Tracking::click_token($this->click_token($b, $link));
 
-        $this->assertSame(['sent' => 0, 'opens' => 2, 'openers' => 2, 'clicks' => 3, 'clickers' => 2, 'pruned' => 0], Activity::stats($this->log_id), 'A click counts as an open for people whose images were blocked.');
+        $this->assertSame(['sent' => 0, 'opens' => 2, 'openers' => 2, 'clicks' => 3, 'clickers' => 2, 'pruned' => 0, 'open_tracked' => 1, 'click_tracked' => 1], Activity::stats($this->log_id), 'A click counts as an open for people whose images were blocked.');
 
         $link_row = Activity::get_link($link);
         $this->assertSame(['3', '2'], [$link_row['clicks'], $link_row['people']]);
@@ -232,5 +237,43 @@ class TrackingTest extends WP_UnitTestCase
 
         $this->assertSame(0, Activity::subscriber_summary($a['recipient_id'])['opened']);
         $this->assertSame(0, Activity::stats($this->log_id)['openers']);
+    }
+
+    public function test_a_token_for_a_reused_queue_row_is_not_credited_to_its_new_owner()
+    {
+        global $wpdb;
+
+        $a     = $this->sent_row('a@example.com');
+        $token = $this->open_token($a);
+        $b     = Subscribers::create(['email' => 'b@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+
+        // The row ID now belongs to someone else, as after the queue is emptied and IDs restart.
+        $wpdb->update(SendQueueRepository::table(), ['recipient_id' => $b, 'email' => 'b@example.com'], ['id' => $a['id']]);
+
+        Tracking::open_token($token);
+
+        $this->assertSame(0, Activity::stats($this->log_id)['openers']);
+    }
+
+    public function test_welcome_emails_keep_counting_after_old_activity_is_deleted()
+    {
+        global $wpdb;
+
+        \MailOptin\Core\Repositories\AbstractCampaignLogMeta::update_campaignlog_meta($this->log_id, 'mo_welcome_list_id', 1);
+
+        $a = $this->sent_row('a@example.com');
+        Tracking::open_token($this->open_token($a));
+
+        $old = gmdate('Y-m-d H:i:s', time() - 400 * DAY_IN_SECONDS);
+        $wpdb->query($wpdb->prepare('UPDATE ' . Activity::table() . ' SET first_at = %s, last_at = %s', $old, $old));
+
+        Tracking::get_instance()->prune();
+
+        $this->assertFalse(Activity::is_pruned($this->log_id));
+        $this->assertSame(0, Activity::subscriber_summary($a['recipient_id'])['opened']);
+
+        $b = $this->sent_row('b@example.com');
+        Tracking::open_token($this->open_token($b));
+        $this->assertSame(2, Activity::stats($this->log_id)['openers'], 'New opens still count.');
     }
 }

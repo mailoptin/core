@@ -31,6 +31,10 @@ class CampaignActivityRepository extends AbstractRepository
     // Set once a campaign's who-did-what was deleted after the retention period. Its totals stay;
     // new hits aren't counted, as they'd count people twice.
     const METRIC_PRUNED = 'pruned';
+    // Set when the campaign went out with the open image or with click-tracked links. Without
+    // them nobody can be shown as not having opened or clicked it.
+    const METRIC_OPEN_TRACKED = 'open_tracked';
+    const METRIC_CLICK_TRACKED = 'click_tracked';
 
     protected static $link_cache = [];
 
@@ -90,6 +94,7 @@ class CampaignActivityRepository extends AbstractRepository
     public static function flush_cache()
     {
         self::$link_cache = [];
+        self::$marked     = [];
     }
 
     public static function get_link($link_id)
@@ -196,6 +201,26 @@ class CampaignActivityRepository extends AbstractRepository
         self::bump($campaign_log_id, self::METRIC_SENT);
     }
 
+    protected static $marked = [];
+
+    /**
+     * Mark a campaign as sent with open or click tracking. Once per campaign per request.
+     */
+    public static function mark_tracked($campaign_log_id, $metric)
+    {
+        $key = $campaign_log_id . ':' . $metric;
+
+        if (isset(self::$marked[$key])) return;
+
+        self::$marked[$key] = true;
+
+        self::wpdb()->query(self::wpdb()->prepare(
+            'INSERT IGNORE INTO ' . self::stats_table() . ' (campaign_log_id, metric, value) VALUES (%d, %s, 1)',
+            $campaign_log_id,
+            $metric
+        ));
+    }
+
     public static function is_pruned($campaign_log_id)
     {
         return (bool)self::stats($campaign_log_id)[self::METRIC_PRUNED];
@@ -213,7 +238,7 @@ class CampaignActivityRepository extends AbstractRepository
 
     protected static function metrics()
     {
-        return [self::METRIC_SENT, self::METRIC_OPENS, self::METRIC_OPENERS, self::METRIC_CLICKS, self::METRIC_CLICKERS, self::METRIC_PRUNED];
+        return [self::METRIC_SENT, self::METRIC_OPENS, self::METRIC_OPENERS, self::METRIC_CLICKS, self::METRIC_CLICKERS, self::METRIC_PRUNED, self::METRIC_OPEN_TRACKED, self::METRIC_CLICK_TRACKED];
     }
 
     /**
@@ -476,15 +501,20 @@ class CampaignActivityRepository extends AbstractRepository
 
         if (in_array($condition['what'], ['opened', 'clicked'], true)) return "EXISTS ($activity)";
 
-        // Campaigns whose activity was deleted would make everyone they were sent to look unengaged.
+        // Only campaigns that were tracked and whose activity is still kept: the others would make
+        // everyone they were sent to look unengaged.
         $stats = self::stats_table();
-        $sent .= $wpdb->prepare(" AND q.campaign_log_id NOT IN (SELECT p.campaign_log_id FROM $stats p WHERE p.metric = %s)", self::METRIC_PRUNED);
+        $sent .= $wpdb->prepare(
+            " AND q.campaign_log_id IN (SELECT t.campaign_log_id FROM $stats t WHERE t.metric = %s) AND q.campaign_log_id NOT IN (SELECT p.campaign_log_id FROM $stats p WHERE p.metric = %s)",
+            self::TYPE_OPEN === $type ? self::METRIC_OPEN_TRACKED : self::METRIC_CLICK_TRACKED,
+            self::METRIC_PRUNED
+        );
 
         return "(EXISTS ($sent) AND NOT EXISTS ($activity))";
     }
 
     /**
-     * Recent campaigns sent to built-in lists, for choosing one in a filter.
+     * Recent tracked campaigns sent to built-in lists, for choosing one in a filter.
      *
      * @return array campaign log id => subject, newest first
      */
@@ -495,7 +525,11 @@ class CampaignActivityRepository extends AbstractRepository
 
         $rows = self::wpdb()->get_results(self::wpdb()->prepare(
             "SELECT q.campaign_log_id AS id, l.title, MIN(q.sent_at) AS first_sent FROM $queue q INNER JOIN $logs l ON l.id = q.campaign_log_id
-            WHERE q.recipient_type = 'subscriber' AND q.status = 'sent' GROUP BY q.campaign_log_id, l.title ORDER BY first_sent DESC LIMIT %d",
+            WHERE q.recipient_type = 'subscriber' AND q.status = 'sent'
+            AND q.campaign_log_id IN (SELECT t.campaign_log_id FROM " . self::stats_table() . " t WHERE t.metric IN (%s, %s))
+            GROUP BY q.campaign_log_id, l.title ORDER BY first_sent DESC LIMIT %d",
+            self::METRIC_OPEN_TRACKED,
+            self::METRIC_CLICK_TRACKED,
             $limit
         ), 'ARRAY_A');
 
@@ -573,15 +607,21 @@ class CampaignActivityRepository extends AbstractRepository
      * campaigns at a time. Totals are kept. Whole campaigns, so a report never shows people who
      * opened as not having opened.
      *
-     * @return int campaigns pruned; 0 when there is nothing left to do
+     * @return int campaigns and welcome email rows pruned; 0 when there is nothing left to do
      */
     public static function prune($before_utc, $limit = 20)
     {
         $wpdb  = self::wpdb();
         $table = self::table();
 
+        // Welcome emails keep sending under one log for good, so their old rows go one by one
+        // instead, and they keep counting.
+        $ongoing = $wpdb->prepare('SELECT m.campaign_log_id FROM ' . $wpdb->prefix . Core::campaign_log_meta_table_name . ' m WHERE m.meta_key = %s', 'mo_welcome_list_id');
+
+        $deleted = (int)$wpdb->query($wpdb->prepare("DELETE FROM $table WHERE campaign_log_id IN ($ongoing) AND last_at < %s LIMIT 5000", $before_utc));
+
         $campaign_ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
-            "SELECT campaign_log_id FROM $table GROUP BY campaign_log_id HAVING MIN(first_at) < %s LIMIT %d",
+            "SELECT campaign_log_id FROM $table WHERE campaign_log_id NOT IN ($ongoing) GROUP BY campaign_log_id HAVING MIN(first_at) < %s LIMIT %d",
             $before_utc,
             $limit
         )));
@@ -601,6 +641,6 @@ class CampaignActivityRepository extends AbstractRepository
             ));
         }
 
-        return count($campaign_ids);
+        return count($campaign_ids) + $deleted;
     }
 }

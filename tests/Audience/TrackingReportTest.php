@@ -118,4 +118,24 @@ class TrackingReportTest extends TrackingTest
 
         $this->assertSame('mo_segment_not_opened', $result->get_error_code());
     }
+
+    public function test_untracked_campaigns_never_count_as_not_opened_or_not_clicked()
+    {
+        global $wpdb;
+
+        $wpdb->insert($wpdb->prefix . \MailOptin\Core\Core::campaign_log_table_name, ['email_campaign_id' => 1, 'title' => 'Before tracking', 'content_html' => '', 'content_text' => '', 'status' => 'processed']);
+        $untracked = (int)$wpdb->insert_id;
+
+        $id = Subscribers::create(['email' => 'old@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+        \MailOptin\Core\Repositories\SendQueueRepository::enqueue($untracked, 1, [['email' => 'old@example.com', 'recipient_type' => 'subscriber', 'recipient_id' => $id]]);
+        $wpdb->query("UPDATE " . \MailOptin\Core\Repositories\SendQueueRepository::table() . " SET status = 'sent', sent_at = '" . gmdate('Y-m-d H:i:s') . "' WHERE campaign_log_id = $untracked");
+
+        foreach (['not_opened', 'not_clicked'] as $what) {
+            $ids = $wpdb->get_col('SELECT s.id FROM ' . Subscribers::table() . ' s WHERE ' . Activity::condition_sql(['what' => $what, 'campaign' => 0, 'days' => 0]));
+            $this->assertNotContains((string)$id, $ids, $what);
+        }
+
+        $this->assertArrayNotHasKey($untracked, Activity::sent_campaigns());
+        $this->assertSame(['unsubscribed'], array_keys(Campaign_Report::groups($untracked)));
+    }
 }
