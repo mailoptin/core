@@ -318,4 +318,46 @@ class PreferenceCentreTest extends WP_UnitTestCase
         $this->assertStringContainsString('Manage preferences: ' . PreferenceCentre::url(Subscribers::get($this->id)), $content['text']);
         $this->assertStringNotContainsString('mo_prefs', PublicEndpoints::web_version_html($log));
     }
+
+    public function test_a_confirmation_link_confirms_only_the_lists_its_email_named()
+    {
+        Subscription::add_by_admin('tom@example.com', [$this->news], [], false);
+        $tom   = Subscribers::get_by_email('tom@example.com');
+        $email = Subscription::confirmation_email($tom);
+        preg_match('#href="([^"]*mo_confirm[^"]*)"#', $email['html'], $m);
+        $url = html_entity_decode($m[1]);
+
+        // Added to another list before clicking.
+        $offers = ListsRepository::create(['name' => 'Partner offers', 'double_optin' => 1]);
+        Subscribers::set_membership($tom['id'], $offers, Subscribers::STATUS_PENDING);
+
+        parse_str(wp_parse_url($url, PHP_URL_QUERY), $_GET);
+        $_REQUEST = $_GET;
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        try {
+            (new PublicEndpoints())->confirm();
+        } catch (\WPDieException $e) {
+        }
+
+        $this->assertSame('subscribed', Subscribers::get_membership($tom['id'], $this->news)['status']);
+        $this->assertSame('pending', Subscribers::get_membership($tom['id'], $offers)['status']);
+
+        // Tampering with the lists breaks the signature.
+        $_GET['mo_lists'] = \MailOptin\Core\Audience\Tokens::list_param([$this->news, $offers]);
+        $_REQUEST = $_GET;
+        try {
+            (new PublicEndpoints())->confirm();
+        } catch (\WPDieException $e) {
+        }
+        $this->assertSame('pending', Subscribers::get_membership($tom['id'], $offers)['status']);
+
+        // Links sent before lists were signed still confirm everything pending.
+        $_GET = ['mo_confirm' => $tom['id'], 'mo_token' => \MailOptin\Core\Audience\Tokens::make('confirm', [$tom['id'], $tom['email']])];
+        $_REQUEST = $_GET;
+        try {
+            (new PublicEndpoints())->confirm();
+        } catch (\WPDieException $e) {
+        }
+        $this->assertSame('subscribed', Subscribers::get_membership($tom['id'], $offers)['status']);
+    }
 }

@@ -48,17 +48,21 @@ class PublicEndpoints
     public function confirm()
     {
         $subscriber = Subscribers::get(absint($_GET['mo_confirm']));
+        $lists      = isset($_GET['mo_lists']) && is_string($_GET['mo_lists']) ? sanitize_text_field(wp_unslash($_GET['mo_lists'])) : null;
+        $parts      = null === $lists ? [$subscriber['id'] ?? 0, $subscriber['email'] ?? ''] : [$subscriber['id'] ?? 0, $subscriber['email'] ?? '', $lists];
 
-        if ( ! $subscriber || ! Tokens::check('confirm', [$subscriber['id'], $subscriber['email']], $this->token())) {
+        if ( ! $subscriber || ! Tokens::check('confirm', $parts, $this->token())) {
             $this->invalid_link();
         }
+
+        $list_ids = null === $lists ? null : array_map('absint', explode('.', $lists));
 
         // Confirm on POST only, so link scanners that open every link in an inbox can't confirm
         // signups someone else made. The page submits itself, so for people it's still one click.
         if ('POST' !== strtoupper($_SERVER['REQUEST_METHOD'] ?? '')) {
             $form = sprintf(
                 '<form method="post" action="%s" id="mo-confirm-form"><button type="submit" class="button">%s</button></form><script>document.getElementById("mo-confirm-form").submit();</script>',
-                esc_url(Tokens::confirm_url($subscriber)),
+                esc_url(Tokens::confirm_url($subscriber, $list_ids)),
                 esc_html__('Confirm subscription', 'mailoptin')
             );
 
@@ -69,7 +73,7 @@ class PublicEndpoints
             );
         }
 
-        Subscription::confirm($subscriber['id']);
+        Subscription::confirm($subscriber['id'], $list_ids);
 
         $redirect = apply_filters('mo_subscription_confirmed_redirect', '', $subscriber);
 

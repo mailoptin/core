@@ -248,17 +248,22 @@ class Subscription
     public static function confirmation_email($subscriber)
     {
         $list_names = [];
+        $list_ids   = [];
         foreach (Subscribers::get_memberships($subscriber['id']) as $membership) {
             if (Subscribers::STATUS_PENDING !== $membership['status']) continue;
 
             $list = ListsRepository::get($membership['list_id']);
-            if ($list) $list_names[] = $list['name'];
+            if ($list) {
+                $list_names[] = $list['name'];
+                $list_ids[]   = (int)$list['id'];
+            }
         }
 
         if (empty($list_names)) return null;
 
-        $site_name   = Settings::instance()->company_name() ?: get_bloginfo('name');
-        $confirm_url = Tokens::confirm_url($subscriber);
+        $site_name = Settings::instance()->company_name() ?: get_bloginfo('name');
+        // Confirms only the lists this email names, not ones added before they click it.
+        $confirm_url = Tokens::confirm_url($subscriber, $list_ids);
         $lists       = implode(', ', $list_names);
 
         $subject = apply_filters('mo_confirmation_email_subject', __('Please confirm your subscription', 'mailoptin'), $subscriber);
