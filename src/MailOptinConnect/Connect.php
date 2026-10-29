@@ -39,11 +39,19 @@ class Connect extends AbstractConnect implements ConnectionInterface
 
     public static function features_support()
     {
-        return [
-            self::OPTIN_CAMPAIGN_SUPPORT,
-            self::OPTIN_CUSTOM_FIELD_SUPPORT,
-            self::EMAIL_CAMPAIGN_SUPPORT,
-        ];
+        $features = [self::OPTIN_CAMPAIGN_SUPPORT, self::EMAIL_CAMPAIGN_SUPPORT];
+
+        if (self::has_custom_form_fields()) $features[] = self::OPTIN_CUSTOM_FIELD_SUPPORT;
+
+        return $features;
+    }
+
+    /**
+     * Saving form fields into custom fields is a premium feature, like custom form fields themselves.
+     */
+    public static function has_custom_form_fields()
+    {
+        return defined('MAILOPTIN_DETACH_LIBSODIUM');
     }
 
     public static function is_connected()
@@ -86,7 +94,7 @@ class Connect extends AbstractConnect implements ConnectionInterface
      */
     public function get_optin_fields($list_id = '')
     {
-        if ( ! TagsRepository::is_ready()) return [];
+        if ( ! TagsRepository::is_ready() || ! self::has_custom_form_fields()) return [];
 
         return array_map('esc_html', wp_list_pluck(CustomFieldsRepository::all(), 'label', 'merge_key'));
     }
@@ -233,7 +241,7 @@ class Connect extends AbstractConnect implements ConnectionInterface
             'source'          => 'form',
             'source_optin_id' => absint($this->extras['optin_campaign_id'] ?? 0),
             'ip_address'      => $this->extras['mo_ip_address'] ?? '',
-            'fields'          => TagsRepository::is_ready() ? $this->mapped_field_values() : [],
+            'fields'          => TagsRepository::is_ready() && self::has_custom_form_fields() ? $this->mapped_field_values() : [],
             'tags'            => TagsRepository::is_ready() ? $this->form_tags() : [],
             'meta'            => array_filter([
                 'form'            => $this->extras['mo_campaign_name'] ?? '',

@@ -51,12 +51,6 @@ class TagsFieldsFormsTest extends WP_UnitTestCase
         return Connect::get_instance()->subscribe($email, 'Amara Okafor', $this->list, $extras);
     }
 
-    public function test_connection_offers_custom_fields_for_mapping()
-    {
-        $this->assertSame(['company' => 'Company', 'zone' => 'Zone', 'orders' => 'Orders'], Connect::get_instance()->get_optin_fields($this->list));
-        $this->assertContains(Connect::OPTIN_CUSTOM_FIELD_SUPPORT, Connect::features_support());
-    }
-
     public function test_tags_control_lists_tags_and_links_to_them()
     {
         $controls = Connect::get_instance()->integration_customizer_controls([]);
@@ -70,46 +64,24 @@ class TagsFieldsFormsTest extends WP_UnitTestCase
         $this->assertSame([$vip => 'vip'], $controls[0]['choices']);
     }
 
-    public function test_signup_saves_mapped_fields_and_form_tags()
+    public function test_mapping_form_fields_needs_premium()
     {
-        $vip = Tags::create('vip');
+        // Lite: MailOptin's own form builder has no custom form fields, so there's nothing to map.
+        $this->assertFalse(defined('MAILOPTIN_DETACH_LIBSODIUM'));
+        $this->assertSame([], Connect::get_instance()->get_optin_fields($this->list));
+        $this->assertNotContains(Connect::OPTIN_CUSTOM_FIELD_SUPPORT, Connect::features_support());
 
-        $response = $this->signup('amara@example.com', [
+        $vip = Tags::create('vip');
+        Connect::get_instance()->subscribe('amara@example.com', 'Amara', $this->list, [
             'optin_campaign_id'          => 0,
-            'form_custom_field_mappings' => ['company' => 'mo_company', 'zone' => 'mo_zone', 'orders' => 'mo_orders', 'missing' => 'mo_x'],
-            'form_tags'                  => ['VIP', 'new-tag'],
-            'mo_company'                 => '<i>Okafor</i> Landscaping',
-            'mo_zone'                    => '7B',
-            'mo_orders'                  => 'many',
+            'form_custom_field_mappings' => ['company' => 'c'],
+            'c'                          => 'Okafor Landscaping',
+            'form_tags'                  => ['vip'],
         ]);
 
-        $this->assertTrue($response['success']);
-
-        $subscriber = Subscribers::get_by_email('amara@example.com');
-        $values     = Fields::merge_values($subscriber['id']);
-
-        $this->assertSame('Okafor Landscaping', $values['company']);
-        $this->assertSame('7b', $values['zone']);
-        // An invalid value doesn't block the signup; it's noted on the timeline.
-        $this->assertSame('', $values['orders']);
-        $this->assertSame(['new-tag', 'vip'], array_values(Tags::for_subscriber($subscriber['id'])));
-
-        $event = Subscribers::get_events($subscriber['id'])[0];
-        $meta  = json_decode($event['meta'], true);
-        $this->assertSame(['new-tag', 'vip'], $meta['tags']);
-        $this->assertSame('7B', $meta['fields']['zone']);
-        $this->assertNotEmpty($meta['field_errors']);
-    }
-
-    public function test_a_signup_does_not_overwrite_existing_values()
-    {
-        $this->signup('amara@example.com', ['form_custom_field_mappings' => ['company' => 'c'], 'c' => 'Okafor Landscaping']);
-        $this->signup('amara@example.com', ['form_custom_field_mappings' => ['company' => 'c', 'zone' => 'z'], 'c' => 'Spoofed Inc', 'z' => '6a']);
-
-        $values = Fields::merge_values(Subscribers::get_by_email('amara@example.com')['id']);
-
-        $this->assertSame('Okafor Landscaping', $values['company']);
-        $this->assertSame('6a', $values['zone']);
+        $id = Subscribers::get_by_email('amara@example.com')['id'];
+        $this->assertSame('', Fields::merge_values($id)['company']);
+        $this->assertSame([$vip => 'vip'], Tags::for_subscriber($id), 'Tags from forms are free.');
     }
 
     public function test_signup_without_a_form_still_works()
