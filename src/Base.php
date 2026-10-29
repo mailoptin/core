@@ -127,6 +127,7 @@ class Base
         NewPublishPost::get_instance();
         PostsEmailDigest::get_instance();
         Newsletter::get_instance();
+        EmailCampaigns\Newsletter\Broadcasts::get_instance();
         Misc::get_instance();
 
         FrontEndOutput::get_instance();
@@ -168,6 +169,7 @@ class Base
         Admin\SettingsPage\Connections::get_instance();
         Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();
+        Admin\SettingsPage\Broadcast_Page::get_instance();
         Admin\PostListMenu\PostPreview::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
         Admin\SettingsPage\Campaign_Report::get_instance();

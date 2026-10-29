@@ -259,12 +259,19 @@ class QueueRunner
         CampaignLogRepository::instance()->updateStatusTime($campaign_log_id, current_time('mysql'));
     }
 
-    public function hourly_allowance()
+    /**
+     * The most emails sent in an hour, across all campaigns.
+     */
+    public static function hourly_limit()
     {
         $setting = absint(Settings::instance()->send_queue_hourly_limit(1000));
-        $limit   = (int)apply_filters('mo_send_queue_hourly_limit', $setting > 0 ? $setting : 1000);
 
-        return $limit - Queue::sent_since(Queue::now(-HOUR_IN_SECONDS));
+        return (int)apply_filters('mo_send_queue_hourly_limit', $setting > 0 ? $setting : 1000);
+    }
+
+    public function hourly_allowance()
+    {
+        return self::hourly_limit() - Queue::sent_since(Queue::now(-HOUR_IN_SECONDS));
     }
 
     protected function deadline()
