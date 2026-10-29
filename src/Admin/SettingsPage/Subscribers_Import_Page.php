@@ -272,7 +272,14 @@ class Subscribers_Import_Page
                             <legend><?php esc_html_e('Permission', 'mailoptin'); ?></legend>
                             <label class="mo-check"><input type="radio" name="permission" value="<?php echo esc_attr(Import::PERMISSION_SUBSCRIBED); ?>" <?php checked($job['permission'], Import::PERMISSION_SUBSCRIBED); ?> required> <?php esc_html_e('They agreed to hear from me. Add them as subscribed.', 'mailoptin'); ?></label>
                             <label class="mo-check"><input type="radio" name="permission" value="<?php echo esc_attr(Import::PERMISSION_CONFIRM); ?>" <?php checked($job['permission'], Import::PERMISSION_CONFIRM); ?>> <?php esc_html_e('Send each new person a confirmation email', 'mailoptin'); ?></label>
-                            <span class="description"><?php printf(esc_html__('Your choice is saved on each new person\'s consent record. Only add people as subscribed if they agreed to get your emails: importing a bought or scraped list can get your site blocked from sending. Confirmation emails go through the send queue at your hourly limit (%s an hour).', 'mailoptin'), esc_html(number_format_i18n($hourly))); ?></span>
+                            <span class="description"><?php
+                                $hours = (int)ceil($job['total'] / $hourly);
+                                printf(
+                                    esc_html__('Your choice is saved on each new person\'s consent record. Only add people as subscribed if they agreed to get your emails: importing a bought or scraped list can get your site blocked from sending. Confirmation emails go through the send queue at your hourly limit of %1$s, shared with campaigns: up to %2$s for this file.', 'mailoptin'),
+                                    esc_html(number_format_i18n($hourly)),
+                                    esc_html($hours > 48 ? sprintf(_n('%s day', '%s days', (int)ceil($hours / 24), 'mailoptin'), number_format_i18n(ceil($hours / 24))) : sprintf(_n('%s hour', '%s hours', $hours, 'mailoptin'), number_format_i18n($hours)))
+                                );
+                                ?></span>
                         </fieldset>
                         <fieldset>
                             <legend><?php esc_html_e('People already on your lists', 'mailoptin'); ?></legend>

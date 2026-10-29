@@ -112,12 +112,13 @@ class SubscriberExport
     {
         fputcsv($handle, self::header($groups), ',', '"', '');
 
-        $page    = 1;
+        $after   = 0;
         $written = 0;
 
         do {
-            $result = Subscribers::query(array_merge($query, ['per_page' => self::BATCH, 'page' => $page, 'orderby' => 'created_at', 'order' => 'ASC']));
+            $result = Subscribers::query(array_merge($query, ['per_page' => self::BATCH, 'page' => 1, 'after_id' => $after, 'orderby' => 'id', 'order' => 'ASC', 'skip_count' => true]));
             $items  = $result['items'];
+            if ( ! empty($items)) $after = (int)end($items)['id'];
 
             $values = in_array(self::COLUMNS_FIELDS, $groups, true) && Tags::is_ready() && ! empty($items)
                 ? Fields::values_for_subscribers(wp_list_pluck($items, 'id'))
@@ -128,7 +129,6 @@ class SubscriberExport
                 $written++;
             }
 
-            $page++;
         } while (count($items) === self::BATCH);
 
         return $written;
@@ -139,6 +139,10 @@ class SubscriberExport
      */
     public static function download($query, $groups)
     {
+        // A large list takes a while; a cut-off download would look complete.
+        if (function_exists('set_time_limit')) @set_time_limit(0);
+        wp_raise_memory_limit('admin');
+
         nocache_headers();
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="subscribers-' . gmdate('Y-m-d') . '.csv"');

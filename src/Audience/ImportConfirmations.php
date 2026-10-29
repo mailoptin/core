@@ -96,6 +96,9 @@ class ImportConfirmations
         $email      = $subscriber ? Subscription::confirmation_email($subscriber) : null;
 
         Subscribers::log_event($row['recipient_id'], Subscribers::EVENT_CONFIRMATION_SENT, ['lists' => $email['lists'] ?? []], $campaign_log_id);
+
+        // Unconfirmed signups are deleted a while after their last change; for imports, count from the email.
+        if ($subscriber) Subscribers::update($subscriber['id'], []);
     }
 
     /**

@@ -39,6 +39,8 @@ class SubscriberImport
     const REPORT_DAYS = 30;
     // Problems shown on the report page; all of them are in the downloadable file.
     const SHOWN_PROBLEMS = 100;
+    // Rows between saves of an import's progress.
+    const CHECKPOINT = 25;
 
     const PROBLEM_SUPPRESSED = 'suppressed';
     const PROBLEM_INVALID = 'invalid';
@@ -48,6 +50,7 @@ class SubscriberImport
     public function __construct()
     {
         add_action(self::CRON_HOOK, [__CLASS__, 'run_from_cron']);
+        add_action('mo_hourly_recurring_job', [__CLASS__, 'watchdog']);
         add_action('mo_daily_recurring_job', [__CLASS__, 'delete_old']);
     }
 
@@ -87,14 +90,29 @@ class SubscriberImport
     {
         $dir = trailingslashit(wp_upload_dir()['basedir']) . 'mailoptin-imports';
 
-        if ( ! is_dir($dir)) {
-            wp_mkdir_p($dir);
-            // The files hold personal data: never serve them.
-            @file_put_contents($dir . '/index.php', "<?php\n// Silence is golden.\n");
-            @file_put_contents($dir . '/.htaccess', "Require all denied\nDeny from all\n");
+        if ( ! is_dir($dir)) wp_mkdir_p($dir);
+
+        // The files hold personal data: never serve them. On servers that ignore these files (nginx),
+        // file names are long random secrets that appear nowhere else.
+        $guards = [
+            'index.php'  => "<?php\n// Silence is golden.\n",
+            '.htaccess'  => "Require all denied\nDeny from all\n",
+            'web.config' => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration><system.webServer><authorization><deny users=\"*\" /></authorization></system.webServer></configuration>\n",
+        ];
+
+        foreach ($guards as $file => $content) {
+            if ( ! is_file($dir . '/' . $file)) @file_put_contents($dir . '/' . $file, $content);
         }
 
         return $dir;
+    }
+
+    /**
+     * @return string a path in the imports directory with a name nobody can guess
+     */
+    public static function secret_path($suffix = '')
+    {
+        return self::directory() . '/' . wp_generate_password(40, false) . $suffix . '.csv';
     }
 
     /**
@@ -116,14 +134,39 @@ class SubscriberImport
             return new \WP_Error('mo_import_type', __('Choose a .csv file. In Excel or Numbers, use File › Save As (or Export) › CSV.', 'mailoptin'));
         }
 
-        $id   = self::new_id();
-        $path = self::directory() . '/' . $id . '.csv';
+        $path = self::secret_path();
 
         if ( ! @move_uploaded_file($file['tmp_name'], $path)) {
             return new \WP_Error('mo_import_upload', __('The file could not be saved. Check that the uploads folder is writable.', 'mailoptin'));
         }
 
-        return self::create_from_file($path, $name, $id);
+        return self::create_from_file($path, $name);
+    }
+
+    /**
+     * Rewrite the file as UTF-8 with \n line endings. Excel saves "CSV" as Windows-1252, "Unicode
+     * Text" as UTF-16, and older Mac versions end lines with \r only.
+     *
+     * @return bool false if it couldn't be read or written
+     */
+    public static function normalize_file($path)
+    {
+        $content = file_get_contents($path);
+
+        if (false === $content) return false;
+
+        $original = $content;
+
+        if (0 === strpos($content, "\xFF\xFE") || 0 === strpos($content, "\xFE\xFF")) {
+            $content = mb_convert_encoding(substr($content, 2), 'UTF-8', 0 === strpos($content, "\xFF\xFE") ? 'UTF-16LE' : 'UTF-16BE');
+        } else {
+            if (0 === strpos($content, "\xEF\xBB\xBF")) $content = substr($content, 3);
+            if ( ! mb_check_encoding($content, 'UTF-8')) $content = mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
+        }
+
+        if (false === strpos($content, "\n") && false !== strpos($content, "\r")) $content = str_replace("\r", "\n", $content);
+
+        return $content === $original || false !== file_put_contents($path, $content);
     }
 
     /**
@@ -132,9 +175,9 @@ class SubscriberImport
      *
      * @return array|\WP_Error the job
      */
-    public static function create_from_file($path, $name, $id = '')
+    public static function create_from_file($path, $name)
     {
-        $id = $id ?: self::new_id();
+        $id = self::new_id();
 
         if (filesize($path) > self::MAX_BYTES) {
             @unlink($path);
@@ -142,16 +185,14 @@ class SubscriberImport
             return new \WP_Error('mo_import_size', sprintf(__('The file is larger than %s. Split it into smaller files and import them one after another.', 'mailoptin'), size_format(self::MAX_BYTES)));
         }
 
-        $handle = fopen($path, 'r');
+        $handle = self::normalize_file($path) ? fopen($path, 'r') : false;
 
         if ( ! $handle) return new \WP_Error('mo_import_read', __('The file could not be read.', 'mailoptin'));
 
-        $first     = (string)fgets($handle);
-        $delimiter = self::detect_delimiter($first);
+        $lines = [];
+        while (count($lines) < 5 && false !== ($line = fgets($handle))) $lines[] = $line;
+        $delimiter = self::detect_delimiter(implode('', $lines));
         rewind($handle);
-
-        // Excel's "CSV UTF-8" starts with a byte order mark.
-        if ("\xEF\xBB\xBF" !== fread($handle, 3)) rewind($handle);
 
         $headers = fgetcsv($handle, 0, $delimiter, '"', '');
         $offset  = ftell($handle);
@@ -163,9 +204,7 @@ class SubscriberImport
         }
         fclose($handle);
 
-        $headers = array_map(function ($header) {
-            return trim(wp_check_invalid_utf8((string)$header, true));
-        }, (array)$headers);
+        $headers = array_map([__CLASS__, 'clean_cell'], (array)$headers);
 
         if (empty(array_filter($headers, 'strlen')) || 0 === $total) {
             @unlink($path);
@@ -174,30 +213,29 @@ class SubscriberImport
         }
 
         $job = [
-            'id'         => $id,
-            'user_id'    => get_current_user_id(),
-            'name'       => $name,
-            'file'       => $path,
-            'delimiter'  => $delimiter,
-            'headers'    => $headers,
-            'sample'     => array_map(function ($cell) {
-                return wp_check_invalid_utf8((string)$cell, true);
-            }, (array)$sample),
-            'total'      => $total,
-            'mapping'    => self::guess_mapping($headers),
-            'lists'      => [],
-            'tag_all'    => '',
-            'permission' => '',
-            'existing'   => self::EXISTING_FILL,
-            'status'     => self::STATUS_MAPPING,
-            'offset'     => $offset,
-            'row'        => 0,
-            'counts'     => array_fill_keys(['added', 'updated', self::PROBLEM_SUPPRESSED, self::PROBLEM_INVALID, self::PROBLEM_REPEATED, self::PROBLEM_NOTE], 0),
-            'problems'   => [],
-            'log_id'     => 0,
-            'created_at' => gmdate('Y-m-d H:i:s'),
-            'started_at' => null,
-            'finished_at' => null,
+            'id'            => $id,
+            'user_id'       => get_current_user_id(),
+            'name'          => $name,
+            'file'          => $path,
+            'problems_file' => '',
+            'delimiter'     => $delimiter,
+            'headers'       => $headers,
+            'sample'        => array_map([__CLASS__, 'clean_cell'], (array)$sample),
+            'total'         => $total,
+            'mapping'       => self::guess_mapping($headers),
+            'lists'         => [],
+            'tag_all'       => '',
+            'permission'    => '',
+            'existing'      => self::EXISTING_FILL,
+            'status'        => self::STATUS_MAPPING,
+            'offset'        => $offset,
+            'row'           => 0,
+            'counts'        => array_fill_keys(['added', 'updated', self::PROBLEM_SUPPRESSED, self::PROBLEM_INVALID, self::PROBLEM_REPEATED, self::PROBLEM_NOTE], 0),
+            'problems'      => [],
+            'log_id'        => 0,
+            'created_at'    => gmdate('Y-m-d H:i:s'),
+            'started_at'    => null,
+            'finished_at'   => null,
         ];
 
         self::save($job);
@@ -214,12 +252,33 @@ class SubscriberImport
         return strtolower(wp_generate_password(12, false));
     }
 
-    public static function detect_delimiter($line)
+    /**
+     * The delimiter that splits the first lines into the same, largest number of columns. Quoted
+     * cells like "Name, full" don't count.
+     */
+    public static function detect_delimiter($sample)
     {
-        $counts = [',' => substr_count($line, ','), ';' => substr_count($line, ';'), "\t" => substr_count($line, "\t")];
-        arsort($counts);
+        $lines = array_slice(array_filter(preg_split('/\r\n|\n|\r/', (string)$sample), 'strlen'), 0, 5);
+        $best  = ',';
+        $score = 0;
 
-        return reset($counts) > 0 ? key($counts) : ',';
+        foreach ([',', ';', "\t", '|'] as $delimiter) {
+            $counts = array_map(function ($line) use ($delimiter) {
+                return count(str_getcsv($line, $delimiter, '"', ''));
+            }, $lines);
+
+            if (empty($counts) || min($counts) < 2) continue;
+
+            // Consistent rows beat a single wide one.
+            $this_score = min($counts) * (count(array_unique($counts)) === 1 ? 2 : 1);
+
+            if ($this_score > $score) {
+                $best  = $delimiter;
+                $score = $this_score;
+            }
+        }
+
+        return $best;
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -384,7 +443,7 @@ class SubscriberImport
         if ( ! $job) return false;
 
         self::finish_files($job);
-        @unlink(self::problems_path($job));
+        if (self::problems_path($job)) @unlink(self::problems_path($job));
         delete_option(self::OPTION_PREFIX . $id);
         update_option(self::INDEX_OPTION, array_values(array_diff((array)get_option(self::INDEX_OPTION, []), [$id])), false);
         wp_clear_scheduled_hook(self::CRON_HOOK, [$id]);
@@ -413,53 +472,124 @@ class SubscriberImport
 
     public static function problems_path($job)
     {
-        return self::directory() . '/' . $job['id'] . '-problems.csv';
+        return ! empty($job['problems_file']) ? $job['problems_file'] : '';
+    }
+
+    /**
+     * The job as stored now, not as cached earlier in this request.
+     */
+    protected static function fresh($id)
+    {
+        wp_cache_delete(self::OPTION_PREFIX . $id, 'options');
+        wp_cache_delete('notoptions', 'options');
+
+        return self::get($id);
     }
 
     /* ---------------------------------------------------------------------------------------------
      * Running
      * ------------------------------------------------------------------------------------------ */
 
-    protected static function schedule($id)
+    protected static function schedule($id, $delay = 0)
     {
-        if ( ! wp_next_scheduled(self::CRON_HOOK, [$id])) {
-            wp_schedule_single_event(time(), self::CRON_HOOK, [$id]);
-        }
+        $next = wp_next_scheduled(self::CRON_HOOK, [$id]);
+
+        if ($next && $next <= time() + $delay) return;
+        if ($next) wp_unschedule_event($next, self::CRON_HOOK, [$id]);
+
+        wp_schedule_single_event(time() + $delay, self::CRON_HOOK, [$id]);
     }
 
     public static function run_from_cron($id)
     {
+        // Scheduled first, so the import carries on even if this request dies.
+        self::schedule($id, MINUTE_IN_SECONDS);
+
         $job = self::run_batch($id);
 
         if ($job && self::STATUS_RUNNING === $job['status']) {
-            wp_schedule_single_event(time() + 5, self::CRON_HOOK, [$id]);
+            self::schedule($id, 5);
+        } else {
+            wp_clear_scheduled_hook(self::CRON_HOOK, [$id]);
         }
     }
 
     /**
-     * Import the next rows. The progress page and cron both call this; a lock keeps them from
-     * importing the same rows twice.
+     * Restart imports whose next batch was never scheduled, for example after a lost cron event.
+     */
+    public static function watchdog()
+    {
+        foreach (self::all() as $job) {
+            if (self::STATUS_RUNNING === $job['status'] && ! wp_next_scheduled(self::CRON_HOOK, [$job['id']])) self::schedule($job['id']);
+        }
+    }
+
+    /**
+     * Only one request imports a job's rows at a time. INSERT IGNORE succeeds for exactly one
+     * caller; a lock left by a request that died is taken over by exactly one caller once it expires.
+     *
+     * @return string|false a token for unlock(), or false if another request holds the lock
+     */
+    protected static function lock($id, $lease = 120)
+    {
+        global $wpdb;
+
+        $name  = self::OPTION_PREFIX . $id . '_lock';
+        $token = wp_generate_password(20, false);
+        $value = (time() + $lease) . '|' . $token;
+
+        $got = 1 === (int)$wpdb->query($wpdb->prepare("INSERT IGNORE INTO $wpdb->options (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, $value));
+
+        if ( ! $got) {
+            $got = 1 === (int)$wpdb->query(
+                    $wpdb->prepare(
+                        "UPDATE $wpdb->options SET option_value = %s WHERE option_name = %s AND CAST(SUBSTRING_INDEX(option_value, '|', 1) AS UNSIGNED) < %d",
+                        $value,
+                        $name,
+                        time()
+                    )
+                );
+        }
+
+        wp_cache_delete($name, 'options');
+
+        return $got ? $token : false;
+    }
+
+    protected static function unlock($id, $token)
+    {
+        global $wpdb;
+
+        $name = self::OPTION_PREFIX . $id . '_lock';
+
+        // Only our own lock: if it expired and another request took it, it's theirs.
+        $wpdb->query($wpdb->prepare("DELETE FROM $wpdb->options WHERE option_name = %s AND option_value LIKE %s", $name, '%|' . $wpdb->esc_like($token)));
+        wp_cache_delete($name, 'options');
+    }
+
+    /**
+     * Import the next rows. The progress page and cron both call this.
+     *
+     * Progress is saved every CHECKPOINT rows. If a request dies in between, the next batch starts
+     * again from the last checkpoint: rows it had already imported are recognised by their
+     * "imported" event and counted once, and the problems file is cut back to the checkpoint.
      *
      * @return array|null the job afterwards
      */
     public static function run_batch($id, $max_rows = 500, $time_budget = 10)
     {
-        $job = self::get($id);
+        $job = self::fresh($id);
 
         if ( ! $job || self::STATUS_RUNNING !== $job['status']) return $job;
 
-        $lock = self::OPTION_PREFIX . $id . '_lock';
+        $token = self::lock($id);
 
-        if ( ! add_option($lock, time() + 60, '', false)) {
-            if ((int)get_option($lock) > time()) return $job;
-            // The request holding the lock died.
-            update_option($lock, time() + 60, false);
-        }
+        if ( ! $token) return $job;
 
         try {
-            $job = self::get($id);
+            $job = self::fresh($id);
 
-            if (self::STATUS_RUNNING !== $job['status']) return $job;
+            if ( ! $job || self::STATUS_RUNNING !== $job['status']) return $job;
 
             $handle = is_file($job['file']) ? fopen($job['file'], 'r') : false;
 
@@ -472,42 +602,102 @@ class SubscriberImport
                 return $job;
             }
 
+            // Problem rows written after the last checkpoint are written again.
+            $problems = self::problems_path($job);
+            if ($problems) clearstatcache(true, $problems);
+            if ($problems && is_file($problems) && filesize($problems) > (int)($job['problems_size'] ?? 0)) {
+                $cut = fopen($problems, 'r+');
+                if ($cut) {
+                    ftruncate($cut, (int)($job['problems_size'] ?? 0));
+                    fclose($cut);
+                }
+                clearstatcache(true, $problems);
+            }
+
             fseek($handle, $job['offset']);
 
             $deadline      = time() + $time_budget;
             $rows          = 0;
             $confirmations = [];
+            $at_end        = false;
 
-            while ($rows < $max_rows && time() < $deadline && false !== ($cells = fgetcsv($handle, 0, $job['delimiter'], '"', ''))) {
+            while ($rows < $max_rows && time() < $deadline) {
+                $cells = fgetcsv($handle, 0, $job['delimiter'], '"', '');
+
+                if (false === $cells) {
+                    $at_end = true;
+                    break;
+                }
+
                 $job['row']++;
                 $rows++;
 
-                // Blank lines.
-                if ([null] === $cells || '' === trim(implode('', $cells))) continue;
+                // Not blank lines.
+                if ([null] !== $cells && '' !== trim(implode('', $cells))) {
+                    self::check_quotes($job, $cells);
 
-                $result = self::import_row($job, $cells);
+                    $result = self::import_row($job, $cells);
 
-                if ( ! empty($result['confirm'])) $confirmations[] = $result['confirm'];
+                    if ( ! empty($result['confirm'])) $confirmations[] = $result['confirm'];
+                }
+
+                $job['offset'] = ftell($handle);
+
+                if (0 === $rows % self::CHECKPOINT) {
+                    if ( ! self::checkpoint($job, $confirmations)) {
+                        fclose($handle);
+
+                        return self::fresh($id);
+                    }
+                    $confirmations = [];
+                }
             }
 
-            $job['offset'] = ftell($handle);
-            $at_end        = false === fgetcsv($handle, 0, $job['delimiter'], '"', '');
-            fclose($handle);
+            if ( ! $at_end) {
+                $at_end = false === fgetcsv($handle, 0, $job['delimiter'], '"', '');
+            }
 
-            if ($job['log_id'] && ! empty($confirmations)) ImportConfirmations::enqueue($job['log_id'], $confirmations);
+            fclose($handle);
 
             if ($at_end) {
                 $job['status']      = self::STATUS_DONE;
                 $job['finished_at'] = gmdate('Y-m-d H:i:s');
-                self::finish_files($job);
             }
 
-            self::save($job);
+            if ( ! self::checkpoint($job, $confirmations)) return self::fresh($id);
+
+            if ($at_end) self::finish_files($job);
 
             return $job;
         } finally {
-            delete_option($lock);
+            self::unlock($id, $token);
         }
+    }
+
+    /**
+     * Save progress, unless the import was stopped or deleted meanwhile: then that wins.
+     *
+     * @return bool false if the import should stop
+     */
+    protected static function checkpoint(&$job, $confirmations)
+    {
+        $stored = self::fresh($job['id']);
+
+        if ( ! $stored || self::STATUS_RUNNING !== $stored['status']) {
+            if ( ! $stored) self::finish_files($job);
+
+            return false;
+        }
+
+        if ($job['log_id'] && ! empty($confirmations)) ImportConfirmations::enqueue($job['log_id'], $confirmations);
+
+        $problems = self::problems_path($job);
+        if ($problems) clearstatcache(true, $problems);
+        $job['problems_size'] = $problems && is_file($problems) ? filesize($problems) : 0;
+
+        self::save($job);
+
+        return true;
     }
 
     protected static function cell($job, $cells, $target)
@@ -557,7 +747,16 @@ class SubscriberImport
             return [];
         }
 
-        if ($subscriber && self::already_imported($subscriber['id'], $job['id'])) {
+        $earlier = $subscriber ? self::imported_event($subscriber['id'], $job['id']) : null;
+
+        if ($earlier) {
+            // This very row, imported just before a request died: count it, don't report it.
+            if ((int)($earlier['row'] ?? 0) === (int)$job['row']) {
+                $job['counts'][ ! empty($earlier['new']) ? 'added' : 'updated']++;
+
+                return self::needs_confirmation($job, (int)$subscriber['id']);
+            }
+
             self::problem($job, $cells, $email, self::PROBLEM_REPEATED, __('The same email is on an earlier row.', 'mailoptin'));
 
             return [];
@@ -651,23 +850,46 @@ class SubscriberImport
 
         Subscribers::log_event($subscriber_id, Subscribers::EVENT_IMPORTED, array_filter([
             'import'   => $job['id'],
+            'row'      => (int)$job['row'],
+            'new'      => $is_new,
             'file'     => $job['name'],
             'by_admin' => (int)$job['user_id'],
             'list_ids' => $joined,
-            'tags'     => array_values(array_intersect_key(Tags::is_ready() ? Tags::names() : [], array_flip($tag_ids))),
+            'tags'     => empty($tag_ids) ? [] : array_values(array_intersect_key(Tags::names(), array_flip($tag_ids))),
         ]));
 
         $job['counts'][$is_new ? 'added' : 'updated']++;
 
-        if ( ! $subscribed && ! empty($joined)) {
-            $current = Subscribers::get($subscriber_id);
+        return empty($joined) ? [] : self::needs_confirmation($job, $subscriber_id);
+    }
 
-            if (Subscribers::STATUS_PENDING === $current['status'] || in_array(Subscribers::STATUS_PENDING, wp_list_pluck(Subscribers::get_memberships($subscriber_id), 'status'), true)) {
-                return ['confirm' => $current];
+    /**
+     * A cell holding line breaks and an email address or delimiter usually means a quote that was
+     * never closed, which swallows the rows after it.
+     */
+    protected static function check_quotes(&$job, $cells)
+    {
+        foreach ($cells as $cell) {
+            $cell = (string)$cell;
+
+            if (false !== strpos($cell, "\n") && (false !== strpos($cell, '@') || false !== strpos($cell, $job['delimiter']))) {
+                self::problem($job, $cells, '', self::PROBLEM_NOTE, __('This row may run into the rows after it: check for a quote mark that isn\'t closed.', 'mailoptin'));
+
+                return;
             }
         }
+    }
 
-        return [];
+    /**
+     * @return array ['confirm' => subscriber] when the import asks for confirmation and a list is pending
+     */
+    protected static function needs_confirmation($job, $subscriber_id)
+    {
+        if (self::PERMISSION_CONFIRM !== $job['permission']) return [];
+
+        $subscriber = Subscribers::get($subscriber_id);
+
+        return $subscriber && in_array(Subscribers::STATUS_PENDING, wp_list_pluck(Subscribers::get_memberships($subscriber_id), 'status'), true) ? ['confirm' => $subscriber] : [];
     }
 
     protected static function consent_text($job)
@@ -677,20 +899,25 @@ class SubscriberImport
         return sprintf(__('Imported from %1$s by %2$s', 'mailoptin'), $job['name'], $user ? $user->display_name : __('an admin', 'mailoptin'));
     }
 
-    protected static function already_imported($subscriber_id, $import_id)
+    /**
+     * @return array|null meta of the subscriber's "imported" event for this import, if any
+     */
+    protected static function imported_event($subscriber_id, $import_id)
     {
         global $wpdb;
 
         $events = Subscribers::events_table();
 
-        return (bool)$wpdb->get_var(
+        $meta = $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT 1 FROM $events WHERE subscriber_id = %d AND type = %s AND meta LIKE %s LIMIT 1",
+                "SELECT meta FROM $events WHERE subscriber_id = %d AND type = %s AND meta LIKE %s ORDER BY id DESC LIMIT 1",
                 $subscriber_id,
                 Subscribers::EVENT_IMPORTED,
                 '%' . $wpdb->esc_like('"import":"' . $import_id . '"') . '%'
             )
         );
+
+        return null === $meta ? null : (array)json_decode($meta, true);
     }
 
     /**
@@ -707,13 +934,15 @@ class SubscriberImport
             $job['problems'][] = ['row' => $row, 'email' => $email, 'type' => $type, 'message' => $message];
         }
 
-        $path  = self::problems_path($job);
-        $new   = ! is_file($path);
+        if (empty($job['problems_file'])) $job['problems_file'] = self::secret_path('-problems');
+
+        $path   = $job['problems_file'];
+        $new    = ! is_file($path) || 0 === filesize($path);
         $handle = fopen($path, 'a');
 
         if ( ! $handle) return;
 
-        if ($new) fputcsv($handle, array_merge([__('Row', 'mailoptin'), __('Problem', 'mailoptin')], $job['headers']), ',', '"', '');
+        if ($new) fputcsv($handle, array_map([SubscriberExport::class, 'safe_cell'], array_merge([__('Row', 'mailoptin'), __('Problem', 'mailoptin')], $job['headers'])), ',', '"', '');
 
         fputcsv($handle, array_map([SubscriberExport::class, 'safe_cell'], array_merge([$row, $message], (array)$cells)), ',', '"', '');
         fclose($handle);
