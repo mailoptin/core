@@ -260,6 +260,9 @@ class SegmentsRepository extends AbstractRepository
         foreach (EmailCampaignRepository::get_settings() as $campaign_id => $settings) {
             if ( ! is_array($settings) || (int)($settings[self::SEGMENT_SETTING] ?? 0) !== (int)$segment_id) continue;
 
+            // A broadcast that went out never uses its audience again, and can't be edited.
+            if (\MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts::is_done($campaign_id)) continue;
+
             $name = EmailCampaignRepository::get_email_campaign_name($campaign_id);
 
             if (null !== $name) $used[(int)$campaign_id] = $name;
@@ -357,6 +360,8 @@ class SegmentsRepository extends AbstractRepository
 
         foreach (EmailCampaignRepository::get_settings() as $campaign_id => $settings) {
             if ( ! is_array($settings) || ! in_array((int)$tag_id, (array)self::parse_tag_ids($settings[self::EXCLUDE_TAGS_SETTING] ?? ''), true)) continue;
+
+            if (\MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts::is_done($campaign_id)) continue;
 
             $name = EmailCampaignRepository::get_email_campaign_name($campaign_id);
 

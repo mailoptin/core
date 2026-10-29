@@ -329,4 +329,78 @@ class BroadcastsTest extends WP_UnitTestCase
         $this->assertSame(0, $this->queued());
         $this->assertNotNull(Broadcasts::scheduled_at($this->campaign_id));
     }
+
+    public function test_resend_from_the_campaign_log_clears_the_schedule()
+    {
+        $this->member('a@example.com');
+
+        Broadcasts::schedule($this->campaign_id, time() + HOUR_IN_SECONDS);
+
+        $newsletter = \MailOptin\Core\EmailCampaigns\Newsletter\Newsletter::get_instance();
+        $log_id     = $newsletter->save_campaign_log($this->campaign_id, 'Hi', '<p>Hi</p>');
+
+        // Resend goes straight to deliver(), as Campaign_Log_List's resend does via send_campaign().
+        $deliver = new \ReflectionMethod($newsletter, 'deliver');
+        $deliver->setAccessible(true);
+        $deliver->invoke($newsletter, $this->campaign_id, $log_id);
+
+        $this->assertNull(Broadcasts::scheduled_at($this->campaign_id));
+        $this->assertFalse(wp_next_scheduled(Broadcasts::CRON_HOOK, [$this->campaign_id]));
+    }
+
+    public function test_deleting_its_log_keeps_a_sent_broadcast_sent()
+    {
+        global $wpdb;
+
+        $this->member('a@example.com');
+        $this->assertTrue(Broadcasts::send($this->campaign_id)['success']);
+
+        $wpdb->delete($wpdb->prefix . \MailOptin\Core\Core::campaign_log_table_name, ['email_campaign_id' => $this->campaign_id]);
+
+        $this->assertSame(Broadcasts::STATUS_SENT, Broadcasts::status($this->campaign_id)['status']);
+        $this->assertFalse(Broadcasts::send($this->campaign_id)['success']);
+        $this->assertSame(1, $this->queued());
+    }
+
+    public function test_segments_and_tags_used_only_by_sent_broadcasts_can_be_deleted()
+    {
+        $tag     = \MailOptin\Core\Repositories\TagsRepository::create('vip');
+        $segment = \MailOptin\Core\Repositories\SegmentsRepository::create('VIP', ['tag_ids' => [$tag]]);
+        $other   = \MailOptin\Core\Repositories\TagsRepository::create('churned');
+
+        Broadcasts::save($this->campaign_id, [\MailOptin\Core\Repositories\SegmentsRepository::SEGMENT_SETTING => (string)$segment, \MailOptin\Core\Repositories\SegmentsRepository::EXCLUDE_TAGS_SETTING => (string)$other]);
+        $this->assertNotEmpty(\MailOptin\Core\Repositories\SegmentsRepository::used_by($segment));
+        $this->assertNotEmpty(\MailOptin\Core\Repositories\SegmentsRepository::excluded_by($other));
+
+        EmailCampaignMeta::update_meta_data($this->campaign_id, 'newsletter_date_sent', current_time('mysql'));
+
+        $this->assertSame([], \MailOptin\Core\Repositories\SegmentsRepository::used_by($segment));
+        $this->assertSame([], \MailOptin\Core\Repositories\SegmentsRepository::excluded_by($other));
+    }
+
+    public function test_the_old_send_link_goes_through_the_review()
+    {
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $this->member('a@example.com');
+
+        $_GET = $_REQUEST = ['action' => 'mailoptin_send_newsletter', 'id' => $this->campaign_id, '_wpnonce' => wp_create_nonce('mailoptin-send-newsletter')];
+        set_current_screen('dashboard');
+
+        $location = null;
+        add_filter('wp_redirect', $filter = function ($url) use (&$location) {
+            $location = $url;
+            throw new \RuntimeException('redirected');
+        });
+
+        try {
+            \MailOptin\Core\EmailCampaigns\Newsletter\Newsletter::get_instance()->newsletter_sending_handler();
+        } catch (\RuntimeException $e) {
+        }
+
+        remove_filter('wp_redirect', $filter);
+
+        $this->assertStringContainsString('view=broadcast', (string)$location);
+        $this->assertStringContainsString('review=1', (string)$location);
+        $this->assertSame(0, $this->queued(), 'Nothing is sent until the review is confirmed.');
+    }
 }

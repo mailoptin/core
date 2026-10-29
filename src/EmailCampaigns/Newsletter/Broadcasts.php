@@ -94,8 +94,13 @@ class Broadcasts
 
         if ($scheduled) return ['status' => self::STATUS_SCHEDULED, 'log' => $log, 'scheduled_at' => $scheduled];
 
+        if ( ! $log) {
+            // Its log was deleted: the sent date it keeps still says it went out.
+            $date_sent = (string)EmailCampaignMeta::get_meta_data($email_campaign_id, 'newsletter_date_sent');
+            $sent      = '' !== $date_sent && ! in_array($date_sent, [ER::NEWSLETTER_STATUS_DRAFT, ER::NEWSLETTER_STATUS_FAILED], true);
 
-        if ( ! $log) return ['status' => self::STATUS_DRAFT, 'log' => null, 'scheduled_at' => null];
+            return ['status' => $sent ? self::STATUS_SENT : self::STATUS_DRAFT, 'log' => null, 'scheduled_at' => null];
+        }
 
         $map = [
             QueueRunner::LOG_STATUS_SENDING => self::STATUS_SENDING,
@@ -303,6 +308,14 @@ class Broadcasts
 
         // A list fetch that failed comes back empty too, so only these are known to have no lists.
         return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true);
+    }
+
+    /**
+     * Whether a broadcast went out (or is going out), so its settings are only a record now.
+     */
+    public static function is_done($email_campaign_id)
+    {
+        return ER::is_newsletter($email_campaign_id) && in_array(self::status($email_campaign_id)['status'], [self::STATUS_SENDING, self::STATUS_SENT], true);
     }
 
     public static function can_send($email_campaign_id)

@@ -138,7 +138,7 @@ class Broadcast_Page
                             <h3><?php esc_html_e('Content', 'mailoptin'); ?></h3>
                             <div class="mo-design">
                                 <a class="mo-thumb" href="<?php echo esc_url(self::design_url($email_campaign_id)); ?>" data-design aria-label="<?php esc_attr_e('Design email', 'mailoptin'); ?>">
-                                    <iframe title="<?php esc_attr_e('Email preview', 'mailoptin'); ?>" sandbox="" tabindex="-1" srcdoc="<?php echo esc_attr((string)(new NewsletterTemplatePreview($email_campaign_id))->forge()); ?>"></iframe>
+                                    <iframe title="<?php esc_attr_e('Email preview', 'mailoptin'); ?>" sandbox="" tabindex="-1" srcdoc="<?php echo htmlspecialchars((string)(new NewsletterTemplatePreview($email_campaign_id))->forge(), ENT_QUOTES, 'UTF-8', true); ?>"></iframe>
                                     <span><?php esc_html_e('Design email', 'mailoptin'); ?></span>
                                 </a>
                                 <div>

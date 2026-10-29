@@ -30,9 +30,10 @@ class Newsletter extends AbstractTriggers
 
         $email_campaign_id = absint($_GET['id']);
 
-        $campaign_id = $this->create_log($email_campaign_id);
-
-        $this->send_campaign($email_campaign_id, $campaign_id);
+        // The old send link (the customizer's Send Broadcast button) goes through the broadcast
+        // page's review, its checks and its send-once claim.
+        wp_safe_redirect(\MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($email_campaign_id, ['review' => 1, 'when' => 'now']));
+        exit;
     }
 
     /**
@@ -85,6 +86,9 @@ class Newsletter extends AbstractTriggers
      */
     protected function deliver($email_campaign_id, $campaign_log_id)
     {
+        // Every path ends here, Resend from the campaign log too: it is no longer scheduled.
+        Broadcasts::cancel($email_campaign_id);
+
         do_action('mo_newsletter_before_send_campaign', $email_campaign_id, $campaign_log_id);
 
         $campaign            = $this->CampaignLogRepository->getById($campaign_log_id);

@@ -27,6 +27,8 @@ class SegmentsTest extends WP_UnitTestCase
     {
         parent::set_up();
 
+        DBUpdates::get_instance()->update_routine_7();
+        \MailOptin\Core\Base::get_instance()->register_metadata_table();
         DBUpdates::get_instance()->update_routine_17();
         DBUpdates::get_instance()->update_routine_20();
         DBUpdates::get_instance()->update_routine_21();
