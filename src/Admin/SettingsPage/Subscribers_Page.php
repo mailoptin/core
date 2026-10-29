@@ -262,8 +262,9 @@ class Subscribers_Page extends AbstractSettingsPage
             <?php echo Subscriber_Filters::hidden_inputs($this->list_table->filters); ?>
             <?php $this->list_table->search_box(Subscribers_Tags_Fields::is_ready() ? __('Search name, email or any field', 'mailoptin') : __('Search email or name', 'mailoptin'), 'mo-subscriber-search'); ?>
             <?php $this->list_table->display(); ?>
-            <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::bulk_bar_html(); ?>
         </form>
+        <?php // Outside the table's form: the dialogs have forms of their own, and browsers drop nested forms. ?>
+        <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::bulk_bar_html(); ?>
         <?php
         $this->build_page(ob_get_clean());
     }
@@ -952,10 +953,11 @@ class Subscribers_Page extends AbstractSettingsPage
 .mo-kv dd{margin:0}
 .mo-consent-checkbox{color:#00701a;font-weight:600}
 .mo-consent-checkbox_not_ticked{color:#b32d2e;font-weight:600}
-.wp-list-table.subscribers .column-email{width:26%}
-.wp-list-table.subscribers .column-name{width:15%}
-.wp-list-table.subscribers .column-status{width:120px}
-.wp-list-table.subscribers .column-created_at{width:150px}
+.wp-list-table.subscribers .column-email{width:22%}
+.wp-list-table.subscribers .column-name{width:13%}
+.wp-list-table.subscribers .column-status{width:110px}
+.wp-list-table.subscribers .column-source{width:11%}
+.wp-list-table.subscribers .column-created_at{width:130px}
 .mo-lists-table th{white-space:nowrap}
 .mo-lists-table th:first-child{width:30%}
 fieldset{margin:12px 0}

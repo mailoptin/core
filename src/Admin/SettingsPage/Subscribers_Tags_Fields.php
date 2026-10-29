@@ -1079,6 +1079,7 @@ class Subscribers_Tags_Fields
 .mo-bulk-bar .button{background:#2c3338;border-color:#50575e;color:#fff}
 .mo-bulk-bar .button:hover{background:#3c434a;color:#fff}
 .mo-bulk-bar .mo-button-danger{color:#ffabaf!important;border-color:#8a2424!important}
+.mo-bulk-bar[hidden]{display:none}
 .mo-sep{width:1px;height:20px;background:#50575e;margin:0 4px}
 .mo-dialog{border:1px solid #c3c4c7;border-radius:6px;padding:16px 20px;width:380px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .mo-dialog::backdrop{background:rgba(0,0,0,.25)}
@@ -1099,6 +1100,9 @@ class Subscribers_Tags_Fields
 .mo-heading-with-link a{font-size:13px;font-weight:400}
 .mo-profile-tags{margin-bottom:6px}
 .wp-list-table.subscribers .column-tags{width:16%}
+.wp-list-table.subscribers .column-lists{width:12%}
+.wp-list-table.subscribers [class*="column-field_"]{width:10%}
+.wp-list-table.subscribers td{overflow-wrap:break-word}
 @media (max-width:782px){.mo-panel-dim,.mo-panel{top:46px}.mo-field-row{grid-template-columns:1fr}.mo-types{grid-template-columns:repeat(2,1fr)}}
 </style>';
     }
