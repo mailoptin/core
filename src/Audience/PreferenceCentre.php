@@ -196,7 +196,8 @@ class PreferenceCentre
         <?php if (Subscribers::STATUS_UNSUBSCRIBED !== $subscriber['status'] && ! $blocked && ! empty($memberships)) : ?>
             <div class="mo-p-sec"><a class="mo-p-link" href="<?php echo esc_url(Tokens::unsubscribe_url($subscriber)); ?>"><?php esc_html_e('Unsubscribe from everything', 'mailoptin'); ?></a></div>
         <?php endif; ?>
-        <p class="mo-p-foot"><?php echo esc_html(trim(Subscription::postal_footer() . ' ' . __('This page is only for you: anyone with its link can change your preferences, so please don\'t forward our emails.', 'mailoptin'))); ?></p>
+        <p class="mo-p-foot"><?php esc_html_e('This page is only for you: anyone with its link can change your preferences, so please don\'t forward our emails.', 'mailoptin'); ?></p>
+        <?php if ('' !== Subscription::postal_footer()) : ?><p class="mo-p-foot"><?php echo esc_html(Subscription::postal_footer()); ?></p><?php endif; ?>
         <?php
         return ob_get_clean();
     }
