@@ -427,9 +427,16 @@ class SubscribersRepository extends AbstractRepository
      *
      * @return int
      */
-    public static function count_events_since($type, $since, $subscriber_id = 0)
+    public static function count_events_since($type, $since, $subscriber_id = 0, $direct_only = false)
     {
         $table = self::events_table();
+
+        // Events of emails sent straight away, not through a campaign's send queue.
+        if ($direct_only) {
+            return (int)self::wpdb()->get_var(
+                self::wpdb()->prepare("SELECT COUNT(*) FROM $table WHERE type = %s AND created_at >= %s AND campaign_log_id = 0", $type, $since)
+            );
+        }
 
         if ($subscriber_id) {
             return (int)self::wpdb()->get_var(

@@ -860,6 +860,17 @@ class Subscribers_Tags_Fields
             case Subscribers::EVENT_TAGS_REMOVED:
                 $text = sprintf(_n('Tag %s removed', 'Tags %s removed', count((array)($meta['tags'] ?? [])), 'mailoptin'), implode(', ', (array)($meta['tags'] ?? [])));
                 break;
+            case Subscribers::EVENT_IMPORTED:
+                $lists = array_filter(array_map(function ($list_id) {
+                    $list = \MailOptin\Core\Repositories\ListsRepository::get($list_id);
+
+                    return $list ? $list['name'] : '';
+                }, (array)($meta['list_ids'] ?? [])));
+
+                $text = sprintf(__('Imported from %s', 'mailoptin'), $meta['file'] ?? __('a CSV file', 'mailoptin'));
+                if ( ! empty($lists)) $text .= ' ' . sprintf(__('into %s', 'mailoptin'), implode(', ', $lists));
+                if ( ! empty($meta['tags'])) $text .= ', ' . sprintf(__('tagged %s', 'mailoptin'), implode(', ', (array)$meta['tags']));
+                break;
             case Subscribers::EVENT_FIELDS_CHANGED:
                 if ( ! empty($meta['changes'])) {
                     $parts = array_map(function ($change) {
