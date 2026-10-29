@@ -112,6 +112,7 @@ class Campaign_Log_List extends \WP_List_Table
     public function delete_a_campaign_log($id)
     {
         SendQueueRepository::delete_campaign($id);
+        if (\MailOptin\Core\Repositories\CampaignActivityRepository::is_ready()) \MailOptin\Core\Repositories\CampaignActivityRepository::delete_campaign($id);
 
         return $this->wpdb->delete(
             $this->table,
@@ -184,6 +185,7 @@ class Campaign_Log_List extends \WP_List_Table
             'content_html'   => __('HTML', 'mailoptin'),
             'content_text'   => __('Plain Text', 'mailoptin'),
             'status'         => __('Status', 'mailoptin'),
+            'engagement'     => __('Engagement', 'mailoptin'),
             'email_campaign' => __('Campaign', 'mailoptin'),
             'date_time'      => __('Date & Time', 'mailoptin'),
         );
@@ -226,7 +228,13 @@ class Campaign_Log_List extends \WP_List_Table
             MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE
         );
 
-        $actions = [
+        $actions = [];
+
+        if ($this->has_report($campaign_log_id)) {
+            $actions['report'] = sprintf('<a href="%s">%s</a>', esc_url(Campaign_Report::url($campaign_log_id)), esc_html__('Report', 'mailoptin'));
+        }
+
+        $actions += [
             'delete' => sprintf(
                 '<a class="mo-delete-prompt" href="%s">%s</a>',
                 $delete_href, __('Delete', 'mailoptin')
@@ -357,6 +365,35 @@ class Campaign_Log_List extends \WP_List_Table
         }
 
         return $this->queue_progress_html($item) . $err_log;
+    }
+
+    /**
+     * Whether a campaign went to a built-in list, so it has opens and clicks to report.
+     */
+    protected function has_report($campaign_log_id)
+    {
+        return \MailOptin\Core\Repositories\CampaignActivityRepository::is_ready() && \MailOptin\Core\Repositories\CampaignActivityRepository::sent_count($campaign_log_id) > 0;
+    }
+
+    public function column_engagement($item)
+    {
+        $campaign_log_id = absint($item['id']);
+
+        if ( ! $this->has_report($campaign_log_id)) {
+            return '<span class="description">&mdash;</span>';
+        }
+
+        $sent  = \MailOptin\Core\Repositories\CampaignActivityRepository::sent_count($campaign_log_id);
+        $stats = \MailOptin\Core\Repositories\CampaignActivityRepository::stats($campaign_log_id);
+
+        return sprintf(
+            '<a href="%s"><strong>%s%%</strong> %s · <strong>%s%%</strong> %s</a>',
+            esc_url(Campaign_Report::url($campaign_log_id)),
+            esc_html(number_format_i18n($stats['openers'] / $sent * 100, 1)),
+            esc_html__('opened', 'mailoptin'),
+            esc_html(number_format_i18n($stats['clickers'] / $sent * 100, 1)),
+            esc_html__('clicked', 'mailoptin')
+        );
     }
 
     /**

@@ -111,6 +111,7 @@ class Base
         Submissions\SubmissionSync::get_instance();
         Audience\PublicEndpoints::get_instance();
         Audience\CampaignRenderer::get_instance();
+        Audience\Tracking::get_instance();
         Audience\WelcomeEmail::get_instance();
         Audience\PersonalData::get_instance();
         Audience\ImportConfirmations::get_instance();
@@ -169,6 +170,7 @@ class Base
         Admin\SettingsPage\Newsletter::get_instance();
         Admin\PostListMenu\PostPreview::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
+        Admin\SettingsPage\Campaign_Report::get_instance();
         Admin\SettingsPage\OptinCampaigns::get_instance();
         Admin\SettingsPage\LeadBank::get_instance();
         Admin\SettingsPage\Subscribers_Page::get_instance();
@@ -208,6 +210,9 @@ class Base
         $tables[] = $db_prefix . Core::custom_fields_table_name;
         $tables[] = $db_prefix . Core::field_values_table_name;
         $tables[] = $db_prefix . Core::segments_table_name;
+        $tables[] = $db_prefix . Core::campaign_links_table_name;
+        $tables[] = $db_prefix . Core::campaign_activity_table_name;
+        $tables[] = $db_prefix . Core::campaign_stats_table_name;
 
         $tables = apply_filters('mo_drop_mu_database_tables', $tables, $db_prefix);
 

@@ -13,7 +13,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 21;
+    const DB_VER = 22;
 
     public function init_options()
     {
@@ -358,6 +358,27 @@ class DBUpdates
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
         dbDelta(CreateDBTables::segments_table_sql($collate));
+    }
+
+    /**
+     * Open and click tracking for campaigns sent to built-in lists, and an index for finding
+     * what a subscriber was sent.
+     */
+    public function update_routine_22()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::tracking_tables_sql($collate) as $sql) {
+            dbDelta($sql);
+        }
+
+        foreach (CreateDBTables::audience_tables_sql($collate) as $sql) {
+            if (false !== strpos($sql, Core::send_queue_table_name)) dbDelta($sql);
+        }
     }
 
     public static function get_instance()

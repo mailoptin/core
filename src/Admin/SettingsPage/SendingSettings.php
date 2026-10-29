@@ -229,6 +229,30 @@ class SendingSettings
                     'data'  => $this->branding_html(),
                 ],
             ],
+            [
+                'section_title'                                       => __('Tracking for built-in lists', 'mailoptin'),
+                \MailOptin\Core\Audience\Tracking::OPENS_SETTING     => [
+                    'type'        => 'select',
+                    'label'       => __('Track opens', 'mailoptin'),
+                    'options'     => ['on' => __('Count who opens each email', 'mailoptin'), 'off' => __('Don\'t track opens', 'mailoptin')],
+                    'value'       => 'on',
+                    'description' => __('Adds a tiny invisible image to each email. Opens are an estimate: some email apps load images for everyone, others block them.', 'mailoptin'),
+                ],
+                \MailOptin\Core\Audience\Tracking::CLICKS_SETTING    => [
+                    'type'        => 'select',
+                    'label'       => __('Track clicks', 'mailoptin'),
+                    'options'     => ['on' => __('Count clicks on links', 'mailoptin'), 'off' => __('Don\'t track clicks', 'mailoptin')],
+                    'value'       => 'on',
+                    'description' => __('Links go through your site first, then on to their address. Unsubscribe and preference centre links are never changed.', 'mailoptin'),
+                ],
+                \MailOptin\Core\Audience\Tracking::RETENTION_SETTING => [
+                    'type'        => 'select',
+                    'label'       => __('Keep activity for', 'mailoptin'),
+                    'options'     => ['180' => __('6 months', 'mailoptin'), '365' => __('1 year', 'mailoptin'), '730' => __('2 years', 'mailoptin'), '0' => __('Forever', 'mailoptin')],
+                    'value'       => (string)\MailOptin\Core\Audience\Tracking::DEFAULT_RETENTION_DAYS,
+                    'description' => __('Who opened and clicked is deleted after this; campaign totals are kept. Tracking collects personal data, so mention it in your privacy policy. Personal data exports and erasure requests include it.', 'mailoptin'),
+                ],
+            ],
         ];
 
         return $settings;

@@ -395,12 +395,13 @@ class Subscribers_Tags_Fields
      */
     public static function filter_bar_html($filters)
     {
-        $tags   = Tags::names();
-        $fields = Fields::all();
+        $tags       = Tags::names();
+        $fields     = Fields::all();
+        $engagement = \MailOptin\Core\Repositories\CampaignActivityRepository::is_ready();
 
-        if (empty($tags) && empty($fields)) return '';
+        if (empty($tags) && empty($fields) && ! $engagement) return '';
 
-        $base   = remove_query_arg(['tags', 'tag_match', 'f', 'paged', 'mo_notice', 'mo_add_filter']);
+        $base   = remove_query_arg(['tags', 'tag_match', 'f', 'e', 'paged', 'mo_notice', 'mo_add_filter']);
         $adding = sanitize_text_field($_GET['mo_add_filter'] ?? '');
 
         ob_start();
@@ -422,8 +423,24 @@ class Subscribers_Tags_Fields
                                         <?php foreach ($fields as $field) : ?><option value="<?php echo absint($field['id']); ?>"><?php echo esc_html($field['label']); ?></option><?php endforeach; ?>
                                     </optgroup>
                                 <?php endif; ?>
+                                <?php if ($engagement) : ?>
+                                    <optgroup label="<?php esc_attr_e('Engagement', 'mailoptin'); ?>">
+                                        <?php if (Subscriber_Filters::has_engagement()) : ?>
+                                            <option value="engagement"><?php esc_html_e('Opened or clicked', 'mailoptin'); ?></option>
+                                        <?php else : ?>
+                                            <option value="" disabled><?php esc_html_e('Opened or clicked (Premium)', 'mailoptin'); ?></option>
+                                        <?php endif; ?>
+                                    </optgroup>
+                                <?php endif; ?>
                             </select>
                             <?php submit_button(__('Next', 'mailoptin'), 'small mo-no-js', '', false); ?>
+                            <?php if ($engagement && ! Subscriber_Filters::has_engagement()) : ?>
+                                <p class="description"><?php printf(
+                                        esc_html__('Filter by who opened or clicked your campaigns with %sMailOptin Premium%s.', 'mailoptin'),
+                                        '<a target="_blank" href="' . esc_url(\MailOptin\MailOptinConnect\CampaignAudience::upsell_url('builtin_engagement_filter')) . '">',
+                                        '</a>'
+                                    ); ?></p>
+                            <?php endif; ?>
                         </form>
                     <?php elseif ('tags' === $adding) : ?>
                         <form method="get">
@@ -441,6 +458,37 @@ class Subscribers_Tags_Fields
                                     <label class="mo-check"><input type="checkbox" name="tags[]" value="<?php echo absint($id); ?>" <?php checked(in_array((int)$id, $filters['tag_ids'], true)); ?>> <?php echo esc_html($name); ?></label>
                                 <?php endforeach; ?>
                             </div>
+                            <?php submit_button(__('Apply filter', 'mailoptin'), 'primary small', '', false); ?>
+                            <a href="<?php echo esc_url(remove_query_arg('mo_add_filter')); ?>"><?php esc_html_e('Cancel', 'mailoptin'); ?></a>
+                        </form>
+                    <?php elseif ('engagement' === $adding && Subscriber_Filters::has_engagement()) : ?>
+                        <?php $i = count($filters['engagement']); ?>
+                        <form method="get" class="mo-engagement-filter">
+                            <?php echo self::preserved_inputs($filters); ?>
+                            <p>
+                                <label class="screen-reader-text" for="mo-filter-what"><?php esc_html_e('Engagement', 'mailoptin'); ?></label>
+                                <select id="mo-filter-what" name="e[<?php echo $i; ?>][what]">
+                                    <?php foreach (\MailOptin\Core\Repositories\CampaignActivityRepository::engagement_options() as $value => $label) : ?>
+                                        <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <label class="screen-reader-text" for="mo-filter-campaign"><?php esc_html_e('Campaign', 'mailoptin'); ?></label>
+                                <select id="mo-filter-campaign" name="e[<?php echo $i; ?>][campaign]">
+                                    <option value="0"><?php esc_html_e('any campaign', 'mailoptin'); ?></option>
+                                    <?php foreach (\MailOptin\Core\Repositories\CampaignActivityRepository::sent_campaigns() as $id => $title) : ?>
+                                        <option value="<?php echo absint($id); ?>"><?php echo esc_html($title); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </p>
+                            <p>
+                                <label class="screen-reader-text" for="mo-filter-days"><?php esc_html_e('When', 'mailoptin'); ?></label>
+                                <select id="mo-filter-days" name="e[<?php echo $i; ?>][days]">
+                                    <?php foreach (\MailOptin\Core\Repositories\CampaignActivityRepository::engagement_periods() as $days => $label) : ?>
+                                        <option value="<?php echo absint($days); ?>" <?php selected(90, $days); ?>><?php echo esc_html($label); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </p>
+                            <p class="description"><?php esc_html_e('Clicks are exact. Opens are an estimate: some email apps load images for everyone and others block them, so "Didn\'t open" includes people who read it.', 'mailoptin'); ?></p>
                             <?php submit_button(__('Apply filter', 'mailoptin'), 'primary small', '', false); ?>
                             <a href="<?php echo esc_url(remove_query_arg('mo_add_filter')); ?>"><?php esc_html_e('Cancel', 'mailoptin'); ?></a>
                         </form>
@@ -869,6 +917,18 @@ class Subscribers_Tags_Fields
             case Subscribers::EVENT_TAGS_REMOVED:
                 $text = sprintf(_n('Tag %s removed', 'Tags %s removed', count((array)($meta['tags'] ?? [])), 'mailoptin'), implode(', ', (array)($meta['tags'] ?? [])));
                 break;
+            case Subscribers::EVENT_SENT:
+            case Subscribers::EVENT_OPENED:
+            case Subscribers::EVENT_CLICKED:
+                $title = ! empty($event['campaign_log_id']) ? \MailOptin\Core\Logging\CampaignLogRepository::instance()->retrieveTitle($event['campaign_log_id']) : null;
+                $title = null === $title ? __('a campaign', 'mailoptin') : '"' . $title . '"';
+
+                if (Subscribers::EVENT_SENT === $event['type']) return sprintf(__('Sent %s', 'mailoptin'), $title);
+                if (Subscribers::EVENT_OPENED === $event['type']) return sprintf(__('Opened %s', 'mailoptin'), $title);
+
+                $link = '' !== (string)($meta['label'] ?? '') ? '"' . $meta['label'] . '"' : preg_replace('#^https?://#i', '', (string)($meta['url'] ?? ''));
+
+                return sprintf(__('Clicked %1$s in %2$s', 'mailoptin'), $link, $title);
             case Subscribers::EVENT_PREFERENCES_CHANGED:
                 $parts = [];
                 if ( ! empty($meta['left'])) $parts[] = sprintf(__('left %s', 'mailoptin'), implode(', ', (array)$meta['left']));

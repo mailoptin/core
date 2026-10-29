@@ -11,7 +11,7 @@ use MailOptin\Core\Repositories\TagsRepository;
 
 /**
  * Personalizes queued campaign emails for built-in list subscribers: unsubscribe and web version
- * links, merge tags and the one-click unsubscribe headers.
+ * links, merge tags, open and click tracking and the one-click unsubscribe headers.
  */
 class CampaignRenderer
 {
@@ -134,7 +134,7 @@ class CampaignRenderer
 
         return [
             'subject' => self::replace_tags(self::replace_fallback_tags($campaign['subject'], $subscriber, false, $fields), $tags, false),
-            'html'    => self::replace_tags(self::replace_fallback_tags(PreferenceCentre::add_link($campaign['html'], true), $subscriber, true, $fields), $tags, true),
+            'html'    => self::replace_tags(self::replace_fallback_tags(Tracking::prepare_html(PreferenceCentre::add_link($campaign['html'], true), $row, $campaign_log_id), $subscriber, true, $fields), $tags, true),
             'text'    => self::replace_tags(self::replace_fallback_tags(PreferenceCentre::add_link($campaign['text'], false), $subscriber, false, $fields), $tags, false),
         ];
     }

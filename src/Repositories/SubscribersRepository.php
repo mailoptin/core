@@ -26,6 +26,8 @@ class SubscribersRepository extends AbstractRepository
     const EVENT_FIELDS_CHANGED = 'fields_changed';
     const EVENT_IMPORTED = 'imported';
     const EVENT_PREFERENCES_CHANGED = 'preferences_changed';
+    const EVENT_OPENED = 'opened';
+    const EVENT_CLICKED = 'clicked';
 
     public static function table()
     {
@@ -211,7 +213,7 @@ class SubscribersRepository extends AbstractRepository
     /**
      * WHERE conditions for tag and custom field filters on subscribers aliased "s".
      *
-     * @param array $args tag_ids, tag_match (any, all or none), exclude_tag_ids, field_conditions
+     * @param array $args tag_ids, tag_match (any, all or none), exclude_tag_ids, field_conditions, engagement
      * @param array $where conditions are added to it
      * @param array $params placeholders values are added to it
      */
@@ -243,6 +245,13 @@ class SubscribersRepository extends AbstractRepository
             $sql = is_array($condition) ? CustomFieldsRepository::condition_sql($condition) : null;
             if ($sql) $where[] = $sql;
         }
+
+        if (CampaignActivityRepository::is_ready()) {
+            foreach ((array)($args['engagement'] ?? []) as $condition) {
+                $sql = CampaignActivityRepository::condition_sql($condition);
+                if ($sql) $where[] = $sql;
+            }
+        }
     }
 
     /**
@@ -270,6 +279,7 @@ class SubscribersRepository extends AbstractRepository
         self::wpdb()->delete(self::events_table(), ['subscriber_id' => $subscriber_id], ['%d']);
         TagsRepository::delete_for_subscribers([$subscriber_id]);
         CustomFieldsRepository::delete_values_for_subscribers([$subscriber_id]);
+        if (CampaignActivityRepository::is_ready()) CampaignActivityRepository::delete_for_subscribers([$subscriber_id]);
 
         return (bool)self::wpdb()->delete(self::table(), ['id' => $subscriber_id], ['%d']);
     }

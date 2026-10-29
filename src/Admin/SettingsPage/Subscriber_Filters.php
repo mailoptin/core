@@ -2,23 +2,27 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use MailOptin\Core\Repositories\CampaignActivityRepository as Activity;
 use MailOptin\Core\Repositories\CustomFieldsRepository as Fields;
+use MailOptin\Core\Repositories\SegmentsRepository;
 use MailOptin\Core\Repositories\TagsRepository as Tags;
 
 /**
  * Tag and custom field filters of the subscribers screen, kept in the URL so filtered views can be
  * bookmarked and paginated: tags[]=1&tag_match=any&f[0][field]=3&f[0][op]=gt&f[0][value]=5
+ * Engagement filters (premium): e[0][what]=clicked&e[0][campaign]=12&e[0][days]=90
  */
 class Subscriber_Filters
 {
     /**
      * @param array $request usually $_GET
      *
-     * @return array tag_ids, tag_match, field_conditions (each field_id, op, value, value2), all sanitized
+     * @return array tag_ids, tag_match, field_conditions (each field_id, op, value, value2) and
+     *               engagement (each what, campaign, days), all sanitized
      */
     public static function from_request($request)
     {
-        $filters = ['tag_ids' => [], 'tag_match' => 'any', 'field_conditions' => []];
+        $filters = ['tag_ids' => [], 'tag_match' => 'any', 'field_conditions' => [], 'engagement' => []];
 
         if ( ! Tags::is_ready()) return $filters;
 
@@ -55,12 +59,27 @@ class Subscriber_Filters
             ];
         }
 
+        if (self::has_engagement()) {
+            foreach ((array)($request['e'] ?? []) as $condition) {
+                $condition = Activity::clean_condition($condition);
+                if ($condition) $filters['engagement'][] = $condition;
+            }
+        }
+
         return $filters;
+    }
+
+    /**
+     * Filtering by opens and clicks is premium, like segments.
+     */
+    public static function has_engagement()
+    {
+        return SegmentsRepository::is_available() && Activity::is_ready();
     }
 
     public static function is_active($filters)
     {
-        return ! empty($filters['tag_ids']) || ! empty($filters['field_conditions']);
+        return ! empty($filters['tag_ids']) || ! empty($filters['field_conditions']) || ! empty($filters['engagement']);
     }
 
     /**
@@ -84,6 +103,10 @@ class Subscriber_Filters
             ], function ($value) {
                 return '' !== $value && [] !== $value;
             });
+        }
+
+        foreach (array_values($filters['engagement'] ?? []) as $i => $condition) {
+            $query['e'][$i] = $condition;
         }
 
         return $query;
@@ -156,7 +179,36 @@ class Subscriber_Filters
             );
         }
 
+        foreach ($filters['engagement'] ?? [] as $i => $condition) {
+            $without = $filters;
+            unset($without['engagement'][$i]);
+
+            $chips[] = self::chip(
+                self::engagement_label($condition),
+                '',
+                null === $base_url ? null : add_query_arg(self::to_query($without), $base_url)
+            );
+        }
+
         return implode('', $chips);
+    }
+
+    /**
+     * "Clicked October planting notes in the last 90 days"
+     */
+    public static function engagement_label($condition)
+    {
+        $campaigns = Activity::sent_campaigns(200);
+        $campaign  = $condition['campaign']
+            ? sprintf(__('"%s"', 'mailoptin'), $campaigns[$condition['campaign']] ?? sprintf(__('campaign #%d', 'mailoptin'), $condition['campaign']))
+            : __('any campaign', 'mailoptin');
+
+        $label = sprintf('%s %s %s', Activity::engagement_options()[$condition['what']], $campaign, Activity::engagement_periods()[$condition['days']]);
+
+        // Opens are counted from images loading, which many email apps block.
+        if ('not_opened' === $condition['what']) $label .= ' ' . __('(estimate)', 'mailoptin');
+
+        return $label;
     }
 
     protected static function chip($label, $value, $remove_url)

@@ -7,7 +7,7 @@ use MailOptin\Core\Repositories\CustomFieldsRepository as Fields;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 
 /**
- * Saved segments: named tag and custom field filters. A campaign sending to a built-in list can be
+ * Saved segments: named tag, custom field and engagement filters. A campaign sending to a built-in list can be
  * limited to one, and the filters are applied when it sends, so new matches are included.
  *
  * Segments are a premium feature. Free sites keep any saved ones, but campaigns using them don't send.
@@ -56,6 +56,7 @@ class SegmentsRepository extends AbstractRepository
             'tag_ids'          => array_values(array_unique(array_filter(array_map('absint', (array)($filters['tag_ids'] ?? []))))),
             'tag_match'        => in_array($match, ['any', 'all', 'none'], true) ? $match : 'any',
             'field_conditions' => array_values(array_filter((array)($filters['field_conditions'] ?? []), 'is_array')),
+            'engagement'       => array_values(array_filter(array_map([CampaignActivityRepository::class, 'clean_condition'], (array)($filters['engagement'] ?? [])))),
         ];
     }
 
@@ -111,8 +112,8 @@ class SegmentsRepository extends AbstractRepository
             return new \WP_Error('mo_segment_exists', sprintf(__('There is already a segment called "%s".', 'mailoptin'), $name));
         }
 
-        if (null !== $filters && empty($filters['tag_ids']) && empty($filters['field_conditions'])) {
-            return new \WP_Error('mo_segment_empty', __('Add at least one tag or custom field filter before saving a segment.', 'mailoptin'));
+        if (null !== $filters && empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement'])) {
+            return new \WP_Error('mo_segment_empty', __('Add at least one filter before saving a segment.', 'mailoptin'));
         }
 
         return true;
@@ -184,8 +185,12 @@ class SegmentsRepository extends AbstractRepository
         $filters  = $segment['filters'];
 
         // Saved segments always have a filter, so none means the stored filters couldn't be read.
-        if (empty($filters['tag_ids']) && empty($filters['field_conditions'])) {
+        if (empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement'])) {
             return [__('Its filters couldn\'t be read.', 'mailoptin')];
+        }
+
+        if ( ! empty($filters['engagement']) && ! CampaignActivityRepository::is_ready()) {
+            $problems[] = __('It filters by opens and clicks, which aren\'t set up yet.', 'mailoptin');
         }
 
         if ( ! empty($filters['tag_ids'])) {

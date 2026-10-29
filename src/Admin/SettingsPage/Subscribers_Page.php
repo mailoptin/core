@@ -457,6 +457,22 @@ class Subscribers_Page extends AbstractSettingsPage
             </div>
             <div class="mo-col-side">
                 <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::profile_tags_html($subscriber_id, 'mo-profile-form'); ?>
+                <?php if (\MailOptin\Core\Repositories\CampaignActivityRepository::is_ready()) : $engagement = \MailOptin\Core\Repositories\CampaignActivityRepository::subscriber_summary($subscriber_id); ?>
+                    <div class="mo-card">
+                        <h3><?php esc_html_e('Engagement', 'mailoptin'); ?></h3>
+                        <p><?php echo wp_kses(sprintf(
+                                __('<b>%1$s</b> sent · <b>%2$s</b> opened · <b>%3$s</b> clicked', 'mailoptin'),
+                                number_format_i18n($engagement['sent']), number_format_i18n($engagement['opened']), number_format_i18n($engagement['clicked'])
+                            ), ['b' => []]); ?></p>
+                        <?php if ($engagement['last_opened'] || $engagement['last_clicked']) : ?>
+                            <p class="description"><?php echo esc_html(implode(' · ', array_filter([
+                                    $engagement['last_opened'] ? sprintf(__('Last opened %s', 'mailoptin'), $this->local_time($engagement['last_opened'])) : '',
+                                    $engagement['last_clicked'] ? sprintf(__('last clicked %s', 'mailoptin'), $this->local_time($engagement['last_clicked'])) : '',
+                                ]))); ?></p>
+                        <?php endif; ?>
+                        <p class="description"><?php esc_html_e('Opens are an estimate; clicks are exact.', 'mailoptin'); ?></p>
+                    </div>
+                <?php endif; ?>
                 <div class="mo-card">
                     <h3><?php esc_html_e('Consent record', 'mailoptin'); ?></h3>
                     <dl class="mo-kv">

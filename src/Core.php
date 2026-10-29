@@ -23,6 +23,9 @@ final class Core
     const custom_fields_table_name = 'mo_custom_fields';
     const field_values_table_name = 'mo_subscriber_field_values';
     const segments_table_name = 'mo_segments';
+    const campaign_links_table_name = 'mo_campaign_links';
+    const campaign_activity_table_name = 'mo_campaign_activity';
+    const campaign_stats_table_name = 'mo_campaign_stats';
 
     public function __construct()
     {
