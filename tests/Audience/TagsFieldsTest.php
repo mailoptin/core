@@ -333,4 +333,15 @@ class TagsFieldsTest extends WP_UnitTestCase
             $this->assertNotEmpty($wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}$table'") ?: $wpdb->get_results("DESCRIBE {$wpdb->prefix}$table"), $table);
         }
     }
+
+    public function test_deleting_a_multisite_site_drops_the_new_tables()
+    {
+        global $wpdb;
+
+        $tables = \MailOptin\Core\Base::get_instance()->wpmu_drop_tables([]);
+
+        foreach (['mo_tags', 'mo_subscriber_tags', 'mo_custom_fields', 'mo_subscriber_field_values'] as $table) {
+            $this->assertContains($wpdb->prefix . $table, $tables);
+        }
+    }
 }
