@@ -90,6 +90,7 @@ class CreateDBTables
 				";
 
         $sqls = array_merge($sqls, self::audience_tables_sql($collate));
+        $sqls[] = self::conversion_syncs_table_sql($collate);
 
         $sqls = apply_filters('mo_create_database_tables', $sqls, $collate);
 
@@ -208,5 +209,35 @@ class CreateDBTables
 ) $collate;";
 
         return $sqls;
+    }
+
+    /**
+     * One row per integration a submission (conversion) was sent to: whether it got there and,
+     * while it hasn't, what's needed to try again. Datetimes are UTC.
+     */
+    public static function conversion_syncs_table_sql($collate)
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . Core::conversion_syncs_table_name;
+
+        return "CREATE TABLE $table (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  conversion_id bigint(20) unsigned NOT NULL,
+  connection_service varchar(100) NOT NULL,
+  connection_email_list varchar(191) NOT NULL DEFAULT '',
+  status varchar(20) NOT NULL,
+  attempts smallint(5) unsigned NOT NULL DEFAULT 0,
+  last_error text NULL,
+  next_attempt_at datetime NULL,
+  locked_until datetime NULL,
+  retry_data longtext NULL,
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  KEY conversion_id (conversion_id),
+  KEY due (status,next_attempt_at),
+  KEY status_created (status,created_at)
+) $collate;";
     }
 }

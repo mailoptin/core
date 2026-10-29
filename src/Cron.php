@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core;
 
+use MailOptin\Core\Repositories\ConversionSyncRepository;
 use MailOptin\Core\Repositories\SubscribersRepository;
 use Carbon\Carbon;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
@@ -94,9 +95,13 @@ class Cron
 
         $table = $wpdb->prefix . Core::conversions_table_name;
 
-        return $wpdb->query(
+        $deleted = $wpdb->query(
             "DELETE FROM $table WHERE DATEDIFF(NOW(), date_added) >= 90"
         );
+
+        ConversionSyncRepository::delete_orphans();
+
+        return $deleted;
     }
 
     /**

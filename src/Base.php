@@ -108,6 +108,7 @@ class Base
         Cron::get_instance();
         AsyncHandler::get_instance();
         SendQueue\QueueRunner::get_instance();
+        Submissions\SubmissionSync::get_instance();
         Audience\PublicEndpoints::get_instance();
         Audience\CampaignRenderer::get_instance();
         Audience\WelcomeEmail::get_instance();
@@ -197,6 +198,7 @@ class Base
         $tables[] = $db_prefix . Core::suppressions_table_name;
         $tables[] = $db_prefix . Core::subscriber_events_table_name;
         $tables[] = $db_prefix . Core::send_queue_table_name;
+        $tables[] = $db_prefix . Core::conversion_syncs_table_name;
 
         $tables = apply_filters('mo_drop_mu_database_tables', $tables, $db_prefix);
 

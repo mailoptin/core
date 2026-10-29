@@ -325,6 +325,9 @@ abstract class AbstractConnect
      */
     public static function save_optin_error_log($message, $filename = 'error', $optin_campaign_id = null, $optin_campaign_type = null)
     {
+        // Lets the Submissions screen show why a submission didn't reach the integration.
+        do_action('mo_optin_error_logged', $message, $filename, $optin_campaign_id);
+
         // skip api keys not found errors.
         if (preg_match('/not found\.$/', $message)) return false;
 
