@@ -241,42 +241,21 @@ class Subscription
     }
 
     /**
-     * Send the double opt-in email, within the limits in ConfirmationThrottle.
+     * The double opt-in email for a subscriber's pending lists.
      *
-     * @param int $subscriber_id
-     * @param string $ip_address IP of the signup; empty for an admin resending from the subscriber's profile
-     * @param bool $by_admin an admin resend skips the limits
-     *
-     * @return bool true if an email was sent
+     * @return array|null subject, html, text and lists (names); null when no list is pending
      */
-    public static function send_confirmation($subscriber_id, $ip_address = '', $by_admin = false)
+    public static function confirmation_email($subscriber)
     {
-        $subscriber = Subscribers::get($subscriber_id);
-
-        if ( ! $subscriber) return false;
-
-        if ( ! $by_admin) {
-            $allowed = ConfirmationThrottle::check($subscriber_id, $ip_address);
-
-            if (true !== $allowed) {
-                // The cooldown is routine (a double click); the other limits are worth a note on the timeline.
-                if (ConfirmationThrottle::REASON_COOLDOWN !== $allowed) {
-                    Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMATION_THROTTLED, ['reason' => $allowed]);
-                }
-
-                return false;
-            }
-        }
-
         $list_names = [];
-        foreach (Subscribers::get_memberships($subscriber_id) as $membership) {
+        foreach (Subscribers::get_memberships($subscriber['id']) as $membership) {
             if (Subscribers::STATUS_PENDING !== $membership['status']) continue;
 
             $list = ListsRepository::get($membership['list_id']);
             if ($list) $list_names[] = $list['name'];
         }
 
-        if (empty($list_names)) return false;
+        if (empty($list_names)) return null;
 
         $site_name   = Settings::instance()->company_name() ?: get_bloginfo('name');
         $confirm_url = Tokens::confirm_url($subscriber);
@@ -304,6 +283,43 @@ class Subscription
 
         $html = apply_filters('mo_confirmation_email_html', $html, $subscriber, $confirm_url);
         $text = apply_filters('mo_confirmation_email_text', $text, $subscriber, $confirm_url);
+
+        return ['subject' => $subject, 'html' => $html, 'text' => $text, 'lists' => $list_names];
+    }
+
+    /**
+     * Send the double opt-in email, within the limits in ConfirmationThrottle.
+     *
+     * @param int $subscriber_id
+     * @param string $ip_address IP of the signup; empty for an admin resending from the subscriber's profile
+     * @param bool $by_admin an admin resend skips the limits
+     *
+     * @return bool true if an email was sent
+     */
+    public static function send_confirmation($subscriber_id, $ip_address = '', $by_admin = false)
+    {
+        $subscriber = Subscribers::get($subscriber_id);
+
+        if ( ! $subscriber) return false;
+
+        if ( ! $by_admin) {
+            $allowed = ConfirmationThrottle::check($subscriber_id, $ip_address);
+
+            if (true !== $allowed) {
+                // The cooldown is routine (a double click); the other limits are worth a note on the timeline.
+                if (ConfirmationThrottle::REASON_COOLDOWN !== $allowed) {
+                    Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMATION_THROTTLED, ['reason' => $allowed]);
+                }
+
+                return false;
+            }
+        }
+
+        $email = self::confirmation_email($subscriber);
+
+        if ( ! $email) return false;
+
+        list($subject, $html, $text, $list_names) = [$email['subject'], $email['html'], $email['text'], $email['lists']];
 
         $add_plain_text = function ($phpmailer) use ($text) {
             $phpmailer->AltBody = $text;

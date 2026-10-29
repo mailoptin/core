@@ -24,6 +24,7 @@ class SubscribersRepository extends AbstractRepository
     const EVENT_TAGS_ADDED = 'tags_added';
     const EVENT_TAGS_REMOVED = 'tags_removed';
     const EVENT_FIELDS_CHANGED = 'fields_changed';
+    const EVENT_IMPORTED = 'imported';
 
     public static function table()
     {

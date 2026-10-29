@@ -14,6 +14,8 @@ class Consent
     const METHOD_NOTE = 'note';
     const METHOD_NONE = 'none';
     const METHOD_ADMIN = 'admin';
+    const METHOD_IMPORT = 'import';
+    const METHOD_IMPORT_CONFIRM = 'import_confirm';
 
     /**
      * Read the consent wording from an optin form. With the Acceptance Checkbox on, the form's Note
@@ -58,6 +60,8 @@ class Consent
             self::METHOD_NOTE                => __('Shown under the form, no checkbox', 'mailoptin'),
             self::METHOD_NONE                => __('No consent text on the form', 'mailoptin'),
             self::METHOD_ADMIN               => __('Added by an admin', 'mailoptin'),
+            self::METHOD_IMPORT              => __('Imported by an admin who confirmed they have permission', 'mailoptin'),
+            self::METHOD_IMPORT_CONFIRM      => __('Imported; asked to confirm by email', 'mailoptin'),
         ];
 
         return $labels[$method] ?? '';
