@@ -62,6 +62,11 @@ class TagsFieldsFormsTest extends WP_UnitTestCase
         $this->assertSame('chosen_select', $controls[0]['field']);
         $this->assertSame('MailOptinConnect_lead_tags', $controls[0]['name']);
         $this->assertSame([$vip => 'vip'], $controls[0]['choices']);
+        $this->assertStringContainsString('view=tags', $controls[0]['description']);
+
+        // Free: an upsell where premium's custom field mapping would be.
+        $this->assertSame('MailOptinConnect_upgrade_notice', $controls[1]['name']);
+        $this->assertStringContainsString('MailOptin Premium', $controls[1]['content']);
     }
 
     public function test_mapping_form_fields_needs_premium()

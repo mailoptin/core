@@ -29,6 +29,14 @@ class TagsFieldsFormsPremiumTest extends TagsFieldsFormsTest
         $this->assertTrue(Connect::has_custom_form_fields());
     }
 
+    public function test_tags_control_lists_tags_and_links_to_them()
+    {
+        Tags::create('vip');
+
+        $names = wp_list_pluck(Connect::get_instance()->integration_customizer_controls([]), 'name');
+        $this->assertSame(['MailOptinConnect_lead_tags'], $names, 'No upsell with premium.');
+    }
+
     public function test_connection_offers_custom_fields_for_mapping()
     {
         $this->assertSame(['company' => 'Company', 'zone' => 'Zone', 'orders' => 'Orders'], Connect::get_instance()->get_optin_fields($this->list));
