@@ -10,9 +10,9 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
 {
     public $kick_theme;
 
-    public function setUp()
+    public function set_up()
     {
-        parent::setUp();
+        parent::set_up();
 
         $this->kick_theme = array(
             'name' => 'Kick',
@@ -22,9 +22,9 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
         );
     }
 
-    public function tearDown()
+    public function tear_down()
     {
-        parent::tearDown();
+        parent::tear_down();
     }
 
     public function testGetAll()
