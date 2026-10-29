@@ -7,9 +7,11 @@ use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
 use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionInterface;
+use MailOptin\Core\Repositories\CustomFieldsRepository;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SendQueueRepository;
 use MailOptin\Core\Repositories\SubscribersRepository;
+use MailOptin\Core\Repositories\TagsRepository;
 use MailOptin\Core\SendQueue\QueueRunner;
 
 /**
@@ -27,6 +29,8 @@ class Connect extends AbstractConnect implements ConnectionInterface
     public function __construct()
     {
         add_filter('mailoptin_registered_connections', [$this, 'register_connection']);
+        add_filter('mo_optin_form_integrations_default', [$this, 'integration_customizer_settings']);
+        add_filter('mo_optin_integrations_controls_after', [$this, 'integration_customizer_controls']);
 
         parent::__construct();
     }
@@ -35,6 +39,7 @@ class Connect extends AbstractConnect implements ConnectionInterface
     {
         return [
             self::OPTIN_CAMPAIGN_SUPPORT,
+            self::OPTIN_CUSTOM_FIELD_SUPPORT,
             self::EMAIL_CAMPAIGN_SUPPORT,
         ];
     }
@@ -72,9 +77,100 @@ class Connect extends AbstractConnect implements ConnectionInterface
         return $lists;
     }
 
+    /**
+     * Custom fields are shared by all lists, so every list offers all of them for mapping.
+     *
+     * @return array merge key => label
+     */
     public function get_optin_fields($list_id = '')
     {
-        return [];
+        if ( ! TagsRepository::is_ready()) return [];
+
+        return array_map('esc_html', wp_list_pluck(CustomFieldsRepository::all(), 'label', 'merge_key'));
+    }
+
+    public function integration_customizer_settings($settings)
+    {
+        $settings['MailOptinConnect_lead_tags'] = [];
+
+        return $settings;
+    }
+
+    public function integration_customizer_controls($controls)
+    {
+        if ( ! TagsRepository::is_ready()) return $controls;
+
+        $tags_url = add_query_arg(['page' => \MailOptin\Core\Admin\SettingsPage\Subscribers_Page::SLUG, 'tab' => 'tags'], admin_url('admin.php'));
+        $tags     = array_map('esc_html', TagsRepository::names());
+
+        if (empty($tags)) {
+            $controls[] = [
+                'field'   => 'custom_content',
+                'name'    => 'MailOptinConnect_lead_tags',
+                'content' => '<p class="description customize-control-description">' . sprintf(
+                        esc_html__('Tag subscribers who sign up with this form. %sCreate a tag%s first.', 'mailoptin'),
+                        '<a target="_blank" href="' . esc_url($tags_url) . '">',
+                        '</a>'
+                    ) . '</p>',
+            ];
+
+            return $controls;
+        }
+
+        $controls[] = [
+            'field'       => 'chosen_select',
+            'name'        => 'MailOptinConnect_lead_tags',
+            'choices'     => $tags,
+            'label'       => __('Tags', 'mailoptin'),
+            'description' => sprintf(
+                esc_html__('Added to everyone who signs up with this form. %sManage tags%s', 'mailoptin'),
+                '<a target="_blank" href="' . esc_url($tags_url) . '">',
+                '</a>'
+            ),
+        ];
+
+        return $controls;
+    }
+
+    /**
+     * Values of form fields mapped to custom fields.
+     *
+     * @return array merge key => raw value
+     */
+    protected function mapped_field_values()
+    {
+        // Submissions made in code (not from a form) have no mappings.
+        if ( ! isset($this->extras['form_custom_field_mappings']) && empty($this->extras['optin_campaign_id'])) return [];
+
+        $mappings = $this->form_custom_field_mappings();
+        $values   = [];
+
+        if ( ! is_array($mappings)) return $values;
+
+        foreach ($mappings as $merge_key => $form_field_id) {
+            if ('' === (string)$form_field_id || ! isset($this->extras[$form_field_id])) continue;
+
+            $value = $this->extras[$form_field_id];
+
+            $values[$merge_key] = is_array($value) ? array_map('sanitize_text_field', $value) : sanitize_text_field((string)$value);
+        }
+
+        return $values;
+    }
+
+    /**
+     * @return array tag IDs or names
+     */
+    protected function form_tags()
+    {
+        if (empty($this->extras['optin_campaign_id']) && empty($this->extras['integration_data']) && empty($this->extras['form_tags'])) return [];
+
+        $tags = $this->get_integration_tags('MailOptinConnect_lead_tags');
+
+        // Tags from page builder forms can arrive as comma separated text.
+        if (is_string($tags)) $tags = explode(',', $tags);
+
+        return array_values(array_filter(array_map('trim', array_map('strval', (array)$tags)), 'strlen'));
     }
 
     public function subscribe($email, $name, $list_id, $extras = null)
@@ -93,6 +189,8 @@ class Connect extends AbstractConnect implements ConnectionInterface
             'source'          => 'form',
             'source_optin_id' => absint($this->extras['optin_campaign_id'] ?? 0),
             'ip_address'      => $this->extras['mo_ip_address'] ?? '',
+            'fields'          => TagsRepository::is_ready() ? $this->mapped_field_values() : [],
+            'tags'            => TagsRepository::is_ready() ? $this->form_tags() : [],
             'meta'            => array_filter([
                 'form'            => $this->extras['mo_campaign_name'] ?? '',
                 'conversion_page' => esc_url_raw($this->extras['conversion_page'] ?? ''),

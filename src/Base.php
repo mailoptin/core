@@ -112,6 +112,7 @@ class Base
         Audience\PublicEndpoints::get_instance();
         Audience\CampaignRenderer::get_instance();
         Audience\WelcomeEmail::get_instance();
+        Audience\PersonalData::get_instance();
         \MailOptin\MailOptinConnect\Connect::get_instance();
 
         $this->admin_hooks();

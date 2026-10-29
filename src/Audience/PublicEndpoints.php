@@ -161,7 +161,12 @@ class PublicEndpoints
             '{{subscriber.last_name}}'  => '',
         ], $campaign_log_id);
 
-        return CampaignRenderer::replace_tags($html, $tags, true);
+        $html = CampaignRenderer::replace_tags($html, $tags, true);
+
+        // Blank custom fields too, keeping fallbacks: "Hi {{subscriber.first_name|there}}" reads "Hi there".
+        $blank = \MailOptin\Core\Repositories\TagsRepository::is_ready() ? array_fill_keys(wp_list_pluck(\MailOptin\Core\Repositories\CustomFieldsRepository::all(), 'merge_key'), '') : [];
+
+        return CampaignRenderer::replace_fallback_tags($html, [], true, $blank);
     }
 
     /**
