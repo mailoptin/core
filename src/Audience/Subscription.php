@@ -343,7 +343,10 @@ class Subscription
      *
      * @return bool
      */
-    public static function confirm($subscriber_id)
+    /**
+     * @param int[]|null $list_ids confirm only these pending lists; null for all of them
+     */
+    public static function confirm($subscriber_id, $list_ids = null)
     {
         $subscriber = Subscribers::get($subscriber_id);
 
@@ -351,7 +354,9 @@ class Subscription
 
         $pending_list_ids = [];
         foreach (Subscribers::get_memberships($subscriber_id) as $membership) {
-            if (Subscribers::STATUS_PENDING === $membership['status']) $pending_list_ids[] = (int)$membership['list_id'];
+            if (Subscribers::STATUS_PENDING !== $membership['status']) continue;
+            if (is_array($list_ids) && ! in_array((int)$membership['list_id'], array_map('intval', $list_ids), true)) continue;
+            $pending_list_ids[] = (int)$membership['list_id'];
         }
 
         if (empty($pending_list_ids)) return true;
@@ -366,7 +371,7 @@ class Subscription
             SuppressionRepository::remove($subscriber['email']);
         }
 
-        Subscribers::confirm($subscriber_id);
+        Subscribers::confirm($subscriber_id, is_array($list_ids) ? $pending_list_ids : null);
         Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMED);
 
         do_action('mo_subscriber_confirmed', (int)$subscriber_id, $pending_list_ids);

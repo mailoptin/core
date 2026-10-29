@@ -157,16 +157,124 @@ class PreferenceCentreTest extends WP_UnitTestCase
         $this->assertFalse(SuppressionRepository::is_suppressed('amara@example.com'));
     }
 
-    public function test_a_pending_list_kept_ticked_is_confirmed()
+    public function test_a_pending_list_is_unticked_and_ticking_it_confirms_only_that_list()
     {
-        Subscription::add_by_admin('tom@example.com', [$this->news], [], false);
+        $third = ListsRepository::create(['name' => 'Offers', 'double_optin' => 1]);
+        Subscription::add_by_admin('tom@example.com', [$this->news, $third], [], false);
         $this->id = (int)Subscribers::get_by_email('tom@example.com')['id'];
 
         list(, $html) = $this->visit();
-        $this->assertStringContainsString('Waiting for you to confirm', $html);
+        $this->assertStringContainsString('Not confirmed yet', $html);
+        $this->assertDoesNotMatchRegularExpression('/value="' . $this->news . '"\s+checked/', $html, 'A box ticked for them is not consent.');
 
-        $this->visit(['lists_shown' => '1', 'lists' => [$this->news]]);
+        $this->visit(['lists_shown' => '1', 'was' => [$this->news => 0, $third => 0], 'lists' => [$this->news]]);
         $this->assertSame('subscribed', Subscribers::get_membership($this->id, $this->news)['status']);
+        $this->assertSame('pending', Subscribers::get_membership($this->id, $third)['status'], 'Only the list they ticked.');
+    }
+
+    public function test_saving_details_never_confirms_a_pending_list()
+    {
+        Subscription::add_by_admin('tom@example.com', [$this->workshops], [], true);
+        $this->id = (int)Subscribers::get_by_email('tom@example.com')['id'];
+        Subscribers::set_membership($this->id, $this->news, Subscribers::STATUS_PENDING);
+
+        $this->visit(['lists_shown' => '1', 'was' => [$this->news => 0, $this->workshops => 1], 'lists' => [$this->workshops], 'first_name' => 'Tom']);
+
+        $this->assertSame('pending', Subscribers::get_membership($this->id, $this->news)['status']);
+    }
+
+    public function test_a_stale_cached_page_does_not_resubscribe()
+    {
+        // The page showed both lists ticked; they unsubscribed from everything afterwards.
+        Subscription::unsubscribe($this->id);
+
+        $this->visit(['lists_shown' => '1', 'was' => [$this->news => 1, $this->workshops => 1], 'lists' => [$this->news, $this->workshops], 'first_name' => 'Amara']);
+
+        $this->assertSame('unsubscribed', Subscribers::get($this->id)['status']);
+        $this->assertTrue(SuppressionRepository::is_suppressed('amara@example.com'));
+    }
+
+    public function test_moving_between_lists_never_unsubscribes_from_everything_in_between()
+    {
+        Subscription::unsubscribe($this->id, $this->news);
+        $hooks = [];
+        $spy   = function () use (&$hooks) {
+            $hooks[] = current_filter();
+        };
+        add_action('mo_subscriber_unsubscribed', $spy);
+        add_action('mo_subscriber_confirmed', $spy);
+
+        $this->visit(['lists_shown' => '1', 'was' => [$this->news => 0, $this->workshops => 1], 'lists' => [$this->news]]);
+
+        $this->assertSame(['mo_subscriber_confirmed', 'mo_subscriber_unsubscribed'], $hooks);
+        $this->assertSame('subscribed', Subscribers::get($this->id)['status']);
+        $this->assertFalse(SuppressionRepository::is_suppressed('amara@example.com'));
+    }
+
+    public function test_a_value_whose_option_was_removed_survives_a_save()
+    {
+        $zone = Fields::create(['type' => 'dropdown', 'label' => 'Zone', 'options' => ['6a', '7b'], 'subscriber_editable' => true]);
+        $plants = Fields::create(['type' => 'multiselect', 'label' => 'Plants', 'options' => ['Roses', 'Veg'], 'subscriber_editable' => true]);
+        Fields::set_values($this->id, [$zone => '6a', $plants => ['Roses', 'Veg']]);
+        Fields::update($zone, ['options' => "7b\n8a"]);
+        Fields::update($plants, ['options' => 'Veg']);
+
+        list(, $html) = $this->visit();
+        $this->assertStringContainsString('<option value="6a" selected>6a</option>', $html);
+        $this->assertMatchesRegularExpression('/value="Roses"\s+checked/', $html);
+
+        $this->visit(['fields' => [$zone => '6a', $plants => ['', 'Roses', 'Veg']]]);
+        $this->assertSame(['6a', 'Roses, Veg'], [Fields::merge_values($this->id)['zone'], Fields::merge_values($this->id)['plants']]);
+    }
+
+    public function test_untouched_names_are_not_rewritten()
+    {
+        global $wpdb;
+        $wpdb->update(Subscribers::table(), ['first_name' => 'Amara  Jo'], ['id' => $this->id]);
+
+        $this->visit(['first_name' => sanitize_text_field('Amara  Jo'), 'last_name' => '']);
+
+        $this->assertSame('Amara  Jo', Subscribers::get($this->id)['first_name']);
+        $this->assertNotSame(Subscribers::EVENT_PREFERENCES_CHANGED, Subscribers::get_events($this->id)[0]['type']);
+    }
+
+    public function test_the_unsubscribe_page_masks_the_address()
+    {
+        $subscriber = Subscribers::get($this->id);
+        parse_str(wp_parse_url(\MailOptin\Core\Audience\Tokens::unsubscribe_url($subscriber), PHP_URL_QUERY), $_GET);
+        $_REQUEST = $_GET;
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        try {
+            (new PublicEndpoints())->unsubscribe();
+        } catch (\WPDieException $e) {
+            $html = $e->getMessage();
+        }
+
+        $this->assertStringContainsString('a••••@example.com', $html);
+        $this->assertStringNotContainsString('amara@example.com', $html);
+    }
+
+    public function test_link_injection_handles_real_world_footers()
+    {
+        // Outlook-only copy first: the link goes next to the one everyone sees.
+        $mso = '<!--[if mso]><a href="{{unsubscribe}}">U</a><![endif]--><a class="mo-footer-unsubscribe-link-color" href = \'{{unsubscribe}}\'>Unsubscribe</a>';
+        $this->assertSame(
+            '<!--[if mso]><a href="{{unsubscribe}}">U</a><![endif]--><a class="mo-footer-unsubscribe-link-color" href = \'{{unsubscribe}}\'>Unsubscribe</a> &middot; <a href="{{preferences}}" class="mo-footer-unsubscribe-link-color">Manage preferences</a>',
+            PreferenceCentre::add_link($mso, true)
+        );
+
+        $data = '<a data-href="{{unsubscribe}}" href="#">x</a> <a href="{{unsubscribe}}">Unsubscribe</a>';
+        $this->assertSame('<a data-href="{{unsubscribe}}" href="#">x</a> <a href="{{unsubscribe}}">Unsubscribe</a> &middot; <a href="{{preferences}}">Manage preferences</a>', PreferenceCentre::add_link($data, true));
+
+        $translated = function ($text, $original) {
+            return 'Manage preferences' === $original ? 'Pay $1 \\1' : $text;
+        };
+        add_filter('gettext', $translated, 10, 2);
+        $this->assertStringContainsString('>Pay $1 \\1</a>', PreferenceCentre::add_link('<a href="{{unsubscribe}}">U</a>', true));
+        remove_filter('gettext', $translated, 10);
+
+        $this->assertSame("Hi\r\nUnsubscribe: {{unsubscribe}}\r\nManage preferences: {{preferences}}\r\nBye", PreferenceCentre::add_link("Hi\r\nUnsubscribe: {{unsubscribe}}\r\nBye", false));
     }
 
     public function test_bounced_addresses_cannot_be_resubscribed_here()
@@ -187,7 +295,7 @@ class PreferenceCentreTest extends WP_UnitTestCase
     {
         $html = '<p>Bye <a class="x" href="{{unsubscribe}}">Unsubscribe</a> <a href="{{unsubscribe}}">again</a></p>';
 
-        $this->assertSame('<p>Bye <a class="x" href="{{unsubscribe}}">Unsubscribe</a> &middot; <a href="{{preferences}}">Manage preferences</a> <a href="{{unsubscribe}}">again</a></p>', PreferenceCentre::add_link($html, true));
+        $this->assertSame('<p>Bye <a class="x" href="{{unsubscribe}}">Unsubscribe</a> &middot; <a href="{{preferences}}" class="x">Manage preferences</a> <a href="{{unsubscribe}}">again</a></p>', PreferenceCentre::add_link($html, true));
         $this->assertSame("Hi\nUnsubscribe: {{unsubscribe}}\nManage preferences: {{preferences}}\nAddress", PreferenceCentre::add_link("Hi\nUnsubscribe: {{unsubscribe}}\nAddress", false));
         $this->assertSame('<a href="{{preferences}}">x</a> {{unsubscribe}}', PreferenceCentre::add_link('<a href="{{preferences}}">x</a> {{unsubscribe}}', true));
 

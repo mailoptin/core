@@ -58,12 +58,33 @@ class PreferenceCentre
         $label = __('Manage preferences', 'mailoptin');
 
         if ($is_html) {
-            $with = preg_replace('#(<a\b[^>]*href=(["\'])\{\{unsubscribe\}\}\2[^>]*>.*?</a>)#is', '$1 &middot; <a href="{{preferences}}">' . esc_html($label) . '</a>', $content, 1, $count);
+            // Outlook-only copies (<!--[if mso]>…<![endif]-->) are skipped: other apps never show them.
+            $hidden = [];
+            if (preg_match_all('#<!--\[if[^\]]*\]>.*?<!\[endif\]-->#is', $content, $blocks, PREG_OFFSET_CAPTURE)) {
+                foreach ($blocks[0] as $block) $hidden[] = [$block[1], $block[1] + strlen($block[0])];
+            }
 
-            return $count ? $with : $content;
+            if ( ! preg_match_all('#<a\b(?=[^>]*\shref\s*=\s*(["\'])\{\{unsubscribe\}\}\1)([^>]*)>.*?</a>#is', $content, $links, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) return $content;
+
+            foreach ($links as $link) {
+                $start = $link[0][1];
+                foreach ($hidden as list($from, $to)) {
+                    if ($start >= $from && $start < $to) continue 2;
+                }
+
+                // Same classes as the unsubscribe link, so it gets the template's footer link colour.
+                $class = preg_match('#\sclass\s*=\s*(["\'])(.*?)\1#is', $link[2][0], $m) ? ' class="' . esc_attr($m[2]) . '"' : '';
+                $extra = ' &middot; <a href="{{preferences}}"' . $class . '>' . esc_html($label) . '</a>';
+                $end   = $start + strlen($link[0][0]);
+
+                return substr($content, 0, $end) . $extra . substr($content, $end);
+            }
+
+            return $content;
         }
 
-        $lines = explode("\n", $content);
+        $eol   = false !== strpos($content, "\r\n") ? "\r\n" : "\n";
+        $lines = explode($eol, $content);
 
         foreach ($lines as $i => $line) {
             if (false !== strpos($line, '{{unsubscribe}}')) {
@@ -72,7 +93,7 @@ class PreferenceCentre
             }
         }
 
-        return implode("\n", $lines);
+        return implode($eol, $lines);
     }
 
     public function handle_request()
@@ -99,6 +120,8 @@ class PreferenceCentre
     protected function page($title, $html, $status = 200)
     {
         nocache_headers();
+        // Page caching plugins: a cached copy would show someone's old choices, or someone else's.
+        if ( ! defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
         // The link is personal; keep it out of other sites' logs.
         if ( ! headers_sent()) {
             header('Referrer-Policy: no-referrer');
@@ -174,13 +197,15 @@ class PreferenceCentre
                 <input type="hidden" name="lists_shown" value="1">
                 <?php foreach ($memberships as $membership) :
                     $list = $membership['list'];
-                    $on = Subscribers::STATUS_UNSUBSCRIBED !== $membership['status'] && Subscribers::STATUS_UNSUBSCRIBED !== $subscriber['status'];
+                    $on = self::is_ticked($subscriber, $membership);
                     ?>
+                    <?php // What the box showed, so saving only acts on boxes the person changed, even from a cached page. ?>
+                    <input type="hidden" name="was[<?php echo absint($list['id']); ?>]" value="<?php echo $on ? 1 : 0; ?>">
                     <label class="mo-p-check">
                         <input type="checkbox" name="lists[]" value="<?php echo absint($list['id']); ?>" <?php checked($on); ?> <?php disabled($blocked); ?>>
                         <span><b><?php echo esc_html($list['name']); ?></b>
                             <?php if ( ! empty($list['description'])) : ?><small><?php echo esc_html($list['description']); ?></small><?php endif; ?>
-                            <?php if (Subscribers::STATUS_PENDING === $membership['status']) : ?><small><?php esc_html_e('Waiting for you to confirm. Keep it ticked and save to confirm.', 'mailoptin'); ?></small><?php endif; ?>
+                            <?php if (Subscribers::STATUS_PENDING === $membership['status']) : ?><small><?php esc_html_e('Not confirmed yet. Tick it and save to start getting these emails.', 'mailoptin'); ?></small><?php endif; ?>
                         </span>
                     </label>
                 <?php endforeach; ?>
@@ -213,6 +238,10 @@ class PreferenceCentre
                 foreach ($field['options'] as $option) {
                     $input .= sprintf('<option value="%s" %s>%s</option>', esc_attr($option), selected($value, $option, false), esc_html($option));
                 }
+                // A value whose option was since removed is kept until they change it.
+                if ('' !== $value && ! in_array($value, $field['options'], true)) {
+                    $input .= sprintf('<option value="%s" selected>%s</option>', esc_attr($value), esc_html($value));
+                }
                 $input .= '</select>';
                 break;
             case Fields::TYPE_CHECKBOX:
@@ -227,7 +256,7 @@ class PreferenceCentre
                 );
             case Fields::TYPE_MULTISELECT:
                 $boxes = sprintf('<input type="hidden" name="%s[]" value="">', esc_attr($name));
-                foreach ($field['options'] as $option) {
+                foreach (array_unique(array_merge($field['options'], (array)$value)) as $option) {
                     $boxes .= sprintf('<label class="mo-p-inline"><input type="checkbox" name="%s[]" value="%s" %s> %s</label>', esc_attr($name), esc_attr($option), checked(in_array($option, (array)$value, true), true, false), esc_html($option));
                 }
 
@@ -238,6 +267,15 @@ class PreferenceCentre
         }
 
         return sprintf('<div class="mo-p-field"><label for="%s">%s</label>%s</div>', esc_attr($id), esc_html($field['label']), $input);
+    }
+
+    /**
+     * A list's box is ticked when they get its emails. Lists still waiting for confirmation are
+     * unticked: ticking one is how they confirm, and a box ticked for them wouldn't be consent.
+     */
+    protected static function is_ticked($subscriber, $membership)
+    {
+        return Subscribers::STATUS_SUBSCRIBED === $membership['status'] && Subscribers::STATUS_UNSUBSCRIBED !== $subscriber['status'];
     }
 
     /**
@@ -258,7 +296,9 @@ class PreferenceCentre
         foreach (['first_name', 'last_name'] as $key) {
             if ( ! isset($post[$key]) || ! is_scalar($post[$key])) continue;
             $value = mb_substr(sanitize_text_field((string)$post[$key]), 0, 100);
-            if ($value !== (string)$subscriber[$key]) $names[$key] = $value;
+            // Unchanged unless it differs from the stored name as it would be saved: names from an
+            // import or the admin may hold characters this cleans up.
+            if ($value !== mb_substr(sanitize_text_field((string)$subscriber[$key]), 0, 100)) $names[$key] = $value;
         }
         if ( ! empty($names)) {
             Subscribers::update($subscriber_id, $names);
@@ -292,26 +332,40 @@ class PreferenceCentre
 
         if ( ! empty($post['lists_shown']) && ! $blocked) {
             $wanted = array_map('absint', array_filter((array)($post['lists'] ?? []), 'is_scalar'));
+            $was    = is_array($post['was'] ?? null) ? $post['was'] : [];
             $join   = [];
+            $leave  = [];
 
             foreach (self::memberships($subscriber_id) as $membership) {
                 $list_id = (int)$membership['list_id'];
-                $on      = Subscribers::STATUS_UNSUBSCRIBED !== $membership['status'] && Subscribers::STATUS_UNSUBSCRIBED !== $subscriber['status'];
                 $ticked  = in_array($list_id, $wanted, true);
+                $shown   = isset($was[$list_id]) && is_scalar($was[$list_id]) ? (bool)$was[$list_id] : self::is_ticked($subscriber, $membership);
+                $on      = self::is_ticked($subscriber, $membership);
 
-                if ($on && ! $ticked) {
-                    Subscription::unsubscribe($subscriber_id, $list_id);
-                    $changes['left'][] = $membership['list']['name'];
-                } elseif ($ticked && (! $on || Subscribers::STATUS_PENDING === $membership['status'])) {
+                // Only boxes the person changed.
+                if ($ticked === $shown) continue;
+
+                if ($ticked && ! $on) {
                     $join[] = $list_id;
-                    if ( ! $on) $changes['joined'][] = $membership['list']['name'];
+                    $changes['joined'][] = $membership['list']['name'];
+                } elseif ( ! $ticked && $on) {
+                    $leave[] = $membership;
                 }
             }
 
+            // Joins first, so moving from one list to another never leaves them on none in between.
             // Ticking a list here proves the inbox is theirs, like a confirmation click.
             if ( ! empty($join)) {
-                foreach ($join as $list_id) Subscribers::set_membership($subscriber_id, $list_id, Subscribers::STATUS_PENDING);
-                Subscription::confirm($subscriber_id);
+                foreach ($join as $list_id) {
+                    $membership = Subscribers::get_membership($subscriber_id, $list_id);
+                    if (Subscribers::STATUS_PENDING !== ($membership['status'] ?? '')) Subscribers::set_membership($subscriber_id, $list_id, Subscribers::STATUS_PENDING);
+                }
+                Subscription::confirm($subscriber_id, $join);
+            }
+
+            foreach ($leave as $membership) {
+                Subscription::unsubscribe($subscriber_id, (int)$membership['list_id']);
+                $changes['left'][] = $membership['list']['name'];
             }
 
             $unsubscribed_all = Subscribers::STATUS_UNSUBSCRIBED === Subscribers::get($subscriber_id)['status'];

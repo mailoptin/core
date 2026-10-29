@@ -108,7 +108,7 @@ class PublicEndpoints
 
             $this->page(
                 __("You've been unsubscribed", 'mailoptin'),
-                sprintf(esc_html__('%1$s will no longer receive emails %2$s.', 'mailoptin'), '<strong>' . esc_html($subscriber['email']) . '</strong>', esc_html($from_label))
+                sprintf(esc_html__('%1$s will no longer receive emails %2$s.', 'mailoptin'), '<strong>' . esc_html(PreferenceCentre::masked_email($subscriber['email'])) . '</strong>', esc_html($from_label))
             );
         }
 
@@ -120,7 +120,8 @@ class PublicEndpoints
 
         $this->page(
             __('Unsubscribe', 'mailoptin'),
-            sprintf(esc_html__('Click the button below to unsubscribe %1$s %2$s.', 'mailoptin'), '<strong>' . esc_html($subscriber['email']) . '</strong>', esc_html($from_label)),
+            // Masked: anyone holding the link (a forwarded email) shouldn't learn the address.
+            sprintf(esc_html__('Click the button below to unsubscribe %1$s %2$s.', 'mailoptin'), '<strong>' . esc_html(PreferenceCentre::masked_email($subscriber['email'])) . '</strong>', esc_html($from_label)),
             $form
         );
     }

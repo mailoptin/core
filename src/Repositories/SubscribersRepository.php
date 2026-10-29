@@ -306,15 +306,24 @@ class SubscribersRepository extends AbstractRepository
     /**
      * Mark the subscriber confirmed and turn every pending membership into a subscription.
      */
-    public static function confirm($subscriber_id)
+    /**
+     * @param int[]|null $list_ids only these pending lists; null for all of them
+     */
+    public static function confirm($subscriber_id, $list_ids = null)
     {
         $table = self::memberships_table();
 
-        self::wpdb()->update(
-            $table,
-            ['status' => self::STATUS_SUBSCRIBED],
-            ['subscriber_id' => $subscriber_id, 'status' => self::STATUS_PENDING]
-        );
+        if (is_array($list_ids)) {
+            foreach (array_map('absint', $list_ids) as $list_id) {
+                self::wpdb()->update($table, ['status' => self::STATUS_SUBSCRIBED], ['subscriber_id' => $subscriber_id, 'list_id' => $list_id, 'status' => self::STATUS_PENDING]);
+            }
+        } else {
+            self::wpdb()->update(
+                $table,
+                ['status' => self::STATUS_SUBSCRIBED],
+                ['subscriber_id' => $subscriber_id, 'status' => self::STATUS_PENDING]
+            );
+        }
 
         self::update($subscriber_id, ['confirmed_at' => self::now()]);
 
