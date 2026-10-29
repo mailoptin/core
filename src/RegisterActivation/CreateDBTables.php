@@ -92,6 +92,7 @@ class CreateDBTables
         $sqls = array_merge($sqls, self::audience_tables_sql($collate));
         $sqls[] = self::conversion_syncs_table_sql($collate);
         $sqls = array_merge($sqls, self::tags_fields_tables_sql($collate));
+        $sqls[] = self::segments_table_sql($collate);
 
         $sqls = apply_filters('mo_create_database_tables', $sqls, $collate);
 
@@ -299,5 +300,26 @@ class CreateDBTables
 ) $collate;";
 
         return $sqls;
+    }
+
+    /**
+     * Saved segments: named tag and custom field filters, applied within a list when a campaign sends.
+     * filters is JSON with tag_ids, tag_match and field_conditions.
+     */
+    public static function segments_table_sql($collate)
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . Core::segments_table_name;
+
+        return "CREATE TABLE $table (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(100) NOT NULL,
+  filters longtext NOT NULL,
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY name (name)
+) $collate;";
     }
 }

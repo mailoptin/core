@@ -114,7 +114,7 @@ class Subscriber_Filters
     /**
      * Filter chips, each with a link that removes it.
      *
-     * @param string $base_url the current view without tag or field filters
+     * @param string|null $base_url the current view without tag or field filters; null for chips without a remove link
      */
     public static function chips_html($filters, $base_url)
     {
@@ -131,18 +131,28 @@ class Subscriber_Filters
             $without = $filters;
             $without['tag_ids'] = [];
 
-            $chips[] = self::chip($label, implode(', ', $names), add_query_arg(self::to_query($without), $base_url));
+            if (count($names) < count($filters['tag_ids'])) $names[] = __('(deleted tag)', 'mailoptin');
+
+            $chips[] = self::chip($label, implode(', ', $names), null === $base_url ? null : add_query_arg(self::to_query($without), $base_url));
         }
 
         foreach ($filters['field_conditions'] as $i => $condition) {
-            $field   = Fields::get($condition['field_id']);
+            $field   = Fields::get($condition['field_id'] ?? 0);
             $without = $filters;
             unset($without['field_conditions'][$i]);
+
+            $remove_url = null === $base_url ? null : add_query_arg(self::to_query($without), $base_url);
+
+            // Saved segments can refer to a field that was deleted since, or an operator it no longer has.
+            if ( ! $field || ! isset(Fields::operators($field['type'])[$condition['op'] ?? ''])) {
+                $chips[] = self::chip(__('Deleted or changed field', 'mailoptin'), '', $remove_url);
+                continue;
+            }
 
             $chips[] = self::chip(
                 $field['label'] . ' ' . Fields::operators($field['type'])[$condition['op']],
                 self::value_label($field, $condition),
-                add_query_arg(self::to_query($without), $base_url)
+                $remove_url
             );
         }
 
@@ -152,11 +162,10 @@ class Subscriber_Filters
     protected static function chip($label, $value, $remove_url)
     {
         return sprintf(
-            '<span class="mo-filter-chip">%s%s <a href="%s" aria-label="%s">&times;</a></span>',
+            '<span class="mo-filter-chip">%s%s%s</span>',
             esc_html($label),
             '' === $value ? '' : ' <b>' . esc_html($value) . '</b>',
-            esc_url($remove_url),
-            esc_attr__('Remove filter', 'mailoptin')
+            null === $remove_url ? '' : sprintf(' <a href="%s" aria-label="%s">&times;</a>', esc_url($remove_url), esc_attr__('Remove filter', 'mailoptin'))
         );
     }
 

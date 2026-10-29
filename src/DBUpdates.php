@@ -13,7 +13,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 20;
+    const DB_VER = 21;
 
     public function init_options()
     {
@@ -344,6 +344,20 @@ class DBUpdates
         foreach (CreateDBTables::tags_fields_tables_sql($collate) as $sql) {
             dbDelta($sql);
         }
+    }
+
+    /**
+     * Saved segments of built-in list subscribers.
+     */
+    public function update_routine_21()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::segments_table_sql($collate));
     }
 
     public static function get_instance()

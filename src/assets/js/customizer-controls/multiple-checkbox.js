@@ -1,8 +1,9 @@
 jQuery(document).ready(function () {
 
-    jQuery('.customize-control-mailoptin-checkbox-multiple input[type="checkbox"]').on('change', function () {
+    // Delegated: the customizer renders controls when their section opens, after this runs.
+    jQuery(document).on('change', '.customize-control-mailoptin-checkbox-multiple input[type="checkbox"]', function () {
 
-            checkbox_values = jQuery(this).parents('.customize-control').find('input[type="checkbox"]:checked').map(
+            var checkbox_values = jQuery(this).parents('.customize-control').find('input[type="checkbox"]:checked').map(
                 function () {
                     return this.value;
                 }

@@ -465,6 +465,7 @@ class Subscribers_Tags_Fields
                     <?php endif; ?>
                 </div>
             </details>
+            <?php if (Subscribers_Segments::is_ready()) echo Subscribers_Segments::save_html($filters); ?>
         </div>
         <?php
         return ob_get_clean();
@@ -477,7 +478,7 @@ class Subscribers_Tags_Fields
     {
         $html = sprintf('<input type="hidden" name="page" value="%s">', esc_attr(Subscribers_Page::SLUG));
 
-        foreach (['status', 'list', 's'] as $key) {
+        foreach (['status', 'list', 's', 'segment'] as $key) {
             if ( ! empty($_GET[$key])) {
                 $html .= sprintf('<input type="hidden" name="%s" value="%s">', esc_attr($key), esc_attr(sanitize_text_field(wp_unslash($_GET[$key]))));
             }
@@ -981,6 +982,15 @@ class Subscribers_Tags_Fields
             case 'delete_tag':
                 $tag_id = absint($_GET['tag'] ?? 0);
                 check_admin_referer('mo_delete_tag_' . $tag_id);
+
+                $excluded_by = \MailOptin\Core\Repositories\SegmentsRepository::excluded_by($tag_id);
+
+                if ( ! empty($excluded_by)) {
+                    self::set_error(sprintf(__('Campaigns leave out people with this tag: %s. Untick it in those campaigns first.', 'mailoptin'), implode(', ', $excluded_by)));
+
+                    return ['error', $tags_url];
+                }
+
                 Tags::delete($tag_id);
 
                 return ['tag_deleted', $tags_url];

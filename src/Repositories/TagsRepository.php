@@ -186,7 +186,10 @@ class TagsRepository extends AbstractRepository
             )
         );
 
-        // Forms that applied the old tag apply the new one.
+        // Forms, segments and campaigns that used the old tag use the new one.
+        if (SegmentsRepository::is_ready()) SegmentsRepository::replace_tag($from_id, $into_id);
+        SegmentsRepository::replace_excluded_tag($from_id, $into_id);
+
         do_action('mo_tag_merged', $from_id, $into_id);
 
         return self::delete($from_id);
@@ -196,6 +199,8 @@ class TagsRepository extends AbstractRepository
     {
         self::wpdb()->delete(self::links_table(), ['tag_id' => $tag_id], ['%d']);
 
+        // Segments and campaigns that leave the tag out keep it, and won't send until edited:
+        // dropping it would widen who they reach.
         do_action('mo_tag_deleted', (int)$tag_id);
 
         return (bool)self::wpdb()->delete(self::table(), ['id' => $tag_id], ['%d']);

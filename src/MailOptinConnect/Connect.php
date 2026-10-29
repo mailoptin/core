@@ -9,6 +9,7 @@ use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionInterface;
 use MailOptin\Core\Repositories\CustomFieldsRepository;
 use MailOptin\Core\Repositories\ListsRepository;
+use MailOptin\Core\Repositories\SegmentsRepository;
 use MailOptin\Core\Repositories\SendQueueRepository;
 use MailOptin\Core\Repositories\SubscribersRepository;
 use MailOptin\Core\Repositories\TagsRepository;
@@ -33,6 +34,8 @@ class Connect extends AbstractConnect implements ConnectionInterface
         add_filter('mo_optin_integrations_controls_after', [$this, 'integration_customizer_controls']);
         add_action('mo_tag_merged', [$this, 'replace_tag_in_forms'], 10, 2);
         add_action('mo_tag_deleted', [$this, 'replace_tag_in_forms']);
+
+        new CampaignAudience();
 
         parent::__construct();
     }
@@ -290,6 +293,15 @@ class Connect extends AbstractConnect implements ConnectionInterface
             return ['success' => false];
         }
 
+        // The segment is applied now, not when it was chosen, so recent matches are included.
+        $filters = SegmentsRepository::campaign_filters($email_campaign_id);
+
+        if (is_wp_error($filters)) {
+            self::save_campaign_error_log($filters->get_error_message(), $campaign_log_id, $email_campaign_id);
+
+            return ['success' => false];
+        }
+
         CampaignRenderer::save_campaign_content($campaign_log_id, $list_id, $content_html, $content_text);
 
         // Resending a campaign retries its failed recipients; anyone already sent is skipped by the queue.
@@ -298,7 +310,7 @@ class Connect extends AbstractConnect implements ConnectionInterface
         $after_id = 0;
 
         do {
-            $recipients = SubscribersRepository::get_list_recipients($list_id, $after_id, self::ENQUEUE_BATCH_SIZE);
+            $recipients = SubscribersRepository::get_list_recipients($list_id, $after_id, self::ENQUEUE_BATCH_SIZE, $filters);
 
             if (empty($recipients)) break;
 
