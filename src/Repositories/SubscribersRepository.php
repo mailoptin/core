@@ -160,26 +160,7 @@ class SubscribersRepository extends AbstractRepository
             if ($tags_ready) $params[] = $like;
         }
 
-        $tag_ids = array_values(array_filter(array_map('absint', (array)($args['tag_ids'] ?? []))));
-
-        if ($tags_ready && ! empty($tag_ids)) {
-            $links = TagsRepository::links_table();
-            $in    = implode(',', $tag_ids);
-            $match = $args['tag_match'] ?? 'any';
-
-            if ('all' === $match) {
-                $where[] = "(SELECT COUNT(*) FROM $links t WHERE t.subscriber_id = s.id AND t.tag_id IN ($in)) = " . count($tag_ids);
-            } else {
-                $where[] = ('none' === $match ? 'NOT ' : '') . "EXISTS (SELECT 1 FROM $links t WHERE t.subscriber_id = s.id AND t.tag_id IN ($in))";
-            }
-        }
-
-        if ($tags_ready) {
-            foreach ((array)($args['field_conditions'] ?? []) as $condition) {
-                $sql = is_array($condition) ? CustomFieldsRepository::condition_sql($condition) : null;
-                if ($sql) $where[] = $sql;
-            }
-        }
+        self::filter_where($args, $where, $params);
 
         $where_sql = implode(' AND ', $where);
 
@@ -225,6 +206,43 @@ class SubscribersRepository extends AbstractRepository
         }
 
         return ['items' => $items, 'total' => $total];
+    }
+
+    /**
+     * WHERE conditions for tag and custom field filters on subscribers aliased "s".
+     *
+     * @param array $args tag_ids, tag_match (any, all or none), exclude_tag_ids, field_conditions
+     * @param array $where conditions are added to it
+     * @param array $params placeholders values are added to it
+     */
+    public static function filter_where($args, &$where, &$params)
+    {
+        if ( ! TagsRepository::is_ready()) return;
+
+        $links   = TagsRepository::links_table();
+        $tag_ids = array_values(array_filter(array_map('absint', (array)($args['tag_ids'] ?? []))));
+
+        if ( ! empty($tag_ids)) {
+            $in    = implode(',', $tag_ids);
+            $match = $args['tag_match'] ?? 'any';
+
+            if ('all' === $match) {
+                $where[] = "(SELECT COUNT(*) FROM $links t WHERE t.subscriber_id = s.id AND t.tag_id IN ($in)) = " . count($tag_ids);
+            } else {
+                $where[] = ('none' === $match ? 'NOT ' : '') . "EXISTS (SELECT 1 FROM $links t WHERE t.subscriber_id = s.id AND t.tag_id IN ($in))";
+            }
+        }
+
+        $exclude_ids = array_values(array_filter(array_map('absint', (array)($args['exclude_tag_ids'] ?? []))));
+
+        if ( ! empty($exclude_ids)) {
+            $where[] = "NOT EXISTS (SELECT 1 FROM $links x WHERE x.subscriber_id = s.id AND x.tag_id IN (" . implode(',', $exclude_ids) . '))';
+        }
+
+        foreach ((array)($args['field_conditions'] ?? []) as $condition) {
+            $sql = is_array($condition) ? CustomFieldsRepository::condition_sql($condition) : null;
+            if ($sql) $where[] = $sql;
+        }
     }
 
     /**
@@ -367,25 +385,44 @@ class SubscribersRepository extends AbstractRepository
      *
      * @return array rows with id and email
      */
-    public static function get_list_recipients($list_id, $after_id = 0, $limit = 1000)
+    public static function get_list_recipients($list_id, $after_id = 0, $limit = 1000, $filters = [])
     {
-        $table             = self::table();
-        $memberships_table = self::memberships_table();
+        list($where, $params) = self::list_recipients_where($list_id, $filters);
+
+        $params[] = absint($after_id);
+        $params[] = absint($limit);
 
         return self::wpdb()->get_results(
-            self::wpdb()->prepare(
-                "SELECT s.id, s.email FROM $table s
-                INNER JOIN $memberships_table m ON m.subscriber_id = s.id
-                WHERE m.list_id = %d AND m.status = %s AND s.status = %s AND s.id > %d
-                ORDER BY s.id LIMIT %d",
-                $list_id,
-                self::STATUS_SUBSCRIBED,
-                self::STATUS_SUBSCRIBED,
-                $after_id,
-                $limit
-            ),
+            self::wpdb()->prepare("SELECT s.id, s.email FROM " . self::table() . " s WHERE $where AND s.id > %d ORDER BY s.id LIMIT %d", $params),
             'ARRAY_A'
         );
+    }
+
+    /**
+     * How many people get_list_recipients() returns, for showing a campaign's audience.
+     */
+    public static function count_list_recipients($list_id, $filters = [])
+    {
+        list($where, $params) = self::list_recipients_where($list_id, $filters);
+
+        return (int)self::wpdb()->get_var(self::wpdb()->prepare("SELECT COUNT(*) FROM " . self::table() . " s WHERE $where", $params));
+    }
+
+    /**
+     * Confirmed subscribers of a list, optionally narrowed by tag and custom field filters.
+     *
+     * @return array [WHERE sql with placeholders, params]
+     */
+    protected static function list_recipients_where($list_id, $filters)
+    {
+        $memberships_table = self::memberships_table();
+
+        $where  = ["EXISTS (SELECT 1 FROM $memberships_table m WHERE m.subscriber_id = s.id AND m.list_id = %d AND m.status = %s)", 's.status = %s'];
+        $params = [absint($list_id), self::STATUS_SUBSCRIBED, self::STATUS_SUBSCRIBED];
+
+        self::filter_where((array)$filters, $where, $params);
+
+        return [implode(' AND ', $where), $params];
     }
 
     public static function log_event($subscriber_id, $type, $meta = [], $campaign_log_id = 0)

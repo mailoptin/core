@@ -207,6 +207,7 @@ class Base
         $tables[] = $db_prefix . Core::subscriber_tags_table_name;
         $tables[] = $db_prefix . Core::custom_fields_table_name;
         $tables[] = $db_prefix . Core::field_values_table_name;
+        $tables[] = $db_prefix . Core::segments_table_name;
 
         $tables = apply_filters('mo_drop_mu_database_tables', $tables, $db_prefix);
 

@@ -22,6 +22,7 @@ final class Core
     const subscriber_tags_table_name = 'mo_subscriber_tags';
     const custom_fields_table_name = 'mo_custom_fields';
     const field_values_table_name = 'mo_subscriber_field_values';
+    const segments_table_name = 'mo_segments';
 
     public function __construct()
     {

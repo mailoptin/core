@@ -465,6 +465,7 @@ class Subscribers_Tags_Fields
                     <?php endif; ?>
                 </div>
             </details>
+            <?php if (Subscribers_Segments::is_ready()) echo Subscribers_Segments::save_html($filters); ?>
         </div>
         <?php
         return ob_get_clean();
@@ -477,7 +478,7 @@ class Subscribers_Tags_Fields
     {
         $html = sprintf('<input type="hidden" name="page" value="%s">', esc_attr(Subscribers_Page::SLUG));
 
-        foreach (['status', 'list', 's'] as $key) {
+        foreach (['status', 'list', 's', 'segment'] as $key) {
             if ( ! empty($_GET[$key])) {
                 $html .= sprintf('<input type="hidden" name="%s" value="%s">', esc_attr($key), esc_attr(sanitize_text_field(wp_unslash($_GET[$key]))));
             }
