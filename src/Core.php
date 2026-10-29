@@ -18,6 +18,10 @@ final class Core
     const subscriber_events_table_name = 'mo_subscriber_events';
     const send_queue_table_name = 'mo_send_queue';
     const conversion_syncs_table_name = 'mo_conversion_syncs';
+    const tags_table_name = 'mo_tags';
+    const subscriber_tags_table_name = 'mo_subscriber_tags';
+    const custom_fields_table_name = 'mo_custom_fields';
+    const field_values_table_name = 'mo_subscriber_field_values';
 
     public function __construct()
     {

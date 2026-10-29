@@ -13,7 +13,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 19;
+    const DB_VER = 20;
 
     public function init_options()
     {
@@ -328,6 +328,22 @@ class DBUpdates
         dbDelta(CreateDBTables::conversion_syncs_table_sql($collate));
 
         add_option(ConversionSyncRepository::TRACKING_SINCE_OPTION, current_time('mysql'));
+    }
+
+    /**
+     * Tags and custom fields for built-in list subscribers.
+     */
+    public function update_routine_20()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::tags_fields_tables_sql($collate) as $sql) {
+            dbDelta($sql);
+        }
     }
 
     public static function get_instance()
