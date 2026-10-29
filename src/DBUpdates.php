@@ -5,6 +5,7 @@ namespace MailOptin\Core;
 use MailOptin\AdvanceAnalytics\AdvanceAnalytics;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\RegisterActivation\CreateDBTables;
+use MailOptin\Core\Repositories\ConversionSyncRepository;
 use MailOptin\Core\Repositories\SuppressionRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
@@ -12,7 +13,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 18;
+    const DB_VER = 19;
 
     public function init_options()
     {
@@ -310,6 +311,23 @@ class DBUpdates
 
             SuppressionRepository::add_many($emails, SuppressionRepository::REASON_UNSUBSCRIBED, $source);
         }
+    }
+
+    /**
+     * Sync tracking for submissions. Submissions saved before this have no sync history, which the
+     * Submissions screen shows as "Not recorded".
+     */
+    public function update_routine_19()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::conversion_syncs_table_sql($collate));
+
+        add_option(ConversionSyncRepository::TRACKING_SINCE_OPTION, current_time('mysql'));
     }
 
     public static function get_instance()

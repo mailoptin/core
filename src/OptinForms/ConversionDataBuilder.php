@@ -19,4 +19,6 @@ class ConversionDataBuilder
     public $is_double_optin = true;
     public $form_custom_field_mappings = [];
     public $form_tags = [];
+    // The visitor's IP, kept so a later retry from cron doesn't report the server's.
+    public $ip_address = '';
 }

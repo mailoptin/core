@@ -12,3 +12,4 @@ src/BlockEditor/node_modules/*
 !tests/Admin/Customizer/OptinForm/CustomizerSettingsTest.php
 !tests/SendQueue/
 !tests/Audience/
+!tests/Submissions/

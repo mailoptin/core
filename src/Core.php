@@ -17,6 +17,7 @@ final class Core
     const suppressions_table_name = 'mo_suppressions';
     const subscriber_events_table_name = 'mo_subscriber_events';
     const send_queue_table_name = 'mo_send_queue';
+    const conversion_syncs_table_name = 'mo_conversion_syncs';
 
     public function __construct()
     {

@@ -26,6 +26,7 @@ use MailOptin\Core\Repositories\OptinCampaignStat;
 use MailOptin\Core\Repositories\OptinConversionsRepository;
 use MailOptin\Core\Repositories\OptinThemesRepository;
 use MailOptin\Core\Repositories\StateRepository;
+use MailOptin\Core\Submissions\SubmissionSync;
 use MailOptin\Libsodium\LeadBank\LeadBank;
 
 class AjaxHandler
@@ -945,7 +946,7 @@ class AjaxHandler
             }
 
             $connection_email_list = $conversion_data->connection_email_list ?? '';
-            $response              = self::add_lead_to_connection($connection_service, $connection_email_list, $conversion_data);
+            $response              = SubmissionSync::send((int)$conversionRepoResponse, $connection_service, $connection_email_list, $conversion_data);
 
             if (AbstractConnect::is_ajax_success($response)) {
                 self::track_conversion($optin_campaign_id, $lead_data);
@@ -1000,7 +1001,8 @@ class AjaxHandler
                     if (is_array($ls_lists)) {
                         foreach ($ls_lists as $ls_list) {
                             if (in_array($ls_list, $valid_options)) {
-                                $responses[] = self::add_lead_to_connection(
+                                $responses[] = SubmissionSync::send(
+                                        (int)$conversionRepoResponse,
                                         $integration['connection_service'],
                                         $ls_list,
                                         $conversion_data
@@ -1010,7 +1012,8 @@ class AjaxHandler
                     } else {
 
                         if (in_array($ls_lists, $valid_options)) {
-                            $responses[] = self::add_lead_to_connection(
+                            $responses[] = SubmissionSync::send(
+                                    (int)$conversionRepoResponse,
                                     $integration['connection_service'],
                                     $ls_lists,
                                     $conversion_data
@@ -1023,7 +1026,8 @@ class AjaxHandler
 
             } else {
 
-                $responses[] = self::add_lead_to_connection(
+                $responses[] = SubmissionSync::send(
+                    (int)$conversionRepoResponse,
                     $integration['connection_service'],
                     $integration['connection_email_list'] ?? '',
                     $conversion_data
@@ -1102,7 +1106,7 @@ class AjaxHandler
         }
 
         // $extras['referrer'] is already set
-        $extras['mo_ip_address']    = get_ip_address();
+        $extras['mo_ip_address']    = ! empty($conversion_data->ip_address) ? $conversion_data->ip_address : get_ip_address();
         $extras['mo_campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
 
         //add the disable_double_optin for external forms
