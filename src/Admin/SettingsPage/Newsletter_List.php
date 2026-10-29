@@ -4,7 +4,11 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 use MailOptin\Core\Core;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
+use MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts;
+use MailOptin\Core\Repositories\CampaignActivityRepository;
+use MailOptin\Core\Repositories\ConnectionsRepository;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
+use MailOptin\Core\Repositories\SegmentsRepository;
 
 if ( ! class_exists('WP_List_Table')) {
     require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
@@ -30,7 +34,11 @@ class Newsletter_List extends \WP_List_Table
 
     public function no_items()
     {
-        _e('No newsletter has been sent yet.', 'mailoptin');
+        printf(
+            esc_html__('No broadcasts yet. %sCreate one%s.', 'mailoptin'),
+            '<a href="' . esc_url(add_query_arg('view', 'create-broadcast', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE)) . '">',
+            '</a>'
+        );
     }
 
     /**
@@ -41,10 +49,11 @@ class Newsletter_List extends \WP_List_Table
     public function get_columns()
     {
         return array(
-            'cb'        => '<input type="checkbox" />',
-            'name'      => __('Name', 'mailoptin'),
-            'action'    => __('Actions', 'mailoptin'),
-            'date_sent' => __('Date Sent', 'mailoptin'),
+            'cb'         => '<input type="checkbox" />',
+            'name'       => __('Broadcast', 'mailoptin'),
+            'audience'   => __('Audience', 'mailoptin'),
+            'status'     => __('Status', 'mailoptin'),
+            'engagement' => __('Engagement', 'mailoptin'),
         );
     }
 
@@ -63,91 +72,96 @@ class Newsletter_List extends \WP_List_Table
     function column_name($item)
     {
         $email_campaign_id = absint($item['id']);
+        $status            = Broadcasts::status($email_campaign_id);
+        $page_url          = Broadcast_Page::url($email_campaign_id);
+        $editable          = in_array($status['status'], [Broadcasts::STATUS_DRAFT, Broadcasts::STATUS_SCHEDULED, Broadcasts::STATUS_FAILED], true);
 
-        $customize_url = Email_Campaign_List::_campaign_customize_url($email_campaign_id);
+        $actions = ['edit' => sprintf('<a href="%s">%s</a>', esc_url($page_url), $editable ? esc_html__('Edit', 'mailoptin') : esc_html__('View', 'mailoptin'))];
 
-        $delete_url = Email_Campaign_List::_campaign_delete_url($email_campaign_id);
-        $send_url   = esc_url(
-            add_query_arg(
-                '_wpnonce',
-                wp_create_nonce('mailoptin-send-newsletter'),
-                admin_url('?action=mailoptin_send_newsletter&id=' . $email_campaign_id)
-            )
-        );
-        $name       = "<strong><a href=\"$customize_url\">" . $item['name'] . '</a></strong>';
+        if ($editable) {
+            $actions['design'] = sprintf('<a href="%s">%s</a>', esc_url(Broadcast_Page::design_url($email_campaign_id)), esc_html__('Design email', 'mailoptin'));
+        }
 
-        $date_sent = EmailCampaignMeta::get_meta_data($email_campaign_id, 'newsletter_date_sent');
+        if ($status['log'] && CampaignActivityRepository::is_ready() && CampaignActivityRepository::sent_count($status['log']['id'])) {
+            $actions['report'] = sprintf('<a href="%s">%s</a>', esc_url(Campaign_Report::url($status['log']['id'])), esc_html__('Report', 'mailoptin'));
+        }
 
-        $actions = [
-            'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', $delete_url, __('Delete', 'mailoptin')),
-            'send'   => sprintf(
-                '<a href="%s" class="mo-send-newsletter-link" onclick="return confirm(\'%s\')">%s</a>',
-                $send_url,
-                esc_js(__('Are you sure you want to send this newsletter now?', 'mailoptin')),
-                ( ! empty($date_sent) && ! in_array($date_sent, [
-                        ER::NEWSLETTER_STATUS_FAILED,
-                        ER::NEWSLETTER_STATUS_DRAFT
-                    ]))
-                    ? __('Resend Broadcast', 'mailoptin')
-                    : __('Send Broadcast', 'mailoptin')
-            ),
+        $actions['clone']  = sprintf('<a href="%s">%s</a>', esc_url(Email_Campaign_List::_campaign_clone_url($email_campaign_id)), esc_html__('Duplicate', 'mailoptin'));
+        $actions['delete'] = sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', Email_Campaign_List::_campaign_delete_url($email_campaign_id), esc_html__('Delete', 'mailoptin'));
+
+        $subject = Broadcasts::subject($email_campaign_id);
+
+        return sprintf('<strong><a href="%s">%s</a></strong>', esc_url($page_url), esc_html($item['name']))
+               . ('' !== $subject ? '<div class="description">' . esc_html(sprintf(__('Subject: %s', 'mailoptin'), $subject)) . '</div>' : '')
+               . $this->row_actions($actions);
+    }
+
+    public function column_audience($item)
+    {
+        $email_campaign_id = absint($item['id']);
+        $connection        = (string)Broadcasts::get($email_campaign_id, 'connection_service');
+
+        if ('' === $connection) return '<span class="description">' . esc_html__('Not chosen yet', 'mailoptin') . '</span>';
+
+        $lists = ConnectionsRepository::connection_email_list($connection);
+        $list  = (string)Broadcasts::get($email_campaign_id, 'connection_email_list');
+        $label = $lists[$list] ?? (ConnectionsRepository::get_connections('email_campaign')[$connection] ?? $connection);
+
+        $detail = '';
+
+        if ('MailOptinConnect' === $connection) {
+            $segment = absint(Broadcasts::get($email_campaign_id, SegmentsRepository::SEGMENT_SETTING));
+            $name    = $segment ? (SegmentsRepository::get($segment)['name'] ?? '') : '';
+            $detail  = '' !== $name ? sprintf(__('%s segment', 'mailoptin'), $name) : __('Everyone in the list', 'mailoptin');
+        } else {
+            $detail = ConnectionsRepository::get_connections('email_campaign')[$connection] ?? $connection;
+        }
+
+        return esc_html($label) . '<br><span class="description">' . esc_html($detail) . '</span>';
+    }
+
+    public function column_status($item)
+    {
+        $status = Broadcasts::status(absint($item['id']));
+
+        $labels = [
+            Broadcasts::STATUS_DRAFT     => __('Draft', 'mailoptin'),
+            Broadcasts::STATUS_SCHEDULED => __('Scheduled', 'mailoptin'),
+            Broadcasts::STATUS_SENDING   => __('Sending', 'mailoptin'),
+            Broadcasts::STATUS_SENT      => __('Sent', 'mailoptin'),
+            Broadcasts::STATUS_FAILED    => __('Failed', 'mailoptin'),
         ];
 
-        return $name . $this->row_actions($actions);
-    }
+        $html = '<strong>' . esc_html($labels[$status['status']]) . '</strong>';
 
-    /**
-     * Render a column when no column specific method exist.
-     *
-     * @param array $item
-     *
-     * @return mixed
-     */
-    public function column_action($item)
-    {
-        $email_campaign_id = absint($item['id']);
-
-        $delete_url    = Email_Campaign_List::_campaign_delete_url($email_campaign_id);
-        $clone_url     = Email_Campaign_List::_campaign_clone_url($email_campaign_id);
-        $customize_url = Email_Campaign_List::_campaign_customize_url($email_campaign_id);
-
-        $action = sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-blue" href="%s" title="%s">%s</a> &nbsp;',
-            esc_url_raw($customize_url),
-            __('Customize', 'mailoptin'),
-            '<span class="dashicons dashicons-edit mo-action-icon"></span>'
-        );
-        $action .= sprintf(
-            '<a class="mo-tooltipster button action" href="%s" title="%s">%s</a> &nbsp;',
-            $clone_url,
-            __('Clone', 'mailoptin'),
-            '<span class="dashicons dashicons-admin-page mo-action-icon"></span>'
-        );
-        $action .= sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-red mo-delete-prompt" href="%s" title="%s">%s</a> &nbsp;',
-            $delete_url,
-            __('Delete', 'mailoptin'),
-            '<span class="dashicons dashicons-trash mo-action-icon"></span>'
-        );
-
-        return $action;
-    }
-
-    public function column_date_sent($item)
-    {
-        $email_campaign_id = absint($item['id']);
-
-        $date_sent = EmailCampaignMeta::get_meta_data($email_campaign_id, 'newsletter_date_sent');
-
-        if (empty($date_sent) || $date_sent == ER::NEWSLETTER_STATUS_DRAFT) {
-            $date_sent = __('Draft', 'mailoptin');
+        if ($status['scheduled_at']) {
+            $html .= '<br><span class="description">' . esc_html(get_date_from_gmt($status['scheduled_at'], get_option('date_format') . ' ' . get_option('time_format'))) . '</span>';
+        } elseif ($status['log'] && ! empty($status['log']['status_time'])) {
+            $html .= '<br><span class="description">' . esc_html(mysql2date(get_option('date_format') . ' ' . get_option('time_format'), $status['log']['status_time'])) . '</span>';
         }
 
-        if ( ! empty($date_sent) && $date_sent == ER::NEWSLETTER_STATUS_FAILED) {
-            $date_sent = __('Failed', 'mailoptin');
-        }
+        return $html;
+    }
 
-        return $date_sent;
+    public function column_engagement($item)
+    {
+        $status = Broadcasts::status(absint($item['id']));
+        $log_id = $status['log'] ? absint($status['log']['id']) : 0;
+
+        if ( ! $log_id || ! CampaignActivityRepository::is_ready()) return '&mdash;';
+
+        $stats = CampaignActivityRepository::stats($log_id);
+
+        if ( ! $stats['sent']) return '&mdash;';
+
+        return sprintf(
+            '<a href="%s"><strong>%s%%</strong> %s · <strong>%s%%</strong> %s</a>',
+            esc_url(Campaign_Report::url($log_id)),
+            esc_html(number_format_i18n($stats['openers'] / $stats['sent'] * 100, 1)),
+            esc_html__('opened', 'mailoptin'),
+            esc_html(number_format_i18n($stats['clickers'] / $stats['sent'] * 100, 1)),
+            esc_html__('clicked', 'mailoptin')
+        );
     }
 
     /**

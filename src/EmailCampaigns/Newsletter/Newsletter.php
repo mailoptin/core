@@ -30,39 +30,62 @@ class Newsletter extends AbstractTriggers
 
         $email_campaign_id = absint($_GET['id']);
 
+        $campaign_id = $this->create_log($email_campaign_id);
+
+        $this->send_campaign($email_campaign_id, $campaign_id);
+    }
+
+    /**
+     * Render the newsletter and save it to the campaign log, ready to send.
+     *
+     * @return int campaign log ID
+     */
+    protected function create_log($email_campaign_id)
+    {
         $email_subject = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_title'));
 
         $content_html = (new Templatify($email_campaign_id))->forge();
 
         do_action('mo_newsletter_before_send', $email_campaign_id, $email_subject, $content_html);
 
-        $campaign_id = $this->save_campaign_log(
+        return $this->save_campaign_log(
             $email_campaign_id,
             apply_filters('mailoptin_newsletter_email_campaign_subject', $email_subject, $email_campaign_id),
             $content_html
         );
-
-        $this->send_campaign($email_campaign_id, $campaign_id);
     }
 
     /**
-     * Does the actual campaign sending.
+     * Send a newsletter now, from the broadcast page or a scheduled send.
      *
-     * @param int $email_campaign_id
-     * @param int $campaign_log_id
+     * @return array success, campaign_log_id, and error when it failed
      */
-    public function send_campaign($email_campaign_id, $campaign_log_id)
+    public function dispatch($email_campaign_id)
+    {
+        $email_campaign_id = absint($email_campaign_id);
+
+        if (empty($this->connection_service($email_campaign_id))) {
+            return ['success' => false, 'campaign_log_id' => 0, 'error' => __('Choose who to send it to first.', 'mailoptin')];
+        }
+
+        $campaign_log_id = $this->create_log($email_campaign_id);
+
+        $response = $this->deliver($email_campaign_id, $campaign_log_id);
+
+        return ['success' => ! empty($response['success']), 'campaign_log_id' => $campaign_log_id, 'error' => ! empty($response['success']) ? '' : __('The email service didn\'t accept the newsletter. See the campaign log for details.', 'mailoptin')];
+    }
+
+    /**
+     * Hand a logged newsletter to its connection and record the outcome.
+     *
+     * @return array the connection's response
+     */
+    protected function deliver($email_campaign_id, $campaign_log_id)
     {
         do_action('mo_newsletter_before_send_campaign', $email_campaign_id, $campaign_log_id);
 
-        $campaign           = $this->CampaignLogRepository->getById($campaign_log_id);
-        $connection_service = $this->connection_service($email_campaign_id);
-
-        if (empty($connection_service)) {
-            wp_die(__('Error: no recipient has been defined for the newsletter. Please go back and do that now.', 'mailoptin'));
-        }
-
-        $connection_instance = ConnectionFactory::make($connection_service);
+        $campaign            = $this->CampaignLogRepository->getById($campaign_log_id);
+        $connection_instance = ConnectionFactory::make($this->connection_service($email_campaign_id));
 
         $response = $connection_instance->send_newsletter(
             $email_campaign_id,
@@ -82,6 +105,23 @@ class Newsletter extends AbstractTriggers
             $this->update_campaign_status($campaign_log_id, 'failed');
             EmailCampaignMeta::update_meta_data($email_campaign_id, 'newsletter_date_sent', ER::NEWSLETTER_STATUS_FAILED);
         }
+
+        return (array)$response;
+    }
+
+    /**
+     * Does the actual campaign sending.
+     *
+     * @param int $email_campaign_id
+     * @param int $campaign_log_id
+     */
+    public function send_campaign($email_campaign_id, $campaign_log_id)
+    {
+        if (empty($this->connection_service($email_campaign_id))) {
+            wp_die(__('Error: no recipient has been defined for the newsletter. Please go back and do that now.', 'mailoptin'));
+        }
+
+        $this->deliver($email_campaign_id, $campaign_log_id);
 
         wp_safe_redirect(MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE);
         exit;

@@ -64,6 +64,8 @@ class Customizer
             add_action('customize_controls_enqueue_scripts', array($this, 'customizer_js'));
 
             add_action('customize_controls_print_footer_scripts', [$this, 'add_send_broadcast_button']);
+            // After WordPress prints the customizer scripts, at priority 20.
+            add_action('customize_controls_print_footer_scripts', [$this, 'hide_broadcast_page_controls'], 30);
             add_action('customize_controls_print_footer_scripts', [$this, 'add_activate_switch']);
             add_action('customize_controls_print_footer_scripts', [$this, 'change_title_html']);
 
@@ -131,7 +133,7 @@ class Customizer
         $return_url  = MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
 
         if (ER::is_newsletter($this->email_campaign_id)) {
-            $return_url = MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE;
+            $return_url = \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($this->email_campaign_id, ['designed' => 1]);
         }
 
         $wp_customize->set_preview_url($preview_url);
@@ -142,6 +144,9 @@ class Customizer
     public function add_send_broadcast_button()
     {
         if ( ! ER::is_newsletter($this->email_campaign_id)) return;
+
+        // Opened from the broadcast page, which sets the subject and audience and does the sending.
+        if (self::from_broadcast_page()) return;
 
         $date_sent = EmailCampaignMeta::get_meta_data($this->email_campaign_id, 'newsletter_date_sent');
 
@@ -173,6 +178,29 @@ class Customizer
             });
         </script>
         <?php
+    }
+
+    /**
+     * Hide the controls the broadcast page owns. They stay in the customizer, only hidden, so
+     * the controls that depend on them (like a connection's own options) keep working.
+     */
+    public static function from_broadcast_page()
+    {
+        return ! empty($_GET[\MailOptin\Core\Admin\SettingsPage\Broadcast_Page::FROM_PAGE_ARG]);
+    }
+
+    public function hide_broadcast_page_controls()
+    {
+        if ( ! ER::is_newsletter($this->email_campaign_id) || ! self::from_broadcast_page()) return;
+
+        $ids = ['email_campaign_title', 'email_campaign_preheader', 'connection_service', 'connection_email_list', 'MailOptinConnect_segment', 'MailOptinConnect_exclude_tags', 'MailOptinConnect_audience_count'];
+
+        // CSS rather than script: other customizer scripts show and hide these as settings change.
+        $selectors = array_map(function ($id) {
+            return '#customize-control-' . $this->campaign_settings . '-' . $this->email_campaign_id . '-' . $id;
+        }, $ids);
+
+        echo '<style type="text/css">' . esc_html(implode(',', $selectors)) . '{display:none!important}</style>';
     }
 
     /**
