@@ -24,6 +24,9 @@ class Broadcasts
     const ERROR_META = 'mo_broadcast_error';
     const CRON_HOOK = 'mo_broadcast_send';
 
+    // Connections that send to everyone they have, without choosing a list.
+    const CONNECTIONS_WITHOUT_LISTS = ['RegisteredUsersConnect', 'LeadBankConnect'];
+
     const STATUS_DRAFT = 'draft';
     const STATUS_SCHEDULED = 'scheduled';
     const STATUS_SENDING = 'sending';
@@ -91,6 +94,7 @@ class Broadcasts
 
         if ($scheduled) return ['status' => self::STATUS_SCHEDULED, 'log' => $log, 'scheduled_at' => $scheduled];
 
+
         if ( ! $log) return ['status' => self::STATUS_DRAFT, 'log' => null, 'scheduled_at' => null];
 
         $map = [
@@ -129,7 +133,13 @@ class Broadcasts
 
         self::cancel($email_campaign_id);
 
-        wp_schedule_single_event($timestamp, self::CRON_HOOK, [absint($email_campaign_id)]);
+        $scheduled = wp_schedule_single_event($timestamp, self::CRON_HOOK, [absint($email_campaign_id)], true);
+
+        // Never show "Scheduled" for a send that won't fire.
+        if (is_wp_error($scheduled) || false === $scheduled) {
+            return new \WP_Error('mo_broadcast_not_scheduled', __('The send couldn\'t be scheduled. Please try again.', 'mailoptin'));
+        }
+
         EmailCampaignMeta::update_meta_data($email_campaign_id, self::SCHEDULE_META, gmdate('Y-m-d H:i:s', $timestamp));
         EmailCampaignMeta::delete_meta_data($email_campaign_id, self::ERROR_META);
 
@@ -143,20 +153,91 @@ class Broadcasts
     }
 
     /**
-     * Send a scheduled broadcast. The schedule is cleared first, so a cron run that overlaps or
-     * repeats can't send it twice.
+     * Send a scheduled broadcast, if it's still scheduled for about now and still ready to go.
      */
     public function run_scheduled($email_campaign_id)
     {
         $email_campaign_id = absint($email_campaign_id);
+        $scheduled         = self::scheduled_at($email_campaign_id);
 
-        if ( ! self::scheduled_at($email_campaign_id) || ! ER::get_email_campaign_by_id($email_campaign_id)) return;
+        if ( ! $scheduled || ! ER::get_email_campaign_by_id($email_campaign_id)) return;
 
-        EmailCampaignMeta::delete_meta_data($email_campaign_id, self::SCHEDULE_META);
+        // An event from before a reschedule: the new one sends at the new time.
+        if (strtotime($scheduled . ' UTC') > time() + 5 * MINUTE_IN_SECONDS) return;
 
-        $result = Newsletter::get_instance()->dispatch($email_campaign_id);
+        // It may have been edited since it was scheduled.
+        if ( ! self::can_send($email_campaign_id)) {
+            self::cancel($email_campaign_id);
+            EmailCampaignMeta::update_meta_data($email_campaign_id, self::ERROR_META, __('It wasn\'t ready to send: fix the items marked in "Before it goes", then send or schedule it again.', 'mailoptin'));
+
+            return;
+        }
+
+        $result = self::send($email_campaign_id);
 
         if ( ! $result['success']) EmailCampaignMeta::update_meta_data($email_campaign_id, self::ERROR_META, $result['error']);
+    }
+
+    /**
+     * Send a broadcast now, once: a double click, a resubmitted form or a scheduled send at the
+     * same moment can't send it twice.
+     *
+     * @return array success and error, as Newsletter::dispatch() returns them
+     */
+    public static function send($email_campaign_id)
+    {
+        $email_campaign_id = absint($email_campaign_id);
+
+        if ( ! self::claim($email_campaign_id)) {
+            return ['success' => false, 'campaign_log_id' => 0, 'error' => __('This broadcast is already being sent.', 'mailoptin')];
+        }
+
+        try {
+            // Checked again inside the claim: another request may have just sent it.
+            $status = self::status($email_campaign_id)['status'];
+
+            if ( ! in_array($status, [self::STATUS_DRAFT, self::STATUS_SCHEDULED, self::STATUS_FAILED], true)) {
+                return ['success' => false, 'campaign_log_id' => 0, 'error' => __('This broadcast was already sent.', 'mailoptin')];
+            }
+
+            return Newsletter::get_instance()->dispatch($email_campaign_id);
+        } finally {
+            self::release($email_campaign_id);
+        }
+    }
+
+    protected static function claim_name($email_campaign_id)
+    {
+        return 'mo_broadcast_sending_' . absint($email_campaign_id);
+    }
+
+    /**
+     * An atomic claim on sending: inserting the same option row twice fails. A claim older than
+     * 15 minutes belongs to a request that died, and is taken over.
+     */
+    protected static function claim($email_campaign_id)
+    {
+        global $wpdb;
+
+        $name = self::claim_name($email_campaign_id);
+
+        if ($wpdb->query($wpdb->prepare("INSERT IGNORE INTO $wpdb->options (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, (string)time()))) {
+            return true;
+        }
+
+        return (bool)$wpdb->query($wpdb->prepare(
+            "UPDATE $wpdb->options SET option_value = %s WHERE option_name = %s AND CAST(option_value AS UNSIGNED) < %d",
+            (string)time(),
+            $name,
+            time() - 15 * MINUTE_IN_SECONDS
+        ));
+    }
+
+    protected static function release($email_campaign_id)
+    {
+        global $wpdb;
+
+        $wpdb->delete($wpdb->options, ['option_name' => self::claim_name($email_campaign_id)]);
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -212,7 +293,7 @@ class Broadcasts
     }
 
     /**
-     * A connection, and a list when the connection has lists (WordPress users, for one, doesn't).
+     * A connection, and a list unless the connection has none (WordPress users, for one).
      */
     protected static function has_recipients_set($email_campaign_id)
     {
@@ -220,7 +301,8 @@ class Broadcasts
 
         if ('' === $connection) return false;
 
-        return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || empty(\MailOptin\Core\Repositories\ConnectionsRepository::connection_email_list($connection));
+        // A list fetch that failed comes back empty too, so only these are known to have no lists.
+        return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true);
     }
 
     public static function can_send($email_campaign_id)

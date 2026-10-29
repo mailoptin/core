@@ -4,7 +4,6 @@ namespace MailOptin\Core\Admin\SettingsPage;
 
 use MailOptin\Core\Admin\Customizer\EmailCampaign\NewsletterTemplatePreview;
 use MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts;
-use MailOptin\Core\EmailCampaigns\Newsletter\Newsletter;
 use MailOptin\Core\PluginSettings\Settings;
 use MailOptin\Core\Repositories\ConnectionsRepository;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
@@ -458,8 +457,15 @@ class Broadcast_Page
             // A different connection's lists don't apply: choose again.
             $changed = $connection !== (string)Broadcasts::get($email_campaign_id, 'connection_service');
 
-            $values['connection_service']    = $connection;
-            $values['connection_email_list'] = $changed ? '' : sanitize_text_field(wp_unslash($_POST['connection_email_list'] ?? ''));
+            $values['connection_service'] = $connection;
+
+            // Only change the list when it was posted: the field is missing when the connection's
+            // lists couldn't be fetched, and that mustn't clear the chosen list.
+            if ($changed) {
+                $values['connection_email_list'] = '';
+            } elseif (isset($_POST['connection_email_list'])) {
+                $values['connection_email_list'] = sanitize_text_field(wp_unslash($_POST['connection_email_list']));
+            }
         }
 
         if (isset($_POST['segment'])) {
@@ -564,8 +570,7 @@ class Broadcast_Page
                     break;
                 }
 
-                Broadcasts::cancel($email_campaign_id);
-                $result = Newsletter::get_instance()->dispatch($email_campaign_id);
+                $result = Broadcasts::send($email_campaign_id);
 
                 if ( ! $result['success']) self::error($result['error']);
 
@@ -633,6 +638,13 @@ class Broadcast_Page
 
                 form.querySelectorAll('[data-autosave]').forEach(function (input) {
                     input.addEventListener('change', function () { submit('save'); });
+                });
+
+                // One click sends once.
+                document.querySelectorAll('.mo-review form').forEach(function (review) {
+                    review.addEventListener('submit', function () {
+                        setTimeout(function () { review.querySelectorAll('button').forEach(function (button) { button.disabled = true; }); }, 0);
+                    });
                 });
 
                 var loader = window.wp && wp.customize && wp.customize.Loader;

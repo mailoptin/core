@@ -42,6 +42,9 @@ class Newsletter extends AbstractTriggers
      */
     protected function create_log($email_campaign_id)
     {
+        // However it is sent (the broadcast page, the customizer, a resend), it is no longer scheduled.
+        Broadcasts::cancel($email_campaign_id);
+
         $email_subject = Misc::parse_email_subject(ER::get_merged_customizer_value($email_campaign_id, 'email_campaign_title'));
 
         $content_html = (new Templatify($email_campaign_id))->forge();

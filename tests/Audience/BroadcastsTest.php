@@ -102,6 +102,7 @@ class BroadcastsTest extends WP_UnitTestCase
         $this->member('b@example.com');
 
         Broadcasts::schedule($this->campaign_id, time() + HOUR_IN_SECONDS);
+        EmailCampaignMeta::update_meta_data($this->campaign_id, Broadcasts::SCHEDULE_META, gmdate('Y-m-d H:i:s', time() - 60));
 
         Broadcasts::get_instance()->run_scheduled($this->campaign_id);
         $this->assertSame(2, $this->queued());
@@ -251,5 +252,81 @@ class BroadcastsTest extends WP_UnitTestCase
         $this->assertStringContainsString('Before it goes', $html);
 
         $_GET = $_REQUEST = [];
+    }
+
+    public function test_sending_any_other_way_clears_the_schedule()
+    {
+        $this->member('a@example.com');
+
+        Broadcasts::schedule($this->campaign_id, time() + HOUR_IN_SECONDS);
+
+        // As the customizer's Send button, the old send link and Resend do.
+        \MailOptin\Core\EmailCampaigns\Newsletter\Newsletter::get_instance()->dispatch($this->campaign_id);
+
+        $this->assertNull(Broadcasts::scheduled_at($this->campaign_id));
+        $this->assertFalse(wp_next_scheduled(Broadcasts::CRON_HOOK, [$this->campaign_id]));
+
+        Broadcasts::get_instance()->run_scheduled($this->campaign_id);
+        $this->assertSame(1, $this->queued());
+    }
+
+    public function test_a_send_already_in_progress_is_not_repeated()
+    {
+        global $wpdb;
+
+        $this->member('a@example.com');
+
+        $wpdb->insert($wpdb->options, ['option_name' => 'mo_broadcast_sending_' . $this->campaign_id, 'option_value' => (string)time(), 'autoload' => 'no']);
+
+        $this->assertFalse(Broadcasts::send($this->campaign_id)['success']);
+        $this->assertSame(0, $this->queued());
+
+        // A claim left by a request that died is taken over.
+        $wpdb->update($wpdb->options, ['option_value' => (string)(time() - HOUR_IN_SECONDS)], ['option_name' => 'mo_broadcast_sending_' . $this->campaign_id]);
+        $this->assertTrue(Broadcasts::send($this->campaign_id)['success']);
+        $this->assertSame(1, $this->queued());
+
+        // Sent: a second send, as from a double click, is refused.
+        $this->assertFalse(Broadcasts::send($this->campaign_id)['success']);
+        $this->assertSame(1, $this->queued());
+    }
+
+    public function test_saving_without_the_list_field_keeps_the_list()
+    {
+        $this->post('save', ['subject' => 'Kept list', 'connection_service' => 'MailOptinConnect']);
+
+        $this->assertSame((string)$this->list_id, Broadcasts::get($this->campaign_id, 'connection_email_list'));
+
+        // An empty list on a connection with lists is never "no list needed".
+        Broadcasts::save($this->campaign_id, ['connection_email_list' => '']);
+        $this->member('a@example.com');
+        $this->assertFalse(Broadcasts::can_send($this->campaign_id));
+    }
+
+    public function test_scheduled_send_is_checked_again_when_it_fires()
+    {
+        $this->member('a@example.com');
+
+        Broadcasts::schedule($this->campaign_id, time() + HOUR_IN_SECONDS);
+        EmailCampaignMeta::update_meta_data($this->campaign_id, Broadcasts::SCHEDULE_META, gmdate('Y-m-d H:i:s', time() - 60));
+        Broadcasts::save($this->campaign_id, ['email_campaign_title' => '']);
+
+        Broadcasts::get_instance()->run_scheduled($this->campaign_id);
+
+        $this->assertSame(0, $this->queued());
+        $this->assertNotEmpty(EmailCampaignMeta::get_meta_data($this->campaign_id, Broadcasts::ERROR_META));
+        $this->assertSame(Broadcasts::STATUS_DRAFT, Broadcasts::status($this->campaign_id)['status']);
+    }
+
+    public function test_an_event_from_before_a_reschedule_does_not_send_early()
+    {
+        $this->member('a@example.com');
+
+        Broadcasts::schedule($this->campaign_id, time() + DAY_IN_SECONDS);
+
+        Broadcasts::get_instance()->run_scheduled($this->campaign_id);
+
+        $this->assertSame(0, $this->queued());
+        $this->assertNotNull(Broadcasts::scheduled_at($this->campaign_id));
     }
 }
