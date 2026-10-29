@@ -42,7 +42,14 @@ class ConversionSyncRepository extends AbstractRepository
      */
     public static function add($conversion_id, $connection_service, $connection_email_list, $sent, $error = '', $retry_data = null, $next_attempt_at = null)
     {
-        $now = self::now();
+        $now     = self::now();
+        $encoded = $sent || null === $retry_data ? null : wp_json_encode($retry_data);
+
+        // Without the data it can't be sent again, so don't schedule a retry that can never run.
+        if ( ! $encoded) {
+            $encoded         = null;
+            $next_attempt_at = null;
+        }
 
         self::wpdb()->insert(self::table(), [
             'conversion_id'         => absint($conversion_id),
@@ -52,7 +59,7 @@ class ConversionSyncRepository extends AbstractRepository
             'attempts'              => 1,
             'last_error'            => $sent ? null : (string)$error,
             'next_attempt_at'       => $sent ? null : $next_attempt_at,
-            'retry_data'            => $sent || null === $retry_data ? null : wp_json_encode($retry_data),
+            'retry_data'            => $encoded,
             'created_at'            => $now,
             'updated_at'            => $now,
         ]);
@@ -83,7 +90,7 @@ class ConversionSyncRepository extends AbstractRepository
 
         self::wpdb()->query(
             self::wpdb()->prepare(
-                "UPDATE $table SET attempts = attempts + 1, status = %s, last_error = %s, next_attempt_at = $next, updated_at = %s" .
+                "UPDATE $table SET attempts = attempts + 1, status = %s, last_error = %s, next_attempt_at = $next, locked_until = NULL, updated_at = %s" .
                 ($sent ? ', retry_data = NULL' : '') . " WHERE id = %d",
                 $sent ? self::STATUS_SENT : ($next_attempt_at ? self::STATUS_RETRYING : self::STATUS_FAILED),
                 $sent ? '' : (string)$error,
@@ -94,25 +101,31 @@ class ConversionSyncRepository extends AbstractRepository
     }
 
     /**
-     * Reserve a row before retrying it, so two cron runs don't send the same submission twice.
-     * Pushes its next attempt out; the retry's result then replaces it.
+     * Reserve a row before sending it again, so it is never sent twice at once: not by two cron
+     * runs, not by cron and an admin, and not by two admins. The lease is released by
+     * record_attempt(), or expires after the lease time if the request dies mid-send.
+     *
+     * @param bool $manual an admin's retry: any unsent row; otherwise only a retry that is due
      *
      * @return bool true if this caller got the row
      */
     public static function claim($id, $manual = false)
     {
         $table = self::table();
-        $sql   = "UPDATE $table SET next_attempt_at = %s, updated_at = %s WHERE id = %d AND retry_data IS NOT NULL AND ";
-        $sql  .= $manual ? '(status = %s OR status = %s)' : 'status = %s AND next_attempt_at <= %s';
+        $now   = self::now();
+        $lease = self::now((int)apply_filters('mo_submission_sync_lease_seconds', 10 * MINUTE_IN_SECONDS));
+
+        $sql = "UPDATE $table SET locked_until = %s WHERE id = %d AND retry_data IS NOT NULL AND (locked_until IS NULL OR locked_until < %s) AND ";
+        $sql .= $manual ? 'status IN (%s, %s)' : 'status = %s AND next_attempt_at <= %s';
 
         return 1 === (int)self::wpdb()->query(
                 self::wpdb()->prepare(
                     $sql,
-                    self::now(10 * MINUTE_IN_SECONDS),
-                    self::now(),
+                    $lease,
                     $id,
+                    $now,
                     $manual ? self::STATUS_FAILED : self::STATUS_RETRYING,
-                    $manual ? self::STATUS_RETRYING : self::now()
+                    $manual ? self::STATUS_RETRYING : $now
                 )
             );
     }
@@ -126,7 +139,7 @@ class ConversionSyncRepository extends AbstractRepository
 
         return (bool)self::wpdb()->query(
             self::wpdb()->prepare(
-                "UPDATE $table SET status = %s, next_attempt_at = %s, updated_at = %s WHERE id = %d AND status <> %s AND retry_data IS NOT NULL",
+                "UPDATE $table SET status = %s, next_attempt_at = %s, updated_at = %s WHERE id = %d AND status <> %s AND retry_data IS NOT NULL AND (locked_until IS NULL OR locked_until < UTC_TIMESTAMP())",
                 self::STATUS_RETRYING,
                 self::now(),
                 self::now(),
@@ -175,8 +188,9 @@ class ConversionSyncRepository extends AbstractRepository
 
         return self::wpdb()->get_results(
             self::wpdb()->prepare(
-                "SELECT * FROM $table WHERE status = %s AND next_attempt_at <= %s ORDER BY next_attempt_at LIMIT %d",
+                "SELECT * FROM $table WHERE status = %s AND next_attempt_at <= %s AND retry_data IS NOT NULL AND (locked_until IS NULL OR locked_until < %s) ORDER BY next_attempt_at LIMIT %d",
                 self::STATUS_RETRYING,
+                self::now(),
                 self::now(),
                 $limit
             ),
@@ -216,7 +230,8 @@ class ConversionSyncRepository extends AbstractRepository
     public static function count_unsent_submissions($since = null)
     {
         $table = self::table();
-        $sql   = self::wpdb()->prepare("SELECT COUNT(DISTINCT conversion_id) FROM $table WHERE status IN (%s, %s)", self::STATUS_FAILED, self::STATUS_RETRYING);
+        // Rows whose form data was erased or expired can't be sent again, so they don't count.
+        $sql   = self::wpdb()->prepare("SELECT COUNT(DISTINCT conversion_id) FROM $table WHERE status IN (%s, %s) AND retry_data IS NOT NULL", self::STATUS_FAILED, self::STATUS_RETRYING);
 
         if ($since) $sql .= self::wpdb()->prepare(' AND created_at >= %s', $since);
 
@@ -231,8 +246,69 @@ class ConversionSyncRepository extends AbstractRepository
         $table = self::table();
 
         return self::wpdb()->get_row(
-            self::wpdb()->prepare("SELECT * FROM $table WHERE status IN (%s, %s) ORDER BY updated_at DESC, id DESC LIMIT 1", self::STATUS_FAILED, self::STATUS_RETRYING),
+            self::wpdb()->prepare("SELECT * FROM $table WHERE status IN (%s, %s) AND retry_data IS NOT NULL ORDER BY updated_at DESC, id DESC LIMIT 1", self::STATUS_FAILED, self::STATUS_RETRYING),
             'ARRAY_A'
+        );
+    }
+
+    /**
+     * Hand every unsent row that can be retried to the automatic job, for "Retry all" beyond what
+     * runs straight away.
+     *
+     * @param int[] $except rows already handled in this request
+     *
+     * @return int rows handed over
+     */
+    public static function schedule_unsent_now($except = [])
+    {
+        $table  = self::table();
+        $except = array_filter(array_map('absint', (array)$except));
+        $not_in = empty($except) ? '' : ' AND id NOT IN (' . implode(',', $except) . ')';
+
+        return (int)self::wpdb()->query(
+            self::wpdb()->prepare(
+                "UPDATE $table SET status = %s, next_attempt_at = %s WHERE status IN (%s, %s) AND retry_data IS NOT NULL AND (locked_until IS NULL OR locked_until < %s)$not_in",
+                self::STATUS_RETRYING,
+                self::now(),
+                self::STATUS_FAILED,
+                self::STATUS_RETRYING,
+                self::now()
+            )
+        );
+    }
+
+    /**
+     * Stop keeping form data for sends that never got through, after a while. The row stays so the
+     * history is kept, but it can no longer be retried.
+     *
+     * @param int $days
+     *
+     * @return int rows cleared
+     */
+    public static function expire_retry_data($days)
+    {
+        $table = self::table();
+
+        return (int)self::wpdb()->query(
+            self::wpdb()->prepare(
+                "UPDATE $table SET retry_data = NULL, status = %s, next_attempt_at = NULL WHERE retry_data IS NOT NULL AND status <> %s AND created_at < %s AND (locked_until IS NULL OR locked_until < %s)",
+                self::STATUS_FAILED,
+                self::STATUS_SENT,
+                self::now(-absint($days) * DAY_IN_SECONDS),
+                self::now()
+            )
+        );
+    }
+
+    /**
+     * @return bool true if any integration has received this submission
+     */
+    public static function has_sent($conversion_id, $except_sync_id = 0)
+    {
+        $table = self::table();
+
+        return (bool)self::wpdb()->get_var(
+            self::wpdb()->prepare("SELECT 1 FROM $table WHERE conversion_id = %d AND status = %s AND id <> %d LIMIT 1", $conversion_id, self::STATUS_SENT, $except_sync_id)
         );
     }
 
@@ -272,7 +348,7 @@ class ConversionSyncRepository extends AbstractRepository
 
         return (int)self::wpdb()->query(
             self::wpdb()->prepare(
-                "UPDATE $table SET retry_data = NULL, status = IF(status = %s, %s, status), next_attempt_at = NULL WHERE conversion_id IN (" . implode(',', $conversion_ids) . ")",
+                "UPDATE $table SET retry_data = NULL, last_error = NULL, status = IF(status = %s, %s, status), next_attempt_at = NULL WHERE conversion_id IN (" . implode(',', $conversion_ids) . ")",
                 self::STATUS_RETRYING,
                 self::STATUS_FAILED
             )

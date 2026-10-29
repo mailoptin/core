@@ -15,6 +15,13 @@ class SubmissionSync
 {
     const CRON_HOOK = 'mo_submission_sync_retry';
 
+    // Form data kept for retrying a send that never got through is deleted after this many days.
+    const RETRY_DATA_DAYS = 30;
+
+    // DB update that created the sync table. Until it has run (it runs on an admin request after
+    // an update), submissions are sent as before without being tracked.
+    const DB_VERSION = 19;
+
     /** @var string[] errors integrations logged during the current send */
     protected static $captured = [];
     protected static $capturing = false;
@@ -24,6 +31,19 @@ class SubmissionSync
         add_action('mo_optin_error_logged', [__CLASS__, 'capture_error']);
         add_action(self::CRON_HOOK, [__CLASS__, 'run_due']);
         add_action('mo_hourly_recurring_job', [__CLASS__, 'run_due']);
+        add_action('mo_daily_recurring_job', [__CLASS__, 'expire_retry_data']);
+    }
+
+    public static function is_ready()
+    {
+        return (int)get_option('mo_db_ver', 0) >= self::DB_VERSION;
+    }
+
+    public static function expire_retry_data()
+    {
+        if ( ! self::is_ready()) return 0;
+
+        return Syncs::expire_retry_data((int)apply_filters('mo_submission_sync_retry_data_days', self::RETRY_DATA_DAYS));
     }
 
     /**
@@ -72,7 +92,7 @@ class SubmissionSync
      */
     public static function send($conversion_id, $connection_service, $connection_email_list, $conversion_data)
     {
-        if ( ! $conversion_id) {
+        if ( ! $conversion_id || ! self::is_ready()) {
             return AjaxHandler::add_lead_to_connection($connection_service, $connection_email_list, $conversion_data);
         }
 
@@ -112,7 +132,18 @@ class SubmissionSync
 
         $conversion_data = self::builder(json_decode($sync['retry_data'], true));
 
-        list($response, $error) = self::attempt($sync['connection_service'], $sync['connection_email_list'], $conversion_data);
+        // Many integrations look up the signup IP themselves; give them the visitor's, not the server's or an admin's.
+        $ip = function () use ($conversion_data) {
+            return $conversion_data->ip_address;
+        };
+
+        if ( ! empty($conversion_data->ip_address)) add_filter('mailoptin_get_ip', $ip, PHP_INT_MAX);
+
+        try {
+            list($response, $error) = self::attempt($sync['connection_service'], $sync['connection_email_list'], $conversion_data);
+        } finally {
+            remove_filter('mailoptin_get_ip', $ip, PHP_INT_MAX);
+        }
 
         $sent     = AbstractConnect::is_ajax_success($response);
         $attempts = (int)$sync['attempts'] + 1;
@@ -121,6 +152,11 @@ class SubmissionSync
         Syncs::record_attempt($sync_id, $sent, $error, $next);
 
         if ($next) self::schedule($next);
+
+        // A submission no integration took at the time wasn't counted as a conversion; it is now.
+        if ($sent && ! Syncs::has_sent($sync['conversion_id'], $sync_id)) {
+            self::track_conversion($sync['conversion_id']);
+        }
 
         do_action('mo_submission_sync_retried', (int)$sync_id, $sent, $manual);
 
@@ -135,6 +171,8 @@ class SubmissionSync
      */
     public static function run_due()
     {
+        if ( ! self::is_ready()) return 0;
+
         $count    = 0;
         $deadline = time() + (int)apply_filters('mo_submission_sync_time_budget', 20);
 
@@ -178,7 +216,9 @@ class SubmissionSync
         try {
             $response = AjaxHandler::add_lead_to_connection($connection_service, $connection_email_list, $conversion_data);
         } catch (\Throwable $e) {
-            $response = AbstractConnect::ajax_failure($e->getMessage());
+            // The visitor gets the generic message; the details are only for the admin.
+            $response = AbstractConnect::ajax_failure();
+            self::$captured[] = $e->getMessage();
         } finally {
             self::$capturing = false;
         }
@@ -194,13 +234,56 @@ class SubmissionSync
         return [$response, $error];
     }
 
+    protected static function track_conversion($conversion_id)
+    {
+        $conversion = \MailOptin\Core\Repositories\OptinConversionsRepository::get($conversion_id);
+
+        if ( ! $conversion) return;
+
+        AjaxHandler::track_conversion((int)$conversion['optin_id'], [
+            'optin_campaign_id'   => (int)$conversion['optin_id'],
+            'optin_campaign_type' => $conversion['optin_type'],
+            'name'                => $conversion['name'],
+            'email'               => $conversion['email'],
+            'custom_fields'       => $conversion['custom_fields'],
+            'user_agent'          => $conversion['user_agent'],
+            'conversion_page'     => $conversion['conversion_page'],
+            'referrer'            => $conversion['referrer'],
+            'meta_data'           => $conversion['meta_data'],
+        ]);
+    }
+
+    /**
+     * Fields that must never be stored, even for a retry: some third-party forms pass everything
+     * they collected, passwords and card numbers included.
+     */
+    public static function without_sensitive_fields($payload)
+    {
+        if ( ! is_array($payload)) return $payload;
+
+        $pattern = (string)apply_filters('mo_submission_sync_sensitive_fields', '/pass(word)?|pwd|card|cvc|cvv|ssn|secret|token|recaptcha|turnstile/i');
+
+        foreach ($payload as $key => $value) {
+            // The form's own integration settings, not something the visitor typed.
+            if ('integration_data' === $key) continue;
+
+            if (is_string($key) && preg_match($pattern, $key)) {
+                unset($payload[$key]);
+            } elseif (is_array($value)) {
+                $payload[$key] = self::without_sensitive_fields($value);
+            }
+        }
+
+        return $payload;
+    }
+
     /**
      * What's needed to rebuild the submission for another attempt.
      */
     public static function retry_data(ConversionDataBuilder $conversion_data)
     {
         return [
-            'payload'                    => $conversion_data->payload,
+            'payload'                    => self::without_sensitive_fields($conversion_data->payload),
             'optin_uuid'                 => $conversion_data->optin_uuid,
             'optin_campaign_id'          => $conversion_data->optin_campaign_id,
             'optin_campaign_type'        => $conversion_data->optin_campaign_type,

@@ -69,7 +69,7 @@ class LeadBank extends AbstractSettingsPage
         $option = 'per_page';
         $args   = [
             'label'   => __('Submissions', 'mailoptin'),
-            'default' => 10,
+            'default' => 20,
             'option'  => 'conversions_per_page',
         ];
 

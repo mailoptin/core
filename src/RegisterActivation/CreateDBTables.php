@@ -230,12 +230,14 @@ class CreateDBTables
   attempts smallint(5) unsigned NOT NULL DEFAULT 0,
   last_error text NULL,
   next_attempt_at datetime NULL,
+  locked_until datetime NULL,
   retry_data longtext NULL,
   created_at datetime NOT NULL,
   updated_at datetime NOT NULL,
   PRIMARY KEY  (id),
   KEY conversion_id (conversion_id),
-  KEY due (status,next_attempt_at)
+  KEY due (status,next_attempt_at),
+  KEY status_created (status,created_at)
 ) $collate;";
     }
 }
