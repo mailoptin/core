@@ -35,18 +35,15 @@ class CloneOptinCampaign
             $clonee['optin_type']
         );
 
-        $all_optin_campaign_settings = OptinCampaignsRepository::get_settings();
-        
-        // append new template settings to existing settings.
-        $all_optin_campaign_settings[$optin_campaign_id] = OptinCampaignsRepository::get_settings_by_id($this->optin_campaign_id);
-        
-        //replace all the strings uuid with the new uuid in the custom css
-        $all_optin_campaign_settings[$optin_campaign_id]["form_custom_css"] = str_replace('#'.$clonee['uuid'], '#'.$new_uuid, $all_optin_campaign_settings[$optin_campaign_id]["form_custom_css"]);
-        
-        // deactivate cloned optin campaign by default
-        $all_optin_campaign_settings[$optin_campaign_id]['activate_optin'] = false;
+        $settings = OptinCampaignsRepository::get_settings_by_id($this->optin_campaign_id);
 
-        return OptinCampaignsRepository::updateSettings($all_optin_campaign_settings);
+        //replace all the strings uuid with the new uuid in the custom css
+        $settings["form_custom_css"] = str_replace('#' . $clonee['uuid'], '#' . $new_uuid, $settings["form_custom_css"] ?? '');
+
+        // deactivate cloned optin campaign by default
+        $settings['activate_optin'] = false;
+
+        return OptinCampaignsRepository::save_settings_by_id($optin_campaign_id, $settings);
 
     }
 }

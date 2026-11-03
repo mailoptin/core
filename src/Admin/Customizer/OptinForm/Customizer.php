@@ -647,6 +647,11 @@ class Customizer
 
         // rewrite panel name from blog name to template name.
         add_filter('pre_option_blogname', [$this, 'rewrite_customizer_panel_title']);
+
+        // The campaign's settings live in the campaign settings table, not an option row. Again at the
+        // very end, for settings added by later customize_register callbacks.
+        \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::swap($wp_customize);
+        add_action('customize_register', ['\MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting', 'swap'], PHP_INT_MAX);
     }
 
     /**

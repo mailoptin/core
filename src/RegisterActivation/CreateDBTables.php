@@ -94,6 +94,7 @@ class CreateDBTables
         $sqls = array_merge($sqls, self::tags_fields_tables_sql($collate));
         $sqls[] = self::segments_table_sql($collate);
         $sqls = array_merge($sqls, self::tracking_tables_sql($collate));
+        $sqls[] = self::campaign_settings_table_sql($collate);
 
         $sqls = apply_filters('mo_create_database_tables', $sqls, $collate);
 
@@ -102,6 +103,27 @@ class CreateDBTables
         foreach ($sqls as $sql) {
             dbDelta($sql);
         }
+
+        // A new site starts on the table; an existing one moves its settings across.
+        \MailOptin\Core\Repositories\CampaignSettingsRepository::migrate();
+    }
+
+    /**
+     * Each optin and email campaign's Customizer settings, as JSON. campaign_type is "optin" or "email".
+     */
+    public static function campaign_settings_table_sql($collate)
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . Core::campaign_settings_table_name;
+
+        return "CREATE TABLE $table (
+  campaign_type varchar(10) NOT NULL,
+  campaign_id bigint(20) unsigned NOT NULL,
+  settings longtext NOT NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY  (campaign_type,campaign_id)
+) $collate;";
     }
 
     /**

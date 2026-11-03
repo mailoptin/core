@@ -26,6 +26,7 @@ final class Core
     const campaign_links_table_name = 'mo_campaign_links';
     const campaign_activity_table_name = 'mo_campaign_activity';
     const campaign_stats_table_name = 'mo_campaign_stats';
+    const campaign_settings_table_name = 'mo_campaign_settings';
 
     public function __construct()
     {

@@ -190,9 +190,9 @@ class Connect extends AbstractConnect implements ConnectionInterface
             if (in_array($optin_campaign_id, $changed, true)) $settings[$optin_campaign_id]['integrations'] = wp_json_encode($integrations);
         }
 
-        if ( ! empty($changed)) {
-            \MailOptin\Core\Repositories\OptinCampaignsRepository::updateSettings($settings);
-            foreach (array_unique($changed) as $optin_campaign_id) \MailOptin\Core\Repositories\OptinCampaignsRepository::burst_cache($optin_campaign_id);
+        foreach (array_unique($changed) as $optin_campaign_id) {
+            \MailOptin\Core\Repositories\OptinCampaignsRepository::update_settings_by_id($optin_campaign_id, ['integrations' => $settings[$optin_campaign_id]['integrations']]);
+            \MailOptin\Core\Repositories\OptinCampaignsRepository::burst_cache($optin_campaign_id);
         }
     }
 

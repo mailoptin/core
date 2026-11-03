@@ -245,8 +245,8 @@ class EmailCampaignRepository extends AbstractRepository
         $abstract_customizer = new AbstractCustomizer($email_campaign_id);
         $customizer_defaults = isset($abstract_customizer->customizer_defaults[$settings_name]) && $abstract_customizer->customizer_defaults[$settings_name] !== null ? $abstract_customizer->customizer_defaults[$settings_name] : '';
         $default             = is_boolean($default) || ! empty($default) ? $default : $customizer_defaults;
-        $settings            = self::get_settings();
-        $value               = $settings[$email_campaign_id][$settings_name] ?? null;
+        $settings            = self::get_settings_by_id($email_campaign_id);
+        $value               = $settings[$settings_name] ?? null;
 
         return ! is_null($value) ? $value : $default;
     }
@@ -262,9 +262,9 @@ class EmailCampaignRepository extends AbstractRepository
      */
     public static function get_customizer_value_without_default($email_campaign_id, $settings_name)
     {
-        $settings = self::get_settings();
+        $settings = self::get_settings_by_id($email_campaign_id);
 
-        return isset($settings[$email_campaign_id][$settings_name]) ? $settings[$email_campaign_id][$settings_name] : '';
+        return isset($settings[$settings_name]) ? $settings[$settings_name] : '';
     }
 
     /**
@@ -292,7 +292,7 @@ class EmailCampaignRepository extends AbstractRepository
      */
     public static function get_settings()
     {
-        return get_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, []);
+        return CampaignSettingsRepository::all(CampaignSettingsRepository::TYPE_EMAIL);
     }
 
     /**
@@ -304,9 +304,7 @@ class EmailCampaignRepository extends AbstractRepository
      */
     public static function get_settings_by_id($email_campaign_id)
     {
-        $settings = self::get_settings();
-
-        return isset($settings[$email_campaign_id]) ? $settings[$email_campaign_id] : '';
+        return CampaignSettingsRepository::get(CampaignSettingsRepository::TYPE_EMAIL, $email_campaign_id);
     }
 
     /**
@@ -390,9 +388,26 @@ class EmailCampaignRepository extends AbstractRepository
      *
      * @return bool
      */
+    /**
+     * Save every campaign in a full settings array that changed. Prefer save_settings_by_id() and
+     * update_settings_by_id(), which touch one campaign.
+     */
     public static function updateSettings($campaignSettings)
     {
-        return update_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, $campaignSettings, false);
+        return CampaignSettingsRepository::save_many(CampaignSettingsRepository::TYPE_EMAIL, $campaignSettings);
+    }
+
+    public static function save_settings_by_id($email_campaign_id, array $settings)
+    {
+        return CampaignSettingsRepository::save(CampaignSettingsRepository::TYPE_EMAIL, $email_campaign_id, $settings);
+    }
+
+    /**
+     * @param array $changes setting => value
+     */
+    public static function update_settings_by_id($email_campaign_id, array $changes)
+    {
+        return CampaignSettingsRepository::update(CampaignSettingsRepository::TYPE_EMAIL, $email_campaign_id, $changes);
     }
 
     /**
@@ -405,10 +420,7 @@ class EmailCampaignRepository extends AbstractRepository
     public static function activate_email_campaign($email_campaign_id)
     {
         // update the "activate_email_campaign" setting to true
-        $all_settings                                                = self::get_settings();
-        $all_settings[$email_campaign_id]['activate_email_campaign'] = true;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($email_campaign_id, ['activate_email_campaign' => true]);
     }
 
     /**
@@ -421,9 +433,7 @@ class EmailCampaignRepository extends AbstractRepository
     public static function deactivate_email_campaign($email_campaign_id)
     {
         // update the "activate_email_campaign" setting to true
-        $all_settings                                                = self::get_settings();
-        $all_settings[$email_campaign_id]['activate_email_campaign'] = false;
-        self::updateSettings($all_settings);
+        self::update_settings_by_id($email_campaign_id, ['activate_email_campaign' => false]);
     }
 
     /**
@@ -435,9 +445,6 @@ class EmailCampaignRepository extends AbstractRepository
      */
     public static function delete_settings_by_id($email_campaign_id)
     {
-        $all_email_campaign_settings = self::get_settings();
-        unset($all_email_campaign_settings[$email_campaign_id]);
-
-        return self::updateSettings($all_email_campaign_settings);
+        return CampaignSettingsRepository::delete(CampaignSettingsRepository::TYPE_EMAIL, $email_campaign_id);
     }
 }

@@ -52,13 +52,7 @@ class Broadcasts
      */
     public static function save($email_campaign_id, $values)
     {
-        $settings = ER::get_settings();
-
-        foreach ($values as $key => $value) {
-            $settings[$email_campaign_id][$key] = $value;
-        }
-
-        ER::updateSettings($settings);
+        ER::update_settings_by_id($email_campaign_id, $values);
     }
 
     public static function subject($email_campaign_id)

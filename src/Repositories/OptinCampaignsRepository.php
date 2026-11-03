@@ -525,7 +525,7 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_saved_customizer_data()
     {
-        return get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
+        return CampaignSettingsRepository::all(CampaignSettingsRepository::TYPE_OPTIN);
     }
 
     /**
@@ -541,8 +541,8 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         if (absint($optin_campaign_id) == 0) return false;
 
-        $settings = self::get_optin_saved_customizer_data();
-        $value    = isset($settings[$optin_campaign_id][$settings_name]) ? $settings[$optin_campaign_id][$settings_name] : null;
+        $settings = self::get_settings_by_id($optin_campaign_id);
+        $value    = isset($settings[$settings_name]) ? $settings[$settings_name] : null;
 
         $data = ! is_null($value) ? $value : $default;
 
@@ -648,9 +648,25 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_settings_by_id($optin_campaign_id)
     {
-        $settings = self::get_settings();
+        return CampaignSettingsRepository::get(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id);
+    }
 
-        return $settings[$optin_campaign_id] ?? [];
+    /**
+     * Replace one campaign's settings.
+     */
+    public static function save_settings_by_id($optin_campaign_id, array $settings)
+    {
+        return CampaignSettingsRepository::save(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id, $settings);
+    }
+
+    /**
+     * Change some of one campaign's settings.
+     *
+     * @param array $changes setting => value
+     */
+    public static function update_settings_by_id($optin_campaign_id, array $changes)
+    {
+        return CampaignSettingsRepository::update(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id, $changes);
     }
 
     /**
@@ -685,9 +701,13 @@ class OptinCampaignsRepository extends AbstractRepository
      *
      * @return bool
      */
+    /**
+     * Save every campaign in a full settings array that changed. Prefer save_settings_by_id() and
+     * update_settings_by_id(), which touch one campaign.
+     */
     public static function updateSettings($campaignSettings)
     {
-        return update_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $campaignSettings, false);
+        return CampaignSettingsRepository::save_many(CampaignSettingsRepository::TYPE_OPTIN, $campaignSettings);
     }
 
     /**
@@ -751,13 +771,11 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $optin_campaign_id = absint($optin_campaign_id);
         // update the "activate_optin" setting to true
-        $all_settings = self::get_settings();
+        $settings = self::get_settings_by_id($optin_campaign_id);
 
-        if (isset($all_settings[$optin_campaign_id]['activate_optin']) && ($all_settings[$optin_campaign_id]['activate_optin'] === true)) return true;
+        if (isset($settings['activate_optin']) && ($settings['activate_optin'] === true)) return true;
 
-        $all_settings[$optin_campaign_id]['activate_optin'] = true;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['activate_optin' => true]);
     }
 
     /**
@@ -771,10 +789,7 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $optin_campaign_id = absint($optin_campaign_id);
         // update the "activate_optin" setting to true
-        $all_settings                                       = self::get_settings();
-        $all_settings[$optin_campaign_id]['activate_optin'] = false;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['activate_optin' => false]);
     }
 
 
@@ -808,10 +823,7 @@ class OptinCampaignsRepository extends AbstractRepository
     public static function enable_test_mode($optin_campaign_id)
     {
         // update the "activate_optin" setting to true
-        $all_settings                                  = self::get_settings();
-        $all_settings[$optin_campaign_id]['test_mode'] = true;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['test_mode' => true]);
     }
 
 
@@ -825,10 +837,7 @@ class OptinCampaignsRepository extends AbstractRepository
     public static function disable_test_mode($optin_campaign_id)
     {
         // update the "activate_optin" setting to true
-        $all_settings                                  = self::get_settings();
-        $all_settings[$optin_campaign_id]['test_mode'] = false;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['test_mode' => false]);
     }
 
 
@@ -860,10 +869,7 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function delete_settings_by_id($optin_campaign_id)
     {
-        $all_optin_campaign_settings = self::get_settings();
-        unset($all_optin_campaign_settings[$optin_campaign_id]);
-
-        return self::updateSettings($all_optin_campaign_settings);
+        return CampaignSettingsRepository::delete(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id);
     }
 
     /**
