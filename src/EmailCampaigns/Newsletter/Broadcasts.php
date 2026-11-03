@@ -345,8 +345,7 @@ class Broadcasts
         $html    = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags($html, $subscriber, true), $blank + self::subscriber_tags($subscriber), true);
         $subject = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags($subject, $subscriber, false), self::subscriber_tags($subscriber), false);
 
-        $settings = Settings::instance();
-        $sent     = wp_mail($email, sprintf(__('[Test] %s', 'mailoptin'), $subject), $html, ['Content-Type: text/html', sprintf('From: %s <%s>', $settings->from_name(), $settings->from_email())]);
+        $sent = true === \MailOptin\Core\SendQueue\Mailer::send($email, sprintf(__('[Test] %s', 'mailoptin'), $subject), $html, \MailOptin\Core\SendQueue\WpMailSender::default_headers());
 
         if ($sent) EmailCampaignMeta::update_meta_data($email_campaign_id, self::TEST_META, gmdate('Y-m-d H:i:s'));
 

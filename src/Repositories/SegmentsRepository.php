@@ -129,12 +129,12 @@ class SegmentsRepository extends AbstractRepository
      */
     public static function uses_not_opened($filters)
     {
-        return in_array('not_opened', wp_list_pluck((array)($filters['engagement'] ?? []), 'what'), true);
+        return (bool)array_intersect(['not_opened', 'never_engaged'], wp_list_pluck((array)($filters['engagement'] ?? []), 'what'));
     }
 
     public static function not_opened_message()
     {
-        return __('A segment can\'t use "Didn\'t open". Opens are an estimate, so it would email people who did read the campaign. Use "Didn\'t click" instead, or tag these people and review them first.', 'mailoptin');
+        return __('A segment can\'t use "Didn\'t open" or "Never engaged". Opens are an estimate, so it would email people who did read your emails. Use "Didn\'t click" instead, or tag these people and review them first.', 'mailoptin');
     }
 
     /**

@@ -14,9 +14,24 @@ class WpMailSender implements SenderInterface
 
     protected $content_cache = [];
 
-    public function send($row, $campaign_log_id)
+    /**
+     * The email for one queued recipient: the campaign's content with their merge tags, tracking and
+     * unsubscribe link filled in, and its headers. Sending services build their emails from this too.
+     *
+     * @return array subject, html, text, headers (wp_mail-style "Name: value" lines)
+     */
+    public function compose($row, $campaign_log_id)
     {
         $content = apply_filters('mo_send_queue_email_content', $this->campaign_content($campaign_log_id), $row, $campaign_log_id);
+
+        $content['headers'] = $this->headers($row, $campaign_log_id);
+
+        return $content;
+    }
+
+    public function send($row, $campaign_log_id)
+    {
+        $content = $this->compose($row, $campaign_log_id);
 
         $mail_error = null;
 
@@ -33,7 +48,7 @@ class WpMailSender implements SenderInterface
         // Last, so an SMTP plugin has already chosen the transport.
         add_action('phpmailer_init', [__CLASS__, 'drop_headers_mail_would_corrupt'], PHP_INT_MAX);
 
-        $sent = wp_mail($row['email'], $content['subject'], $content['html'], $this->headers($row, $campaign_log_id));
+        $sent = wp_mail($row['email'], $content['subject'], $content['html'], $content['headers']);
 
         remove_action('wp_mail_failed', $capture_error);
         remove_action('phpmailer_init', $add_plain_text);

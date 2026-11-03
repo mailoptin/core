@@ -126,7 +126,10 @@ class EmailBrandingTest extends WP_UnitTestCase
         $this->brand([EmailBranding::ACCENT => '#2f7d4f']);
 
         $settings = SendingSettings::get_instance()->settings_tab([]);
-        $html     = $settings['sending_settings'][1]['email_branding']['data'];
+        $section  = current(array_filter($settings['sending_settings'], function ($section) {
+            return is_array($section) && isset($section['email_branding']);
+        }));
+        $html     = $section['email_branding']['data'];
 
         $this->assertStringContainsString('name="mailoptin_settings[email_brand_accent]" value="#2f7d4f"', $html);
         $this->assertStringContainsString('id="mo-brand-preview"', $html);

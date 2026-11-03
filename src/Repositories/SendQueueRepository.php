@@ -199,6 +199,26 @@ class SendQueueRepository extends AbstractRepository
         );
     }
 
+    /**
+     * Put a row being sent back in the pending pool without counting the attempt, for a failure that
+     * wasn't this email's fault, such as the sending service refusing the credentials.
+     */
+    public static function requeue($id, $error, $retry_at)
+    {
+        $table = self::table();
+
+        return (bool)self::wpdb()->query(
+            self::wpdb()->prepare(
+                "UPDATE $table SET status = %s, claimed_by = '', claimed_until = NULL, attempts = GREATEST(attempts - 1, 0), next_attempt_at = %s, error = %s WHERE id = %d AND status = %s",
+                self::STATUS_PENDING,
+                $retry_at,
+                $error,
+                $id,
+                self::STATUS_SENDING
+            )
+        );
+    }
+
     public static function mark_sent($id)
     {
         return self::finish($id, self::STATUS_SENT, null, self::now());

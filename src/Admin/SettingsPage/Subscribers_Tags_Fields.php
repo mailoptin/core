@@ -920,7 +920,7 @@ class Subscribers_Tags_Fields
             case Subscribers::EVENT_SENT:
             case Subscribers::EVENT_OPENED:
             case Subscribers::EVENT_CLICKED:
-                $title = ! empty($event['campaign_log_id']) ? \MailOptin\Core\Logging\CampaignLogRepository::instance()->retrieveTitle($event['campaign_log_id']) : null;
+                $title = ! empty($event['campaign_log_id']) ? Subscribers_Page::campaign_title($event['campaign_log_id']) : null;
                 $title = null === $title ? __('a campaign', 'mailoptin') : '"' . $title . '"';
 
                 if (Subscribers::EVENT_SENT === $event['type']) return sprintf(__('Sent %s', 'mailoptin'), $title);
@@ -969,7 +969,7 @@ class Subscribers_Tags_Fields
         return $who ? sprintf(__('%1$s by %2$s', 'mailoptin'), $text, $who) : $text;
     }
 
-    protected static function admin_name($user_id)
+    public static function admin_name($user_id)
     {
         if ((int)$user_id === get_current_user_id()) return __('you', 'mailoptin');
 

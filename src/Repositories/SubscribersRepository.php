@@ -28,6 +28,10 @@ class SubscribersRepository extends AbstractRepository
     const EVENT_PREFERENCES_CHANGED = 'preferences_changed';
     const EVENT_OPENED = 'opened';
     const EVENT_CLICKED = 'clicked';
+    const EVENT_BOUNCED = 'bounced';
+    const EVENT_SOFT_BOUNCED = 'soft_bounced';
+    const EVENT_COMPLAINED = 'complained';
+    const EVENT_RESUBSCRIBED = 'resubscribed';
 
     public static function table()
     {

@@ -233,7 +233,19 @@ class Subscribers_List extends \WP_List_Table
 
     protected function column_status($item)
     {
-        return Subscribers_Page::status_pill($item['status']);
+        $html = Subscribers_Page::status_pill($item['status']);
+
+        // Why: the bounce or complaint, under the pill.
+        if (in_array($item['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)) {
+            $event = \MailOptin\Core\Audience\DeliveryEvents::last_event($item['id'], Subscribers::STATUS_COMPLAINED === $item['status']);
+            $meta  = $event ? (json_decode((string)$event['meta'], true) ?: []) : [];
+
+            if ( ! empty($meta['detail'])) {
+                $html .= '<br><small class="mo-muted">' . esc_html(wp_trim_words($meta['detail'], 14)) . (! empty($meta['provider']) ? ' · ' . esc_html(sprintf(__('via %s', 'mailoptin'), Subscribers_Page::provider_name($meta['provider']))) : '') . '</small>';
+            }
+        }
+
+        return $html;
     }
 
     protected function column_lists($item)
