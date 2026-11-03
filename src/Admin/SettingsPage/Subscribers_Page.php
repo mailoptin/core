@@ -194,6 +194,7 @@ class Subscribers_Page extends AbstractSettingsPage
             'resent'               => [__('Confirmation email sent.', 'mailoptin'), 'success'],
             'not_resent'           => [__('No confirmation email was sent. They may already be confirmed, or have no pending lists.', 'mailoptin'), 'warning'],
             'unsubscribed'         => [__('Unsubscribed.', 'mailoptin'), 'success'],
+            'resubscribed'         => [__('They can be emailed again. Their lists decide their status.', 'mailoptin'), 'success'],
             'deleted'              => [__('Deleted.', 'mailoptin'), 'success'],
             'bulk_done'            => [__('Bulk action applied.', 'mailoptin'), 'success'],
             'bulk_no_list'         => [__('Choose a list in "List for bulk action" first.', 'mailoptin'), 'error'],
@@ -369,9 +370,54 @@ class Subscribers_Page extends AbstractSettingsPage
                 return $list ? sprintf(__('Unsubscribed from %s', 'mailoptin'), $list['name']) : __('Unsubscribed from all lists', 'mailoptin');
             case Subscribers::EVENT_SENT:
                 return __('Sent a campaign email', 'mailoptin');
+            case Subscribers::EVENT_BOUNCED:
+            case Subscribers::EVENT_SOFT_BOUNCED:
+            case Subscribers::EVENT_COMPLAINED:
+                $labels = [
+                    Subscribers::EVENT_BOUNCED      => ! empty($meta['soft']) ? __('Counted as bounced after repeated soft bounces', 'mailoptin') : __('Hard bounce', 'mailoptin'),
+                    Subscribers::EVENT_SOFT_BOUNCED => __('Soft bounce', 'mailoptin'),
+                    Subscribers::EVENT_COMPLAINED   => __('Marked an email as spam', 'mailoptin'),
+                ];
+
+                $label = $labels[$event['type']];
+
+                if ( ! empty($event['campaign_log_id'])) {
+                    $title = self::campaign_title($event['campaign_log_id']);
+                    if (null !== $title) $label .= ' ' . sprintf(__('on "%s"', 'mailoptin'), $title);
+                }
+
+                $via = ! empty($meta['provider']) ? self::provider_name($meta['provider']) : '';
+
+                return $label . ($via ? ' · ' . sprintf(__('via %s', 'mailoptin'), $via) : '') . ( ! empty($meta['detail']) ? ' · ' . $meta['detail'] : '');
+            case Subscribers::EVENT_RESUBSCRIBED:
+                return sprintf(__('Marked as subscribed again by %s', 'mailoptin'), Subscribers_Tags_Fields::admin_name($meta['by_admin'] ?? 0) ?: __('an admin', 'mailoptin'));
         }
 
         return $event['type'];
+    }
+
+    /**
+     * A campaign's subject for the timeline, with merge tags shown as their fallbacks:
+     * "Hi {{subscriber.first_name|friend}}" reads "Hi friend".
+     *
+     * @return string|null null when the campaign log is gone
+     */
+    public static function campaign_title($campaign_log_id)
+    {
+        $title = \MailOptin\Core\Logging\CampaignLogRepository::instance()->retrieveTitle($campaign_log_id);
+
+        if (null === $title) return null;
+
+        $title = preg_replace('/\{\{\s*[^}|]+\|\s*([^}]*?)\s*\}\}/', '$1', (string)$title);
+
+        return trim(preg_replace('/\s*\{\{[^}]*\}\}/', '', $title));
+    }
+
+    public static function provider_name($provider)
+    {
+        $names = ['postmark' => 'Postmark', 'ses' => 'Amazon SES', 'sendgrid' => 'SendGrid', 'mailgun' => 'Mailgun', 'brevo' => 'Brevo'];
+
+        return $names[$provider] ?? $provider;
     }
 
     /**
@@ -397,6 +443,40 @@ class Subscribers_Page extends AbstractSettingsPage
         }
 
         return '';
+    }
+
+    /**
+     * Why a bounced or complained address isn't emailed, and the way back for one the admin knows works.
+     */
+    protected function delivery_banner($subscriber)
+    {
+        if ( ! in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)) return '';
+
+        $complained = Subscribers::STATUS_COMPLAINED === $subscriber['status'];
+        $event      = \MailOptin\Core\Audience\DeliveryEvents::last_event($subscriber['id'], $complained);
+        $meta       = $event ? (json_decode((string)$event['meta'], true) ?: []) : [];
+
+        if ($complained) {
+            $text = $event
+                ? sprintf(__('They marked an email as spam on %s. MailOptin won\'t email this address again.', 'mailoptin'), $this->local_time($event['created_at']))
+                : __('They marked an email as spam. MailOptin won\'t email this address again.', 'mailoptin');
+        } else {
+            $text = $event
+                ? sprintf(__('This address bounced on %1$s (%2$s). MailOptin won\'t email it again. If they gave you a new address, add that one instead.', 'mailoptin'), $this->local_time($event['created_at']), $meta['detail'] ?? __('no reason given', 'mailoptin'))
+                : __('This address bounced. MailOptin won\'t email it again. If they gave you a new address, add that one instead.', 'mailoptin');
+        }
+
+        $confirm = $complained
+            ? __('They reported your email as spam. Emailing them again can hurt your sender reputation. Mark them as subscribed again anyway?', 'mailoptin')
+            : __('Only do this if you\'re sure the address works now. Mark them as subscribed again?', 'mailoptin');
+
+        return sprintf(
+            '<div class="notice notice-error inline mo-delivery-banner"><p>%s <a href="%s" onclick="return confirm(%s)">%s</a></p></div>',
+            esc_html($text),
+            esc_url(self::action_url('resubscribe', $subscriber['id'])),
+            esc_attr(wp_json_encode($confirm)),
+            esc_html__('Mark as subscribed again', 'mailoptin')
+        );
     }
 
     protected function profile_html($subscriber_id)
@@ -431,6 +511,7 @@ class Subscribers_Page extends AbstractSettingsPage
                 <a class="button mo-delete-prompt" href="<?php echo esc_url(self::action_url('delete', $subscriber_id)); ?>"><?php esc_html_e('Delete', 'mailoptin'); ?></a>
             </div>
         </div>
+        <?php echo $this->delivery_banner($subscriber); ?>
         <div class="mo-columns">
             <div class="mo-col-main">
                 <form method="post" action="<?php echo esc_url(add_query_arg('subscriber', $subscriber_id, self::page_url())); ?>" class="mo-card" id="mo-profile-form">
@@ -814,6 +895,12 @@ class Subscribers_Page extends AbstractSettingsPage
                 return $this->redirect('unsubscribed', wp_get_referer() ?: self::page_url());
                 break;
 
+            case 'resubscribe':
+                check_admin_referer('mo_subscriber_resubscribe_' . $subscriber_id);
+                \MailOptin\Core\Audience\DeliveryEvents::resubscribe($subscriber_id);
+                return $this->redirect('resubscribed', add_query_arg('subscriber', $subscriber_id, self::page_url()));
+                break;
+
             case 'delete':
                 check_admin_referer('mo_subscriber_delete_' . $subscriber_id);
                 Subscribers::delete($subscriber_id);
@@ -1006,7 +1093,7 @@ class Subscribers_Page extends AbstractSettingsPage
 .mo-pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;background:#f0f0f1;color:#50575e}
 .mo-pill-subscribed{background:#edfaef;color:#00701a}
 .mo-pill-pending{background:#fcf9e8;color:#8a6100}
-.mo-pill-unsubscribed{background:#fcf0f1;color:#b32d2e}
+.mo-pill-unsubscribed,.mo-pill-bounced,.mo-pill-complained{background:#fcf0f1;color:#b32d2e}
 .mo-subscribers-wrap{margin:20px 20px 0 2px}
 .mo-muted{color:#646970}
 .mo-card{background:#fff;border:1px solid #c3c4c7;padding:4px 16px 12px;margin-bottom:16px}

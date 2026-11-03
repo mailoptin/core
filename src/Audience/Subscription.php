@@ -326,13 +326,7 @@ class Subscription
 
         list($subject, $html, $text, $list_names) = [$email['subject'], $email['html'], $email['text'], $email['lists']];
 
-        $add_plain_text = function ($phpmailer) use ($text) {
-            $phpmailer->AltBody = $text;
-        };
-
-        add_action('phpmailer_init', $add_plain_text);
-        $sent = wp_mail($subscriber['email'], $subject, $html, WpMailSender::default_headers());
-        remove_action('phpmailer_init', $add_plain_text);
+        $sent = true === \MailOptin\Core\SendQueue\Mailer::send($subscriber['email'], $subject, $html, WpMailSender::default_headers(), $text);
 
         if ($sent) {
             Subscribers::log_event($subscriber_id, Subscribers::EVENT_CONFIRMATION_SENT, ['lists' => $list_names]);

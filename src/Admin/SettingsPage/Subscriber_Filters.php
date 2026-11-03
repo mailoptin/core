@@ -198,6 +198,10 @@ class Subscriber_Filters
      */
     public static function engagement_label($condition)
     {
+        if ('never_engaged' === $condition['what']) {
+            return sprintf(__('Never engaged %1$s: no opens or clicks from at least %2$d emails (estimate)', 'mailoptin'), Activity::engagement_periods()[$condition['days']], Activity::NEVER_ENGAGED_MIN_SENT);
+        }
+
         $campaigns = Activity::sent_campaigns(200);
         $campaign  = $condition['campaign']
             ? sprintf(__('"%s"', 'mailoptin'), $campaigns[$condition['campaign']] ?? sprintf(__('campaign #%d', 'mailoptin'), $condition['campaign']))

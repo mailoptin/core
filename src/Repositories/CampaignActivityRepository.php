@@ -433,6 +433,7 @@ class CampaignActivityRepository extends AbstractRepository
             'clicked'     => __('Clicked', 'mailoptin'),
             'not_opened'  => __('Didn\'t open', 'mailoptin'),
             'not_clicked' => __('Didn\'t click', 'mailoptin'),
+            'never_engaged' => __('Never engaged', 'mailoptin'),
         ];
     }
 
@@ -464,7 +465,10 @@ class CampaignActivityRepository extends AbstractRepository
 
         if ( ! isset(self::engagement_options()[$what]) || ! isset(self::engagement_periods()[$days])) return null;
 
-        return ['what' => $what, 'campaign' => is_scalar($condition['campaign'] ?? 0) ? absint($condition['campaign'] ?? 0) : 0, 'days' => $days];
+        // "Never engaged" is about every campaign sent to them, not one.
+        $campaign = 'never_engaged' === $what || ! is_scalar($condition['campaign'] ?? 0) ? 0 : absint($condition['campaign'] ?? 0);
+
+        return ['what' => $what, 'campaign' => $campaign, 'days' => $days];
     }
 
     /**
@@ -484,6 +488,8 @@ class CampaignActivityRepository extends AbstractRepository
         $table = self::table();
         $queue = SendQueueRepository::table();
         $since = $condition['days'] ? gmdate('Y-m-d H:i:s', time() - $condition['days'] * DAY_IN_SECONDS) : null;
+
+        if ('never_engaged' === $condition['what']) return self::never_engaged_sql($since);
         $type  = in_array($condition['what'], ['opened', 'not_opened'], true) ? self::TYPE_OPEN : self::TYPE_CLICK;
 
         $activity = $wpdb->prepare("SELECT 1 FROM $table a WHERE a.subscriber_id = s.id AND a.type = %s", $type);
@@ -511,6 +517,39 @@ class CampaignActivityRepository extends AbstractRepository
         );
 
         return "(EXISTS ($sent) AND NOT EXISTS ($activity))";
+    }
+
+    /** Tracked emails someone must have been sent before opening and clicking none counts as never engaged. */
+    const NEVER_ENGAGED_MIN_SENT = 5;
+
+    /**
+     * Sent at least NEVER_ENGAGED_MIN_SENT tracked campaigns in the period, and no open or click seen
+     * on any of them. Opens are an estimate, so this is for reviewing people, not for sending to them.
+     */
+    protected static function never_engaged_sql($since)
+    {
+        $wpdb  = self::wpdb();
+        $table = self::table();
+        $queue = SendQueueRepository::table();
+        $stats = self::stats_table();
+
+        $sent = $wpdb->prepare(
+            "SELECT COUNT(DISTINCT q.campaign_log_id) FROM $queue q WHERE q.recipient_id = s.id AND q.recipient_type = 'subscriber' AND q.status = 'sent'
+            AND q.campaign_log_id IN (SELECT t.campaign_log_id FROM $stats t WHERE t.metric IN (%s, %s))
+            AND q.campaign_log_id NOT IN (SELECT p.campaign_log_id FROM $stats p WHERE p.metric = %s)",
+            self::METRIC_OPEN_TRACKED,
+            self::METRIC_CLICK_TRACKED,
+            self::METRIC_PRUNED
+        );
+
+        $activity = "SELECT 1 FROM $table a WHERE a.subscriber_id = s.id";
+
+        if ($since) {
+            $sent     .= $wpdb->prepare(' AND q.sent_at >= %s', $since);
+            $activity .= $wpdb->prepare(' AND a.last_at >= %s', $since);
+        }
+
+        return sprintf('((%s) >= %d AND NOT EXISTS (%s))', $sent, self::NEVER_ENGAGED_MIN_SENT, $activity);
     }
 
     /**

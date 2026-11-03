@@ -18,12 +18,60 @@ class SendingSettings
     const HOURLY_LIMIT_SETTING = 'send_queue_hourly_limit';
     const DEFAULT_HOURLY_LIMIT = 1000;
 
+    const SERVICE_SETTING = 'mo_sending_service';
+
+    /** Above this many subscribers, sending without bounce handling is worth a warning. */
+    const LARGE_LIST = 2000;
+
+    const SERVICES = ['postmark' => 'Postmark', 'ses' => 'Amazon SES', 'sendgrid' => 'SendGrid', 'mailgun' => 'Mailgun', 'brevo' => 'Brevo'];
+
     public function __construct()
     {
         add_filter('mailoptin_settings_page', [$this, 'settings_tab'], 30);
         add_action('admin_init', [$this, 'regenerate_run_key']);
         add_action('admin_init', [$this, 'send_branding_test']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_branding_assets']);
+        add_action('admin_notices', [$this, 'blocked_notice']);
+    }
+
+    /**
+     * The sending service built-in list emails go through: wp_mail unless MailOptin Premium sets one up.
+     */
+    public static function service()
+    {
+        $service = (string)apply_filters('mailoptin_sending_service', 'wp_mail');
+
+        return isset(self::SERVICES[$service]) ? $service : 'wp_mail';
+    }
+
+    public static function settings_url()
+    {
+        return MAILOPTIN_SETTINGS_SETTINGS_GENERAL_PAGE . '#sending_settings';
+    }
+
+    /**
+     * Sending stopped because the sending service refused the credentials or the account.
+     */
+    public function blocked_notice()
+    {
+        if ( ! current_user_has_privilege()) return;
+
+        $blocked = QueueRunner::block_notice();
+
+        if ( ! $blocked) return;
+
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+
+        // MailOptin's screens and the dashboard: where someone would notice emails not going out.
+        if ($screen && 'dashboard' !== $screen->id && false === strpos((string)$screen->id, 'mailoptin')) return;
+
+        printf(
+            '<div class="notice notice-error"><p><strong>%s</strong> %s <a href="%s">%s</a></p></div>',
+            esc_html__('MailOptin has stopped sending emails.', 'mailoptin'),
+            esc_html(sprintf(__('The sending service said: %s', 'mailoptin'), $blocked['error'])),
+            esc_url(self::settings_url()),
+            esc_html__('Check the sending service settings', 'mailoptin')
+        );
     }
 
     public function enqueue_branding_assets()
@@ -41,7 +89,7 @@ class SendingSettings
 
         check_admin_referer('mo_send_branding_test');
 
-        $sent = wp_mail(
+        $sent = true === \MailOptin\Core\SendQueue\Mailer::send(
             wp_get_current_user()->user_email,
             __('[Test] Email branding', 'mailoptin'),
             EmailBranding::sample_html(),
@@ -196,6 +244,14 @@ class SendingSettings
         $settings['sending_settings'] = [
             'tab_title' => __('Sending', 'mailoptin'),
             [
+                'section_title'            => __('Sending service', 'mailoptin'),
+                self::SERVICE_SETTING      => [
+                    'type'  => 'arbitrary',
+                    'label' => __('Send through', 'mailoptin'),
+                    'data'  => $this->services_html(),
+                ],
+            ],
+            [
                 'section_title'            => __('Sending for built-in lists', 'mailoptin'),
                 self::HOURLY_LIMIT_SETTING => [
                     'type'        => 'number',
@@ -209,11 +265,6 @@ class SendingSettings
                     'options'     => ['on' => __('Add "Manage preferences" next to Unsubscribe in every email', 'mailoptin'), 'off' => __('Don\'t add it', 'mailoptin')],
                     'value'       => 'on',
                     'description' => __('Subscribers choose their lists and update their name and the custom fields you allow (Subscribers › Custom fields). Use {{preferences}} to place the link yourself.', 'mailoptin'),
-                ],
-                'send_queue_transport'     => [
-                    'type'  => 'arbitrary',
-                    'label' => __('Send through', 'mailoptin'),
-                    'data'  => $this->transport_html(),
                 ],
                 'send_queue_runners'       => [
                     'type'  => 'arbitrary',
@@ -258,16 +309,80 @@ class SendingSettings
         return $settings;
     }
 
-    protected function transport_html()
+    /**
+     * The service cards. Choosing a service and its settings are MailOptin Premium's: it adds them through
+     * the mailoptin_sending_service_settings action. Without Premium, the cards explain what it adds.
+     */
+    protected function services_html()
     {
-        $html = '<h4 style="margin:0 0 4px">' . esc_html__('Send through', 'mailoptin') . '</h4>';
-        $html .= '<p>' . esc_html__('WordPress (wp_mail). If an SMTP plugin is installed, email goes through it.', 'mailoptin') . '</p>';
+        $premium = defined('MAILOPTIN_DETACH_LIBSODIUM');
+        $current = self::service();
+        $name    = 'mailoptin_settings[' . self::SERVICE_SETTING . ']';
 
-        if (get_option(WpMailSender::ONE_CLICK_UNAVAILABLE_OPTION)) {
-            $html .= '<p class="description" style="color:#8a6100">' . esc_html__('This site sends with PHP mail(), which can\'t carry the one-click unsubscribe header Gmail and Yahoo expect from bulk senders. The unsubscribe link in each email still works. Installing an SMTP plugin fixes this and usually improves delivery.', 'mailoptin') . '</p>';
+        $cards = ['wp_mail' => [__('WordPress (wp_mail)', 'mailoptin'), __('Your site\'s own mailer, or the SMTP plugin it uses. No bounce handling.', 'mailoptin')]];
+        foreach (self::SERVICES as $id => $label) {
+            $cards[$id] = [$label, __('Direct sending. Bounces and spam complaints are handled.', 'mailoptin')];
         }
 
-        return $html;
+        ob_start();
+        ?>
+        <div class="mo-services">
+            <?php foreach ($cards as $id => list($label, $description)) : $locked = ! $premium && 'wp_mail' !== $id; ?>
+                <label class="mo-service<?php echo $current === $id ? ' is-on' : ''; ?><?php echo $locked ? ' is-locked' : ''; ?>">
+                    <input type="radio" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($id); ?>" <?php checked($current, $id); ?> <?php disabled($locked); ?>>
+                    <strong><?php echo esc_html($label); ?></strong>
+                    <?php if ('wp_mail' !== $id) : ?><span class="mo-premium-pill"><?php esc_html_e('Premium', 'mailoptin'); ?></span><?php endif; ?>
+                    <span class="description"><?php echo esc_html($description); ?></span>
+                </label>
+            <?php endforeach; ?>
+        </div>
+        <p class="description"><?php esc_html_e('Broadcasts, welcome and confirmation emails to built-in lists all use this. Campaigns sent to Mailchimp and other connected services are sent by that service, as before.', 'mailoptin'); ?></p>
+
+        <?php if ( ! $premium) : ?>
+            <div class="mo-service-upsell">
+                <div>
+                    <strong><?php esc_html_e('Send through Postmark, Amazon SES, SendGrid, Mailgun or Brevo with MailOptin Premium.', 'mailoptin'); ?></strong><br>
+                    <?php esc_html_e('Faster sending, and bounces and spam complaints are caught automatically, so you stop emailing dead addresses and protect your sender reputation.', 'mailoptin'); ?>
+                </div>
+                <a class="button button-primary" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=sending_services" target="_blank"><?php esc_html_e('Get MailOptin Premium', 'mailoptin'); ?></a>
+            </div>
+        <?php endif; ?>
+
+        <?php if ('wp_mail' === $current) : ?>
+            <p><?php esc_html_e('If an SMTP plugin is installed, it sends MailOptin\'s emails. MailOptin doesn\'t hear about bounces this way, so addresses that bounce stay on your list.', 'mailoptin'); ?></p>
+            <?php $subscribers = $this->subscriber_count(); if ($subscribers > self::LARGE_LIST) : ?>
+                <div class="notice notice-warning inline"><p><?php echo esc_html(sprintf(
+                    __('Your lists have %s subscribers. Above a few thousand, sending without bounce handling slowly hurts delivery as dead addresses pile up. Remove addresses that bounce when you see them, or connect a sending service directly.', 'mailoptin'),
+                    number_format_i18n($subscribers)
+                )); ?></p></div>
+            <?php endif; ?>
+            <?php if (get_option(WpMailSender::ONE_CLICK_UNAVAILABLE_OPTION)) : ?>
+                <p class="description" style="color:#8a6100"><?php esc_html_e('This site sends with PHP mail(), which can\'t carry the one-click unsubscribe header Gmail and Yahoo expect from bulk senders. The unsubscribe link in each email still works. Installing an SMTP plugin fixes this and usually improves delivery.', 'mailoptin'); ?></p>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <?php do_action('mailoptin_sending_service_settings', $current); ?>
+
+        <style>
+            .mo-services{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 8px;max-width:960px}
+            .mo-service{display:block;position:relative;border:1px solid #c3c4c7;border-radius:6px;padding:12px 36px 12px 14px;background:#fff;cursor:pointer}
+            .mo-service.is-on{border:2px solid #2271b1;padding:11px 35px 11px 13px;background:#f6fbff}
+            .mo-service.is-locked{cursor:default;opacity:.75}
+            .mo-service input{position:absolute;right:12px;top:13px;margin:0}
+            .mo-service .description{display:block;margin-top:4px;font-size:12px}
+            .mo-premium-pill{display:inline-block;font-size:11px;line-height:16px;padding:0 6px;border-radius:99px;background:#f0e6ff;color:#5b2a9e;margin-left:4px;font-weight:600}
+            .mo-service-upsell{display:flex;gap:16px;align-items:center;justify-content:space-between;background:#faf7ff;border:1px solid #e2d4f7;border-radius:6px;padding:12px 16px;margin:10px 0;max-width:960px}
+            @media (max-width:782px){.mo-services{grid-template-columns:1fr}.mo-service-upsell{flex-direction:column;align-items:flex-start}}
+        </style>
+        <?php
+        return ob_get_clean();
+    }
+
+    protected function subscriber_count()
+    {
+        $counts = \MailOptin\Core\Repositories\SubscribersRepository::count_by_status();
+
+        return (int)($counts[\MailOptin\Core\Repositories\SubscribersRepository::STATUS_SUBSCRIBED] ?? 0);
     }
 
     protected function runners_html()

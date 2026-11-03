@@ -30,6 +30,10 @@ class QueueRunner
     const LOG_STATUS_PAUSED = 'paused';
     const LOG_STATUS_PROCESSED = 'processed';
 
+    const BLOCKED_OPTION = 'mo_send_queue_blocked';
+
+    const BLOCK_SECONDS = 900;
+
     protected $worker_id;
 
     public function __construct()
@@ -147,7 +151,7 @@ class QueueRunner
      */
     public function process($campaign_log_id, $deadline = null)
     {
-        if ( ! $this->is_sending($campaign_log_id)) return 0;
+        if ( ! $this->is_sending($campaign_log_id) || self::blocked()) return 0;
 
         $deadline   = $deadline ?: $this->deadline();
         $chunk_size = max(1, (int)apply_filters('mo_send_queue_chunk_size', 50));
@@ -162,14 +166,9 @@ class QueueRunner
             if (empty($rows)) break;
 
             $suppressed = SuppressionRepository::filter_suppressed(wp_list_pluck($rows, 'email'));
+            $to_send    = [];
 
             foreach ($rows as $row) {
-
-                if (time() >= $deadline) {
-                    // Hand back unstarted rows now rather than waiting for the lease to expire.
-                    Queue::release($row['id'], $this->worker_id);
-                    continue;
-                }
 
                 if (in_array($row['email'], $suppressed, true)) {
                     Queue::mark_skipped($row['id'], __('Unsubscribed or suppressed.', 'mailoptin'));
@@ -186,11 +185,18 @@ class QueueRunner
                     continue;
                 }
 
-                if ( ! Queue::mark_sending($row['id'], $this->worker_id)) continue;
-
-                $this->send_row($row, $campaign_log_id);
-                $handled++;
+                $to_send[] = $row;
             }
+
+            // Each recipient type can have its own sender.
+            $by_type = [];
+            foreach ($to_send as $row) $by_type[$row['recipient_type']][] = $row;
+
+            foreach ($by_type as $type_rows) {
+                $handled += $this->send_rows($type_rows, $campaign_log_id, $deadline);
+            }
+
+            if (self::blocked()) break;
         }
 
         $this->maybe_complete($campaign_log_id);
@@ -198,14 +204,81 @@ class QueueRunner
         return $handled;
     }
 
-    protected function send_row($row, $campaign_log_id)
+    /**
+     * The sender for a campaign: wp_mail() unless a sending service takes over.
+     *
+     * @return SenderInterface
+     */
+    protected function sender($recipient_type, $campaign_log_id)
     {
-        $sender = apply_filters('mo_send_queue_sender', new WpMailSender(), $row['recipient_type'], $campaign_log_id);
+        return apply_filters('mo_send_queue_sender', new WpMailSender(), $recipient_type, $campaign_log_id);
+    }
 
-        $result = $sender->send($row, $campaign_log_id);
+    /**
+     * Send claimed rows, in batches when the sender can, at no more than its emails-per-second limit.
+     * Rows left when the deadline comes, or when sending stops, go back to the pending pool.
+     *
+     * @return int rows sent or failed
+     */
+    protected function send_rows(array $rows, $campaign_log_id, $deadline)
+    {
+        if (empty($rows)) return 0;
 
+        $sender  = $this->sender($rows[0]['recipient_type'], $campaign_log_id);
+        $batch   = $sender instanceof BatchSenderInterface ? max(1, (int)$sender->batch_size()) : 1;
+        $per_sec = $sender instanceof BatchSenderInterface ? (int)$sender->max_per_second() : 0;
+        if ($per_sec > 0) $batch = min($batch, $per_sec);
+
+        $handled      = 0;
+        $window_start = microtime(true);
+        $window_count = 0;
+
+        while ( ! empty($rows)) {
+
+            if (time() >= $deadline || self::blocked()) {
+                // Hand back unstarted rows now rather than waiting for the lease to expire.
+                foreach ($rows as $row) Queue::release($row['id'], $this->worker_id);
+                break;
+            }
+
+            // Keep to the service's per-second limit: wait out the rest of the second when it's used up.
+            if ($per_sec > 0 && $window_count >= $per_sec) {
+                $elapsed = microtime(true) - $window_start;
+                if ($elapsed < 1) usleep((int)((1 - $elapsed) * 1000000));
+                $window_start = microtime(true);
+                $window_count = 0;
+            }
+
+            $chunk = [];
+            foreach (array_splice($rows, 0, $batch) as $row) {
+                if (Queue::mark_sending($row['id'], $this->worker_id)) $chunk[$row['id']] = $row;
+            }
+
+            if (empty($chunk)) continue;
+
+            if ($sender instanceof BatchSenderInterface) {
+                $results = $sender->send_batch($chunk, $campaign_log_id);
+            } else {
+                $row     = reset($chunk);
+                $results = [$row['id'] => $sender->send($row, $campaign_log_id)];
+            }
+
+            foreach ($chunk as $id => $row) {
+                $this->handle_result($row, $results[$id] ?? new \WP_Error('mo_no_result', __('The sender returned no result.', 'mailoptin'), ['retryable' => true]), $campaign_log_id);
+                $handled++;
+            }
+
+            $window_count += count($chunk);
+        }
+
+        return $handled;
+    }
+
+    protected function handle_result($row, $result, $campaign_log_id)
+    {
         if (true === $result) {
             Queue::mark_sent($row['id']);
+            if (null !== self::block_notice()) self::unblock();
             do_action('mo_send_queue_email_sent', $row, $campaign_log_id);
 
             return;
@@ -216,8 +289,18 @@ class QueueRunner
         $retryable = is_array($data) && ! empty($data['retryable']);
         $attempts  = (int)$row['attempts'] + 1;
 
+        // The credentials or the account are the problem, not this email: put it back without using
+        // up an attempt, and stop sending until it's fixed.
+        if (is_array($data) && ! empty($data['stop'])) {
+            self::block($message);
+            Queue::requeue($row['id'], $message, Queue::now(self::BLOCK_SECONDS));
+
+            return;
+        }
+
         if ($retryable && $attempts < $this->max_attempts()) {
-            Queue::mark_failed($row['id'], $message, Queue::now($this->retry_delay($attempts)));
+            $delay = is_array($data) && ! empty($data['retry_after']) ? max((int)$data['retry_after'], $this->retry_delay($attempts)) : $this->retry_delay($attempts);
+            Queue::mark_failed($row['id'], $message, Queue::now($delay));
 
             return;
         }
@@ -231,6 +314,45 @@ class QueueRunner
         );
 
         do_action('mo_send_queue_email_failed', $row, $campaign_log_id, $message);
+    }
+
+    /**
+     * Stop all sending for a while, because the sending service refused the credentials or the account.
+     * Sending tries again after BLOCK_SECONDS, or as soon as the settings are saved.
+     */
+    public static function block($error)
+    {
+        update_option(self::BLOCKED_OPTION, ['error' => (string)$error, 'until' => time() + self::BLOCK_SECONDS, 'since' => time()], false);
+    }
+
+    public static function unblock()
+    {
+        delete_option(self::BLOCKED_OPTION);
+    }
+
+    /**
+     * @return array|null error, until and since, while sending is stopped
+     */
+    public static function blocked()
+    {
+        $blocked = get_option(self::BLOCKED_OPTION);
+
+        if ( ! is_array($blocked) || empty($blocked['until'])) return null;
+
+        return (int)$blocked['until'] > time() ? $blocked : null;
+    }
+
+    /**
+     * The last time sending was stopped, while it hasn't been fixed: shown until the settings are saved
+     * or an email goes out.
+     *
+     * @return array|null
+     */
+    public static function block_notice()
+    {
+        $blocked = get_option(self::BLOCKED_OPTION);
+
+        return is_array($blocked) && ! empty($blocked['error']) ? $blocked : null;
     }
 
     protected function maybe_complete($campaign_log_id)

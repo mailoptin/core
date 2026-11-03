@@ -232,13 +232,7 @@ class WelcomeEmail
         $subject = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags(self::subject($list), $sample, false), $tags, false);
         $text    = self::text($html);
 
-        $add_plain_text = function ($phpmailer) use ($text) {
-            $phpmailer->AltBody = $text;
-        };
-
-        add_action('phpmailer_init', $add_plain_text);
-        $sent = wp_mail($to, sprintf(__('[Test] %s', 'mailoptin'), $subject), $html, WpMailSender::default_headers());
-        remove_action('phpmailer_init', $add_plain_text);
+        $sent = true === \MailOptin\Core\SendQueue\Mailer::send($to, sprintf(__('[Test] %s', 'mailoptin'), $subject), $html, WpMailSender::default_headers(), $text);
 
         return $sent;
     }
