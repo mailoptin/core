@@ -654,7 +654,7 @@ class OptinCampaignsRepository extends AbstractRepository
     /**
      * Replace one campaign's settings.
      */
-    public static function save_settings_by_id($optin_campaign_id, array $settings)
+    public static function save_settings_by_id($optin_campaign_id, $settings)
     {
         return CampaignSettingsRepository::save(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id, $settings);
     }
@@ -664,7 +664,7 @@ class OptinCampaignsRepository extends AbstractRepository
      *
      * @param array $changes setting => value
      */
-    public static function update_settings_by_id($optin_campaign_id, array $changes)
+    public static function update_settings_by_id($optin_campaign_id, $changes)
     {
         return CampaignSettingsRepository::update(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id, $changes);
     }

@@ -24,11 +24,20 @@ class CampaignSettingsRepository extends AbstractRepository
     /** Set when moving them failed, with why; the site keeps the option rows meanwhile. */
     const ERROR_OPTION = 'mo_campaign_settings_migration_error';
 
+    /** Held while one request moves the settings, so two never do it at once. */
+    const LOCK_OPTION = 'mo_campaign_settings_migrating';
+
+    /** Part of every cache key: changed when the table is emptied or filled, so no cache serves old rows. */
+    const SALT_OPTION = 'mo_campaign_settings_cache_salt';
+
     const LEGACY_SUFFIX = '_legacy';
 
     const CACHE_GROUP = 'mo_campaign_settings';
 
-    /** @var array type => campaign id => [setting => value] being previewed in the Customizer */
+    /** Every campaign of a type, kept for the request only. */
+    const ALL_CACHE_GROUP = 'mo_campaign_settings_all';
+
+    /** @var array blog id => type => campaign id => [setting => value] being previewed in the Customizer */
     protected static $preview = [];
 
     public static function table()
@@ -54,10 +63,40 @@ class CampaignSettingsRepository extends AbstractRepository
         return (bool)get_option(self::READY_OPTION);
     }
 
+    /* ---------------------------------------------------------------------------------------------
+     * Caching
+     * ------------------------------------------------------------------------------------------ */
+
+    protected static function cache_key($type, $campaign_id)
+    {
+        return self::salt() . ':' . $type . ':' . $campaign_id;
+    }
+
+    protected static function salt()
+    {
+        $salt = get_option(self::SALT_OPTION);
+
+        if ( ! $salt) {
+            $salt = wp_generate_password(8, false);
+            update_option(self::SALT_OPTION, $salt, true);
+        }
+
+        return $salt;
+    }
+
+    /**
+     * Forget every cached campaign: a new salt, so even an object cache that can't flush a group
+     * stops serving the old rows.
+     */
     public static function flush_cache()
     {
-        self::$preview = [];
-        if (function_exists('wp_cache_flush_group')) wp_cache_flush_group(self::CACHE_GROUP);
+        self::$preview[get_current_blog_id()] = [];
+        update_option(self::SALT_OPTION, wp_generate_password(8, false), true);
+    }
+
+    protected static function forget_all($type)
+    {
+        wp_cache_delete(self::salt() . ':' . $type, self::ALL_CACHE_GROUP);
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -73,12 +112,9 @@ class CampaignSettingsRepository extends AbstractRepository
     {
         $campaign_id = absint($campaign_id);
         $settings    = self::get_saved($type, $campaign_id);
+        $preview     = self::$preview[get_current_blog_id()][$type][$campaign_id] ?? [];
 
-        if ( ! empty(self::$preview[$type][$campaign_id])) {
-            $settings = array_replace($settings, self::$preview[$type][$campaign_id]);
-        }
-
-        return $settings;
+        return $preview ? array_replace($settings, $preview) : $settings;
     }
 
     /**
@@ -95,7 +131,7 @@ class CampaignSettingsRepository extends AbstractRepository
         }
 
         // The object cache: per request, or shared when the site has a persistent one.
-        $key    = $type . ':' . $campaign_id;
+        $key    = self::cache_key($type, $campaign_id);
         $cached = wp_cache_get($key, self::CACHE_GROUP);
 
         if (is_array($cached)) return $cached;
@@ -123,7 +159,7 @@ class CampaignSettingsRepository extends AbstractRepository
         $missing = [];
 
         foreach (array_unique(array_map('absint', (array)$campaign_ids)) as $id) {
-            if ($id && ! is_array(wp_cache_get($type . ':' . $id, self::CACHE_GROUP))) $missing[] = $id;
+            if ($id && ! is_array(wp_cache_get(self::cache_key($type, $id), self::CACHE_GROUP))) $missing[] = $id;
         }
 
         if (empty($missing)) return;
@@ -139,36 +175,50 @@ class CampaignSettingsRepository extends AbstractRepository
         }
 
         foreach ($missing as $id) {
-            wp_cache_set($type . ':' . $id, $found[$id] ?? [], self::CACHE_GROUP);
+            wp_cache_set(self::cache_key($type, $id), $found[$id] ?? [], self::CACHE_GROUP);
         }
     }
 
     /**
-     * Every campaign of a type: campaign id => settings. For screens and checks that need them all;
-     * showing or sending one campaign should use get().
+     * Every campaign of a type: campaign id => settings, with any preview applied. For screens and
+     * checks that need them all; showing or sending one campaign should use get().
      *
      * @return array
      */
     public static function all($type)
     {
-        if ( ! self::is_ready()) {
-            $all = self::legacy_all($type);
-        } else {
-            $rows = self::wpdb()->get_results(self::wpdb()->prepare(
-                'SELECT campaign_id, settings FROM ' . self::table() . ' WHERE campaign_type = %s ORDER BY campaign_id',
-                $type
-            ), ARRAY_A);
+        $all = self::all_saved($type);
 
-            $all = [];
-            foreach ($rows as $row) {
-                $all[(int)$row['campaign_id']] = self::decode($row['settings']);
-                wp_cache_set($type . ':' . $row['campaign_id'], $all[(int)$row['campaign_id']], self::CACHE_GROUP);
-            }
-        }
-
-        foreach (self::$preview[$type] ?? [] as $id => $values) {
+        foreach (self::$preview[get_current_blog_id()][$type] ?? [] as $id => $values) {
             $all[$id] = array_replace(is_array($all[$id] ?? null) ? $all[$id] : [], $values);
         }
+
+        return $all;
+    }
+
+    protected static function all_saved($type)
+    {
+        if ( ! self::is_ready()) return self::legacy_all($type);
+
+        // Every campaign is too much to keep in a persistent cache: this request only.
+        wp_cache_add_non_persistent_groups([self::ALL_CACHE_GROUP]);
+
+        $key    = self::salt() . ':' . $type;
+        $cached = wp_cache_get($key, self::ALL_CACHE_GROUP);
+
+        if (is_array($cached)) return $cached;
+
+        $rows = self::wpdb()->get_results(self::wpdb()->prepare(
+            'SELECT campaign_id, settings FROM ' . self::table() . ' WHERE campaign_type = %s ORDER BY campaign_id',
+            $type
+        ), ARRAY_A);
+
+        $all = [];
+        foreach ($rows as $row) {
+            $all[(int)$row['campaign_id']] = self::decode($row['settings']);
+        }
+
+        wp_cache_set($key, $all, self::ALL_CACHE_GROUP);
 
         return $all;
     }
@@ -189,10 +239,13 @@ class CampaignSettingsRepository extends AbstractRepository
 
     /**
      * Replace one campaign's settings.
+     *
+     * @param array $settings
      */
-    public static function save($type, $campaign_id, array $settings)
+    public static function save($type, $campaign_id, $settings)
     {
         $campaign_id = absint($campaign_id);
+        $settings    = self::to_array($settings);
 
         if ( ! $campaign_id) return false;
 
@@ -212,9 +265,15 @@ class CampaignSettingsRepository extends AbstractRepository
                 gmdate('Y-m-d H:i:s')
             ));
 
-        wp_cache_set($type . ':' . $campaign_id, $settings, self::CACHE_GROUP);
+        self::forget_all($type);
 
-        do_action('mo_campaign_settings_saved', $type, $campaign_id, $settings);
+        // A failed write must not leave the cache saying it worked.
+        if ($saved) {
+            wp_cache_set(self::cache_key($type, $campaign_id), $settings, self::CACHE_GROUP);
+            do_action('mo_campaign_settings_saved', $type, $campaign_id, $settings);
+        } else {
+            wp_cache_delete(self::cache_key($type, $campaign_id), self::CACHE_GROUP);
+        }
 
         return $saved;
     }
@@ -224,9 +283,9 @@ class CampaignSettingsRepository extends AbstractRepository
      *
      * @param array $changes setting => value
      */
-    public static function update($type, $campaign_id, array $changes)
+    public static function update($type, $campaign_id, $changes)
     {
-        return self::save($type, $campaign_id, array_replace(self::get_saved($type, $campaign_id), $changes));
+        return self::save($type, $campaign_id, array_replace(self::get_saved($type, $campaign_id), self::to_array($changes)));
     }
 
     /**
@@ -245,9 +304,12 @@ class CampaignSettingsRepository extends AbstractRepository
         $current = self::all_saved($type);
 
         foreach ($all as $id => $settings) {
-            if ( ! is_array($settings) || ! absint($id)) continue;
+            if ( ! absint($id) || ! (is_array($settings) || is_object($settings))) continue;
 
-            if ( ! isset($current[$id]) || $current[$id] != $settings) self::save($type, $id, $settings);
+            $settings = self::to_array($settings);
+
+            // Strict: "1" and true, or 0 and "abc", are different values to save.
+            if ( ! isset($current[$id]) || $current[$id] !== $settings) self::save($type, $id, $settings);
         }
 
         return true;
@@ -260,10 +322,11 @@ class CampaignSettingsRepository extends AbstractRepository
     {
         if ( ! self::is_ready()) return delete_option(self::option_name($type));
 
-        self::$preview[$type] = [];
+        self::$preview[get_current_blog_id()][$type] = [];
+        $deleted = false !== self::wpdb()->delete(self::table(), ['campaign_type' => $type]);
         self::flush_cache();
 
-        return false !== self::wpdb()->delete(self::table(), ['campaign_type' => $type]);
+        return $deleted;
     }
 
     public static function delete($type, $campaign_id)
@@ -277,22 +340,14 @@ class CampaignSettingsRepository extends AbstractRepository
             return update_option(self::option_name($type), $all, false);
         }
 
-        unset(self::$preview[$type][$campaign_id]);
-        wp_cache_delete($type . ':' . $campaign_id, self::CACHE_GROUP);
+        unset(self::$preview[get_current_blog_id()][$type][$campaign_id]);
 
-        return false !== self::wpdb()->delete(self::table(), ['campaign_type' => $type, 'campaign_id' => $campaign_id]);
-    }
+        $deleted = false !== self::wpdb()->delete(self::table(), ['campaign_type' => $type, 'campaign_id' => $campaign_id]);
 
-    protected static function all_saved($type)
-    {
-        $preview = self::$preview[$type] ?? [];
-        self::$preview[$type] = [];
+        wp_cache_delete(self::cache_key($type, $campaign_id), self::CACHE_GROUP);
+        self::forget_all($type);
 
-        $all = self::all($type);
-
-        self::$preview[$type] = $preview;
-
-        return $all;
+        return $deleted;
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -304,7 +359,7 @@ class CampaignSettingsRepository extends AbstractRepository
      */
     public static function set_preview($type, $campaign_id, $setting, $value)
     {
-        self::$preview[$type][absint($campaign_id)][$setting] = $value;
+        self::$preview[get_current_blog_id()][$type][absint($campaign_id)][$setting] = $value;
     }
 
     public static function clear_preview()
@@ -316,9 +371,26 @@ class CampaignSettingsRepository extends AbstractRepository
      * Encoding
      * ------------------------------------------------------------------------------------------ */
 
-    public static function encode(array $settings)
+    /**
+     * Settings as arrays all the way down: objects from old option data or other plugins become arrays.
+     */
+    public static function to_array($value)
     {
-        $json = wp_json_encode($settings);
+        if (is_object($value)) $value = get_object_vars($value);
+
+        if ( ! is_array($value)) return [];
+
+        foreach ($value as $key => $item) {
+            if (is_object($item) || is_array($item)) $value[$key] = self::to_array($item);
+        }
+
+        return $value;
+    }
+
+    public static function encode($settings)
+    {
+        $settings = self::to_array($settings);
+        $json     = wp_json_encode($settings);
 
         // Text that isn't valid UTF-8 even after WordPress's conversion: keep the rest, replace the bad bytes.
         if (false === $json) $json = json_encode($settings, JSON_INVALID_UTF8_SUBSTITUTE);
@@ -338,9 +410,49 @@ class CampaignSettingsRepository extends AbstractRepository
      * ------------------------------------------------------------------------------------------ */
 
     /**
+     * The option row as stored, past every cache: another request may have just changed it.
+     */
+    protected static function legacy_fresh($type)
+    {
+        $wpdb = self::wpdb();
+        $name = self::option_name($type);
+
+        wp_cache_delete($name, 'options');
+        wp_cache_delete('alloptions', 'options');
+        wp_cache_delete('notoptions', 'options');
+
+        $raw = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name));
+        $all = null === $raw ? [] : maybe_unserialize($raw);
+
+        return is_array($all) || is_object($all) ? (array)$all : [];
+    }
+
+    /**
+     * What each campaign must read back as from the table: its settings through JSON and back, so
+     * objects and text WordPress converted to UTF-8 compare equal.
+     *
+     * @return array campaign id => settings
+     */
+    protected static function expected($all)
+    {
+        $expected = [];
+
+        foreach ($all as $id => $settings) {
+            if ( ! absint($id) || ! (is_array($settings) || is_object($settings))) continue;
+
+            $expected[(int)$id] = self::decode(self::encode($settings));
+        }
+
+        ksort($expected);
+
+        return $expected;
+    }
+
+    /**
      * Copy every campaign from both option rows into the table, check each one reads back the same,
-     * then keep the rows as *_legacy backups. Safe to run again: it stops once done, and a copy that
-     * didn't check out leaves the site on the option rows, with the reason in ERROR_OPTION.
+     * switch the site over, then keep the rows as *_legacy backups. Safe to run again and from
+     * several requests at once: one holds a lock, and a copy that doesn't check out leaves the site
+     * on the option rows, with the reason in ERROR_OPTION, for maybe_retry() to try again later.
      *
      * @return bool whether the site now uses the table
      */
@@ -356,57 +468,105 @@ class CampaignSettingsRepository extends AbstractRepository
             return false;
         }
 
-        $now = gmdate('Y-m-d H:i:s');
-
-        foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
-            $rows = [];
-
-            foreach (self::legacy_all($type) as $id => $settings) {
-                if ( ! absint($id) || ! is_array($settings)) continue;
-
-                $rows[] = $wpdb->prepare('(%s, %d, %s, %s)', $type, $id, self::encode($settings), $now);
-            }
-
-            foreach (array_chunk($rows, 100) as $chunk) {
-                $wpdb->query(
-                    'INSERT INTO ' . self::table() . ' (campaign_type, campaign_id, settings, updated_at) VALUES ' . implode(',', $chunk) .
-                    ' ON DUPLICATE KEY UPDATE settings = VALUES(settings), updated_at = VALUES(updated_at)'
-                );
-            }
+        // One request at a time; a lock older than 10 minutes belongs to a request that died.
+        if ( ! add_option(self::LOCK_OPTION, time(), '', 'no')) {
+            if ((int)get_option(self::LOCK_OPTION) > time() - 10 * MINUTE_IN_SECONDS) return false;
+            update_option(self::LOCK_OPTION, time(), false);
         }
 
-        // Every campaign must read back as it was before anything switches over.
-        foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
+        try {
+            wp_cache_delete(self::READY_OPTION, 'options');
+            wp_cache_delete('alloptions', 'options');
+            if (self::is_ready()) return true;
+
+            // The table isn't used until the switch, so rows from an earlier failed attempt can go.
+            $wpdb->query('DELETE FROM ' . self::table());
+
             $copied = [];
-            foreach ($wpdb->get_results($wpdb->prepare('SELECT campaign_id, settings FROM ' . self::table() . ' WHERE campaign_type = %s', $type), ARRAY_A) as $row) {
-                $copied[(int)$row['campaign_id']] = self::decode($row['settings']);
+
+            foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
+                $legacy = self::legacy_fresh($type);
+
+                foreach ($legacy as $id => $settings) {
+                    if ( ! absint($id) || ! (is_array($settings) || is_object($settings))) continue;
+
+                    // One row at a time: custom HTML and CSS can make rows too big to batch.
+                    $inserted = $wpdb->query($wpdb->prepare(
+                        'INSERT INTO ' . self::table() . ' (campaign_type, campaign_id, settings, updated_at) VALUES (%s, %d, %s, %s)
+                        ON DUPLICATE KEY UPDATE settings = VALUES(settings), updated_at = VALUES(updated_at)',
+                        $type,
+                        $id,
+                        self::encode($settings),
+                        gmdate('Y-m-d H:i:s')
+                    ));
+
+                    if (false === $inserted) {
+                        update_option(self::ERROR_OPTION, sprintf('Copying the settings of %s campaign %d failed: %s', $type, $id, $wpdb->last_error), false);
+
+                        return false;
+                    }
+                }
+
+                $copied[$type] = $legacy;
             }
 
-            foreach (self::legacy_all($type) as $id => $settings) {
-                if ( ! absint($id) || ! is_array($settings)) continue;
+            // Every campaign must read back as it was, and nothing may have changed meanwhile.
+            foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
+                $in_table = [];
+                foreach ($wpdb->get_results($wpdb->prepare('SELECT campaign_id, settings FROM ' . self::table() . ' WHERE campaign_type = %s', $type), ARRAY_A) as $row) {
+                    $in_table[(int)$row['campaign_id']] = self::decode($row['settings']);
+                }
 
-                if ( ! isset($copied[(int)$id]) || $copied[(int)$id] != $settings) {
-                    update_option(self::ERROR_OPTION, sprintf('The settings of %s campaign %d did not copy across unchanged.', $type, $id), false);
+                $expected = self::expected($copied[$type]);
+
+                foreach ($expected as $id => $settings) {
+                    if ( ! array_key_exists($id, $in_table) || $in_table[$id] !== $settings) {
+                        update_option(self::ERROR_OPTION, sprintf('The settings of %s campaign %d did not copy across unchanged.', $type, $id), false);
+
+                        return false;
+                    }
+                }
+
+                if (self::expected(self::legacy_fresh($type)) !== $expected) {
+                    update_option(self::ERROR_OPTION, 'Campaign settings changed while they were being moved. Trying again shortly.', false);
 
                     return false;
                 }
             }
-        }
 
-        foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
-            $name = self::option_name($type);
-            $old  = get_option($name, null);
+            // Switch first: from here every read and write uses the table, and the rows are only backups.
+            update_option(self::READY_OPTION, time(), true);
+            delete_option(self::ERROR_OPTION);
+            self::flush_cache();
 
-            if (null !== $old) {
-                update_option($name . self::LEGACY_SUFFIX, $old, false);
-                delete_option($name);
+            foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
+                $name = self::option_name($type);
+                $raw  = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name));
+
+                if (null === $raw) continue;
+
+                // Never replace a backup from an earlier move.
+                add_option($name . self::LEGACY_SUFFIX, maybe_unserialize($raw), '', 'no');
+                $wpdb->delete($wpdb->options, ['option_name' => $name]);
+                wp_cache_delete($name, 'options');
+                wp_cache_delete('alloptions', 'options');
             }
+
+            return true;
+        } finally {
+            delete_option(self::LOCK_OPTION);
         }
+    }
 
-        delete_option(self::ERROR_OPTION);
-        update_option(self::READY_OPTION, time(), true);
-        self::flush_cache();
+    /**
+     * A move that failed is tried again, at most once an hour, on an admin page.
+     */
+    public static function maybe_retry()
+    {
+        if (self::is_ready() || ! get_option(self::ERROR_OPTION) || get_transient('mo_campaign_settings_retry')) return;
 
-        return true;
+        set_transient('mo_campaign_settings_retry', 1, HOUR_IN_SECONDS);
+
+        self::migrate();
     }
 }

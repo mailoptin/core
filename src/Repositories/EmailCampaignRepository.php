@@ -397,7 +397,7 @@ class EmailCampaignRepository extends AbstractRepository
         return CampaignSettingsRepository::save_many(CampaignSettingsRepository::TYPE_EMAIL, $campaignSettings);
     }
 
-    public static function save_settings_by_id($email_campaign_id, array $settings)
+    public static function save_settings_by_id($email_campaign_id, $settings)
     {
         return CampaignSettingsRepository::save(CampaignSettingsRepository::TYPE_EMAIL, $email_campaign_id, $settings);
     }
@@ -405,7 +405,7 @@ class EmailCampaignRepository extends AbstractRepository
     /**
      * @param array $changes setting => value
      */
-    public static function update_settings_by_id($email_campaign_id, array $changes)
+    public static function update_settings_by_id($email_campaign_id, $changes)
     {
         return CampaignSettingsRepository::update(CampaignSettingsRepository::TYPE_EMAIL, $email_campaign_id, $changes);
     }

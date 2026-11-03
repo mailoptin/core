@@ -149,7 +149,14 @@ class CampaignCustomizeSetting extends \WP_Customize_Setting
 
         $posted = $this->post_value(null);
 
-        if (null === $posted) return false;
+        // No value yet: preview it once one is set, as WordPress does for its own settings.
+        if (null === $posted) {
+            if ( ! has_action("customize_post_value_set_{$this->id}", [$this, 'preview'])) {
+                add_action("customize_post_value_set_{$this->id}", [$this, 'preview']);
+            }
+
+            return false;
+        }
 
         $top = $this->setting_keys[0] ?? null;
 

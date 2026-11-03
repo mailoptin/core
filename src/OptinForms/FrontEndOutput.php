@@ -42,6 +42,9 @@ class FrontEndOutput
             set_transient('mo_get_optin_ids_footer_display', $optin_ids, HOUR_IN_SECONDS);
         }
 
+        // Every form's settings in one query rather than one each.
+        \MailOptin\Core\Repositories\CampaignSettingsRepository::prime(\MailOptin\Core\Repositories\CampaignSettingsRepository::TYPE_OPTIN, $optin_ids);
+
         foreach ($optin_ids as $id) {
 
             $id = absint($id);
