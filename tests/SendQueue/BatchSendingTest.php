@@ -169,6 +169,52 @@ class BatchSendingTest extends WP_UnitTestCase
         $this->assertNull(QueueRunner::block_notice());
     }
 
+    public function test_throttled_rows_wait_without_using_up_attempts()
+    {
+        $this->sender->result_for = function () {
+            return new \WP_Error('x', 'Rate limited', ['retryable' => true, 'throttled' => true, 'retry_after' => 120]);
+        };
+
+        $this->start(['a@x.example']);
+        QueueRunner::get_instance()->process($this->campaign_log_id);
+
+        global $wpdb;
+        $row = $wpdb->get_row('SELECT status, attempts, next_attempt_at FROM ' . Queue::table() . ' WHERE campaign_log_id = ' . (int)$this->campaign_log_id, ARRAY_A);
+        $this->assertSame(['pending', '0'], [$row['status'], $row['attempts']]);
+        $this->assertGreaterThan(gmdate('Y-m-d H:i:s', time() + 100), $row['next_attempt_at']);
+    }
+
+    public function test_a_stop_set_during_a_batch_isnt_cleared_by_it()
+    {
+        $this->sender->result_for = function () {
+            // Another worker stops sending while this batch is out.
+            QueueRunner::block('Revoked');
+
+            return true;
+        };
+
+        $this->start(['a@x.example']);
+        QueueRunner::get_instance()->process($this->campaign_log_id);
+
+        $this->assertSame('Revoked', QueueRunner::block_notice()['error']);
+    }
+
+    public function test_no_redispatch_while_stopped()
+    {
+        $this->start(['a@x.example']);
+        QueueRunner::block('Revoked');
+
+        $pushed = 0;
+        add_filter('pre_http_request', function ($pre) use (&$pushed) {
+            $pushed++;
+
+            return $pre;
+        }, 1);
+
+        QueueRunner::get_instance()->async_job(QueueRunner::ASYNC_ACTION, ['campaign_log_id' => $this->campaign_log_id]);
+        $this->assertSame(0, $pushed);
+    }
+
     public function test_compose_gives_the_same_email_wp_mail_sends()
     {
         $content = (new WpMailSender())->compose(['id' => 1, 'email' => 'a@x.example', 'recipient_type' => 'test', 'recipient_id' => 0], $this->campaign_log_id);

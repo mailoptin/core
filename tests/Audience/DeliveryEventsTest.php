@@ -127,6 +127,34 @@ class DeliveryEventsTest extends WP_UnitTestCase
         $this->assertStringContainsString('Soft bounced 4 times in a row', $meta['detail']);
     }
 
+    public function test_the_same_email_reported_again_counts_once()
+    {
+        $id = $this->subscriber('retry@x.example');
+
+        // A confirmation email (no campaign) reported as failing on each of the provider's retries, hours apart.
+        for ($i = 0; $i < 5; $i++) {
+            $done = DeliveryEvents::record(['type' => 'soft_bounce', 'email' => 'retry@x.example', 'provider' => 'mailgun', 'message_id' => 'mg-123@acme']);
+            global $wpdb;
+            $wpdb->query('UPDATE ' . Subscribers::events_table() . ' SET created_at = DATE_SUB(created_at, INTERVAL 2 HOUR)');
+        }
+
+        $this->assertSame('duplicate', $done);
+        $this->assertSame(1, DeliveryEvents::soft_bounces_in_a_row($id));
+        $this->assertSame(Subscribers::STATUS_SUBSCRIBED, Subscribers::get($id)['status']);
+    }
+
+    public function test_resubscribe_keeps_an_earlier_unsubscribe()
+    {
+        $id = $this->subscriber('optout@x.example');
+        SuppressionRepository::add('optout@x.example', SuppressionRepository::REASON_UNSUBSCRIBED);
+
+        DeliveryEvents::record(['type' => 'complaint', 'email' => 'optout@x.example', 'provider' => 'ses']);
+        $this->assertSame(SuppressionRepository::REASON_COMPLAINED, SuppressionRepository::get_reason('optout@x.example'));
+
+        DeliveryEvents::resubscribe($id);
+        $this->assertSame(SuppressionRepository::REASON_UNSUBSCRIBED, SuppressionRepository::get_reason('optout@x.example'));
+    }
+
     public function test_resubscribe_lifts_a_bounce()
     {
         $id = $this->subscriber('back@x.example');

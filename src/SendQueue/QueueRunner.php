@@ -34,6 +34,12 @@ class QueueRunner
 
     const BLOCK_SECONDS = 900;
 
+    /** @var float start of the current second, for the sending service's per-second limit */
+    protected $window_start = 0.0;
+
+    /** @var int emails sent in it */
+    protected $window_count = 0;
+
     protected $worker_id;
 
     public function __construct()
@@ -111,7 +117,8 @@ class QueueRunner
 
         // Keep going straight away while there is ready work and room under the hourly limit.
         // Otherwise the cron tick picks it up later (retries waiting, or limit reached).
-        if ($this->is_sending($campaign_log_id) && Queue::has_ready($campaign_log_id) && $this->hourly_allowance() > 0) {
+        // While sending is stopped, the cron tick picks it back up; dispatching would only spin.
+        if ( ! self::blocked() && $this->is_sending($campaign_log_id) && Queue::has_ready($campaign_log_id) && $this->hourly_allowance() > 0) {
             $this->dispatch($campaign_log_id);
         }
     }
@@ -229,9 +236,7 @@ class QueueRunner
         $per_sec = $sender instanceof BatchSenderInterface ? (int)$sender->max_per_second() : 0;
         if ($per_sec > 0) $batch = min($batch, $per_sec);
 
-        $handled      = 0;
-        $window_start = microtime(true);
-        $window_count = 0;
+        $handled = 0;
 
         while ( ! empty($rows)) {
 
@@ -242,11 +247,15 @@ class QueueRunner
             }
 
             // Keep to the service's per-second limit: wait out the rest of the second when it's used up.
-            if ($per_sec > 0 && $window_count >= $per_sec) {
-                $elapsed = microtime(true) - $window_start;
+            // The window spans every chunk this worker sends, not just this call.
+            if ($per_sec > 0 && $this->window_count >= $per_sec) {
+                $elapsed = microtime(true) - $this->window_start;
                 if ($elapsed < 1) usleep((int)((1 - $elapsed) * 1000000));
-                $window_start = microtime(true);
-                $window_count = 0;
+                $this->window_start = microtime(true);
+                $this->window_count = 0;
+            } elseif (microtime(true) - $this->window_start >= 1) {
+                $this->window_start = microtime(true);
+                $this->window_count = 0;
             }
 
             $chunk = [];
@@ -256,6 +265,8 @@ class QueueRunner
 
             if (empty($chunk)) continue;
 
+            $started = time();
+
             if ($sender instanceof BatchSenderInterface) {
                 $results = $sender->send_batch($chunk, $campaign_log_id);
             } else {
@@ -264,21 +275,29 @@ class QueueRunner
             }
 
             foreach ($chunk as $id => $row) {
-                $this->handle_result($row, $results[$id] ?? new \WP_Error('mo_no_result', __('The sender returned no result.', 'mailoptin'), ['retryable' => true]), $campaign_log_id);
+                $this->handle_result($row, $results[$id] ?? new \WP_Error('mo_no_result', __('The sender returned no result.', 'mailoptin'), ['retryable' => true]), $campaign_log_id, $started);
                 $handled++;
             }
 
-            $window_count += count($chunk);
+            $this->window_count += count($chunk);
         }
 
         return $handled;
     }
 
-    protected function handle_result($row, $result, $campaign_log_id)
+    /**
+     * @param int $started when this email's batch was sent: a stop set after that isn't cleared by it
+     */
+    protected function handle_result($row, $result, $campaign_log_id, $started = 0)
     {
         if (true === $result) {
             Queue::mark_sent($row['id']);
-            if (null !== self::block_notice()) self::unblock();
+
+            // An email got through, so a stop from before this batch is over. One set while it was
+            // being sent (by another worker) stays.
+            $notice = self::block_notice();
+            if (null !== $notice && (int)($notice['since'] ?? 0) < $started) self::unblock();
+
             do_action('mo_send_queue_email_sent', $row, $campaign_log_id);
 
             return;
@@ -294,6 +313,13 @@ class QueueRunner
         if (is_array($data) && ! empty($data['stop'])) {
             self::block($message);
             Queue::requeue($row['id'], $message, Queue::now(self::BLOCK_SECONDS));
+
+            return;
+        }
+
+        // A rate limit isn't the email's fault either: wait, without using up an attempt.
+        if (is_array($data) && ! empty($data['throttled'])) {
+            Queue::requeue($row['id'], $message, Queue::now(max(MINUTE_IN_SECONDS, (int)($data['retry_after'] ?? 0))));
 
             return;
         }

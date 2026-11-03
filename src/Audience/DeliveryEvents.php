@@ -36,8 +36,9 @@ class DeliveryEvents
             return 'ignored';
         }
 
-        $provider = sanitize_key((string)($event['provider'] ?? ''));
-        $detail   = sanitize_text_field((string)($event['detail'] ?? ''));
+        $provider   = sanitize_key((string)($event['provider'] ?? ''));
+        $detail     = sanitize_text_field((string)($event['detail'] ?? ''));
+        $message_id = substr(sanitize_text_field((string)($event['message_id'] ?? '')), 0, 200);
 
         // The queue row it was sent from, when the email came from a campaign and the row is for this address.
         $campaign_log_id = 0;
@@ -53,9 +54,9 @@ class DeliveryEvents
         $event_type = [self::HARD_BOUNCE => Subscribers::EVENT_BOUNCED, self::SOFT_BOUNCE => Subscribers::EVENT_SOFT_BOUNCED, self::COMPLAINT => Subscribers::EVENT_COMPLAINED][$type];
 
         // Providers resend a webhook they think failed; count each email's event once.
-        if ($subscriber && self::already_logged($subscriber['id'], $event_type, $campaign_log_id)) return 'duplicate';
+        if ($subscriber && self::already_logged($subscriber['id'], $event_type, $campaign_log_id, $provider, $message_id)) return 'duplicate';
 
-        $meta = array_filter(['provider' => $provider, 'detail' => $detail]);
+        $meta = array_filter(['provider' => $provider, 'detail' => $detail, 'message_id' => $message_id]);
 
         if (self::SOFT_BOUNCE === $type) {
             if ( ! $subscriber) return 'ignored';
@@ -65,10 +66,14 @@ class DeliveryEvents
             if (self::soft_bounces_in_a_row($subscriber['id']) < self::SOFT_BOUNCE_LIMIT) return 'counted';
 
             $type = self::HARD_BOUNCE;
-            $meta = ['provider' => $provider, 'detail' => sprintf(__('Soft bounced %d times in a row. Last: %s', 'mailoptin'), self::SOFT_BOUNCE_LIMIT, $detail), 'soft' => 1];
+            $meta = array_filter(['provider' => $provider, 'detail' => sprintf(__('Soft bounced %d times in a row. Last: %s', 'mailoptin'), self::SOFT_BOUNCE_LIMIT, $detail), 'soft' => 1, 'message_id' => $message_id]);
         }
 
         $complaint = self::COMPLAINT === $type;
+
+        // A bounce or complaint replaces an unsubscribe in the suppression list: remember it, so marking
+        // them subscribed again puts the unsubscribe back instead of lifting it.
+        if (SuppressionRepository::REASON_UNSUBSCRIBED === SuppressionRepository::get_reason($email)) $meta['was_unsubscribed'] = 1;
 
         SuppressionRepository::add($email, $complaint ? SuppressionRepository::REASON_COMPLAINED : SuppressionRepository::REASON_BOUNCED, $provider);
 
@@ -99,11 +104,22 @@ class DeliveryEvents
         ), ARRAY_A) ?: null;
     }
 
-    protected static function already_logged($subscriber_id, $event_type, $campaign_log_id)
+    protected static function already_logged($subscriber_id, $event_type, $campaign_log_id, $provider = '', $message_id = '')
     {
         global $wpdb;
 
         $table = Subscribers::events_table();
+
+        // The provider's id for the email is the surest match: the same email reported again.
+        if ('' !== $message_id) {
+            $found = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM $table WHERE subscriber_id = %d AND type IN (%s, %s) AND meta LIKE %s LIMIT 1",
+                $subscriber_id, $event_type, Subscribers::EVENT_BOUNCED,
+                '%' . $wpdb->esc_like('"message_id":' . wp_json_encode($message_id)) . '%'
+            ));
+
+            if ($found) return true;
+        }
 
         // Without a campaign, a repeat within ten minutes is the same event.
         if ( ! $campaign_log_id) {
@@ -152,6 +168,11 @@ class DeliveryEvents
 
         if (in_array($reason, [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED], true)) {
             SuppressionRepository::remove($subscriber['email']);
+
+            // They had unsubscribed before the bounce or complaint: that stays.
+            if (self::was_unsubscribed($subscriber_id)) {
+                SuppressionRepository::add($subscriber['email'], SuppressionRepository::REASON_UNSUBSCRIBED, 'resubscribe');
+            }
         }
 
         // Their list memberships decide the status again.
@@ -160,6 +181,19 @@ class DeliveryEvents
         Subscribers::log_event($subscriber_id, Subscribers::EVENT_RESUBSCRIBED, ['by_admin' => get_current_user_id()]);
 
         return true;
+    }
+
+    protected static function was_unsubscribed($subscriber_id)
+    {
+        global $wpdb;
+
+        $table = Subscribers::events_table();
+
+        return (bool)$wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table WHERE subscriber_id = %d AND type IN (%s, %s) AND meta LIKE %s AND id > COALESCE((SELECT MAX(r.id) FROM $table r WHERE r.subscriber_id = %d AND r.type = %s), 0) LIMIT 1",
+            $subscriber_id, Subscribers::EVENT_BOUNCED, Subscribers::EVENT_COMPLAINED, '%' . $wpdb->esc_like('"was_unsubscribed":1') . '%',
+            $subscriber_id, Subscribers::EVENT_RESUBSCRIBED
+        ));
     }
 
     /**
