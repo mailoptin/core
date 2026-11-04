@@ -445,11 +445,11 @@ class Settings extends AbstractSettingsPage
                 bar.querySelector('a').addEventListener('click', function () { dirty = false; });
 
                 input.hidden = false;
-                var activeTab = null;
+                var activeTab = null, restoring = false;
 
-                // Picking a section from the menu ends the search.
+                // Picking a section from the menu ends the search (but not our own click that reopens the tab).
                 wrap.querySelector('.nav-tab-wrapper').addEventListener('click', function (e) {
-                    if (!e.target.closest('a.nav-tab') || input.value === '') return;
+                    if (restoring || !e.target.closest('a.nav-tab') || input.value === '') return;
                     activeTab = null;
                     input.value = '';
                     input.dispatchEvent(new Event('input'));
@@ -463,7 +463,7 @@ class Settings extends AbstractSettingsPage
                     if (term.length < 2) {
                         holder.classList.remove('mo-settings-searching');
                         note.hidden = true;
-                        if (activeTab) { activeTab.click(); activeTab = null; }
+                        if (activeTab) { restoring = true; activeTab.click(); restoring = false; activeTab = null; }
                         return;
                     }
 
