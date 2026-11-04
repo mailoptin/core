@@ -52,8 +52,7 @@ class Subscribers_List extends \WP_List_Table
     {
         return [
             'cb'         => '<input type="checkbox" />',
-            'email'      => __('Email', 'mailoptin'),
-            'name'       => __('Name', 'mailoptin'),
+            'email'      => __('Subscriber', 'mailoptin'),
             'status'     => __('Status', 'mailoptin'),
             'lists'      => __('Lists', 'mailoptin'),
         ] + (Subscribers_Tags_Fields::is_ready() ? ['tags' => __('Tags', 'mailoptin')] : []) + $this->field_columns() + [
@@ -144,7 +143,7 @@ class Subscribers_List extends \WP_List_Table
             if (in_array($status, [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true) && 0 === $count) continue;
 
             $views[$status ?: 'all'] = sprintf(
-                '<a href="%s"%s>%s <span class="count">(%s)</span></a>',
+                '<a href="%s"%s>%s <span class="count">%s</span></a>',
                 esc_url('' === $status ? $base : add_query_arg('status', $status, $base)),
                 $current === $status ? ' class="current" aria-current="page"' : '',
                 esc_html($label),
@@ -223,12 +222,15 @@ class Subscribers_List extends \WP_List_Table
             esc_html__('Delete', 'mailoptin')
         );
 
-        return sprintf('<strong><a class="row-title" href="%s">%s</a></strong>', esc_url($profile_url), esc_html($item['email'])) . $this->row_actions($actions);
-    }
+        // Two lines: the name (or the email when there is no name), then the email.
+        $name = trim($item['first_name'] . ' ' . $item['last_name']);
 
-    protected function column_name($item)
-    {
-        return esc_html(trim($item['first_name'] . ' ' . $item['last_name']));
+        return sprintf(
+                '<strong><a class="row-title" href="%s">%s</a></strong>%s',
+                esc_url($profile_url),
+                esc_html('' !== $name ? $name : $item['email']),
+                '' !== $name ? '<span class="mo-subscriber-email">' . esc_html($item['email']) . '</span>' : ''
+            ) . $this->row_actions($actions);
     }
 
     protected function column_status($item)
