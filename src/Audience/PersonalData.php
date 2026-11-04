@@ -102,24 +102,38 @@ class PersonalData
     /**
      * Deletes the subscriber with their lists, history, tags and custom fields. If they had
      * unsubscribed, the suppression list keeps a one-way hash of the address so they aren't emailed again.
+     *
+     * The address is also removed where it's kept without a subscriber: an admin may have deleted
+     * the subscriber already, or an import may have skipped the row.
      */
     public static function erase($email, $page = 1)
     {
-        $subscriber = Subscribers::get_by_email($email);
+        $email   = Subscribers::normalize_email($email);
+        $removed = false;
 
-        if ( ! $subscriber) {
-            return ['items_removed' => false, 'items_retained' => false, 'messages' => [], 'done' => true];
-        }
+        if ('' === $email) return ['items_removed' => false, 'items_retained' => false, 'messages' => [], 'done' => true];
 
         global $wpdb;
 
         // Queued and sent emails keep the address for delivery records.
-        $wpdb->delete($wpdb->prefix . \MailOptin\Core\Core::send_queue_table_name, ['email' => $subscriber['email']]);
+        $removed = (bool)$wpdb->delete($wpdb->prefix . \MailOptin\Core\Core::send_queue_table_name, ['email' => $email]) || $removed;
 
         // Import reports list problem rows with the address and everything else on them.
-        SubscriberImport::forget_email($subscriber['email']);
+        $removed = SubscriberImport::forget_email($email) > 0 || $removed;
 
-        return ['items_removed' => Subscribers::delete($subscriber['id']), 'items_retained' => false, 'messages' => [], 'done' => true];
+        // Form submissions waiting to be sent to an integration keep the whole form, to retry it.
+        // A retry after this would sign the person up again.
+        $conversions = \MailOptin\Core\Repositories\OptinConversionsRepository::get_conversions_by_email($email);
+
+        if ( ! empty($conversions)) {
+            $removed = \MailOptin\Core\Repositories\ConversionSyncRepository::forget_retry_data(wp_list_pluck($conversions, 'id')) > 0 || $removed;
+        }
+
+        $subscriber = Subscribers::get_by_email($email);
+
+        if ($subscriber) $removed = Subscribers::delete($subscriber['id']) || $removed;
+
+        return ['items_removed' => $removed, 'items_retained' => false, 'messages' => [], 'done' => true];
     }
 
     /**

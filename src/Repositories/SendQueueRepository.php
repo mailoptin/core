@@ -219,6 +219,21 @@ class SendQueueRepository extends AbstractRepository
         );
     }
 
+    /**
+     * Make the emails a stop put back (with this error) ready now, after sending started again.
+     *
+     * @return int how many
+     */
+    public static function release_waiting($error)
+    {
+        $table = self::table();
+        $now   = self::now();
+
+        return (int)self::wpdb()->query(
+            self::wpdb()->prepare("UPDATE $table SET next_attempt_at = %s WHERE status = %s AND next_attempt_at > %s AND error = %s", $now, self::STATUS_PENDING, $now, $error)
+        );
+    }
+
     public static function mark_sent($id)
     {
         return self::finish($id, self::STATUS_SENT, null, self::now());

@@ -78,6 +78,14 @@ class QueueRunner
         AbstractCampaignLogMeta::update_campaignlog_meta($campaign_log_id, self::STATE_META_KEY, self::STATE_SENDING);
         $this->update_log_status($campaign_log_id, self::LOG_STATUS_SENDING);
 
+        // Nothing to send (no recipients, or a resend with nothing to retry): done now. Only a queue
+        // run would otherwise finish it, and runs only look at campaigns with rows to send.
+        if ( ! Queue::has_unfinished($campaign_log_id)) {
+            $this->maybe_complete($campaign_log_id);
+
+            return $added;
+        }
+
         $this->dispatch($campaign_log_id);
 
         return $added;
@@ -351,9 +359,24 @@ class QueueRunner
         update_option(self::BLOCKED_OPTION, ['error' => (string)$error, 'until' => time() + self::BLOCK_SECONDS, 'since' => time()], false);
     }
 
+    /**
+     * Sending works again: the settings were saved, or an email went out. Emails put back while it was
+     * stopped go now, not when the stop would have ended.
+     */
     public static function unblock()
     {
+        $blocked = get_option(self::BLOCKED_OPTION, false);
+
         delete_option(self::BLOCKED_OPTION);
+
+        if ( ! is_array($blocked) || ! isset($blocked['error'])) return;
+
+        // Only the emails the stop put back, not ones waiting out a retry delay of their own.
+        Queue::release_waiting((string)$blocked['error']);
+
+        foreach (Queue::campaigns_with_work() as $campaign_log_id) {
+            if (self::get_instance()->is_sending($campaign_log_id)) self::get_instance()->dispatch($campaign_log_id);
+        }
     }
 
     /**

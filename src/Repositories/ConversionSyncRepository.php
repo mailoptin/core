@@ -90,7 +90,8 @@ class ConversionSyncRepository extends AbstractRepository
 
         self::wpdb()->query(
             self::wpdb()->prepare(
-                "UPDATE $table SET attempts = attempts + 1, status = %s, last_error = %s, next_attempt_at = $next, locked_until = NULL, updated_at = %s" .
+                // The attempt was counted when the row was claimed.
+                "UPDATE $table SET status = %s, last_error = %s, next_attempt_at = $next, locked_until = NULL, updated_at = %s" .
                 ($sent ? ', retry_data = NULL' : '') . " WHERE id = %d",
                 $sent ? self::STATUS_SENT : ($next_attempt_at ? self::STATUS_RETRYING : self::STATUS_FAILED),
                 $sent ? '' : (string)$error,
@@ -115,7 +116,9 @@ class ConversionSyncRepository extends AbstractRepository
         $now   = self::now();
         $lease = self::now((int)apply_filters('mo_submission_sync_lease_seconds', 10 * MINUTE_IN_SECONDS));
 
-        $sql = "UPDATE $table SET locked_until = %s WHERE id = %d AND retry_data IS NOT NULL AND (locked_until IS NULL OR locked_until < %s) AND ";
+        // The attempt counts as soon as it is claimed, so one that dies mid-send (a timeout or a fatal
+        // error) still uses up an attempt instead of being tried again every lease.
+        $sql = "UPDATE $table SET locked_until = %s, attempts = attempts + 1 WHERE id = %d AND retry_data IS NOT NULL AND (locked_until IS NULL OR locked_until < %s) AND ";
         $sql .= $manual ? 'status IN (%s, %s)' : 'status = %s AND next_attempt_at <= %s';
 
         return 1 === (int)self::wpdb()->query(

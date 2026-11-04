@@ -32,6 +32,9 @@ class CampaignSettingsRepository extends AbstractRepository
 
     const LEGACY_SUFFIX = '_legacy';
 
+    // MD5 of each option row as it was copied into the table, to notice it changing afterwards.
+    const SOURCE_HASH_OPTION = 'mo_campaign_settings_source_hash';
+
     const CACHE_GROUP = 'mo_campaign_settings';
 
     /** Every campaign of a type, kept for the request only. */
@@ -392,8 +395,9 @@ class CampaignSettingsRepository extends AbstractRepository
         $settings = self::to_array($settings);
         $json     = wp_json_encode($settings);
 
-        // Text that isn't valid UTF-8 even after WordPress's conversion: keep the rest, replace the bad bytes.
-        if (false === $json) $json = json_encode($settings, JSON_INVALID_UTF8_SUBSTITUTE);
+        // Text that isn't valid UTF-8 even after WordPress's conversion, or a value JSON can't hold
+        // (INF, NAN): keep the rest, replace the bad parts.
+        if (false === $json) $json = json_encode($settings, JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
 
         return false === $json ? '{}' : $json;
     }
@@ -412,7 +416,7 @@ class CampaignSettingsRepository extends AbstractRepository
     /**
      * The option row as stored, past every cache: another request may have just changed it.
      */
-    protected static function legacy_fresh($type)
+    protected static function legacy_fresh($type, &$raw = null)
     {
         $wpdb = self::wpdb();
         $name = self::option_name($type);
@@ -425,6 +429,16 @@ class CampaignSettingsRepository extends AbstractRepository
         $all = null === $raw ? [] : maybe_unserialize($raw);
 
         return is_array($all) || is_object($all) ? (array)$all : [];
+    }
+
+    /**
+     * MD5 of an option row as stored, worked out by the database so a big row isn't loaded.
+     */
+    protected static function source_hash($type)
+    {
+        $wpdb = self::wpdb();
+
+        return (string)$wpdb->get_var($wpdb->prepare("SELECT MD5(option_value) FROM $wpdb->options WHERE option_name = %s LIMIT 1", self::option_name($type)));
     }
 
     /**
@@ -468,10 +482,22 @@ class CampaignSettingsRepository extends AbstractRepository
             return false;
         }
 
-        // One request at a time; a lock older than 10 minutes belongs to a request that died.
+        // One request at a time; a lock older than 10 minutes belongs to a request that died. Taking
+        // it over is one UPDATE, so two requests can't both take a stale lock.
         if ( ! add_option(self::LOCK_OPTION, time(), '', 'no')) {
-            if ((int)get_option(self::LOCK_OPTION) > time() - 10 * MINUTE_IN_SECONDS) return false;
-            update_option(self::LOCK_OPTION, time(), false);
+            $taken = $wpdb->query($wpdb->prepare(
+                "UPDATE $wpdb->options SET option_value = %s WHERE option_name = %s AND CAST(option_value AS UNSIGNED) < %d",
+                time(), self::LOCK_OPTION, time() - 10 * MINUTE_IN_SECONDS
+            ));
+
+            wp_cache_delete(self::LOCK_OPTION, 'options');
+
+            if (1 !== (int)$taken) {
+                // Another request is moving them. If it dies, the hourly retry takes over once its lock is stale.
+                if ( ! get_option(self::ERROR_OPTION)) update_option(self::ERROR_OPTION, 'Moving the campaign settings didn\'t finish. Trying again shortly.', false);
+
+                return false;
+            }
         }
 
         try {
@@ -482,10 +508,16 @@ class CampaignSettingsRepository extends AbstractRepository
             // The table isn't used until the switch, so rows from an earlier failed attempt can go.
             $wpdb->query('DELETE FROM ' . self::table());
 
-            $copied = [];
+            $copied = $hashes = [];
+
+            // Until the switch, a request that dies leaves a reason for the hourly retry to act on.
+            update_option(self::ERROR_OPTION, 'Moving the campaign settings didn\'t finish. Trying again shortly.', false);
 
             foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
-                $legacy = self::legacy_fresh($type);
+                $raw    = null;
+                $legacy = self::legacy_fresh($type, $raw);
+
+                $hashes[$type] = null === $raw ? '' : md5($raw);
 
                 foreach ($legacy as $id => $settings) {
                     if ( ! absint($id) || ! (is_array($settings) || is_object($settings))) continue;
@@ -534,23 +566,20 @@ class CampaignSettingsRepository extends AbstractRepository
                 }
             }
 
-            // Switch first: from here every read and write uses the table, and the rows are only backups.
+            // What was copied, so a later change to the rows (an older MailOptin writing them after a
+            // downgrade, or a save that raced the move) can be noticed and brought across.
+            update_option(self::SOURCE_HASH_OPTION, $hashes, false);
+
+            // A copy of what was moved: sync_changed_rows() compares the rows with it.
+            foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
+                update_option(self::option_name($type) . self::LEGACY_SUFFIX, $copied[$type], false);
+            }
+
+            // Switch: from here every read and write uses the table. The option rows stay as they are,
+            // so going back to an older MailOptin still finds every form and email.
             update_option(self::READY_OPTION, time(), true);
             delete_option(self::ERROR_OPTION);
             self::flush_cache();
-
-            foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
-                $name = self::option_name($type);
-                $raw  = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name));
-
-                if (null === $raw) continue;
-
-                // Never replace a backup from an earlier move.
-                add_option($name . self::LEGACY_SUFFIX, maybe_unserialize($raw), '', 'no');
-                $wpdb->delete($wpdb->options, ['option_name' => $name]);
-                wp_cache_delete($name, 'options');
-                wp_cache_delete('alloptions', 'options');
-            }
 
             return true;
         } finally {
@@ -559,14 +588,69 @@ class CampaignSettingsRepository extends AbstractRepository
     }
 
     /**
-     * A move that failed is tried again, at most once an hour, on an admin page.
+     * A move that failed is tried again, at most once an hour, on an admin page. Once moved, the option
+     * rows are checked as often for changes made after the move.
      */
     public static function maybe_retry()
     {
-        if (self::is_ready() || ! get_option(self::ERROR_OPTION) || get_transient('mo_campaign_settings_retry')) return;
+        if (get_transient('mo_campaign_settings_retry')) return;
+
+        if (self::is_ready()) {
+            set_transient('mo_campaign_settings_retry', 1, HOUR_IN_SECONDS);
+            self::sync_changed_rows();
+
+            return;
+        }
+
+        if ( ! get_option(self::ERROR_OPTION)) return;
 
         set_transient('mo_campaign_settings_retry', 1, HOUR_IN_SECONDS);
 
         self::migrate();
+    }
+
+    /**
+     * Bring across campaigns whose option row entry changed after the move: edits made while an older
+     * MailOptin ran (it reads and writes the rows), or a save that raced the move. Campaigns that didn't
+     * change there keep what the table has.
+     *
+     * @return int campaigns brought across
+     */
+    public static function sync_changed_rows()
+    {
+        if ( ! self::is_ready()) return 0;
+
+        $hashes  = (array)get_option(self::SOURCE_HASH_OPTION, []);
+        $changed = 0;
+
+        foreach ([self::TYPE_OPTIN, self::TYPE_EMAIL] as $type) {
+            $now = self::source_hash($type);
+
+            if ( ! isset($hashes[$type]) || $now === (string)$hashes[$type]) continue;
+
+            $raw     = null;
+            $current = self::expected(self::legacy_fresh($type, $raw));
+            $before  = self::expected((array)get_option(self::option_name($type) . self::LEGACY_SUFFIX, []));
+
+            foreach ($current as $id => $settings) {
+                if (array_key_exists($id, $before) && $before[$id] === $settings) continue;
+
+                self::save($type, $id, $settings);
+                $changed++;
+            }
+
+            // Campaigns deleted from the row while it was in use were deleted from the plugin too.
+            foreach (array_diff(array_keys($before), array_keys($current)) as $id) {
+                self::delete($type, $id);
+                $changed++;
+            }
+
+            update_option(self::option_name($type) . self::LEGACY_SUFFIX, null === $raw ? [] : maybe_unserialize($raw), false);
+            $hashes[$type] = $now;
+        }
+
+        update_option(self::SOURCE_HASH_OPTION, $hashes, false);
+
+        return $changed;
     }
 }

@@ -155,7 +155,9 @@ class Base
 
     public function db_updates()
     {
-        if ( ! is_admin()) {
+        // Admin pages, and the background and form requests that write to the newer tables: after an
+        // automatic update, those can run before anyone opens an admin page. Not every front-end page.
+        if ( ! is_admin() && ! wp_doing_cron() && empty($_GET['mailoptin-ajax'])) {
             return;
         }
 

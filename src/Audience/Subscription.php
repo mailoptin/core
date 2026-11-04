@@ -307,6 +307,16 @@ class Subscription
 
         if ( ! $subscriber) return false;
 
+        // Never to an address that bounced or complained. An admin can't resend to someone who
+        // unsubscribed either; they can only sign up again themselves, which sends a fresh one.
+        $suppressed = SuppressionRepository::get_reason($subscriber['email']);
+
+        if (in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)
+            || in_array($suppressed, [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED, SuppressionRepository::REASON_ERASED], true)
+            || ($by_admin && $suppressed)) {
+            return false;
+        }
+
         if ( ! $by_admin) {
             $allowed = ConfirmationThrottle::check($subscriber_id, $ip_address);
 
@@ -360,8 +370,9 @@ class Subscription
 
         if (empty($pending_list_ids)) return true;
 
-        // Clicking the link proves the inbox works and they want email again.
-        if (Subscribers::STATUS_SUBSCRIBED !== $subscriber['status']) {
+        // Clicking the link proves the inbox works and they want email again. Not for an address that
+        // bounced or complained: only an admin can lift that, from the subscriber's profile.
+        if ( ! in_array($subscriber['status'], [Subscribers::STATUS_SUBSCRIBED, Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)) {
             Subscribers::update($subscriber_id, ['status' => Subscribers::STATUS_PENDING]);
         }
 
@@ -413,6 +424,29 @@ class Subscription
         Subscribers::log_event($subscriber_id, Subscribers::EVENT_UNSUBSCRIBED, ['list_id' => (int)$list_id], (int)$campaign_log_id);
 
         do_action('mo_subscriber_unsubscribed', (int)$subscriber_id, (int)$list_id, (int)$campaign_log_id);
+
+        return true;
+    }
+
+    /**
+     * An admin taking someone off a list. Not an unsubscribe: nothing is suppressed, and the person
+     * can be added to the list again (by an admin, an import or a signup).
+     *
+     * @return bool
+     */
+    public static function remove_by_admin($subscriber_id, $list_id)
+    {
+        $subscriber = Subscribers::get($subscriber_id);
+
+        if ( ! $subscriber || ! Subscribers::get_membership($subscriber_id, $list_id)) return false;
+
+        Subscribers::remove_membership($subscriber_id, $list_id);
+
+        // Left on no list, they keep their status, so a later import or "Add to list" isn't refused
+        // as if they had unsubscribed.
+        if ( ! empty(Subscribers::get_memberships($subscriber_id))) Subscribers::sync_status($subscriber_id);
+
+        Subscribers::log_event($subscriber_id, Subscribers::EVENT_UNSUBSCRIBED, ['list_id' => (int)$list_id, 'removed_by_admin' => get_current_user_id()]);
 
         return true;
     }

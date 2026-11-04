@@ -340,6 +340,16 @@ class Subscribers_Page extends AbstractSettingsPage
         return ob_get_clean();
     }
 
+    /**
+     * Whether an admin may put someone on a list: not when they bounced, complained, or are
+     * suppressed (they unsubscribed from everything and can only sign up again themselves).
+     */
+    protected static function can_add_to_lists($subscriber)
+    {
+        return ! in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)
+               && ! \MailOptin\Core\Repositories\SuppressionRepository::is_suppressed($subscriber['email']);
+    }
+
     protected function event_label($event)
     {
         $meta = json_decode((string)$event['meta'], true) ?: [];
@@ -366,6 +376,12 @@ class Subscribers_Page extends AbstractSettingsPage
                 return __('Confirmed their email', 'mailoptin');
             case Subscribers::EVENT_UNSUBSCRIBED:
                 $list = ! empty($meta['list_id']) ? ListsRepository::get($meta['list_id']) : null;
+
+                if ( ! empty($meta['removed_by_admin'])) {
+                    $admin = Subscribers_Tags_Fields::admin_name($meta['removed_by_admin']) ?: __('an admin', 'mailoptin');
+
+                    return $list ? sprintf(__('Removed from %1$s by %2$s', 'mailoptin'), $list['name'], $admin) : sprintf(__('Removed from a list by %s', 'mailoptin'), $admin);
+                }
 
                 return $list ? sprintf(__('Unsubscribed from %s', 'mailoptin'), $list['name']) : __('Unsubscribed from all lists', 'mailoptin');
             case Subscribers::EVENT_SENT:
@@ -971,14 +987,18 @@ class Subscribers_Page extends AbstractSettingsPage
         // in between, which would unsubscribe and suppress them.
         $status = Subscribers::STATUS_SUBSCRIBED === $subscriber['status'] ? Subscribers::STATUS_SUBSCRIBED : Subscribers::STATUS_PENDING;
 
+        // Not someone who bounced, complained or unsubscribed from everything, as "Add subscriber" refuses them.
+        if ( ! self::can_add_to_lists($subscriber)) $wanted = array_intersect($wanted, $current);
+
         foreach (array_diff($wanted, $current) as $list_id) {
             if (ListsRepository::get($list_id)) Subscribers::set_membership($subscriber_id, $list_id, $status);
         }
 
         Subscribers::sync_status($subscriber_id);
 
+        // Unticking a list removes them from it; it isn't the subscriber unsubscribing.
         foreach (array_diff($current, $wanted) as $list_id) {
-            Subscription::unsubscribe($subscriber_id, $list_id);
+            Subscription::remove_by_admin($subscriber_id, $list_id);
         }
     }
 
@@ -1041,6 +1061,7 @@ class Subscribers_Page extends AbstractSettingsPage
 
             switch ($action) {
                 case 'add_to_list':
+                    if ( ! self::can_add_to_lists($subscriber)) break;
                     $status = Subscribers::STATUS_SUBSCRIBED === $subscriber['status'] ? Subscribers::STATUS_SUBSCRIBED : Subscribers::STATUS_PENDING;
                     // Never re-add someone who unsubscribed from this list.
                     $membership = Subscribers::get_membership($subscriber_id, $list_id);
@@ -1049,7 +1070,7 @@ class Subscribers_Page extends AbstractSettingsPage
                     Subscribers::sync_status($subscriber_id);
                     break;
                 case 'remove_from_list':
-                    Subscription::unsubscribe($subscriber_id, $list_id);
+                    Subscription::remove_by_admin($subscriber_id, $list_id);
                     break;
                 case 'resend_confirmation':
                     Subscription::send_confirmation($subscriber_id, '', true);

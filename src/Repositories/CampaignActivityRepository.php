@@ -370,7 +370,7 @@ class CampaignActivityRepository extends AbstractRepository
                 $where = $did(self::TYPE_OPEN) . ' AND NOT ' . $did(self::TYPE_CLICK);
                 break;
             case 'not_opened':
-                $where = 'NOT ' . $did(self::TYPE_OPEN);
+                $where = 'NOT ' . $did(self::TYPE_OPEN) . self::kept_sends_sql('q');
                 break;
             case 'unsubscribed':
                 $where = $wpdb->prepare("EXISTS (SELECT 1 FROM $events e WHERE e.subscriber_id = s.id AND e.campaign_log_id = %d AND e.type = %s)", $campaign_log_id, Subscribers::EVENT_UNSUBSCRIBED);
@@ -514,9 +514,28 @@ class CampaignActivityRepository extends AbstractRepository
             " AND q.campaign_log_id IN (SELECT t.campaign_log_id FROM $stats t WHERE t.metric = %s) AND q.campaign_log_id NOT IN (SELECT p.campaign_log_id FROM $stats p WHERE p.metric = %s)",
             self::TYPE_OPEN === $type ? self::METRIC_OPEN_TRACKED : self::METRIC_CLICK_TRACKED,
             self::METRIC_PRUNED
-        );
+        ) . self::kept_sends_sql('q');
 
         return "(EXISTS ($sent) AND NOT EXISTS ($activity))";
+    }
+
+    /**
+     * Welcome emails keep sending under one log, so their activity is pruned row by row and the log is
+     * never marked pruned. Sends older than the retention period then can't be told apart from sends
+     * nobody opened, so they don't count as "not opened".
+     *
+     * @param string $alias the send queue table's alias
+     */
+    protected static function kept_sends_sql($alias)
+    {
+        $days = \MailOptin\Core\Audience\Tracking::retention_days();
+
+        if ( ! $days) return '';
+
+        $wpdb    = self::wpdb();
+        $ongoing = $wpdb->prepare('SELECT m.campaign_log_id FROM ' . $wpdb->prefix . Core::campaign_log_meta_table_name . ' m WHERE m.meta_key = %s', 'mo_welcome_list_id');
+
+        return $wpdb->prepare(" AND ($alias.campaign_log_id NOT IN ($ongoing) OR $alias.sent_at >= %s)", gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS));
     }
 
     /** Tracked emails someone must have been sent before opening and clicking none counts as never engaged. */
@@ -659,6 +678,12 @@ class CampaignActivityRepository extends AbstractRepository
 
         $deleted = (int)$wpdb->query($wpdb->prepare("DELETE FROM $table WHERE campaign_log_id IN ($ongoing) AND last_at < %s LIMIT 5000", $before_utc));
 
+        // Their opens and clicks on subscriber timelines go with them, as they do for other campaigns.
+        $deleted += (int)$wpdb->query($wpdb->prepare(
+            'DELETE FROM ' . Subscribers::events_table() . " WHERE campaign_log_id IN ($ongoing) AND type IN (%s, %s) AND created_at < %s LIMIT 5000",
+            Subscribers::EVENT_OPENED, Subscribers::EVENT_CLICKED, $before_utc
+        ));
+
         $campaign_ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
             "SELECT campaign_log_id FROM $table WHERE campaign_log_id NOT IN ($ongoing) GROUP BY campaign_log_id HAVING MIN(first_at) < %s LIMIT %d",
             $before_utc,
@@ -672,7 +697,11 @@ class CampaignActivityRepository extends AbstractRepository
                 self::METRIC_PRUNED
             ));
 
-            $wpdb->delete($table, ['campaign_log_id' => $campaign_log_id], ['%d']);
+            // In batches, so one big campaign doesn't lock the table for long. What's left of it is
+            // picked up by the next run; the campaign already counts as pruned.
+            for ($i = 0; $i < 10 && 5000 === (int)$wpdb->query($wpdb->prepare("DELETE FROM $table WHERE campaign_log_id = %d LIMIT 5000", $campaign_log_id)); $i++) {
+                continue;
+            }
 
             $wpdb->query($wpdb->prepare(
                 'DELETE FROM ' . Subscribers::events_table() . ' WHERE campaign_log_id = %d AND type IN (%s, %s)',

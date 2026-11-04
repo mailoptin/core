@@ -289,6 +289,17 @@ class Connect extends AbstractConnect implements ConnectionInterface
      */
     public function send_newsletter($email_campaign_id, $campaign_log_id, $subject, $content_html, $content_text)
     {
+        // Resending a campaign that was queued retries its failed recipients, and only them: people who
+        // joined or started matching since weren't part of it. Its list or segment may have changed or
+        // gone since; that mustn't mark a campaign that went out, or is still going out, as failed.
+        if (AbstractCampaignLogMeta::get_campaignlog_meta($campaign_log_id, self::ENQUEUED_META)) {
+            SendQueueRepository::retry_failed($campaign_log_id);
+
+            QueueRunner::get_instance()->start($campaign_log_id, $email_campaign_id, []);
+
+            return ['success' => true, 'status' => QueueRunner::LOG_STATUS_SENDING];
+        }
+
         $list_id = absint($this->get_email_campaign_list_id($email_campaign_id));
 
         if ( ! $list_id || ! ListsRepository::get($list_id)) {
@@ -308,15 +319,8 @@ class Connect extends AbstractConnect implements ConnectionInterface
 
         CampaignRenderer::save_campaign_content($campaign_log_id, $list_id, $content_html, $content_text);
 
-        // Resending a campaign retries its failed recipients, and only them: people who joined or
-        // started matching since weren't part of it.
+        // An earlier attempt that failed may have left recipients to retry.
         SendQueueRepository::retry_failed($campaign_log_id);
-
-        if (AbstractCampaignLogMeta::get_campaignlog_meta($campaign_log_id, self::ENQUEUED_META)) {
-            QueueRunner::get_instance()->start($campaign_log_id, $email_campaign_id, []);
-
-            return ['success' => true, 'status' => QueueRunner::LOG_STATUS_SENDING];
-        }
 
         // A send interrupted while queueing picks up the rest; the queue skips anyone already in it.
         $after_id = 0;

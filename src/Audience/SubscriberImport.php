@@ -158,11 +158,14 @@ class SubscriberImport
         $original = $content;
 
         if (0 === strpos($content, "\xFF\xFE") || 0 === strpos($content, "\xFE\xFF")) {
-            $content = mb_convert_encoding(substr($content, 2), 'UTF-8', 0 === strpos($content, "\xFF\xFE") ? 'UTF-16LE' : 'UTF-16BE');
+            $content = self::to_utf8(substr($content, 2), 0 === strpos($content, "\xFF\xFE") ? 'UTF-16LE' : 'UTF-16BE');
         } else {
             if (0 === strpos($content, "\xEF\xBB\xBF")) $content = substr($content, 3);
-            if ( ! mb_check_encoding($content, 'UTF-8')) $content = mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
+            // Valid UTF-8 matches the empty pattern in UTF-8 mode.
+            if (1 !== preg_match('//u', $content)) $content = self::to_utf8($content, 'Windows-1252');
         }
+
+        if (false === $content) return false;
 
         if (false === strpos($content, "\n") && false !== strpos($content, "\r")) $content = str_replace("\r", "\n", $content);
 
@@ -968,6 +971,16 @@ class SubscriberImport
             }));
             $removed += $before - count($job['problems']);
 
+            // The first row of the file, kept to show the column mapping.
+            $sample = array_map(function ($cell) {
+                return Subscribers::normalize_email((string)$cell);
+            }, (array)($job['sample'] ?? []));
+
+            if (in_array($email, $sample, true)) {
+                $job['sample'] = [];
+                $removed++;
+            }
+
             $path = self::problems_path($job);
 
             if ($path && is_file($path)) {
@@ -1004,6 +1017,21 @@ class SubscriberImport
         }
 
         return $removed;
+    }
+
+    /**
+     * Convert text to UTF-8 with mbstring, or iconv where a host has no mbstring.
+     *
+     * @return string|false
+     */
+    protected static function to_utf8($content, $from)
+    {
+        if (function_exists('mb_convert_encoding')) return mb_convert_encoding($content, 'UTF-8', $from);
+
+        if (function_exists('iconv')) return iconv('CP1252' === strtoupper(str_replace('Windows-', 'CP', $from)) ? 'CP1252' : $from, 'UTF-8//TRANSLIT', $content);
+
+        // Neither is available: only Windows-1252's ASCII part can be kept as it is.
+        return 'Windows-1252' === $from ? $content : false;
     }
 
     public static function skipped_count($job)

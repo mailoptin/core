@@ -28,8 +28,18 @@ class DBUpdates
             return;
         }
 
-        // update plugin
-        $this->update();
+        // One request at a time; a lock older than 10 minutes belongs to a request that died.
+        if ( ! add_option('mo_db_update_lock', time(), '', 'no')) {
+            if ((int)get_option('mo_db_update_lock') > time() - 10 * MINUTE_IN_SECONDS) return;
+            update_option('mo_db_update_lock', time(), false);
+        }
+
+        try {
+            // update plugin
+            $this->update();
+        } finally {
+            delete_option('mo_db_update_lock');
+        }
     }
 
     public function update()

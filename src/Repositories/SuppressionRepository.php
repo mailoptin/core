@@ -84,6 +84,23 @@ class SuppressionRepository extends AbstractRepository
         return self::wpdb()->get_var(self::wpdb()->prepare("SELECT reason FROM $table WHERE email_hash = %s", self::hash($email)));
     }
 
+    /**
+     * Lift an unsubscribe recorded by one of these sources only. A bounce or complaint is never lifted.
+     *
+     * @param string[] $sources
+     */
+    public static function remove_unsubscribe_from($email, $sources)
+    {
+        $table = self::table();
+        $in    = implode(',', array_fill(0, count($sources), '%s'));
+
+        if (empty($sources)) return false;
+
+        return (bool)self::wpdb()->query(
+            self::wpdb()->prepare("DELETE FROM $table WHERE email_hash = %s AND reason = %s AND source IN ($in)", array_merge([self::hash($email), self::REASON_UNSUBSCRIBED], array_values($sources)))
+        );
+    }
+
     public static function remove($email)
     {
         return (bool)self::wpdb()->delete(self::table(), ['email_hash' => self::hash($email)], ['%s']);
