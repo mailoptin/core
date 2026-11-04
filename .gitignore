@@ -14,3 +14,4 @@ src/BlockEditor/node_modules/*
 !tests/Audience/
 !tests/Submissions/
 !tests/Repositories/
+!tests/EmailCampaigns/
