@@ -138,7 +138,9 @@ class CrossReviewFixesTest extends WP_UnitTestCase
         Queue::enqueue($this->log(), 7, [['email' => 'gone@example.org', 'recipient_type' => 'subscriber', 'recipient_id' => $id]]);
         Subscribers::delete($id);
 
-        $conversion = \MailOptin\Core\Repositories\OptinConversionsRepository::add(['optin_id' => 1, 'optin_type' => 'sidebar', 'name' => 'Gone', 'email' => 'gone@example.org', 'custom_fields' => '', 'user_agent' => '', 'conversion_page' => '', 'referrer' => '']);
+        // Only the columns every install has: later ones come from database updates.
+        $wpdb->insert($wpdb->prefix . Core::conversions_table_name, ['optin_id' => 1, 'optin_type' => 'sidebar', 'name' => 'Gone', 'email' => 'gone@example.org', 'date_added' => current_time('mysql')]);
+        $conversion = (int)$wpdb->insert_id;
         Syncs::add($conversion, 'MailChimpConnect', 'abc', false, 'Timed out', ['email' => 'gone@example.org', 'name' => 'Gone'], Syncs::now(60));
 
         $result = PersonalData::erase('Gone@Example.org');
