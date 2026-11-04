@@ -26,6 +26,14 @@ trait WP_Customize_EA_CPT_Control_Trait
                 unset($taxonomies['product_shipping_class']);
                 unset($taxonomies['pa_color']);
                 unset($taxonomies['pa_size']);
+
+                // Every product attribute (pa_*), unless one already has terms chosen, so a saved
+                // filter stays visible and can be removed.
+                foreach (array_keys($taxonomies) as $taxonomy) {
+                    if (0 === strpos($taxonomy, 'pa_') && empty($saved_value[$taxonomy])) {
+                        unset($taxonomies[$taxonomy]);
+                    }
+                }
             }
 
             if ($custom_post_type == 'post') {

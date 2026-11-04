@@ -177,8 +177,36 @@ class EmailCampaigns extends AbstractSettingsPage
         add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
         echo '<div class="mailoptin-data-listing">';
         $this->settingsInstance->page_header(__('Post Notifications', 'mailoptin'));
+        $this->never_sends_notice();
         $this->settingsInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
+    }
+
+    /**
+     * Post notifications that are switched on but can never send, because "Send Immediately" is off and
+     * no delay is set.
+     */
+    public function never_sends_notice()
+    {
+        $names = [];
+
+        foreach (Core\Repositories\EmailCampaignRepository::get_by_email_campaign_type(Core\Repositories\EmailCampaignRepository::NEW_PUBLISH_POST) as $campaign) {
+            $id = absint($campaign['id']);
+
+            if (Core\Repositories\EmailCampaignRepository::is_campaign_active($id) && Core\EmailCampaigns\NewPublishPost\NewPublishPost::never_sends($id)) {
+                $names[] = sprintf('<a href="%s">%s</a>', esc_url(Email_Campaign_List::_campaign_customize_url($id)), esc_html($campaign['name']));
+            }
+        }
+
+        if (empty($names)) return;
+
+        printf(
+            '<div class="notice notice-warning"><p>%s</p></div>',
+            sprintf(
+                esc_html(_n('This post notification is switched on but never sends: %s. "Send Immediately" is off and no delay is set. Open it and, under Schedule, set a delay or switch on "Send Immediately".', 'These post notifications are switched on but never send: %s. "Send Immediately" is off and no delay is set. Open each and, under Schedule, set a delay or switch on "Send Immediately".', count($names), 'mailoptin')),
+                implode(', ', $names)
+            )
+        );
     }
 
     public function add_new_email_campaign()

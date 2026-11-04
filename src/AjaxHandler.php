@@ -536,6 +536,11 @@ class AjaxHandler
 
         if (is_int($email_campaign_id)) {
             EmailCampaignMeta::add_meta_data($email_campaign_id, 'created_at', current_time('mysql'));
+
+            // A post notification needs a delay or "Send Immediately", or it never sends: start with an hour.
+            if (EmailCampaignRepository::NEW_PUBLISH_POST === $type) {
+                EmailCampaignRepository::update_settings_by_id($email_campaign_id, ['schedule_digit' => '1', 'schedule_type' => 'hours']);
+            }
             // Broadcasts open on their own page, where the design is one step of several.
             $redirect = EmailCampaignRepository::NEWSLETTER === $type
                 ? \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($email_campaign_id)
@@ -665,6 +670,9 @@ class AjaxHandler
             exit;
         }
 
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
+
         $optin_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);
 
@@ -682,6 +690,9 @@ class AjaxHandler
         if ( ! current_user_has_privilege()) {
             exit;
         }
+
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
 
         $email_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);
