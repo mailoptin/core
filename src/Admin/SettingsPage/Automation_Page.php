@@ -340,7 +340,9 @@ class Automation_Page
                 <?php endif; ?>
             </div>
         </div>
-        <?php if ($available) : ?>
+        <?php if ($available && ! post_type_exists($post_type)) : ?>
+            <p class="mo-count"><?php echo esc_html(sprintf(__('The "%s" post type isn\'t registered, so its filters can\'t be shown. They are kept as they are: activate its plugin to see them.', 'mailoptin'), $post_type)); ?></p>
+        <?php elseif ($available) : ?>
             <?php echo self::filters_html($email_campaign_id, $post_type); ?>
         <?php else : ?>
             <p class="mo-count mo-upsell"><?php printf(
@@ -358,7 +360,7 @@ class Automation_Page
         $filters = Automations::term_filters($email_campaign_id);
         $rows    = [];
 
-        foreach (Automations::filter_taxonomies($post_type) as $taxonomy => $label) {
+        foreach (Automations::page_taxonomies($email_campaign_id, $post_type) as $taxonomy => $label) {
             // Categories on posts need Pro's category support; Pro has it.
             if ('post' === $post_type && 'category' === $taxonomy && ! apply_filters('mailoptin_enable_email_automation_post_category_support', false)) continue;
 
@@ -597,6 +599,7 @@ class Automation_Page
         <div class="mo-card">
             <h3><?php esc_html_e('Status', 'mailoptin'); ?></h3>
             <p class="mo-switch">
+                <input type="hidden" name="active_was" value="<?php echo $active ? '1' : '0'; ?>">
                 <input type="hidden" name="active" value="0">
                 <input type="checkbox" id="mo-active" name="active" value="1" class="tgl tgl-light" data-autosave <?php checked($active); ?>>
                 <label for="mo-active" class="tgl-btn" aria-hidden="true"></label>
@@ -684,27 +687,31 @@ class Automation_Page
             }
         }
 
-        if (null !== $post_type && ! empty($post['filters_shown']) && Automations::post_filters_available()) {
-            $terms      = is_array($post['filter_terms'] ?? null) ? $post['filter_terms'] : [];
-            $taxonomies = Automations::filter_taxonomies($post_type);
-            $chosen     = [];
+        // Only the taxonomies the page showed: a post type whose plugin is off shows none, and
+        // keeps its filters as they are.
+        if (null !== $post_type && ! empty($post['filters_shown']) && Automations::post_filters_available() && post_type_exists($post_type)) {
+            $terms  = is_array($post['filter_terms'] ?? null) ? $post['filter_terms'] : [];
+            $chosen = [];
 
-            foreach ($taxonomies as $taxonomy => $label) {
+            foreach (Automations::page_taxonomies($email_campaign_id, $post_type) as $taxonomy => $label) {
                 $chosen[$taxonomy] = array_map('strval', self::posted_ids($terms[$taxonomy] ?? []));
             }
 
             if ('post' === $post_type) {
                 if (apply_filters('mailoptin_enable_email_automation_post_category_support', false)) {
                     $values['post_categories'] = $chosen['category'] ?? [];
+                } else {
+                    // Not shown without category support: keep what is saved.
+                    $chosen['category'] = [];
                 }
                 $values['post_tags'] = $chosen['post_tag'] ?? [];
-            } else {
-                $chosen = array_filter($chosen);
-
-                $values['custom_post_type_settings'] = empty($chosen) ? '' : wp_json_encode($chosen);
+                unset($chosen['category'], $chosen['post_tag']);
             }
 
-            $values['post_authors'] = array_map('strval', self::posted_ids($post['filter_authors'] ?? []));
+            $chosen = array_filter($chosen);
+
+            $values['custom_post_type_settings'] = empty($chosen) ? '' : wp_json_encode($chosen);
+            $values['post_authors']              = array_map('strval', self::posted_ids($post['filter_authors'] ?? []));
         }
 
         // When.
@@ -762,9 +769,13 @@ class Automation_Page
     protected static function save_form($email_campaign_id)
     {
         $values = self::posted_values($email_campaign_id, $_POST);
+        $saved  = (array)ER::get_settings_by_id($email_campaign_id);
 
-        // The test address alone isn't a change to the email.
-        $changes = array_diff_key($values, ['send_test_email_input' => true]);
+        // Only what differs from what is saved (the test address aside) counts as a change, so the
+        // last test stays current after a save that changed nothing.
+        $changes = array_filter(array_diff_key($values, ['send_test_email_input' => true]), function ($value, $key) use ($saved, $email_campaign_id) {
+            return ! array_key_exists($key, $saved) ? $value != Automations::get($email_campaign_id, $key) : $value != $saved[$key];
+        }, ARRAY_FILTER_USE_BOTH);
 
         if ( ! empty($changes)) {
             Automations::save($email_campaign_id, $values);
@@ -792,9 +803,14 @@ class Automation_Page
      */
     protected static function save_active($email_campaign_id)
     {
-        if ( ! isset($_POST['active'])) return null;
+        if ( ! isset($_POST['active'], $_POST['active_was'])) return null;
 
         $wanted = '1' === (string)$_POST['active'];
+
+        // Only when the switch was flipped on this page: a page opened before the automation was
+        // switched on or off elsewhere mustn't undo that.
+        if ($wanted === ('1' === (string)$_POST['active_was'])) return null;
+
         $active = Automations::is_active($email_campaign_id);
 
         if ($wanted === $active) return null;

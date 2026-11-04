@@ -54,6 +54,7 @@ class AutomationsTest extends WP_UnitTestCase
         register_taxonomy('product_visibility', 'product', ['label' => 'Product visibility', 'show_ui' => false]);
         register_taxonomy('product_type', 'product', ['label' => 'Product type', 'show_ui' => true]);
         register_taxonomy('pa_color', 'product', ['label' => 'Color', 'show_ui' => true]);
+        register_taxonomy('series', 'post', ['label' => 'Series', 'show_ui' => true]);
         delete_transient('mo_get_post_types');
 
         foreach (['Planting guides', 'Tools'] as $name) {
@@ -81,7 +82,7 @@ class AutomationsTest extends WP_UnitTestCase
     {
         CampaignSettingsRepository::delete_all(CampaignSettingsRepository::TYPE_EMAIL);
         unregister_post_type('product');
-        foreach (['product_cat', 'product_tag', 'product_visibility', 'product_type', 'pa_color'] as $taxonomy) unregister_taxonomy($taxonomy);
+        foreach (['product_cat', 'product_tag', 'product_visibility', 'product_type', 'pa_color', 'series'] as $taxonomy) unregister_taxonomy($taxonomy);
         $_POST = $_GET = $_REQUEST = [];
 
         parent::tear_down();
@@ -257,7 +258,8 @@ class AutomationsTest extends WP_UnitTestCase
         $this->assertSame([(string)$this->categories['Tools']], $values['post_categories']);
         $this->assertSame([], $values['post_tags']);
         $this->assertSame(['1'], $values['post_authors']);
-        $this->assertArrayNotHasKey('custom_post_type_settings', $values);
+        // Other taxonomies of posts go here; a product category isn't one.
+        $this->assertSame('', $values['custom_post_type_settings']);
 
         Automations::save($this->npp, ['custom_post_type' => 'product']);
 
@@ -383,5 +385,109 @@ class AutomationsTest extends WP_UnitTestCase
         $this->assertSame('four', $last[$this->npp]['title']);
         $this->assertSame('digest', $last[$this->digest]['title']);
         $this->assertArrayNotHasKey(999, $last);
+    }
+
+    /* ---------------------------------------------------------------------------------------------
+     * Review fixes
+     * ------------------------------------------------------------------------------------------ */
+
+    public function test_other_taxonomies_on_posts_still_filter_and_save()
+    {
+        $a = self::factory()->term->create(['taxonomy' => 'series', 'name' => 'A']);
+        $b = self::factory()->term->create(['taxonomy' => 'series', 'name' => 'B']);
+
+        // As the customizer saves a series filter on posts.
+        Automations::save($this->npp, ['custom_post_type_settings' => wp_json_encode(['series' => [(string)$a]])]);
+
+        $post = $this->publish('In series B');
+        wp_set_object_terms($post, [$b], 'series');
+        $this->assertFalse(Automations::post_matches($this->npp, get_post($post)));
+        $this->assertSame(['series' => [$a]], Automations::term_filters($this->npp));
+
+        $values = Automation_Page::posted_values($this->npp, ['filters_shown' => '1', 'filter_terms' => ['series' => [(string)$b], 'category' => [(string)$this->categories['Tools']]]]);
+        $this->assertSame('{"series":["' . $b . '"]}', $values['custom_post_type_settings']);
+        $this->assertSame([(string)$this->categories['Tools']], $values['post_categories']);
+    }
+
+    public function test_saving_the_page_keeps_filters_it_does_not_normally_offer()
+    {
+        // A product attribute filter the customizer saved before attributes stopped being offered.
+        Automations::save($this->npp, ['custom_post_type' => 'product', 'custom_post_type_settings' => wp_json_encode(['product_cat' => ['3'], 'pa_color' => ['9']])]);
+
+        $this->assertArrayHasKey('pa_color', Automations::page_taxonomies($this->npp, 'product'));
+
+        // The page shows both, so both come back with the form.
+        $values = Automation_Page::posted_values($this->npp, ['subject' => 'x', 'filters_shown' => '1', 'filter_terms' => ['product_cat' => ['3'], 'pa_color' => ['9']]]);
+        $this->assertSame('{"product_cat":["3"],"pa_color":["9"]}', $values['custom_post_type_settings']);
+    }
+
+    public function test_saving_while_the_post_types_plugin_is_off_keeps_its_filters()
+    {
+        Automations::save($this->npp, ['custom_post_type' => 'product', 'custom_post_type_settings' => wp_json_encode(['product_cat' => ['3']])]);
+        unregister_post_type('product');
+
+        $values = Automation_Page::posted_values($this->npp, ['subject' => 'x', 'filters_shown' => '1']);
+
+        $this->assertArrayNotHasKey('custom_post_type_settings', $values);
+        $this->assertArrayNotHasKey('post_authors', $values);
+    }
+
+    public function test_the_next_digest_follows_the_hourly_runs_two_hour_window()
+    {
+        update_option('timezone_string', 'UTC');
+        Automations::save($this->digest, ['schedule_interval' => 'every_day', 'schedule_time' => '09']);
+
+        // 10:59: should_send() still sends 9:00's digest (one whole hour has passed).
+        $this->assertSame('2026-11-04 09:00', Automations::next_digest_at($this->digest, CarbonImmutable::create(2026, 11, 4, 10, 59, 0, 'UTC'))->format('Y-m-d H:i'));
+        // 11:00: two whole hours, too late.
+        $this->assertSame('2026-11-05 09:00', Automations::next_digest_at($this->digest, CarbonImmutable::create(2026, 11, 4, 11, 0, 0, 'UTC'))->format('Y-m-d H:i'));
+
+        Automations::save($this->digest, ['schedule_interval' => 'hourly']);
+        $this->assertNull(Automations::next_digest_at($this->digest), 'The digest job sends nothing for an interval it doesn\'t know.');
+    }
+
+    public function test_an_out_of_date_page_does_not_switch_it_off()
+    {
+        Automations::save($this->npp, ['send_immediately' => true]);
+        ER::activate_email_campaign($this->npp);
+
+        $_POST = ['active_was' => '0', 'active' => '0'];
+        $method = new \ReflectionMethod(Automation_Page::class, 'save_active');
+        $method->setAccessible(true);
+
+        $this->assertNull($method->invoke(null, $this->npp));
+        $this->assertTrue(Automations::is_active($this->npp));
+
+        // Flipped off on this page: it goes off.
+        $_POST = ['active_was' => '1', 'active' => '0'];
+        $this->assertSame('deactivated', $method->invoke(null, $this->npp));
+        $this->assertFalse(Automations::is_active($this->npp));
+
+        // Flipped on while something is missing: refused.
+        Automations::save($this->npp, ['connection_email_list' => '']);
+        $_POST = ['active_was' => '0', 'active' => '1'];
+        $this->assertSame('blocked', $method->invoke(null, $this->npp));
+        $this->assertFalse(Automations::is_active($this->npp));
+    }
+
+    public function test_a_save_that_changes_nothing_keeps_the_test_current()
+    {
+        Automations::save($this->npp, ['send_immediately' => true, 'post_categories' => [], 'post_tags' => [], 'post_authors' => [], 'custom_post_type_settings' => '']);
+        EmailCampaignMeta::update_meta_data($this->npp, Automations::TEST_META, gmdate('Y-m-d H:i:s', time() + 5));
+        $this->assertTrue(Automations::test_is_current($this->npp));
+
+        $_POST = ['subject' => 'New: {{title}}', 'send_when' => 'now', 'filters_shown' => '1', 'test_email' => 'me@example.org'];
+        $method = new \ReflectionMethod(Automation_Page::class, 'save_form');
+        $method->setAccessible(true);
+        $method->invoke(null, $this->npp);
+
+        $this->assertTrue(Automations::test_is_current($this->npp));
+        $this->assertSame('me@example.org', Automations::get($this->npp, 'send_test_email_input'));
+
+        $_POST = ['subject' => 'Changed'];
+        sleep(1);
+        EmailCampaignMeta::update_meta_data($this->npp, Automations::TEST_META, gmdate('Y-m-d H:i:s', time() - 5));
+        $method->invoke(null, $this->npp);
+        $this->assertFalse(Automations::test_is_current($this->npp));
     }
 }

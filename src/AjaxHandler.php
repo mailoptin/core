@@ -687,12 +687,17 @@ class AjaxHandler
         $status            = sanitize_text_field($_POST['status']);
 
         if ($status == 'true') {
+            // As on the automation's page: only when nothing stops it sending.
+            if (\MailOptin\Core\EmailCampaigns\Automations::is_automation($email_campaign_id) && ! \MailOptin\Core\EmailCampaigns\Automations::can_send($email_campaign_id)) {
+                wp_send_json_error(__('It can\'t be switched on yet. Open it to see what is missing under "Ready to send".', 'mailoptin'));
+            }
+
             EmailCampaignRepository::activate_email_campaign($email_campaign_id);
         } else {
             EmailCampaignRepository::deactivate_email_campaign($email_campaign_id);
         }
 
-        wp_die();
+        wp_send_json_success();
     }
 
     /**

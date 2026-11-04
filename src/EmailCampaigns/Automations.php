@@ -110,10 +110,31 @@ class Automations
     }
 
     /**
+     * The taxonomies the page offers as filters: the post type's own, and any it has a filter saved
+     * for that isn't normally offered (a product attribute chosen in the customizer, say), so it can
+     * be seen and changed, and saving the page keeps it.
+     *
+     * @return array taxonomy name => label
+     */
+    public static function page_taxonomies($email_campaign_id, $post_type)
+    {
+        $taxonomies = self::filter_taxonomies($post_type);
+
+        foreach (array_keys(self::term_filters($email_campaign_id)) as $taxonomy) {
+            if (isset($taxonomies[$taxonomy])) continue;
+
+            $object                = get_taxonomy($taxonomy);
+            $taxonomies[$taxonomy] = $object ? $object->label : $taxonomy;
+        }
+
+        return $taxonomies;
+    }
+
+    /**
      * The terms a post must have, by taxonomy, counting only the taxonomies of the chosen post type.
      *
-     * Posts keep their categories and tags in post_categories and post_tags; other post types keep
-     * theirs in custom_post_type_settings. Filters left over from another post type are ignored:
+     * Posts keep their categories and tags in post_categories and post_tags; every other filter is in
+     * custom_post_type_settings. Filters left over from another post type are ignored:
      * no post of this type can have those terms, so they would stop every send.
      *
      * @return array taxonomy => int[] term IDs; a post needs one of the terms of each taxonomy
@@ -124,14 +145,14 @@ class Automations
         $taxonomies = get_object_taxonomies($post_type);
         $filters    = [];
 
+        // Every post type's other taxonomies, a "series" on posts say, are in custom_post_type_settings.
+        $sources = json_decode((string)self::get($email_campaign_id, 'custom_post_type_settings'), true);
+        $sources = is_array($sources) ? $sources : [];
+
+        // Posts keep their categories and tags in their own settings.
         if ('post' === $post_type) {
-            $sources = [
-                'category' => self::get($email_campaign_id, 'post_categories'),
-                'post_tag' => self::get($email_campaign_id, 'post_tags'),
-            ];
-        } else {
-            $sources = json_decode((string)self::get($email_campaign_id, 'custom_post_type_settings'), true);
-            $sources = is_array($sources) ? $sources : [];
+            $sources['category'] = self::get($email_campaign_id, 'post_categories');
+            $sources['post_tag'] = self::get($email_campaign_id, 'post_tags');
         }
 
         foreach ($sources as $taxonomy => $terms) {
@@ -349,7 +370,8 @@ class Automations
         $timezone = wp_timezone_string();
         $now      = $now ?: CarbonImmutable::now($timezone);
         $interval = (string)self::get($email_campaign_id, 'schedule_interval');
-        $interval = in_array($interval, ['every_week', 'every_month'], true) ? $interval : 'every_day';
+        // run_job() sends nothing for an interval it doesn't know.
+        if ( ! in_array($interval, ['every_day', 'every_week', 'every_month'], true)) return null;
         $hour     = absint(self::get($email_campaign_id, 'schedule_time')) % 24;
         $weekday  = absint(self::get($email_campaign_id, 'schedule_day')) % 7;
         $monthday = max(1, min(28, absint(self::get($email_campaign_id, 'schedule_month_date'))));
@@ -365,8 +387,9 @@ class Automations
 
             $at = $day->setTime($hour, 0);
 
-            // The hourly run sends up to an hour late, and not again once it has sent for that period.
-            if ($at->addHour()->lessThan($now)) continue;
+            // The hourly run sends while less than two whole hours have passed (should_send counts
+            // whole hours), and not again once it has sent for that period.
+            if ($at->lessThanOrEqualTo($now) && $at->diffInRealHours($now) > 1) continue;
 
             if ($last) {
                 if ('every_day' === $interval && $last->isSameDay($at)) continue;

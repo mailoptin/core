@@ -66,15 +66,16 @@
         var job;
         if (optin_automation_activation_locked === true || optin_automation_activation_queue.length === 0) return;
         job = optin_automation_activation_queue.shift();
-        optin_automation_activation_ajax(job.id, job.status, job.activation_type);
+        optin_automation_activation_ajax(job.id, job.status, job.activation_type, job.el);
     };
 
-    var optin_automation_activation_ajax = function (id, status, activation_type) {
+    var optin_automation_activation_ajax = function (id, status, activation_type, el) {
         if (optin_automation_activation_locked === true) {
             return optin_automation_activation_queue.push({
                 id: id,
                 status: status,
-                activation_type: activation_type
+                activation_type: activation_type,
+                el: el
             });
         }
 
@@ -86,7 +87,12 @@
             action: 'mailoptin_toggle_' + activation_type + '_activated',
             id: id,
             status: status
-        }, function () {
+        }, function (response) {
+            // Refused (an automation that can't send yet): put the switch back and say why.
+            if (el && response && response.success === false) {
+                el.checked = !status;
+                if (response.data) window.alert(response.data);
+            }
             optin_automation_activation_locked = false;
             optin_automation_activation_queue_checker();
         });
@@ -113,7 +119,7 @@
             id = $(_this).data('mo-automation-id'),
             status = _this.checked;
 
-        optin_automation_activation_ajax(id, status, 'automation');
+        optin_automation_activation_ajax(id, status, 'automation', _this);
     });
 
     // handle sidebar nav tag menu.
