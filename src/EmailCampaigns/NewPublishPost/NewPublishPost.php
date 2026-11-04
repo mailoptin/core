@@ -154,6 +154,9 @@ class NewPublishPost extends AbstractTriggers
                     if ( ! in_array($post->post_author, $npp_post_authors)) continue;
                 }
 
+                // The post type the automation's filters were chosen for.
+                $filtered_post_type = empty($custom_post_type) ? 'post' : $custom_post_type;
+
                 $custom_post_type_settings = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type_settings');
 
                 if ( ! empty($custom_post_type_settings)) {
@@ -162,7 +165,9 @@ class NewPublishPost extends AbstractTriggers
                     if (is_array($custom_post_type_settings)) {
                         foreach ($custom_post_type_settings as $taxonomy => $npp_terms) {
                             if ( ! in_array($taxonomy, ['category', 'post_tag'])) {
-                                if (taxonomy_exists($taxonomy) && ! empty($npp_terms)) {
+                                // Only the chosen post type's own taxonomies: a filter left over from another post
+                                // type can never match, and would stop every send.
+                                if (is_object_in_taxonomy($filtered_post_type, $taxonomy) && ! empty($npp_terms)) {
 
                                     $npp_terms = array_map('absint', $npp_terms);
 
@@ -192,13 +197,14 @@ class NewPublishPost extends AbstractTriggers
 
                 // do not check if $post_categories is empty because if no category is on the post, wp_get_post_categories return empty array
                 // so we can use the empty to check against if NPP requires certain category(s)
-                if (is_array($npp_categories) && ! empty($npp_categories)) {
+                // Post categories and tags are kept when the post type changes to one without them.
+                if (is_array($npp_categories) && ! empty($npp_categories) && is_object_in_taxonomy($filtered_post_type, 'category')) {
                     // use intersect to check if categories match.
                     $result = array_intersect($post_categories, $npp_categories);
                     if (empty($result)) continue;
                 }
 
-                if (is_array($npp_tags) && ! empty($npp_tags)) {
+                if (is_array($npp_tags) && ! empty($npp_tags) && is_object_in_taxonomy($filtered_post_type, 'post_tag')) {
                     // use intersect to check if categories match.
                     $result = array_intersect($post_tags, $npp_tags);
                     if (empty($result)) continue;
