@@ -13,4 +13,5 @@ src/BlockEditor/node_modules/*
 !tests/SendQueue/
 !tests/Audience/
 !tests/Submissions/
+!tests/Design/
 !tests/Repositories/

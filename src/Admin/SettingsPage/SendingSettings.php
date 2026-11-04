@@ -370,7 +370,6 @@ class SendingSettings
             .mo-service.is-locked{cursor:default;opacity:.75}
             .mo-service input{position:absolute;right:12px;top:13px;margin:0}
             .mo-service .description{display:block;margin-top:4px;font-size:12px}
-            .mo-premium-pill{display:inline-block;font-size:11px;line-height:16px;padding:0 6px;border-radius:99px;background:#f0e6ff;color:#5b2a9e;margin-left:4px;font-weight:600}
             .mo-service-upsell{display:flex;gap:16px;align-items:center;justify-content:space-between;background:#faf7ff;border:1px solid #e2d4f7;border-radius:6px;padding:12px 16px;margin:10px 0;max-width:960px}
             @media (max-width:782px){.mo-services{grid-template-columns:1fr}.mo-service-upsell{flex-direction:column;align-items:flex-start}}
         </style>

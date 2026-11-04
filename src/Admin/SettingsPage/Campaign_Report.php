@@ -423,7 +423,6 @@ class Campaign_Report
 .mo-report .mo-card h3{font-size:15px}
 .mo-report .mo-upsell{border-left:4px solid #7e3bd0}
 .mo-report .mo-upsell ul{list-style:disc;margin-left:18px;color:#50575e}
-.mo-premium-badge{display:inline-block;font-size:11px;line-height:16px;padding:0 6px;border-radius:99px;background:#f0e6ff;color:#5b2a9e;margin-left:4px;font-weight:600;vertical-align:middle}
 .mo-chart-head{display:flex;justify-content:space-between}
 .mo-legend{font-size:12px;font-weight:400;color:#50575e}.mo-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px 0 12px;vertical-align:-1px}
 .mo-legend i.o,.mo-chart .o{background:#72aee6}.mo-legend i.c,.mo-chart .c{background:#2271b1}

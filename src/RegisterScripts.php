@@ -257,6 +257,8 @@ class RegisterScripts
             wp_enqueue_style('mailoptin-admin-tooltipster-borderless', MAILOPTIN_ASSETS_URL . 'tooltipster/borderless.min.css', [], MAILOPTIN_VERSION_NUMBER);
             wp_enqueue_style('mailoptin-admin-tooltipster-light', MAILOPTIN_ASSETS_URL . 'tooltipster/light.min.css', [], MAILOPTIN_VERSION_NUMBER);
             wp_enqueue_style('mailoptin-admin', MAILOPTIN_ASSETS_URL . 'css/admin/admin.css', [], filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/admin.css'));
+            // Shared design system; loaded after admin.css so it can restyle the common header and tabs.
+            wp_enqueue_style('mailoptin-design', MAILOPTIN_ASSETS_URL . 'css/admin/mo-design.css', ['mailoptin-admin'], filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/mo-design.css'));
 
             wp_enqueue_style('mo-pure-css-toggle-buttons', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/toggle-control/pure-css-togle-buttons.css', array(), false);
 
