@@ -44,26 +44,41 @@ class SetupWizard
      */
     public static function flag_new_install()
     {
-        add_option(self::PENDING_OPTION, '1', '', false);
+        // Autoloaded, so checking for it never costs a query once it is gone.
+        add_option(self::PENDING_OPTION, '1', '', true);
     }
 
     public function register_page()
     {
-        // No parent: reachable by URL and from Settings, but not listed in the menu.
-        add_submenu_page('', __('Set up MailOptin', 'mailoptin'), __('Set up MailOptin', 'mailoptin'), get_capability(), self::SLUG, [$this, 'render']);
+        // Under options.php: reachable by URL and from Settings, not listed in the menu, and with a page title.
+        add_submenu_page('options.php', __('Set up MailOptin', 'mailoptin'), __('Set up MailOptin', 'mailoptin'), get_capability(), self::SLUG, [$this, 'render']);
     }
 
     public function maybe_redirect_after_install()
     {
-        if ('1' !== get_option(self::PENDING_OPTION)) return;
+        $all = wp_load_alloptions();
+        if ('1' !== ($all[self::PENDING_OPTION] ?? '')) return;
 
-        // Wait for an ordinary admin page view by someone who can run it.
-        if (wp_doing_ajax() || wp_doing_cron() || is_network_admin() || isset($_GET['activate-multi']) || ! current_user_can(get_capability())) return;
-        if (defined('WP_CLI') && WP_CLI) return;
+        // Wait for an ordinary page view (the dashboard, Plugins or a MailOptin screen) by someone who can
+        // run it, so no form submission, upload or Customizer request is lost to the redirect.
+        if ( ! self::is_plain_page_view() || ! current_user_can(get_capability())) return;
 
         delete_option(self::PENDING_OPTION);
 
         if (wp_safe_redirect(self::url())) exit;
+    }
+
+    protected static function is_plain_page_view()
+    {
+        global $pagenow;
+
+        if ('GET' !== ($_SERVER['REQUEST_METHOD'] ?? 'GET')) return false;
+        if (wp_doing_ajax() || wp_doing_cron() || is_network_admin() || isset($_GET['activate-multi'])) return false;
+        if ((defined('WP_CLI') && WP_CLI) || (defined('IFRAME_REQUEST') && IFRAME_REQUEST)) return false;
+
+        if (in_array($pagenow, ['index.php', 'plugins.php'], true)) return true;
+
+        return 'admin.php' === $pagenow && false !== strpos((string)($_GET['page'] ?? ''), 'mailoptin') && self::SLUG !== $_GET['page'];
     }
 
     protected static function state()
@@ -106,7 +121,7 @@ class SetupWizard
         $result = $this->save_step($step, wp_unslash($_POST));
 
         if (is_wp_error($result)) {
-            wp_safe_redirect(add_query_arg('mo_error', rawurlencode($result->get_error_message()), self::url($step)));
+            wp_safe_redirect(add_query_arg('mo_error', $result->get_error_code(), self::url($step)));
             exit;
         }
 
@@ -172,7 +187,10 @@ class SetupWizard
                 if ( ! is_email($to)) return new \WP_Error('email', __('Enter a valid email address for the test.', 'mailoptin'));
 
                 $settings = (array)get_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, []);
-                $from     = sprintf('From: %s <%s>', str_replace(['"', "\r", "\n"], '', $settings['from_name'] ?? get_bloginfo('name')), sanitize_email($settings['from_email'] ?? get_bloginfo('admin_email')));
+                // ?: rather than ??: a cleared setting is stored as an empty string.
+                $from_email = sanitize_email(($settings['from_email'] ?? '') ?: get_bloginfo('admin_email'));
+                $from_name  = str_replace(['"', "\r", "\n"], '', ($settings['from_name'] ?? '') ?: get_bloginfo('name'));
+                $from       = sprintf('From: %s <%s>', $from_name, $from_email);
 
                 $sent = wp_mail(
                     $to,
@@ -274,7 +292,8 @@ class SetupWizard
                 <p class="mo-setup-count"><?php echo esc_html(sprintf(__('Step %1$d of %2$d', 'mailoptin'), $index + 1, count(self::STEPS))); ?></p>
 
                 <div class="mo-ui-card mo-setup-card">
-                    <?php if ( ! empty($_GET['mo_error'])) echo UI::note(esc_html(sanitize_text_field(wp_unslash($_GET['mo_error']))), 'bad'); ?>
+                    <?php $error = self::error_message(sanitize_key($_GET['mo_error'] ?? '')); ?>
+                    <?php if ('' !== $error) echo UI::note(esc_html($error), 'bad'); ?>
                     <?php $this->{'step_' . $step}($state); ?>
                 </div>
 
@@ -283,6 +302,21 @@ class SetupWizard
         </div>
         <?php
         echo self::styles();
+    }
+
+    /**
+     * Messages for the error codes save_step() returns. The URL only ever carries the code.
+     */
+    protected static function error_message($code)
+    {
+        $messages = [
+            'name'   => __('Give your list a name.', 'mailoptin'),
+            'create' => __('The list could not be created.', 'mailoptin'),
+            'email'  => __('Enter a valid email address.', 'mailoptin'),
+            'send'   => __('WordPress could not send the email. Your host may block outgoing mail: try an SMTP plugin or a sending service.', 'mailoptin'),
+        ];
+
+        return $messages[$code] ?? '';
     }
 
     protected static function step_title($step)

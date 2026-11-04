@@ -50,6 +50,12 @@ class Base
             return;
         }
 
+        // Network-activated: a subsite set up later (e.g. by the admin_init fallback) is not someone's fresh install.
+        if (is_multisite()) {
+            if ( ! function_exists('is_plugin_active_for_network')) require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            if (is_plugin_active_for_network(plugin_basename(MAILOPTIN_SYSTEM_FILE_PATH))) $open_setup_wizard = false;
+        }
+
         // No install date means MailOptin has never been installed here (reactivation keeps it).
         if ($open_setup_wizard && false === get_option('mo_install_date')) {
             \MailOptin\Core\Admin\SetupWizard::flag_new_install();

@@ -20,6 +20,7 @@ class SetupWizardTest extends \WP_UnitTestCase
     public function tear_down()
     {
         $_GET = [];
+        unset($GLOBALS['pagenow']);
         parent::tear_down();
     }
 
@@ -45,6 +46,8 @@ class SetupWizardTest extends \WP_UnitTestCase
 
     public function test_redirects_once_then_never_again()
     {
+        $GLOBALS['pagenow']          = 'index.php';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
         SetupWizard::flag_new_install();
 
         $redirects = [];
@@ -62,8 +65,38 @@ class SetupWizardTest extends \WP_UnitTestCase
         $this->assertFalse(get_option(SetupWizard::PENDING_OPTION));
     }
 
+    public function test_redirect_waits_for_a_plain_page_view()
+    {
+        SetupWizard::flag_new_install();
+        $redirects = 0;
+        add_filter('wp_redirect', function () use (&$redirects) {
+            $redirects++;
+
+            return false;
+        });
+
+        // A form post to another screen, and a screen that isn't the dashboard, Plugins or MailOptin.
+        foreach ([['POST', 'index.php', []], ['GET', 'post.php', []], ['GET', 'admin.php', ['page' => 'woocommerce']]] as [$method, $pagenow, $get]) {
+            $_SERVER['REQUEST_METHOD'] = $method;
+            $GLOBALS['pagenow']        = $pagenow;
+            $_GET                      = $get;
+            SetupWizard::get_instance()->maybe_redirect_after_install();
+        }
+
+        $this->assertSame(0, $redirects);
+        $this->assertSame('1', get_option(SetupWizard::PENDING_OPTION));
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $GLOBALS['pagenow']        = 'admin.php';
+        $_GET                      = ['page' => 'mailoptin-subscribers'];
+        SetupWizard::get_instance()->maybe_redirect_after_install();
+        $this->assertSame(1, $redirects);
+    }
+
     public function test_redirect_waits_for_someone_who_can_run_it()
     {
+        $GLOBALS['pagenow']          = 'index.php';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
         SetupWizard::flag_new_install();
         wp_set_current_user(self::factory()->user->create(['role' => 'subscriber']));
 
@@ -148,6 +181,12 @@ class SetupWizardTest extends \WP_UnitTestCase
         $this->assertSame('Acme', $mailer->FromName);
         $this->assertSame('me@example.com', get_option(SetupWizard::STATE_OPTION)['test']);
 
+        // A cleared From email falls back to the site's admin email.
+        reset_phpmailer_instance();
+        update_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, ['from_name' => '', 'from_email' => '']);
+        $this->assertTrue(SetupWizard::get_instance()->save_step('test', ['mo_send_test' => '1', 'test_email' => 'me@example.com']));
+        $this->assertSame(get_bloginfo('admin_email'), tests_retrieve_phpmailer_instance()->From);
+
         // "Skip for now" posts the same step without the send button.
         $this->assertTrue(SetupWizard::get_instance()->save_step('test', ['test_email' => 'me@example.com']));
     }
@@ -163,6 +202,21 @@ class SetupWizardTest extends \WP_UnitTestCase
             $this->assertStringContainsString('mo-setup-card', $html, $step);
             if ('done' !== $step) $this->assertStringContainsString('name="mo_setup_step" value="' . $step . '"', $html, $step);
         }
+    }
+
+    public function test_error_box_only_shows_known_messages()
+    {
+        $_GET = ['page' => SetupWizard::SLUG, 'step' => 'list', 'mo_error' => 'name'];
+        ob_start();
+        SetupWizard::get_instance()->render();
+        $this->assertStringContainsString('Give your list a name.', ob_get_clean());
+
+        $_GET['mo_error'] = 'Your account is suspended, call 555';
+        ob_start();
+        SetupWizard::get_instance()->render();
+        $html = ob_get_clean();
+        $this->assertStringNotContainsString('suspended', $html);
+        $this->assertStringNotContainsString('mo-ui-note mo-ui-bad', $html);
     }
 
     public function test_settings_has_a_run_setup_wizard_button()
