@@ -86,9 +86,14 @@ class SetupWizardTest extends \WP_UnitTestCase
         $this->assertSame(0, $redirects);
         $this->assertSame('1', get_option(SetupWizard::PENDING_OPTION));
 
+        // An array where a string is expected: ignored, no warning.
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $GLOBALS['pagenow']        = 'admin.php';
-        $_GET                      = ['page' => 'mailoptin-subscribers'];
+        $_GET                      = ['page' => ['mailoptin']];
+        SetupWizard::get_instance()->maybe_redirect_after_install();
+        $this->assertSame(0, $redirects);
+
+        $_GET = ['page' => 'mailoptin-subscribers'];
         SetupWizard::get_instance()->maybe_redirect_after_install();
         $this->assertSame(1, $redirects);
     }
@@ -111,7 +116,9 @@ class SetupWizardTest extends \WP_UnitTestCase
 
         $this->assertWPError($wizard->save_step('list', ['list_name' => '  ']));
 
+        set_transient('mo_connection_email_list_MailOptinConnect', ['1' => 'Old list'], MINUTE_IN_SECONDS);
         $this->assertTrue($wizard->save_step('list', ['list_name' => 'Garden news', 'double_optin' => '1']));
+        $this->assertFalse(get_transient('mo_connection_email_list_MailOptinConnect'), 'The Customizer list dropdown cache is cleared.');
         $state = get_option(SetupWizard::STATE_OPTION);
         $list  = ListsRepository::get($state['list_id']);
         $this->assertSame('Garden news', $list['name']);

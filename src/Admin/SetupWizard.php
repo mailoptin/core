@@ -78,7 +78,9 @@ class SetupWizard
 
         if (in_array($pagenow, ['index.php', 'plugins.php'], true)) return true;
 
-        return 'admin.php' === $pagenow && false !== strpos((string)($_GET['page'] ?? ''), 'mailoptin') && self::SLUG !== $_GET['page'];
+        $page = isset($_GET['page']) && is_string($_GET['page']) ? $_GET['page'] : '';
+
+        return 'admin.php' === $pagenow && false !== strpos($page, 'mailoptin') && self::SLUG !== $page;
     }
 
     protected static function state()
@@ -145,6 +147,9 @@ class SetupWizard
 
                     $list_id = ListsRepository::create(['name' => $name, 'double_optin' => empty($data['double_optin']) ? 0 : 1]);
                     if ( ! $list_id) return new \WP_Error('create', __('The list could not be created.', 'mailoptin'));
+
+                    // The Customizer caches the built-in list dropdown for a minute; show the new list now.
+                    delete_transient('mo_connection_email_list_MailOptinConnect');
                 }
 
                 self::save_state(['list_id' => (int)$list_id]);
@@ -453,7 +458,11 @@ class SetupWizard
             <span class="mo-setup-label"><?php esc_html_e('How emails are sent', 'mailoptin'); ?></span>
             <div class="mo-setup-choices">
                 <div class="mo-setup-choice is-on"><b><?php esc_html_e('Through your web host (wp_mail)', 'mailoptin'); ?></b><span><?php esc_html_e('Fine to start with, and for small lists. Works with any SMTP plugin.', 'mailoptin'); ?></span></div>
-                <div class="mo-setup-choice"><b><?php esc_html_e('A sending service', 'mailoptin'); ?> <?php echo UI::pro_pill(); ?></b><span><?php esc_html_e('Amazon SES, Postmark, SendGrid, Mailgun or Brevo, with bounce handling. Set it up later in Settings > Sending.', 'mailoptin'); ?></span></div>
+                <?php if (defined('MAILOPTIN_DETACH_LIBSODIUM')) : ?>
+                    <div class="mo-setup-choice"><b><?php esc_html_e('A sending service', 'mailoptin'); ?></b><span><?php esc_html_e('Amazon SES, Postmark, SendGrid, Mailgun or Brevo, with bounce handling. Included in your plan: set it up in Settings > Sending.', 'mailoptin'); ?></span></div>
+                <?php else : ?>
+                    <div class="mo-setup-choice"><b><?php esc_html_e('A sending service', 'mailoptin'); ?> <?php echo UI::pro_pill(); ?></b><span><?php esc_html_e('Amazon SES, Postmark, SendGrid, Mailgun or Brevo, with bounce handling. Set it up later in Settings > Sending.', 'mailoptin'); ?></span></div>
+                <?php endif; ?>
             </div>
         </div>
         <?php
