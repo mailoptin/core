@@ -572,6 +572,7 @@ body.mailoptin-admin .mo-ui-locked h2,
 /* ---------- Small screens ---------- */
 
 @media screen and (max-width: 782px) {
+    body.mailoptin-admin:has(#screen-meta-links) .mailoptin-admin-wrap,
     body.mailoptin-admin .mailoptin-admin-wrap,
     body.mailoptin-admin .mailoptin-header-menus,
     .mo-ui-page {
