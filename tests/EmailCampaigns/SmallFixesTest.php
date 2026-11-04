@@ -25,6 +25,11 @@ class SmallFixesTest extends WP_Ajax_UnitTestCase
         \MailOptin\Core\Base::get_instance()->register_metadata_table();
 
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+
+        // admin_init runs with each request: no calls out to WordPress.org's update checks.
+        add_filter('pre_http_request', function () {
+            return ['response' => ['code' => 200], 'body' => ''];
+        });
     }
 
     public function tear_down()
