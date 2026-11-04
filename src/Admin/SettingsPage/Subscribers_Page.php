@@ -1163,6 +1163,13 @@ class Subscribers_Page extends AbstractSettingsPage
             $html .= sprintf('<input type="hidden" name="segment" value="%d">', absint($_GET['segment']));
         }
 
+        // Keep the column sort, as WordPress's own search box did.
+        foreach (['orderby', 'order'] as $key) {
+            if ( ! empty($_GET[$key])) {
+                $html .= sprintf('<input type="hidden" name="%s" value="%s">', $key, esc_attr(sanitize_key($_GET[$key])));
+            }
+        }
+
         return $html . Subscriber_Filters::hidden_inputs($this->list_table->filters);
     }
 

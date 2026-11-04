@@ -64,7 +64,7 @@ class SubscribersListDesignTest extends \WP_UnitTestCase
 
     public function test_search_and_table_forms_keep_the_current_view()
     {
-        $html = $this->render(['status' => 'subscribed', 'list' => $this->list_id, 's' => 'amara', 'segment' => 3]);
+        $html = $this->render(['status' => 'subscribed', 'list' => $this->list_id, 's' => 'amara', 'segment' => 3, 'orderby' => 'email', 'order' => 'asc']);
 
         preg_match('#<form method="get" class="mo-subscriber-search-form".*?</form>#s', $html, $search);
         $this->assertNotEmpty($search);
@@ -72,10 +72,13 @@ class SubscribersListDesignTest extends \WP_UnitTestCase
         $this->assertStringContainsString('name="list" value="' . $this->list_id . '"', $search[0]);
         $this->assertStringContainsString('name="segment" value="3"', $search[0]);
         $this->assertStringContainsString('name="s" value="amara"', $search[0]);
+        $this->assertStringContainsString('name="orderby" value="email"', $search[0]);
+        $this->assertStringContainsString('name="order" value="asc"', $search[0]);
 
         preg_match('#<form method="get" class="mo-subscribers-table-form">.*?<table#s', $html, $table);
         $this->assertNotEmpty($table);
         $this->assertStringContainsString('<input type="hidden" name="s" value="amara">', $table[0], 'Paging and bulk actions keep the search.');
+        $this->assertStringContainsString('name="orderby" value="email"', $table[0], 'The list filter keeps the sort.');
     }
 
     public function test_status_pill_tones()
