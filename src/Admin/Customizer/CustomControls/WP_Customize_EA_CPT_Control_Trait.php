@@ -19,14 +19,8 @@ trait WP_Customize_EA_CPT_Control_Trait
     public function render_fields($custom_post_type, $saved_value = [])
     {
         if ( ! empty($custom_post_type)) {
-            $taxonomies = get_object_taxonomies($custom_post_type, 'objects');
-            if (class_exists('WooCommerce')) {
-                unset($taxonomies['product_type']);
-                unset($taxonomies['product_visibility']);
-                unset($taxonomies['product_shipping_class']);
-                unset($taxonomies['pa_color']);
-                unset($taxonomies['pa_size']);
-            }
+            // Without WooCommerce's internal ones and its product attributes (pa_*).
+            $taxonomies = \MailOptin\Core\EmailCampaigns\Automations::filter_taxonomies($custom_post_type);
 
             if ($custom_post_type == 'post') {
                 unset($taxonomies['category']);
@@ -38,7 +32,7 @@ trait WP_Customize_EA_CPT_Control_Trait
                     $saved_value,
                     $key,
                     $this->get_terms($key),
-                    sprintf(__('Restrict to %s', 'mailoptin'), $value->label)
+                    sprintf(__('Restrict to %s', 'mailoptin'), $value)
                 );
             }
         }

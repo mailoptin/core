@@ -173,6 +173,7 @@ class Base
         Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();
         Admin\SettingsPage\Broadcast_Page::get_instance();
+        Admin\SettingsPage\Automation_Page::get_instance();
         Admin\PostListMenu\PostPreview::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
         Admin\SettingsPage\Campaign_Report::get_instance();

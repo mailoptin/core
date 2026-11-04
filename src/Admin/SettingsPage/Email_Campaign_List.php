@@ -3,6 +3,9 @@
 namespace MailOptin\Core\Admin\SettingsPage;
 
 use MailOptin\Core\Core;
+use MailOptin\Core\EmailCampaigns\Automations;
+use MailOptin\Core\Repositories\CampaignActivityRepository;
+use MailOptin\Core\Repositories\ConnectionsRepository;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
@@ -13,6 +16,9 @@ if ( ! class_exists('WP_List_Table')) {
 class Email_Campaign_List extends \WP_List_Table
 {
     private $table;
+
+    /** @var array email campaign ID => its newest campaign log, for the rows shown */
+    protected $last_logs = [];
 
     /** @var \wpdb */
     private $wpdb;
@@ -211,26 +217,103 @@ class Email_Campaign_List extends \WP_List_Table
     function column_name($item)
     {
         $email_campaign_id = absint($item['id']);
-
-        $customize_url = self::_campaign_customize_url($email_campaign_id);
-
-        $delete_url = self::_campaign_delete_url($email_campaign_id);
-        $name       = "<strong><a href=\"$customize_url\">" . $item['name'] . '</a></strong>';
+        $page_url          = Automation_Page::url($email_campaign_id);
+        $subject           = Automations::subject($email_campaign_id);
 
         $actions = [
-            'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', $delete_url, __('Delete', 'mailoptin')),
+            'edit'   => sprintf('<a href="%s">%s</a>', esc_url($page_url), esc_html__('Edit', 'mailoptin')),
+            'design' => sprintf('<a href="%s">%s</a>', esc_url(Automation_Page::design_url($email_campaign_id)), esc_html__('Design email', 'mailoptin')),
+            'clone'  => sprintf('<a href="%s">%s</a>', esc_url(self::_campaign_clone_url($email_campaign_id)), esc_html__('Duplicate', 'mailoptin')),
+            'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', esc_url(self::_campaign_delete_url($email_campaign_id)), esc_html__('Delete', 'mailoptin')),
         ];
 
-        return $name . $this->row_actions($actions);
+        return sprintf('<strong><a href="%s">%s</a></strong>', esc_url($page_url), esc_html($item['name']))
+               . ('' !== $subject ? '<div class="description">' . esc_html(sprintf(__('Subject: %s', 'mailoptin'), $subject)) . '</div>' : '')
+               . $this->row_actions($actions);
     }
 
-    /**
-     * Render a column when no column specific method exist.
-     *
-     * @param array $item
-     *
-     * @return mixed
-     */
+    public function column_when($item)
+    {
+        $email_campaign_id = absint($item['id']);
+        $names             = Automations::filter_names($email_campaign_id);
+        $what              = Automations::post_type_label(Automations::post_type($email_campaign_id));
+
+        if ( ! empty($names)) {
+            $what .= ': ' . (count($names) > 2 ? sprintf(__('%1$s and %2$s more', 'mailoptin'), implode(', ', array_slice($names, 0, 2)), number_format_i18n(count($names) - 2)) : implode(', ', $names));
+        }
+
+        if (Automations::is_digest($email_campaign_id)) {
+            $items = absint(Automations::get($email_campaign_id, 'item_number'));
+            $lines = [
+                '<strong>' . esc_html__('Digest', 'mailoptin') . '</strong>',
+                esc_html(Automations::digest_schedule_label($email_campaign_id)),
+                esc_html(sprintf(_n('%1$s, up to %2$s post', '%1$s, up to %2$s posts', $items, 'mailoptin'), $what, number_format_i18n($items))),
+            ];
+        } else {
+            $lines = [
+                '<strong>' . esc_html__('New post', 'mailoptin') . '</strong>',
+                esc_html($what),
+                esc_html(Automations::delay_label($email_campaign_id)),
+            ];
+        }
+
+        return implode('<br>', $lines);
+    }
+
+    public function column_audience($item)
+    {
+        list($label, $detail) = Automations::audience_labels(absint($item['id']));
+
+        if ('' === $label) return '<span class="description">' . esc_html__('Not chosen yet', 'mailoptin') . '</span>';
+
+        return esc_html($label) . ('' !== $detail ? '<br><span class="description">' . esc_html($detail) . '</span>' : '');
+    }
+
+    public function column_last_sent($item)
+    {
+        $log = $this->last_logs[absint($item['id'])] ?? null;
+
+        if ( ! $log) return '<span class="description">' . esc_html__('Never', 'mailoptin') . '</span>';
+
+        $html = esc_html(($log['status_time'] ? mysql2date(get_option('date_format'), $log['status_time']) : '—'));
+
+        if ('failed' === $log['status']) {
+            $html .= ' <span style="color:#b32d2e;font-weight:600">' . esc_html__('failed', 'mailoptin') . '</span>';
+        }
+
+        return $html . '<br><span class="description">' . esc_html($log['title']) . '</span>';
+    }
+
+    public function column_engagement($item)
+    {
+        $email_campaign_id = absint($item['id']);
+        $log               = $this->last_logs[$email_campaign_id] ?? null;
+        $connection        = (string)Automations::get($email_campaign_id, 'connection_service');
+
+        if ( ! $log) return '&mdash;';
+
+        // Other services keep their own reports.
+        if ('' !== $connection && 'MailOptinConnect' !== $connection) {
+            return '<span class="description">' . esc_html(sprintf(__('In %s', 'mailoptin'), ConnectionsRepository::get_connections('email_campaign')[$connection] ?? $connection)) . '</span>';
+        }
+
+        if ( ! CampaignActivityRepository::is_ready()) return '&mdash;';
+
+        $stats = CampaignActivityRepository::stats($log['id']);
+
+        if (empty($stats['sent'])) return '&mdash;';
+
+        return sprintf(
+            '<a href="%s"><strong>%s%%</strong> %s · <strong>%s%%</strong> %s</a><br><span class="description">%s</span>',
+            esc_url(Campaign_Report::url($log['id'])),
+            esc_html(number_format_i18n($stats['openers'] / $stats['sent'] * 100, 1)),
+            esc_html__('opened', 'mailoptin'),
+            esc_html(number_format_i18n($stats['clickers'] / $stats['sent'] * 100, 1)),
+            esc_html__('clicked', 'mailoptin'),
+            esc_html__('last send', 'mailoptin')
+        );
+    }
+
     public function column_action($item)
     {
         $email_campaign_id = absint($item['id']);
@@ -313,11 +396,13 @@ class Email_Campaign_List extends \WP_List_Table
     public function get_columns()
     {
         $columns = array(
-            'cb'            => '<input type="checkbox">',
-            'name'          => __('Name', 'mailoptin'),
-            'campaign_type' => __('Automation Type', 'mailoptin'),
-            'action'        => __('Actions', 'mailoptin'),
-            'activated'     => __('Activated', 'mailoptin'),
+            'cb'         => '<input type="checkbox">',
+            'name'       => __('Automation', 'mailoptin'),
+            'when'       => __('When it sends', 'mailoptin'),
+            'audience'   => __('Audience', 'mailoptin'),
+            'activated'  => __('Active', 'mailoptin'),
+            'last_sent'  => __('Last sent', 'mailoptin'),
+            'engagement' => __('Engagement', 'mailoptin'),
         );
 
         return $columns;
@@ -340,57 +425,79 @@ class Email_Campaign_List extends \WP_List_Table
     /**
      * Handles data query and filter, sorting, and pagination.
      */
+    /**
+     * All automations, or one type, or the active ones.
+     */
+    protected function current_view()
+    {
+        $view = sanitize_key($_GET['mo_view'] ?? '');
+
+        return in_array($view, [ER::NEW_PUBLISH_POST, ER::POSTS_EMAIL_DIGEST, 'active'], true) ? $view : '';
+    }
+
+    /**
+     * @return array[] the automations of a view, newest first
+     */
+    protected function automations_in_view($view)
+    {
+        $type = in_array($view, [ER::NEW_PUBLISH_POST, ER::POSTS_EMAIL_DIGEST], true) ? $view : '';
+        $rows = $this->get_email_campaigns(PHP_INT_MAX, 1, $type);
+
+        if ('active' === $view) {
+            $rows = array_values(array_filter($rows, function ($row) {
+                return ER::is_campaign_active(absint($row['id']));
+            }));
+        }
+
+        return $rows;
+    }
+
+    protected function get_views()
+    {
+        $current = $this->current_view();
+        $counts  = ['' => 0, ER::NEW_PUBLISH_POST => 0, ER::POSTS_EMAIL_DIGEST => 0, 'active' => 0];
+
+        foreach ($this->automations_in_view('') as $row) {
+            $counts['']++;
+            if (isset($counts[$row['campaign_type']])) $counts[$row['campaign_type']]++;
+            if (ER::is_campaign_active(absint($row['id']))) $counts['active']++;
+        }
+
+        $labels = ['' => __('All', 'mailoptin'), ER::NEW_PUBLISH_POST => __('New post', 'mailoptin'), ER::POSTS_EMAIL_DIGEST => __('Digest', 'mailoptin'), 'active' => __('Active', 'mailoptin')];
+        $views  = [];
+
+        foreach ($labels as $view => $label) {
+            $url = '' === $view ? MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE : add_query_arg('mo_view', $view, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
+
+            $views['' === $view ? 'all' : $view] = sprintf(
+                '<a href="%s"%s>%s <span class="count">(%s)</span></a>',
+                esc_url($url),
+                $view === $current ? ' class="current" aria-current="page"' : '',
+                esc_html($label),
+                number_format_i18n($counts[$view])
+            );
+        }
+
+        return $views;
+    }
+
     public function prepare_items()
     {
-        /** Process bulk action */
         $this->process_actions();
-
-        $campaign_type = isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! empty($_GET['type']) ? sanitize_text_field($_GET['type']) : '';
-
-        if (isset($_POST['mo_email_automations_filter'])) {
-            check_admin_referer('wp-csa-nonce', 'wp_csa_nonce');
-            $campaign_type = sanitize_text_field($_POST['mo_email_automations_filter']);
-        }
 
         $this->_column_headers = $this->get_column_info();
         $per_page              = $this->get_items_per_page('email_campaign_per_page', 15);
         $current_page          = $this->get_pagenum();
-        $total_items           = $this->record_count($campaign_type);
+        $rows                  = $this->automations_in_view($this->current_view());
+
         $this->set_pagination_args(array(
-                'total_items' => $total_items, //WE have to calculate the total number of items
-                'per_page'    => $per_page //WE have to determine how many items to show on a page
+                'total_items' => count($rows),
+                'per_page'    => $per_page
             )
         );
 
-        $this->items = $this->get_email_campaigns($per_page, $current_page, $campaign_type);
-    }
-
-    public function extra_tablenav($which)
-    {
-        if ($which != 'top') return;
-        $selected_option = isset($_POST['mo_email_automations_filter']) ? sanitize_text_field($_POST['mo_email_automations_filter']) : '';
-        ?>
-        <div class="alignleft actions bulkactions" style="line-height: 2em;font-size: 15px">
-            <strong style="font-weight:500;"><?php _e('Filter By:', 'mailoptin'); ?></strong>
-        </div>
-        <div class="alignleft actions bulkactions">
-            <label for="mo-listing-filter" class="screen-reader-text">
-                <?php _e('Filter email automation by', 'mailoptin'); ?>
-            </label>
-            <select name="mo_email_automations_filter" id="mo-listing-filter">
-                <option value="">
-                    <?php _e('Select...', 'mailoptin'); ?>
-                </option>
-                <option value="<?= ER::NEW_PUBLISH_POST; ?>" <?php selected(ER::NEW_PUBLISH_POST, $selected_option); ?>>
-                    <?= ER::get_type_name(ER::NEW_PUBLISH_POST) ?>
-                </option>
-                <option value="<?= ER::POSTS_EMAIL_DIGEST; ?>" <?php selected(ER::POSTS_EMAIL_DIGEST, $selected_option); ?>>
-                    <?= ER::get_type_name(ER::POSTS_EMAIL_DIGEST) ?>
-                </option>
-            </select>
-            <input type="submit" class="button action" value="<?php _e('Apply', 'mailoptin'); ?>">
-        </div>
-        <?php
+        $this->items     = array_slice($rows, ($current_page - 1) * $per_page, $per_page);
+        $this->last_logs = Automations::last_logs(wp_list_pluck($this->items, 'id'));
     }
 
     public function process_actions($email_type = '')

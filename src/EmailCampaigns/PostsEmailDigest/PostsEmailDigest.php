@@ -6,6 +6,7 @@ use MailOptin\Core\SendQueue\QueueRunner;
 use Carbon\CarbonImmutable;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
+use MailOptin\Core\EmailCampaigns\Automations;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\EmailCampaignMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
@@ -46,47 +47,11 @@ class PostsEmailDigest extends AbstractTriggers
             'orderby'        => 'post_date'
         ];
 
-        $post_authors = ER::get_merged_customizer_value($email_campaign_id, 'post_authors');
+        // Post type, authors, categories, tags and other terms, counting only the post type's own taxonomies.
+        $query = Automations::posts_query($email_campaign_id, $item_count);
 
-        if ( ! empty($post_authors)) {
-            $parameters['author'] = implode(',', $post_authors);
-        }
-
-        $custom_post_type = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type');
-
-        $parameters['post_type'] = $custom_post_type;
-
-        $custom_post_type_settings = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type_settings');
-
-        if ( ! empty($custom_post_type_settings)) {
-
-            $custom_post_type_settings = json_decode($custom_post_type_settings, true);
-
-            if (is_array($custom_post_type_settings) && ! empty($custom_post_type_settings)) {
-
-                $parameters['tax_query'] = [];
-
-                foreach ($custom_post_type_settings as $taxonomy => $digest_terms) {
-                    if ( ! empty($digest_terms) && taxonomy_exists($taxonomy)) {
-                        $parameters['tax_query'][] = [
-                            'taxonomy' => $taxonomy,
-                            'field'    => 'term_id',
-                            'terms'    => array_map('absint', $digest_terms)
-                        ];
-                    }
-                }
-            }
-        }
-
-        $categories = ER::get_merged_customizer_value($email_campaign_id, 'post_categories');
-        $tags       = ER::get_merged_customizer_value($email_campaign_id, 'post_tags');
-
-        if ( ! empty($categories)) {
-            $parameters['category'] = implode(',', array_map('trim', $categories));
-        }
-
-        if ( ! empty($tags)) {
-            $parameters['tag_id'] = implode(',', array_map('trim', $tags));
+        foreach (['post_type', 'author__in', 'tax_query'] as $key) {
+            if (isset($query[$key])) $parameters[$key] = $query[$key];
         }
 
         return $parameters;

@@ -5,6 +5,7 @@ namespace MailOptin\Core\EmailCampaigns\NewPublishPost;
 use MailOptin\Core\SendQueue\QueueRunner;
 use MailOptin\Core\Connections\ConnectionFactory;
 use MailOptin\Core\EmailCampaigns\AbstractTriggers;
+use MailOptin\Core\EmailCampaigns\Automations;
 use MailOptin\Core\EmailCampaigns\Misc;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
@@ -148,61 +149,8 @@ class NewPublishPost extends AbstractTriggers
 
                 if ( ! in_array($post->post_type, $post_type_support)) continue;
 
-                $npp_post_authors = ER::get_merged_customizer_value($email_campaign_id, 'post_authors');
-
-                if ( ! empty($npp_post_authors)) {
-                    if ( ! in_array($post->post_author, $npp_post_authors)) continue;
-                }
-
-                $custom_post_type_settings = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type_settings');
-
-                if ( ! empty($custom_post_type_settings)) {
-                    $custom_post_type_settings = json_decode($custom_post_type_settings, true);
-
-                    if (is_array($custom_post_type_settings)) {
-                        foreach ($custom_post_type_settings as $taxonomy => $npp_terms) {
-                            if ( ! in_array($taxonomy, ['category', 'post_tag'])) {
-                                if (taxonomy_exists($taxonomy) && ! empty($npp_terms)) {
-
-                                    $npp_terms = array_map('absint', $npp_terms);
-
-                                    $post_terms       = [];
-                                    $post_terms_array = wp_get_object_terms($post->ID, $taxonomy, ['fields' => 'ids']);
-
-                                    if (is_array($post_terms_array) && ! empty($post_terms_array)) {
-                                        $post_terms = array_map('absint', $post_terms_array);
-                                    }
-
-                                    // do not check if $post_terms is empty because if no term is on the post, wp_get_object_terms return empty array
-                                    // so we can use the empty to check against if NPP requires certain term(s)
-                                    if (is_array($npp_terms) && ! empty($npp_terms)) {
-                                        $result = array_intersect($post_terms, $npp_terms);
-                                        if (empty($result)) continue 2;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $npp_categories  = ER::get_merged_customizer_value($email_campaign_id, 'post_categories');
-                $npp_tags        = ER::get_merged_customizer_value($email_campaign_id, 'post_tags');
-                $post_categories = wp_get_post_categories($post->ID, ['fields' => 'ids']);
-                $post_tags       = wp_get_post_tags($post->ID, ['fields' => 'ids']);
-
-                // do not check if $post_categories is empty because if no category is on the post, wp_get_post_categories return empty array
-                // so we can use the empty to check against if NPP requires certain category(s)
-                if (is_array($npp_categories) && ! empty($npp_categories)) {
-                    // use intersect to check if categories match.
-                    $result = array_intersect($post_categories, $npp_categories);
-                    if (empty($result)) continue;
-                }
-
-                if (is_array($npp_tags) && ! empty($npp_tags)) {
-                    // use intersect to check if categories match.
-                    $result = array_intersect($post_tags, $npp_tags);
-                    if (empty($result)) continue;
-                }
+                // Authors, categories, tags and other terms, counting only the post type's own taxonomies.
+                if ( ! Automations::post_matches($email_campaign_id, $post)) continue;
 
                 do_action('mo_new_publish_post_before_send', $post);
 

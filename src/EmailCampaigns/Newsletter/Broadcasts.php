@@ -294,14 +294,28 @@ class Broadcasts
     /**
      * A connection, and a list unless the connection has none (WordPress users, for one).
      */
-    protected static function has_recipients_set($email_campaign_id)
+    public static function has_recipients_set($email_campaign_id)
     {
         $connection = (string)self::get($email_campaign_id, 'connection_service');
 
         if ('' === $connection) return false;
 
-        // A list fetch that failed comes back empty too, so only these are known to have no lists.
-        return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true);
+        return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || ! self::connection_has_lists($connection);
+    }
+
+    /**
+     * Whether a connection sends to a list chosen for the campaign. WordPress users, Lead Bank and the
+     * integrations built on the WordPress users one (WooCommerce, MemberPress, LearnDash and so on)
+     * send to the people they have instead. A list fetch that failed comes back empty too, so an
+     * empty list alone doesn't mean a connection has none.
+     */
+    public static function connection_has_lists($connection)
+    {
+        if (in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true)) return false;
+
+        $class = sprintf('\\MailOptin\\%s\\Connect', $connection);
+
+        return ! (class_exists($class) && is_subclass_of($class, '\\MailOptin\\RegisteredUsersConnect\\Connect'));
     }
 
     /**
@@ -331,19 +345,30 @@ class Broadcasts
     {
         if ( ! is_email($email)) return false;
 
+        $sent = self::deliver_test($email, Misc::parse_email_subject(self::subject($email_campaign_id)), (string)(new NewsletterTemplatePreview($email_campaign_id))->forge());
+
+        if ($sent) EmailCampaignMeta::update_meta_data($email_campaign_id, self::TEST_META, gmdate('Y-m-d H:i:s'));
+
+        return $sent;
+    }
+
+    /**
+     * Send a test email of any campaign. Merge tags use the subscriber with that address, if there is
+     * one, or their fallbacks; links that only work for real recipients point nowhere.
+     *
+     * @return bool
+     */
+    public static function deliver_test($email, $subject, $html)
+    {
+        if ( ! is_email($email)) return false;
+
         $subscriber = SubscribersRepository::get_by_email($email) ?: [];
-        $subject    = Misc::parse_email_subject(self::subject($email_campaign_id));
-        $html       = (string)(new NewsletterTemplatePreview($email_campaign_id))->forge();
         $blank      = ['{{unsubscribe}}' => '#', '{{webversion}}' => '#', '{{preferences}}' => '#', '{{list.name}}' => ''];
 
         $html    = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags($html, $subscriber, true), $blank + self::subscriber_tags($subscriber), true);
         $subject = CampaignRenderer::replace_tags(CampaignRenderer::replace_fallback_tags($subject, $subscriber, false), self::subscriber_tags($subscriber), false);
 
-        $sent = true === \MailOptin\Core\SendQueue\Mailer::send($email, sprintf(__('[Test] %s', 'mailoptin'), $subject), $html, \MailOptin\Core\SendQueue\WpMailSender::default_headers());
-
-        if ($sent) EmailCampaignMeta::update_meta_data($email_campaign_id, self::TEST_META, gmdate('Y-m-d H:i:s'));
-
-        return (bool)$sent;
+        return true === \MailOptin\Core\SendQueue\Mailer::send($email, sprintf(__('[Test] %s', 'mailoptin'), $subject), $html, \MailOptin\Core\SendQueue\WpMailSender::default_headers());
     }
 
     protected static function subscriber_tags($subscriber)

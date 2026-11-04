@@ -536,10 +536,10 @@ class AjaxHandler
 
         if (is_int($email_campaign_id)) {
             EmailCampaignMeta::add_meta_data($email_campaign_id, 'created_at', current_time('mysql'));
-            // Broadcasts open on their own page, where the design is one step of several.
+            // Broadcasts and automations open on their own page, where the design is one step of several.
             $redirect = EmailCampaignRepository::NEWSLETTER === $type
                 ? \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($email_campaign_id)
-                : Email_Campaign_List::_campaign_customize_url($email_campaign_id);
+                : \MailOptin\Core\Admin\SettingsPage\Automation_Page::url($email_campaign_id);
 
             wp_send_json_success(array('redirect' => $redirect));
         } else {

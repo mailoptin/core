@@ -33,7 +33,8 @@ class EmailCampaigns extends AbstractSettingsPage
                             'add-new',
                             'add-new-email-automation',
                             'create-broadcast',
-                            Broadcast_Page::VIEW
+                            Broadcast_Page::VIEW,
+                            Automation_Page::VIEW
                     ])) {
 
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
@@ -41,7 +42,7 @@ class EmailCampaigns extends AbstractSettingsPage
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
                 $this->settingsInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
                 $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
-                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast', Broadcast_Page::VIEW])) {
+                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast', Broadcast_Page::VIEW, Automation_Page::VIEW])) {
                     $this->settingsInstance->sidebar($this->sidebar_args());
                 }
 
@@ -66,6 +67,9 @@ class EmailCampaigns extends AbstractSettingsPage
         add_action('mailoptin_admin_settings_submenu_page_create-broadcast', [$this, 'settings_admin_page_callback']);
         add_action('mailoptin_admin_settings_submenu_page_' . Broadcast_Page::VIEW, function () {
             echo Broadcast_Page::html();
+        });
+        add_action('mailoptin_admin_settings_submenu_page_' . Automation_Page::VIEW, function () {
+            echo Automation_Page::html();
         });
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
@@ -185,8 +189,16 @@ class EmailCampaigns extends AbstractSettingsPage
     {
         if (
                 isset($_GET['view']) &&
-                in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast', 'campaign-log', Broadcast_Page::VIEW])
+                in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast', 'campaign-log', Broadcast_Page::VIEW, Automation_Page::VIEW])
         ) {
+            return;
+        }
+
+        // On the post notifications list, straight to making one.
+        if (empty($_GET['view'])) {
+            $url = add_query_arg('view', 'add-new-email-automation', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
+            echo '<a class="add-new-h2" href="' . esc_url($url) . '">' . esc_html__('New automation', 'mailoptin') . '</a>';
+
             return;
         }
 
@@ -209,6 +221,8 @@ class EmailCampaigns extends AbstractSettingsPage
         }
 
         $this->email_campaigns_instance->prepare_items();
+
+        $this->email_campaigns_instance->views();
 
         $this->email_campaigns_instance->display();
 

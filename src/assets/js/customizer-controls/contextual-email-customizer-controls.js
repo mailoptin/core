@@ -159,6 +159,8 @@
                             if (_.isObject(response) && 'success' in response && 'data' in response) {
                                 var cache = $('li[id*="custom_post_type_settings"]');
                                 cache.find('.mo-ea-cpt-setting-container').html(response.data);
+                                // The new post type's filters start empty: drop the old type's.
+                                cache.find('.mo-ea-cpt-control').val('').trigger('change');
                                 cache.show();
                                 $('.mo-ea-cpt-setting-container .mailoptin-chosen').chosen({
                                     inherit_select_classes: true,

@@ -134,6 +134,8 @@ class Customizer
 
         if (ER::is_newsletter($this->email_campaign_id)) {
             $return_url = \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($this->email_campaign_id, ['designed' => 1]);
+        } elseif (\MailOptin\Core\EmailCampaigns\Automations::is_automation($this->email_campaign_id)) {
+            $return_url = \MailOptin\Core\Admin\SettingsPage\Automation_Page::url($this->email_campaign_id, ['designed' => 1]);
         }
 
         $wp_customize->set_preview_url($preview_url);
@@ -189,16 +191,33 @@ class Customizer
         return ! empty($_GET[\MailOptin\Core\Admin\SettingsPage\Broadcast_Page::FROM_PAGE_ARG]);
     }
 
+    /**
+     * Opened from an automation's own page, which sets which posts, when, the subject and audience.
+     */
+    public static function from_automation_page()
+    {
+        return ! empty($_GET[\MailOptin\Core\Admin\SettingsPage\Automation_Page::FROM_PAGE_ARG]);
+    }
+
     public function hide_broadcast_page_controls()
     {
-        if ( ! ER::is_newsletter($this->email_campaign_id) || ! self::from_broadcast_page()) return;
-
-        $ids = ['email_campaign_title', 'email_campaign_preheader', 'connection_service', 'connection_email_list', 'MailOptinConnect_segment', 'MailOptinConnect_exclude_tags', 'MailOptinConnect_audience_count'];
+        if (ER::is_newsletter($this->email_campaign_id) && self::from_broadcast_page()) {
+            $ids = ['email_campaign_title', 'email_campaign_preheader', 'connection_service', 'connection_email_list', 'MailOptinConnect_segment', 'MailOptinConnect_exclude_tags', 'MailOptinConnect_audience_count'];
+        } elseif ( ! ER::is_newsletter($this->email_campaign_id) && self::from_automation_page()) {
+            $ids = \MailOptin\Core\Admin\SettingsPage\Automation_Page::OWNED_CONTROLS;
+        } else {
+            return;
+        }
 
         // CSS rather than script: other customizer scripts show and hide these as settings change.
-        $selectors = array_map(function ($id) {
-            return '#customize-control-' . $this->campaign_settings . '-' . $this->email_campaign_id . '-' . $id;
-        }, $ids);
+        // Controls are named after their setting (mo_email_campaigns[12][subject]), or only by
+        // their key when they are made as objects with a plain ID.
+        $selectors = [];
+
+        foreach ($ids as $id) {
+            $selectors[] = '#customize-control-' . $this->campaign_settings . '-' . $this->email_campaign_id . '-' . $id;
+            $selectors[] = '#customize-control-' . $id;
+        }
 
         echo '<style type="text/css">' . esc_html(implode(',', $selectors)) . '{display:none!important}</style>';
     }
@@ -208,7 +227,8 @@ class Customizer
      */
     public function add_activate_switch()
     {
-        if (ER::is_newsletter($this->email_campaign_id)) return;
+        // The automation's page has the switch, with the checks that come before switching it on.
+        if (ER::is_newsletter($this->email_campaign_id) || self::from_automation_page()) return;
 
         $input_value = ER::is_campaign_active($this->email_campaign_id) ? 'yes' : 'no';
         $checked     = ($input_value == 'yes') ? 'checked="checked"' : null;

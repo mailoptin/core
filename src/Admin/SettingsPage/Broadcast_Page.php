@@ -93,6 +93,7 @@ class Broadcast_Page
                 <h1><?php echo esc_html(ER::get_email_campaign_name($email_campaign_id)); ?></h1>
                 <?php echo self::status_pill($status); ?>
             </div>
+            <hr class="wp-header-end">
             <?php echo self::notice_html($email_campaign_id, $status); ?>
 
             <form method="post" action="<?php echo esc_url(self::url($email_campaign_id)); ?>" id="mo-broadcast-form">
@@ -670,7 +671,7 @@ class Broadcast_Page
         return ob_get_clean();
     }
 
-    protected static function styles()
+    public static function styles()
     {
         return '<style>
 .mo-broadcast{max-width:1240px}
