@@ -97,15 +97,27 @@ class Subscribers_Segments
         <p class="mo-intro"><?php esc_html_e('A segment is a saved set of tag and custom field filters, like "tagged customer and Country is United Kingdom". Send a campaign to a list and limit it to a segment: who is in it is worked out when the campaign sends, so people who match later are included.', 'mailoptin'); ?></p>
 
         <?php if ( ! $available) : ?>
-            <div class="mo-upsell-box">
-                <h3><?php esc_html_e('Send to the right people, not the whole list', 'mailoptin'); ?></h3>
-                <ul>
-                    <li><?php esc_html_e('Save any filtered view of your subscribers as a segment', 'mailoptin'); ?></li>
-                    <li><?php esc_html_e('Send a campaign to a segment of a list, and leave out people with certain tags', 'mailoptin'); ?></li>
-                    <li><?php esc_html_e('See how many people a campaign will go to before it sends', 'mailoptin'); ?></li>
-                </ul>
-                <p><?php echo self::upsell_link(__('Get MailOptin Premium', 'mailoptin'), 'builtin_segments_tab'); ?></p>
-            </div>
+            <?php echo \MailOptin\Core\Admin\UI::locked_feature([
+                'title'     => __('Send to exactly the right people with segments', 'mailoptin'),
+                'intro'     => __('Save a set of filters once and use it for any broadcast or automation. Who is in it is worked out when the campaign sends, so people who match later are included.', 'mailoptin'),
+                'bullets'   => [
+                    __('Save any filtered view of your subscribers as a segment', 'mailoptin'),
+                    __('Send a campaign to a segment of a list, and leave out people with certain tags', 'mailoptin'),
+                    __('See how many people a campaign will go to before it sends', 'mailoptin'),
+                ],
+                'cta_url'   => CampaignAudience::upsell_url('builtin_segments_tab'),
+                'preview'   => '<div class="mo-ui-preview-title">' . esc_html__('Customers who opened', 'mailoptin') . '</div>'
+                               . '<div class="mo-ui-preview-chips">'
+                               . \MailOptin\Core\Admin\UI::chip(__('List', 'mailoptin'), __('Newsletter', 'mailoptin'))
+                               . \MailOptin\Core\Admin\UI::chip(__('Tag', 'mailoptin'), 'customer')
+                               . \MailOptin\Core\Admin\UI::chip(__('Opened', 'mailoptin'), __('in 30 days', 'mailoptin'))
+                               . '</div>'
+                               . \MailOptin\Core\Admin\UI::preview_rows([
+                                ['maya@example.com', ['badge' => __('Subscribed', 'mailoptin'), 'tone' => 'ok']],
+                                ['kenji@example.com', ['badge' => __('Subscribed', 'mailoptin'), 'tone' => 'ok']],
+                                ['jonas@example.com', ['badge' => __('Subscribed', 'mailoptin'), 'tone' => 'ok']],
+                            ]),
+            ]); ?>
             <?php if (empty($segments)) return ob_get_clean(); ?>
             <p class="description"><?php esc_html_e('Your saved segments are kept, but campaigns using them won\'t send without Premium.', 'mailoptin'); ?></p>
         <?php endif; ?>
@@ -256,8 +268,6 @@ class Subscribers_Segments
 .mo-save-segment{margin-left:auto}
 .mo-save-segment .mo-add-filter-body{left:auto;right:0}
 .mo-save-segment-upsell{margin-left:auto;padding:4px 6px;text-decoration:none}
-.mo-upsell-box{max-width:72ch;background:#fff;border:1px solid #c3c4c7;border-left:4px solid #7e3bd0;padding:4px 20px 8px;margin:12px 0 16px}
-.mo-upsell-box ul{list-style:disc;margin-left:20px}
 </style>';
     }
 }
