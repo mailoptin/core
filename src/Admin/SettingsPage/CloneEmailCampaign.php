@@ -45,22 +45,16 @@ class CloneEmailCampaign
             current_time('mysql')
         );
 
-        $all_templates_settings = EmailCampaignRepository::get_settings();
-
-        // append new template settings to existing settings.
-        $all_templates_settings[$new_email_campaign_id] = EmailCampaignRepository::get_settings_by_id($this->email_campaign_id);
+        $settings = EmailCampaignRepository::get_settings_by_id($this->email_campaign_id);
 
         // deactivate cloned campaign by default
-        $all_templates_settings[$new_email_campaign_id]['activate_email_campaign'] = false;
-
-        EmailCampaignRepository::deactivate_email_campaign($new_email_campaign_id);
+        $settings['activate_email_campaign'] = false;
 
         if (EmailCampaignRepository::is_newsletter($new_email_campaign_id)) {
-            $all_templates_settings[$new_email_campaign_id]['email_campaign_title'] = $new_email_campaign_name;
+            $settings['email_campaign_title'] = $new_email_campaign_name;
         }
 
-        // save to DB
-        return EmailCampaignRepository::updateSettings($all_templates_settings);
+        return EmailCampaignRepository::save_settings_by_id($new_email_campaign_id, $settings);
 
     }
 }

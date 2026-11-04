@@ -296,7 +296,7 @@ class SegmentsRepository extends AbstractRepository
     public static function replace_excluded_tag($tag_id, $into_id = 0)
     {
         $settings = EmailCampaignRepository::get_settings();
-        $changed  = false;
+        $changed  = [];
 
         foreach ((array)$settings as $campaign_id => $campaign_settings) {
             $excluded = $campaign_settings[self::EXCLUDE_TAGS_SETTING] ?? '';
@@ -307,11 +307,12 @@ class SegmentsRepository extends AbstractRepository
             $excluded = array_diff($excluded, [(int)$tag_id]);
             if ($into_id) $excluded[] = (int)$into_id;
 
-            $settings[$campaign_id][self::EXCLUDE_TAGS_SETTING] = implode(',', array_unique($excluded));
-            $changed = true;
+            $changed[$campaign_id] = implode(',', array_unique($excluded));
         }
 
-        if ($changed) update_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, $settings);
+        foreach ($changed as $campaign_id => $value) {
+            EmailCampaignRepository::update_settings_by_id($campaign_id, [self::EXCLUDE_TAGS_SETTING => $value]);
+        }
     }
 
     /**

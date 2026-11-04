@@ -141,9 +141,7 @@ class SegmentsPremiumTest extends SegmentsTest
         $this->assertFalse(Connect::get_instance()->send_newsletter($campaign_id, 9103, 'Hi', '<p>Hi</p>', 'Hi')['success']);
         $this->assertSame([], $this->queued_emails(9103));
 
-        $settings = get_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
-        $settings[$campaign_id][Segments::EXCLUDE_TAGS_SETTING] = 'abc';
-        update_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, $settings);
+        \MailOptin\Core\Repositories\EmailCampaignRepository::update_settings_by_id($campaign_id, [Segments::EXCLUDE_TAGS_SETTING => 'abc']);
 
         $this->assertSame('mo_segment_exclude_invalid', Segments::campaign_filters($campaign_id)->get_error_code());
     }

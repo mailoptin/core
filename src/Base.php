@@ -77,6 +77,9 @@ class Base
     {
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, ['MailOptin\Core\RegisterActivation\Base', 'run_install']);
 
+        // Before anything reads the old campaign settings options.
+        Repositories\CampaignSettingsCompat::init();
+
         if (version_compare(get_bloginfo('version'), '5.1', '<')) {
             add_action('wpmu_new_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
         } else {
@@ -215,6 +218,7 @@ class Base
         $tables[] = $db_prefix . Core::campaign_links_table_name;
         $tables[] = $db_prefix . Core::campaign_activity_table_name;
         $tables[] = $db_prefix . Core::campaign_stats_table_name;
+        $tables[] = $db_prefix . Core::campaign_settings_table_name;
 
         $tables = apply_filters('mo_drop_mu_database_tables', $tables, $db_prefix);
 

@@ -51,7 +51,7 @@ class SegmentsTest extends WP_UnitTestCase
     public function tear_down()
     {
         Fields::flush_cache();
-        delete_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
+        \MailOptin\Core\Repositories\CampaignSettingsRepository::delete_all(\MailOptin\Core\Repositories\CampaignSettingsRepository::TYPE_EMAIL);
 
         parent::tear_down();
     }
@@ -69,7 +69,7 @@ class SegmentsTest extends WP_UnitTestCase
     {
         $id = EmailCampaignRepository::add_email_campaign('Spring sale', EmailCampaignRepository::NEWSLETTER, 'Lucid');
 
-        update_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME, [$id => $settings + ['connection_service' => 'MailOptinConnect', 'connection_email_list' => $this->list_id]]);
+        \MailOptin\Core\Repositories\EmailCampaignRepository::save_settings_by_id($id, $settings + ['connection_service' => 'MailOptinConnect', 'connection_email_list' => $this->list_id]);
 
         return $id;
     }

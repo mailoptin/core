@@ -44,7 +44,7 @@ class BroadcastsTest extends WP_UnitTestCase
 
     public function tear_down()
     {
-        delete_option(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
+        \MailOptin\Core\Repositories\CampaignSettingsRepository::delete_all(\MailOptin\Core\Repositories\CampaignSettingsRepository::TYPE_EMAIL);
         $_POST = $_GET = $_REQUEST = [];
 
         parent::tear_down();
