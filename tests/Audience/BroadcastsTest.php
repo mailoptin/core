@@ -403,4 +403,34 @@ class BroadcastsTest extends WP_UnitTestCase
         $this->assertStringContainsString('review=1', (string)$location);
         $this->assertSame(0, $this->queued(), 'Nothing is sent until the review is confirmed.');
     }
+
+    public function test_connections_without_lists_do_not_need_one()
+    {
+        // WooCommerce, MemberPress, LearnDash and the like are built on the WordPress users connection.
+        if ( ! class_exists('\MailOptin\RegisteredUsersConnect\Connect')) {
+            eval('namespace MailOptin\RegisteredUsersConnect; class Connect {}');
+        }
+        if ( ! class_exists('\MailOptin\FakeShopConnect\Connect')) {
+            eval('namespace MailOptin\FakeShopConnect; class Connect extends \MailOptin\RegisteredUsersConnect\Connect {}');
+        }
+
+        $this->assertFalse(Broadcasts::connection_has_lists('FakeShopConnect'));
+        $this->assertFalse(Broadcasts::connection_has_lists('RegisteredUsersConnect'));
+        $this->assertFalse(Broadcasts::connection_has_lists('LeadBankConnect'));
+        $this->assertTrue(Broadcasts::connection_has_lists('MailOptinConnect'));
+        $this->assertTrue(Broadcasts::connection_has_lists('MailChimpConnect'), 'A connection that isn\'t loaded still needs a list.');
+
+        $who = function () {
+            return wp_list_pluck(wp_list_filter(Broadcasts::checks($this->campaign_id), ['label' => __('Who it goes to', 'mailoptin')]), 'ok');
+        };
+
+        Broadcasts::save($this->campaign_id, ['connection_service' => 'FakeShopConnect', 'connection_email_list' => '']);
+        $this->assertSame([true], array_values($who()));
+        $this->assertTrue(Broadcasts::can_send($this->campaign_id));
+
+        // A connection with lists still needs one chosen.
+        Broadcasts::save($this->campaign_id, ['connection_service' => 'MailChimpConnect', 'connection_email_list' => '']);
+        $this->assertSame([false], array_values($who()));
+        $this->assertFalse(Broadcasts::can_send($this->campaign_id));
+    }
 }

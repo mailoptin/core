@@ -300,8 +300,22 @@ class Broadcasts
 
         if ('' === $connection) return false;
 
-        // A list fetch that failed comes back empty too, so only these are known to have no lists.
-        return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true);
+        return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || ! self::connection_has_lists($connection);
+    }
+
+    /**
+     * Whether a connection sends to a list chosen for the broadcast. WordPress users, Lead Bank and the
+     * integrations built on the WordPress users one (WooCommerce, MemberPress, LearnDash and so on)
+     * send to the people they have instead. A list fetch that failed comes back empty too, so an
+     * empty list alone doesn't mean a connection has none.
+     */
+    public static function connection_has_lists($connection)
+    {
+        if (in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true)) return false;
+
+        $class = sprintf('\\MailOptin\\%s\\Connect', $connection);
+
+        return ! (class_exists($class) && is_subclass_of($class, '\\MailOptin\\RegisteredUsersConnect\\Connect'));
     }
 
     /**
