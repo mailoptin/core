@@ -12,7 +12,7 @@ class Base
 
             foreach ($site_ids as $site_id) {
                 switch_to_blog($site_id);
-                self::mo_install();
+                self::mo_install(false);
                 restore_current_blog();
             }
         } else {
@@ -33,18 +33,26 @@ class Base
 
         if (is_plugin_active_for_network('mailoptin/mailoptin.php')) {
             switch_to_blog($blog_id);
-            self::mo_install();
+            self::mo_install(false);
             restore_current_blog();
         }
     }
 
     /**
      * Perform plugin activation / installation.
+     *
+     * @param bool $open_setup_wizard open the setup wizard afterwards if this is a fresh install. Off for
+     *                                network-wide activation, where nobody is looking at each site.
      */
-    public static function mo_install()
+    public static function mo_install($open_setup_wizard = true)
     {
         if ( ! current_user_can('activate_plugins') || get_option('mo_plugin_activated') == 'true') {
             return;
+        }
+
+        // No install date means MailOptin has never been installed here (reactivation keeps it).
+        if ($open_setup_wizard && false === get_option('mo_install_date')) {
+            \MailOptin\Core\Admin\SetupWizard::flag_new_install();
         }
 
         CreateDBTables::make();
