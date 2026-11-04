@@ -92,6 +92,14 @@ class WP_Customize_Email_Schedule_Time_Fields_Control extends WP_Customize_Contr
                 ?>
             </select>
             <span style="display: inline-block" class="description customize-control-description"><?php _e('after publishing', 'mailoptin'); ?></span>
+            <p class="mo-npp-delay-warning" style="color:#b32d2e;<?php echo '' === trim((string)$this->value($settings[0])) ? '' : 'display:none'; ?>"><?php esc_html_e('With no delay it never sends. Enter one, or switch on "Send Immediately".', 'mailoptin'); ?></p>
+            <script type="text/javascript">
+                jQuery(function ($) {
+                    $(document).on('input change', '#customize-control-<?php echo esc_js(str_replace(['[', ']'], ['-', ''], $this->id)); ?> input[type=text]', function () {
+                        $(this).closest('div').find('.mo-npp-delay-warning').toggle('' === $.trim(this.value));
+                    });
+                });
+            </script>
         </div>
         <?php
     }
