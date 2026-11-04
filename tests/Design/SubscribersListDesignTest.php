@@ -81,6 +81,13 @@ class SubscribersListDesignTest extends \WP_UnitTestCase
         $this->assertStringContainsString('name="orderby" value="email"', $table[0], 'The list filter keeps the sort.');
     }
 
+    public function test_array_search_param_is_ignored_without_warnings()
+    {
+        $html = $this->render(['s' => ['x']]);
+
+        $this->assertStringContainsString('id="mo-subscriber-search-input" name="s" value=""', $html);
+    }
+
     public function test_status_pill_tones()
     {
         $this->assertStringContainsString('mo-ui-warn', Subscribers_Page::status_pill('pending'));

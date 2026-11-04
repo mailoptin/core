@@ -275,6 +275,9 @@ class Subscribers_Page extends AbstractSettingsPage
 
         $this->list_table->prepare_items();
 
+        // Ignore an array in ?s= rather than warn.
+        $search = isset($_GET['s']) && is_string($_GET['s']) ? wp_unslash($_GET['s']) : '';
+
         ob_start();
         ?>
         <?php echo $this->notice_html(); ?>
@@ -301,7 +304,7 @@ class Subscribers_Page extends AbstractSettingsPage
                     <input type="hidden" name="page" value="<?php echo esc_attr(self::SLUG); ?>">
                     <?php echo $this->view_inputs(); ?>
                     <label class="screen-reader-text" for="mo-subscriber-search-input"><?php esc_html_e('Search subscribers', 'mailoptin'); ?></label>
-                    <input type="search" class="mo-ui-search" id="mo-subscriber-search-input" name="s" value="<?php echo esc_attr(wp_unslash($_GET['s'] ?? '')); ?>"
+                    <input type="search" class="mo-ui-search" id="mo-subscriber-search-input" name="s" value="<?php echo esc_attr($search); ?>"
                            placeholder="<?php echo esc_attr(Subscribers_Tags_Fields::is_ready() ? __('Search name, email or any field', 'mailoptin') : __('Search email or name', 'mailoptin')); ?>">
                     <button type="submit" class="mo-ui-btn"><?php esc_html_e('Search', 'mailoptin'); ?></button>
                 </form>
@@ -310,8 +313,8 @@ class Subscribers_Page extends AbstractSettingsPage
             <form method="get" class="mo-subscribers-table-form">
                 <input type="hidden" name="page" value="<?php echo esc_attr(self::SLUG); ?>">
                 <?php echo $this->view_inputs(); ?>
-                <?php if ('' !== (string)($_GET['s'] ?? '')) : ?>
-                    <input type="hidden" name="s" value="<?php echo esc_attr(wp_unslash($_GET['s'])); ?>">
+                <?php if ('' !== $search) : ?>
+                    <input type="hidden" name="s" value="<?php echo esc_attr($search); ?>">
                 <?php endif; ?>
                 <?php $this->list_table->display(); ?>
             </form>
