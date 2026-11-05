@@ -93,9 +93,12 @@ class WelcomeEmailTest extends WP_UnitTestCase
         Subscription::confirm($tom['id']);
         $this->deliver();
 
-        // Already confirmed, so joining Workshops subscribes straight away and welcomes only to Workshops.
+        // Joining Workshops needs its own confirmation; confirming it welcomes only to Workshops.
         Subscription::subscribe('tom@example.com', $second, []);
-        $mail = $this->deliver();
+        Subscription::confirm($tom['id']);
+        $mail = array_values(array_filter($this->deliver(), function ($m) {
+            return 0 === strpos($m['subject'], 'Welcome');
+        }));
 
         $this->assertCount(1, $mail);
         $this->assertSame('Welcome to Workshops', $mail[0]['subject']);

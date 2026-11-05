@@ -107,14 +107,13 @@ class Subscription
             return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_REFUSED];
         }
 
-        // An address that already confirmed and is receiving email doesn't need to confirm again for another list.
-        $verified = ! empty($subscriber['confirmed_at']) && Subscribers::STATUS_SUBSCRIBED === $subscriber['status'];
-
         // Someone who unsubscribed must confirm by email to come back, even on a single opt-in list,
         // otherwise anyone could resubscribe them by submitting a form with their address.
         $opted_out = $suppression || ($membership && Subscribers::STATUS_UNSUBSCRIBED === $membership['status']);
 
-        if (( ! $list['double_optin'] || $verified) && ! $opted_out) {
+        // A double opt-in list is confirmed per list, even by someone who confirmed another one: anyone
+        // can submit a form with a known subscriber's address, and that mustn't add them to a new list.
+        if ( ! $list['double_optin'] && ! $opted_out) {
 
             Subscribers::set_membership($subscriber_id, $list_id, Subscribers::STATUS_SUBSCRIBED);
             Subscribers::sync_status($subscriber_id);
@@ -268,9 +267,12 @@ class Subscription
 
         $subject = apply_filters('mo_confirmation_email_subject', __('Please confirm your subscription', 'mailoptin'), $subscriber);
 
-        $greeting = empty($subscriber['first_name'])
+        // Whoever submits the form chooses the name, and this email goes to an address they may not own,
+        // so a "name" that looks like a link or address, or is long, isn't repeated in it.
+        $name     = trim((string)$subscriber['first_name']);
+        $greeting = '' === $name || mb_strlen($name) > 40 || preg_match('#[./:@<>]|www#i', $name)
             ? __('Hi,', 'mailoptin')
-            : sprintf(__('Hi %s,', 'mailoptin'), $subscriber['first_name']);
+            : sprintf(__('Hi %s,', 'mailoptin'), $name);
 
         $intro  = sprintf(__('Click below to confirm you want to receive %1$s from %2$s.', 'mailoptin'), $lists, $site_name);
         $button = __('Yes, subscribe me', 'mailoptin');
