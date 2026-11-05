@@ -52,6 +52,8 @@ class SubscribersListDesignTest extends \WP_UnitTestCase
         $this->assertStringContainsString('2 matching', $html);
         $this->assertStringContainsString('+ Add subscriber', $html);
         $this->assertStringContainsString('mo-ui-btn mo-ui-primary', $html);
+        // Admin notices go below the heading row, not between the title and its buttons.
+        $this->assertMatchesRegularExpression('#\+ Add subscriber</a>\s*</span>\s*</div>\s*<hr class="wp-header-end">#', $html);
 
         // Name on the first line, email on the second.
         $this->assertMatchesRegularExpression('#class="row-title"[^>]*>Amara Obi</a></strong><span class="mo-subscriber-email">amara@example.com</span>#', $html);

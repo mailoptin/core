@@ -294,6 +294,8 @@ class Subscribers_Page extends AbstractSettingsPage
                 <?php echo UI::button(__('+ Add subscriber', 'mailoptin'), add_query_arg('new', '1', self::page_url()), 'primary'); ?>
             </span>
         </div>
+        <?php // WordPress moves admin notices to this marker; without it they land inside the heading row. ?>
+        <hr class="wp-header-end">
         <div class="mo-subscriber-views">
             <?php $this->list_table->views(); ?>
             <?php echo $this->saved_segment_links(); ?>
