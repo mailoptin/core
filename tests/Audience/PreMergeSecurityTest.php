@@ -2,7 +2,9 @@
 
 namespace MailOptin\Tests\Core\Audience;
 
+use MailOptin\Core\Audience\PublicEndpoints;
 use MailOptin\Core\Audience\Subscription;
+use MailOptin\Core\Audience\Tokens;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 use WP_UnitTestCase;
@@ -60,6 +62,43 @@ class PreMergeSecurityTest extends WP_UnitTestCase
         // Clicking the link confirms it.
         Subscription::confirm($id);
         $this->assertSame('subscribed', Subscribers::get_membership($id, $offers)['status']);
+    }
+
+    public function test_confirm_page_waits_for_the_person_to_press_the_button()
+    {
+        $list = ListsRepository::create(['name' => 'Newsletter', 'double_optin' => 1]);
+        $r    = Subscription::subscribe('maya@example.com', $list, []);
+        $sub  = Subscribers::get($r['subscriber_id']);
+
+        parse_str(wp_parse_url(html_entity_decode(Tokens::confirm_url($sub, [$list])), PHP_URL_QUERY), $query);
+
+        $page = $this->endpoint($query, 'GET');
+        $this->assertStringContainsString('id="mo-confirm-form"', $page);
+        // No script on the page: a link scanner that runs JavaScript can't confirm by opening it.
+        $this->assertStringNotContainsString('<script', $page);
+        $this->assertStringNotContainsString('.submit()', $page);
+        $this->assertSame('pending', Subscribers::get_membership($sub['id'], $list)['status']);
+
+        $this->endpoint($query, 'POST');
+        $this->assertSame('subscribed', Subscribers::get_membership($sub['id'], $list)['status']);
+    }
+
+    protected function endpoint($query, $method)
+    {
+        $_GET = $_REQUEST = $query;
+        $_POST = [];
+        $_SERVER['REQUEST_METHOD'] = $method;
+
+        try {
+            PublicEndpoints::get_instance()->handle_request();
+        } catch (\WPDieException $e) {
+            return $e->getMessage();
+        } finally {
+            $_GET = $_REQUEST = [];
+            $_SERVER['REQUEST_METHOD'] = 'GET';
+        }
+
+        return '';
     }
 
     public function test_single_opt_in_lists_still_add_straight_away()
