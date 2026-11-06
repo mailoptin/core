@@ -130,6 +130,17 @@ class SubmissionSync
             return new \WP_Error('mo_sync_busy', __('This submission is already being sent.', 'mailoptin'));
         }
 
+        $attempts = (int)$sync['attempts'] + 1;
+
+        // Earlier automatic tries died without finishing (each counted when claimed): stop here rather
+        // than risk signing the person up again. An admin can still retry it.
+        if ( ! $manual && null === self::next_attempt_at($attempts - 1)) {
+            $error = __('Earlier tries didn\'t finish, so it was not tried again. Retry it by hand once the integration is working.', 'mailoptin');
+            Syncs::record_attempt($sync_id, false, $error, null);
+
+            return new \WP_Error('mo_sync_gave_up', $error);
+        }
+
         $conversion_data = self::builder(json_decode($sync['retry_data'], true));
 
         // Many integrations look up the signup IP themselves; give them the visitor's, not the server's or an admin's.
@@ -145,9 +156,8 @@ class SubmissionSync
             remove_filter('mailoptin_get_ip', $ip, PHP_INT_MAX);
         }
 
-        $sent     = AbstractConnect::is_ajax_success($response);
-        $attempts = (int)$sync['attempts'] + 1;
-        $next     = $sent ? null : self::next_attempt_at($attempts);
+        $sent = AbstractConnect::is_ajax_success($response);
+        $next = $sent ? null : self::next_attempt_at($attempts);
 
         Syncs::record_attempt($sync_id, $sent, $error, $next);
 

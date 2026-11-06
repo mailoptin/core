@@ -107,14 +107,13 @@ class Subscription
             return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_REFUSED];
         }
 
-        // An address that already confirmed and is receiving email doesn't need to confirm again for another list.
-        $verified = ! empty($subscriber['confirmed_at']) && Subscribers::STATUS_SUBSCRIBED === $subscriber['status'];
-
         // Someone who unsubscribed must confirm by email to come back, even on a single opt-in list,
         // otherwise anyone could resubscribe them by submitting a form with their address.
         $opted_out = $suppression || ($membership && Subscribers::STATUS_UNSUBSCRIBED === $membership['status']);
 
-        if (( ! $list['double_optin'] || $verified) && ! $opted_out) {
+        // A double opt-in list is confirmed per list, even by someone who confirmed another one: anyone
+        // can submit a form with a known subscriber's address, and that mustn't add them to a new list.
+        if ( ! $list['double_optin'] && ! $opted_out) {
 
             Subscribers::set_membership($subscriber_id, $list_id, Subscribers::STATUS_SUBSCRIBED);
             Subscribers::sync_status($subscriber_id);
@@ -268,9 +267,12 @@ class Subscription
 
         $subject = apply_filters('mo_confirmation_email_subject', __('Please confirm your subscription', 'mailoptin'), $subscriber);
 
-        $greeting = empty($subscriber['first_name'])
+        // Whoever submits the form chooses the name, and this email goes to an address they may not own,
+        // so a "name" that looks like a link or address, or is long, isn't repeated in it.
+        $name     = trim((string)$subscriber['first_name']);
+        $greeting = '' === $name || mb_strlen($name) > 40 || preg_match('#[./:@<>]|www#i', $name)
             ? __('Hi,', 'mailoptin')
-            : sprintf(__('Hi %s,', 'mailoptin'), $subscriber['first_name']);
+            : sprintf(__('Hi %s,', 'mailoptin'), $name);
 
         $intro  = sprintf(__('Click below to confirm you want to receive %1$s from %2$s.', 'mailoptin'), $lists, $site_name);
         $button = __('Yes, subscribe me', 'mailoptin');
@@ -306,6 +308,16 @@ class Subscription
         $subscriber = Subscribers::get($subscriber_id);
 
         if ( ! $subscriber) return false;
+
+        // Never to an address that bounced or complained. An admin can't resend to someone who
+        // unsubscribed either; they can only sign up again themselves, which sends a fresh one.
+        $suppressed = SuppressionRepository::get_reason($subscriber['email']);
+
+        if (in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)
+            || in_array($suppressed, [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED, SuppressionRepository::REASON_ERASED], true)
+            || ($by_admin && $suppressed)) {
+            return false;
+        }
 
         if ( ! $by_admin) {
             $allowed = ConfirmationThrottle::check($subscriber_id, $ip_address);
@@ -360,8 +372,9 @@ class Subscription
 
         if (empty($pending_list_ids)) return true;
 
-        // Clicking the link proves the inbox works and they want email again.
-        if (Subscribers::STATUS_SUBSCRIBED !== $subscriber['status']) {
+        // Clicking the link proves the inbox works and they want email again. Not for an address that
+        // bounced or complained: only an admin can lift that, from the subscriber's profile.
+        if ( ! in_array($subscriber['status'], [Subscribers::STATUS_SUBSCRIBED, Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)) {
             Subscribers::update($subscriber_id, ['status' => Subscribers::STATUS_PENDING]);
         }
 
@@ -413,6 +426,29 @@ class Subscription
         Subscribers::log_event($subscriber_id, Subscribers::EVENT_UNSUBSCRIBED, ['list_id' => (int)$list_id], (int)$campaign_log_id);
 
         do_action('mo_subscriber_unsubscribed', (int)$subscriber_id, (int)$list_id, (int)$campaign_log_id);
+
+        return true;
+    }
+
+    /**
+     * An admin taking someone off a list. Not an unsubscribe: nothing is suppressed, and the person
+     * can be added to the list again (by an admin, an import or a signup).
+     *
+     * @return bool
+     */
+    public static function remove_by_admin($subscriber_id, $list_id)
+    {
+        $subscriber = Subscribers::get($subscriber_id);
+
+        if ( ! $subscriber || ! Subscribers::get_membership($subscriber_id, $list_id)) return false;
+
+        Subscribers::remove_membership($subscriber_id, $list_id);
+
+        // Left on no list, they keep their status, so a later import or "Add to list" isn't refused
+        // as if they had unsubscribed.
+        if ( ! empty(Subscribers::get_memberships($subscriber_id))) Subscribers::sync_status($subscriber_id);
+
+        Subscribers::log_event($subscriber_id, Subscribers::EVENT_UNSUBSCRIBED, ['list_id' => (int)$list_id, 'removed_by_admin' => get_current_user_id()]);
 
         return true;
     }

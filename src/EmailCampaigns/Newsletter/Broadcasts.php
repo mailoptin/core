@@ -100,6 +100,9 @@ class Broadcasts
             QueueRunner::LOG_STATUS_SENDING => self::STATUS_SENDING,
             QueueRunner::LOG_STATUS_PAUSED  => self::STATUS_SENDING,
             'failed'                        => self::STATUS_FAILED,
+            // A new log is a draft until its recipients are queued: it is going out, not sent.
+            'draft'                         => self::STATUS_SENDING,
+            ''                              => self::STATUS_SENDING,
         ];
 
         return ['status' => $map[$log['status']] ?? self::STATUS_SENT, 'log' => $log, 'scheduled_at' => null];

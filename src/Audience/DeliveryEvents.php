@@ -136,7 +136,10 @@ class DeliveryEvents
     }
 
     /**
-     * Soft bounces since the subscriber last opened, clicked, confirmed or was marked subscribed again.
+     * Soft bounces since the subscriber last opened, clicked, confirmed or was marked subscribed again,
+     * within a recent window. Opens and clicks are deleted with their campaign or by the retention
+     * setting, and aren't recorded at all with tracking off, so the window keeps old soft bounces
+     * from counting towards a new one.
      */
     public static function soft_bounces_in_a_row($subscriber_id)
     {
@@ -149,9 +152,13 @@ class DeliveryEvents
             $subscriber_id, Subscribers::EVENT_OPENED, Subscribers::EVENT_CLICKED, Subscribers::EVENT_CONFIRMED, Subscribers::EVENT_RESUBSCRIBED
         ));
 
+        $window = gmdate('Y-m-d H:i:s', time() - absint(apply_filters('mo_soft_bounce_window_days', 90)) * DAY_IN_SECONDS);
+
+        if ('' === $since || $since < $window) $since = $window;
+
         return (int)$wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $table WHERE subscriber_id = %d AND type = %s AND created_at >= %s",
-            $subscriber_id, Subscribers::EVENT_SOFT_BOUNCED, '' === $since ? '1970-01-01 00:00:00' : $since
+            $subscriber_id, Subscribers::EVENT_SOFT_BOUNCED, $since
         ));
     }
 

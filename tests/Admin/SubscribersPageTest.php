@@ -175,7 +175,8 @@ class SubscribersPageTest extends WP_UnitTestCase
 
         $subscriber = Subscribers::get($subscriber['id']);
         $this->assertSame('Okafor', $subscriber['last_name']);
-        $this->assertSame('unsubscribed', Subscribers::get_membership($subscriber['id'], $this->list_id)['status']);
+        // Unticking a list removes them from it (no unsubscribe or suppression), so they can be added back.
+        $this->assertNull(Subscribers::get_membership($subscriber['id'], $this->list_id));
         $this->assertSame('subscribed', Subscribers::get_membership($subscriber['id'], $workshops)['status']);
         $this->assertSame('subscribed', $subscriber['status']);
     }

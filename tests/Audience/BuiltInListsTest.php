@@ -159,19 +159,22 @@ class BuiltInListsTest extends WP_UnitTestCase
         $this->assertSame('subscribed', Subscribers::get_membership($subscriber['id'], $this->double_optin_list)['status']);
     }
 
-    public function test_confirmed_subscriber_joins_another_double_opt_in_list_without_confirming_again()
+    public function test_confirmed_subscriber_must_confirm_another_double_opt_in_list()
     {
         $other_list = ListsRepository::create(['name' => 'Wholesale', 'double_optin' => 1]);
 
         $this->connection()->subscribe('tom@example.com', 'Tom', $this->double_optin_list, []);
         Subscription::confirm(Subscribers::get_by_email('tom@example.com')['id']);
         reset_phpmailer_instance();
+        add_filter('mo_confirmation_email_cooldown', '__return_zero');
 
+        // Anyone can submit a form with Tom's address, so a new double opt-in list needs his confirmation.
         $this->connection()->subscribe('tom@example.com', 'Tom', $other_list, []);
 
         $subscriber = Subscribers::get_by_email('tom@example.com');
-        $this->assertSame('subscribed', Subscribers::get_membership($subscriber['id'], $other_list)['status']);
-        $this->assertEmpty($this->sent_mail());
+        $this->assertSame('pending', Subscribers::get_membership($subscriber['id'], $other_list)['status']);
+        $this->assertSame('subscribed', $subscriber['status'], 'His confirmed list keeps him subscribed.');
+        $this->assertCount(1, $this->sent_mail());
     }
 
     public function test_unsubscribe_needs_a_post_and_suppresses_when_no_lists_remain()

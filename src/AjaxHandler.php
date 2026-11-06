@@ -928,6 +928,10 @@ class AjaxHandler
             $a = array_diff($bucket, [$email]);
 
             update_option('mo_leadbank_unsubscribers', $a);
+
+            // As before the suppression table: signing up again through a form lifts an unsubscribe
+            // from a Lead Bank email. Not one from a built-in list email, a bounce or a complaint.
+            \MailOptin\Core\Repositories\SuppressionRepository::remove_unsubscribe_from($lead_data['email'], ['mo_leadbank_unsubscribe']);
         }
 
         // kick-in if only lead bank should be used

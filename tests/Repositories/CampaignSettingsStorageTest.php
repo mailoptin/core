@@ -94,9 +94,10 @@ class CampaignSettingsStorageTest extends WP_UnitTestCase
         global $wpdb;
         $this->assertSame('1000', $wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . Settings::table() . ' WHERE campaign_type = %s', 'optin')));
 
-        // The rows are kept as backups, and are no longer the live ones.
+        // The rows are kept as backups, and are no longer the live ones. The original row stays as it
+        // was, so an older MailOptin still finds every campaign after a downgrade.
         $this->assertSame($optins, get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME . Settings::LEGACY_SUFFIX));
-        $this->assertNull($wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME)));
+        $this->assertSame($optins, maybe_unserialize($wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME))));
 
         // Running it again changes nothing.
         $this->assertTrue(Settings::migrate());
@@ -135,7 +136,7 @@ class CampaignSettingsStorageTest extends WP_UnitTestCase
         $this->assertSame(['headline' => 'Array'], OptinCampaignsRepository::get_settings_by_id(2));
     }
 
-    public function test_only_one_request_moves_the_settings_and_a_backup_is_never_replaced()
+    public function test_only_one_request_moves_the_settings_and_the_original_rows_are_kept()
     {
         $this->legacy_site([1 => ['headline' => 'A']], []);
 
@@ -147,13 +148,16 @@ class CampaignSettingsStorageTest extends WP_UnitTestCase
         // A lock left by a request that died is taken over.
         update_option(Settings::LOCK_OPTION, time() - HOUR_IN_SECONDS);
 
-        // A backup from an earlier move stays as it was.
+        // The original row is the backup now; *_legacy records what was moved, to notice later changes.
         add_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME . Settings::LEGACY_SUFFIX, [1 => ['headline' => 'Earlier backup'], 2 => ['headline' => 'B']], '', 'no');
 
         $this->assertTrue(Settings::migrate());
         $this->assertFalse(get_option(Settings::LOCK_OPTION));
-        $this->assertSame([1 => ['headline' => 'Earlier backup'], 2 => ['headline' => 'B']], get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME . Settings::LEGACY_SUFFIX));
+        $this->assertSame([1 => ['headline' => 'A']], get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME . Settings::LEGACY_SUFFIX));
         $this->assertSame(['headline' => 'A'], OptinCampaignsRepository::get_settings_by_id(1));
+
+        global $wpdb;
+        $this->assertSame([1 => ['headline' => 'A']], maybe_unserialize($wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME))));
     }
 
     public function test_a_failed_move_is_retried_and_leftover_rows_are_cleared()
@@ -236,6 +240,9 @@ class CampaignSettingsStorageTest extends WP_UnitTestCase
         $this->setExpectedIncorrectUsage("get_option('mo_optin_campaign')");
         $this->setExpectedIncorrectUsage("update_option('mo_optin_campaign')");
 
+        global $wpdb;
+        $row_before = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME));
+
         OptinCampaignsRepository::save_settings_by_id(1, ['headline' => 'One']);
         OptinCampaignsRepository::save_settings_by_id(2, ['headline' => 'Two']);
 
@@ -249,8 +256,8 @@ class CampaignSettingsStorageTest extends WP_UnitTestCase
         $this->assertSame(['headline' => 'Changed'], OptinCampaignsRepository::get_settings_by_id(1));
         $this->assertSame(['headline' => 'Two'], OptinCampaignsRepository::get_settings_by_id(2));
 
-        global $wpdb;
-        $this->assertNull($wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME)));
+        // Writes go to the table; the original row is left as the move found it.
+        $this->assertSame($row_before, $wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME)));
     }
 
     public function test_saving_one_campaign_never_touches_another()
@@ -299,6 +306,9 @@ class CampaignSettingsStorageTest extends WP_UnitTestCase
 
     public function test_customizer_settings_read_preview_and_save_the_table()
     {
+        global $wpdb;
+        $row_before = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME));
+
         OptinCampaignsRepository::save_settings_by_id(12, ['headline' => 'Saved', 'note' => 'keep', 'colors' => ['bg' => '#fff', 'fg' => '#000']]);
         OptinCampaignsRepository::save_settings_by_id(13, ['headline' => 'Other']);
 
@@ -315,9 +325,8 @@ class CampaignSettingsStorageTest extends WP_UnitTestCase
         CampaignCustomizeSetting::add($manager, 'mo_optin_campaign[12][colors][bg]', ['type' => 'option', 'default' => '#eee']);
         CampaignCustomizeSetting::add($manager, 'blogname', ['type' => 'option']);
 
-        // Registering them never read every campaign's settings.
-        global $wpdb;
-        $this->assertNull($wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME)));
+        // Registering them never wrote every campaign's settings to the original row.
+        $this->assertSame($row_before, $wpdb->get_var($wpdb->prepare("SELECT option_value FROM $wpdb->options WHERE option_name = %s", MO_OPTIN_CAMPAIGN_WP_OPTION_NAME)));
 
         $setting = $manager->get_setting('mo_optin_campaign[12][headline]');
         $this->assertInstanceOf(CampaignCustomizeSetting::class, $setting);

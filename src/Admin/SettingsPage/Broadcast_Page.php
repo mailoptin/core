@@ -226,7 +226,12 @@ class Broadcast_Page
             $report = $status['log'] && \MailOptin\Core\Repositories\CampaignActivityRepository::is_ready() && \MailOptin\Core\Repositories\CampaignActivityRepository::sent_count($status['log']['id']) ? sprintf(' <a href="%s">%s</a>', esc_url(Campaign_Report::url($status['log']['id'])), esc_html__('See the report', 'mailoptin')) : '';
             $html  .= sprintf(
                 '<div class="notice notice-info"><p>%s%s</p></div>',
-                esc_html(Broadcasts::STATUS_SENT === $status['status'] ? __('This broadcast was sent, so it can\'t be changed. Duplicate it to send another.', 'mailoptin') : __('This broadcast is sending, so it can\'t be changed.', 'mailoptin')),
+                esc_html(Broadcasts::STATUS_SENT === $status['status']
+                    ? __('This broadcast was sent, so it can\'t be changed. Duplicate it to send another.', 'mailoptin')
+                    : (in_array($status['log']['status'] ?? '', ['draft', ''], true)
+                        // Queueing a large list takes a moment; one cut short is finished by Resend.
+                        ? __('This broadcast is being queued, so it can\'t be changed. If this stays for more than a few minutes, open the campaign log and click Resend to finish queueing it.', 'mailoptin')
+                        : __('This broadcast is sending, so it can\'t be changed.', 'mailoptin'))),
                 $report
             );
         }

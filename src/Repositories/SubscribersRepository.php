@@ -314,6 +314,11 @@ class SubscribersRepository extends AbstractRepository
         );
     }
 
+    public static function remove_membership($subscriber_id, $list_id)
+    {
+        return (bool)self::wpdb()->delete(self::memberships_table(), ['subscriber_id' => $subscriber_id, 'list_id' => $list_id], ['%d', '%d']);
+    }
+
     public static function set_membership($subscriber_id, $list_id, $status)
     {
         $table = self::memberships_table();
