@@ -143,6 +143,14 @@ class SubscribersRepository extends AbstractRepository
             $params[] = self::STATUS_UNSUBSCRIBED;
         }
 
+        // For tools that poll for changes (UTC, Y-m-d H:i:s).
+        foreach (['created_since' => 'created_at', 'updated_since' => 'updated_at'] as $arg => $column) {
+            if ( ! empty($args[$arg])) {
+                $where[]  = "s.$column >= %s";
+                $params[] = $args[$arg];
+            }
+        }
+
         // Keyset paging for exports: faster than OFFSET on large lists.
         if ( ! empty($args['after_id'])) {
             $where[]  = 's.id > %d';
@@ -170,7 +178,7 @@ class SubscribersRepository extends AbstractRepository
 
         $where_sql = implode(' AND ', $where);
 
-        $orderby  = in_array($args['orderby'] ?? '', ['email', 'created_at', 'id'], true) ? $args['orderby'] : 'created_at';
+        $orderby  = in_array($args['orderby'] ?? '', ['email', 'created_at', 'updated_at', 'id'], true) ? $args['orderby'] : 'created_at';
         $order    = 'ASC' === strtoupper($args['order'] ?? '') ? 'ASC' : 'DESC';
         $per_page = max(1, absint($args['per_page'] ?? 20));
         $offset   = (max(1, absint($args['page'] ?? 1)) - 1) * $per_page;

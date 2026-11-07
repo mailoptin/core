@@ -190,7 +190,11 @@ class Subscription
      *
      * @return string|\WP_Error one of the ADMIN_* constants
      */
-    public static function add_by_admin($email, $list_ids, $names = [], $has_consent = false)
+    /**
+     * @param array $context optional: source, consent_method, consent_text, meta (for the signup event).
+     *                       The Subscriber API uses it to record that it came from an API key.
+     */
+    public static function add_by_admin($email, $list_ids, $names = [], $has_consent = false, $context = [])
     {
         $email    = Subscribers::normalize_email($email);
         $list_ids = array_filter(array_map('absint', (array)$list_ids));
@@ -210,7 +214,7 @@ class Subscription
         $subscriber = Subscribers::get_by_email($email);
 
         if ( ! $subscriber) {
-            $subscriber_id = Subscribers::create(array_merge(['email' => $email, 'source' => 'admin', 'consent_at' => Subscribers::now(), 'consent_method' => Consent::METHOD_ADMIN], $names));
+            $subscriber_id = Subscribers::create(array_merge(['email' => $email, 'source' => $context['source'] ?? 'admin', 'consent_at' => Subscribers::now(), 'consent_method' => $context['consent_method'] ?? Consent::METHOD_ADMIN], array_filter(['consent_text' => $context['consent_text'] ?? null]), $names));
 
             if ( ! $subscriber_id) return new \WP_Error('mo_subscriber_not_saved', __('The subscriber could not be saved.', 'mailoptin'));
         } else {
@@ -230,7 +234,7 @@ class Subscription
         }
 
         Subscribers::sync_status($subscriber_id);
-        Subscribers::log_event($subscriber_id, Subscribers::EVENT_SIGNUP, ['added_by_admin' => get_current_user_id(), 'list_ids' => array_values($list_ids)]);
+        Subscribers::log_event($subscriber_id, Subscribers::EVENT_SIGNUP, array_merge(['added_by_admin' => get_current_user_id(), 'list_ids' => array_values($list_ids)], (array)($context['meta'] ?? [])));
 
         if ($has_consent) return self::ADMIN_ADDED;
 
