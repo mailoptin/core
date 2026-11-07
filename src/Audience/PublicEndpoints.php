@@ -57,18 +57,19 @@ class PublicEndpoints
 
         $list_ids = null === $lists ? null : array_map('absint', explode('.', $lists));
 
-        // Confirm on POST only, so link scanners that open every link in an inbox can't confirm
-        // signups someone else made. The page submits itself, so for people it's still one click.
+        // Confirm on POST only, and only when the person presses the button: link scanners open every
+        // link in an inbox, and some run JavaScript, so a page that submitted itself could be confirmed
+        // by a scanner for a signup someone else made.
         if ('POST' !== strtoupper($_SERVER['REQUEST_METHOD'] ?? '')) {
             $form = sprintf(
-                '<form method="post" action="%s" id="mo-confirm-form"><button type="submit" class="button">%s</button></form><script>document.getElementById("mo-confirm-form").submit();</script>',
+                '<form method="post" action="%s" id="mo-confirm-form"><p><button type="submit" class="button button-primary button-large">%s</button></p></form>',
                 esc_url(Tokens::confirm_url($subscriber, $list_ids)),
-                esc_html__('Confirm subscription', 'mailoptin')
+                esc_html__('Yes, subscribe me', 'mailoptin')
             );
 
             $this->page(
                 __('Confirm your subscription', 'mailoptin'),
-                esc_html__('Confirming your subscription…', 'mailoptin'),
+                esc_html__('Press the button to confirm you want to receive our emails.', 'mailoptin'),
                 $form
             );
         }
