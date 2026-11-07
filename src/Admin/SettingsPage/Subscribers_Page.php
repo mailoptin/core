@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\SettingsPage;
 use MailOptin\Core\Audience\ConfirmationThrottle;
 use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
+use MailOptin\Core\Admin\UI;
 use MailOptin\Core\Audience\WelcomeEmail;
 use MailOptin\Core\Repositories\ListsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
@@ -156,7 +157,18 @@ class Subscribers_Page extends AbstractSettingsPage
             Subscribers::STATUS_COMPLAINED   => __('Complained', 'mailoptin'),
         ];
 
-        return sprintf('<span class="mo-pill mo-pill-%s">%s</span>', esc_attr($status), esc_html($labels[$status] ?? $status));
+        $tones = [
+            Subscribers::STATUS_SUBSCRIBED   => 'mo-ui-ok',
+            Subscribers::STATUS_PENDING      => 'mo-ui-warn',
+            Subscribers::STATUS_BOUNCED      => 'mo-ui-bad',
+            Subscribers::STATUS_COMPLAINED   => 'mo-ui-bad',
+        ];
+
+        return sprintf(
+            '<span class="%s">%s</span>',
+            esc_attr(trim('mo-ui-badge ' . ($tones[$status] ?? '')) . ' mo-pill mo-pill-' . $status),
+            esc_html($labels[$status] ?? $status)
+        );
     }
 
     public static function source_label($subscriber)
@@ -263,25 +275,52 @@ class Subscribers_Page extends AbstractSettingsPage
 
         $this->list_table->prepare_items();
 
+        // Ignore an array in ?s= rather than warn.
+        $search = isset($_GET['s']) && is_string($_GET['s']) ? wp_unslash($_GET['s']) : '';
+
         ob_start();
         ?>
         <?php echo $this->notice_html(); ?>
-        <p class="mo-list-actions">
-            <a class="button button-primary" href="<?php echo esc_url(add_query_arg('new', '1', self::page_url())); ?>"><?php esc_html_e('Add New', 'mailoptin'); ?></a>
-            <a class="button" href="<?php echo esc_url(Subscribers_Import_Page::import_url()); ?>"><?php esc_html_e('Import CSV', 'mailoptin'); ?></a>
-            <a class="button" href="<?php echo esc_url(Subscribers_Import_Page::export_url($_GET)); ?>"><?php esc_html_e('Export', 'mailoptin'); ?></a>
-        </p>
-        <?php $this->list_table->views(); ?>
-        <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::filter_bar_html($this->list_table->filters); ?>
-        <form method="get">
-            <input type="hidden" name="page" value="<?php echo esc_attr(self::SLUG); ?>">
-            <?php if ( ! empty($_GET['status'])) : ?>
-                <input type="hidden" name="status" value="<?php echo esc_attr(sanitize_key($_GET['status'])); ?>">
-            <?php endif; ?>
-            <?php echo Subscriber_Filters::hidden_inputs($this->list_table->filters); ?>
-            <?php $this->list_table->search_box(Subscribers_Tags_Fields::is_ready() ? __('Search name, email or any field', 'mailoptin') : __('Search email or name', 'mailoptin'), 'mo-subscriber-search'); ?>
-            <?php $this->list_table->display(); ?>
-        </form>
+        <div class="mo-ui-heading">
+            <h1><?php esc_html_e('Subscribers', 'mailoptin'); ?></h1>
+            <span class="mo-ui-sub"><?php echo esc_html(sprintf(
+                    /* translators: %s: number of subscribers matching the current view */
+                    _n('%s matching', '%s matching', $this->list_table->get_pagination_arg('total_items'), 'mailoptin'),
+                    number_format_i18n($this->list_table->get_pagination_arg('total_items'))
+                )); ?></span>
+            <span class="mo-ui-actions">
+                <?php echo UI::button(__('Import', 'mailoptin'), Subscribers_Import_Page::import_url()); ?>
+                <?php echo UI::button(__('Export', 'mailoptin'), Subscribers_Import_Page::export_url($_GET)); ?>
+                <?php echo UI::button(__('+ Add subscriber', 'mailoptin'), add_query_arg('new', '1', self::page_url()), 'primary'); ?>
+            </span>
+        </div>
+        <?php // WordPress moves admin notices to this marker; without it they land inside the heading row. ?>
+        <hr class="wp-header-end">
+        <div class="mo-subscriber-views">
+            <?php $this->list_table->views(); ?>
+            <?php echo $this->saved_segment_links(); ?>
+        </div>
+        <div class="mo-ui-card mo-subscribers-card">
+            <div class="mo-ui-toolbar">
+                <form method="get" class="mo-subscriber-search-form" role="search">
+                    <input type="hidden" name="page" value="<?php echo esc_attr(self::SLUG); ?>">
+                    <?php echo $this->view_inputs(); ?>
+                    <label class="screen-reader-text" for="mo-subscriber-search-input"><?php esc_html_e('Search subscribers', 'mailoptin'); ?></label>
+                    <input type="search" class="mo-ui-search" id="mo-subscriber-search-input" name="s" value="<?php echo esc_attr($search); ?>"
+                           placeholder="<?php echo esc_attr(Subscribers_Tags_Fields::is_ready() ? __('Search name, email or any field', 'mailoptin') : __('Search email or name', 'mailoptin')); ?>">
+                    <button type="submit" class="mo-ui-btn"><?php esc_html_e('Search', 'mailoptin'); ?></button>
+                </form>
+                <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::filter_bar_html($this->list_table->filters); ?>
+            </div>
+            <form method="get" class="mo-subscribers-table-form">
+                <input type="hidden" name="page" value="<?php echo esc_attr(self::SLUG); ?>">
+                <?php echo $this->view_inputs(); ?>
+                <?php if ('' !== $search) : ?>
+                    <input type="hidden" name="s" value="<?php echo esc_attr($search); ?>">
+                <?php endif; ?>
+                <?php $this->list_table->display(); ?>
+            </form>
+        </div>
         <?php // Outside the table's form: the dialogs have forms of their own, and browsers drop nested forms. ?>
         <?php if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::bulk_bar_html(); ?>
         <?php
@@ -1108,14 +1147,89 @@ class Subscribers_Page extends AbstractSettingsPage
         );
     }
 
+    /**
+     * Hidden inputs that keep the current status and tag/field/engagement filters when a form on the
+     * list is submitted.
+     */
+    protected function view_inputs()
+    {
+        $html = '';
+
+        if ( ! empty($_GET['status'])) {
+            $html .= sprintf('<input type="hidden" name="status" value="%s">', esc_attr(sanitize_key($_GET['status'])));
+        }
+
+        // A later "list" select in the same form (the table's list filter) overrides this one.
+        if ( ! empty($_GET['list'])) {
+            $html .= sprintf('<input type="hidden" name="list" value="%d">', absint($_GET['list']));
+        }
+
+        if ( ! empty($_GET['segment'])) {
+            $html .= sprintf('<input type="hidden" name="segment" value="%d">', absint($_GET['segment']));
+        }
+
+        // Keep the column sort, as WordPress's own search box did.
+        foreach (['orderby', 'order'] as $key) {
+            if ( ! empty($_GET[$key])) {
+                $html .= sprintf('<input type="hidden" name="%s" value="%s">', $key, esc_attr(sanitize_key($_GET[$key])));
+            }
+        }
+
+        return $html . Subscriber_Filters::hidden_inputs($this->list_table->filters);
+    }
+
+    /**
+     * Saved segments as quick links beside the status views (Premium; nothing when there are none).
+     */
+    protected function saved_segment_links()
+    {
+        if ( ! Subscribers_Segments::is_ready() || ! \MailOptin\Core\Repositories\SegmentsRepository::is_available()) return '';
+
+        $links = '';
+        foreach (array_slice(\MailOptin\Core\Repositories\SegmentsRepository::all(), 0, 4) as $segment) {
+            $links .= sprintf(
+                '<a class="mo-segment-link%s" href="%s">&#9733; %s</a>',
+                absint($_GET['segment'] ?? 0) === (int)$segment['id'] ? ' current' : '',
+                esc_url(Subscribers_Segments::view_url($segment)),
+                esc_html($segment['name'])
+            );
+        }
+
+        return '' === $links ? '' : '<nav class="mo-segment-links" aria-label="' . esc_attr__('Saved segments', 'mailoptin') . '">' . $links . '</nav>';
+    }
+
     protected function styles()
     {
         return '<style>
-.mo-pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;background:#f0f0f1;color:#50575e}
-.mo-pill-subscribed{background:#edfaef;color:#00701a}
-.mo-pill-pending{background:#fcf9e8;color:#8a6100}
-.mo-pill-unsubscribed,.mo-pill-bounced,.mo-pill-complained{background:#fcf0f1;color:#b32d2e}
+.mo-pill:not(.mo-ui-badge){display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;background:#f0f0f1;color:#50575e}
 .mo-subscribers-wrap{margin:20px 20px 0 2px}
+.mo-subscribers-wrap>.mo-ui-heading{margin-top:8px}
+.mo-subscriber-views{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.mo-subscriber-views .subsubsub{float:none;margin:0;display:flex;flex-wrap:wrap;gap:4px;font-size:13px;color:transparent}
+.mo-subscriber-views .subsubsub li{margin:0;font-size:0}
+.mo-subscriber-views .subsubsub a{display:inline-block;font-size:13px;padding:6px 12px;border:1px solid transparent;border-radius:6px;color:#3c434a;text-decoration:none}
+.mo-subscriber-views .subsubsub a.current{background:#fff;border-color:#dcdcde;color:#1d2327;font-weight:600}
+.mo-subscriber-views .subsubsub a .count{color:#646970;font-weight:400;margin-left:2px}
+.mo-segment-links{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.mo-segment-links a{padding:6px 10px;border-radius:6px;text-decoration:none}
+.mo-segment-links a.current{background:#fff;border:1px solid #dcdcde;font-weight:600}
+.mo-subscribers-card{margin-bottom:16px}
+.mo-subscribers-card .mo-ui-toolbar{align-items:flex-start}
+.mo-subscriber-search-form{display:flex;gap:6px;align-items:center;margin:0}
+.mo-subscribers-card .mo-filter-bar{margin:0;flex:1;align-items:center}
+.mo-subscribers-card .mo-filter-chip{background:#fff;border-color:#dcdcde;height:28px;box-sizing:border-box}
+.mo-subscribers-card .mo-add-filter summary{border:1px dashed #dcdcde;border-radius:99px;padding:4px 10px;line-height:18px}
+.mo-subscribers-card .tablenav{padding:8px 14px;margin:0;height:auto}
+.mo-subscribers-card .tablenav.bottom{border-top:1px solid #f0f0f1}
+.mo-subscribers-card .wp-list-table{border:0;box-shadow:none}
+.mo-subscribers-card .wp-list-table thead th,.mo-subscribers-card .wp-list-table thead td{border-bottom-color:#dcdcde}
+.mo-subscribers-card .wp-list-table tfoot{display:none}
+.mo-subscribers-card .wp-list-table td{vertical-align:middle;padding-top:10px;padding-bottom:10px;border-bottom:1px solid #f0f0f1}
+.mo-subscribers-card .wp-list-table.striped>tbody>:nth-child(odd){background:#fff}
+.mo-subscribers-card .wp-list-table tr:has(.check-column input:checked) td,.mo-subscribers-card .wp-list-table tr:has(.check-column input:checked) th{background:#f0f6fc}
+.mo-subscriber-email{display:block;color:#646970}
+.mo-bulk-bar{border-radius:10px}
+@media (max-width:782px){.wp-list-table.subscribers{table-layout:auto}.wp-list-table.subscribers .column-email{width:auto}.mo-subscriber-search-form{flex:1 1 100%}.mo-subscriber-search-form .mo-ui-search{flex:1;width:auto}.mo-subscribers-wrap>.mo-ui-heading .mo-ui-actions{margin-left:0}}
 .mo-muted{color:#646970}
 .mo-card{background:#fff;border:1px solid #c3c4c7;padding:4px 16px 12px;margin-bottom:16px}
 .mo-narrow{max-width:520px}
@@ -1133,8 +1247,7 @@ class Subscribers_Page extends AbstractSettingsPage
 .mo-kv dd{margin:0}
 .mo-consent-checkbox{color:#00701a;font-weight:600}
 .mo-consent-checkbox_not_ticked{color:#b32d2e;font-weight:600}
-.wp-list-table.subscribers .column-email{width:22%}
-.wp-list-table.subscribers .column-name{width:13%}
+.wp-list-table.subscribers .column-email{width:26%}
 .wp-list-table.subscribers .column-status{width:110px}
 .wp-list-table.subscribers .column-source{width:11%}
 .wp-list-table.subscribers .column-created_at{width:130px}

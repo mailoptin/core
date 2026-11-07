@@ -187,7 +187,7 @@ class ImportExportPageTest extends WP_UnitTestCase
         $this->assertStringContainsString('Export 2 subscribers', $this->render('render_export', ['view' => 'export']));
 
         $list = $this->render('render_subscribers', ['list' => $this->list_id]);
-        $this->assertStringContainsString('Import CSV', $list);
+        $this->assertStringContainsString('>Import</a>', $list);
         $this->assertStringContainsString('view=export&#038;list=' . $this->list_id, $list);
     }
 }
