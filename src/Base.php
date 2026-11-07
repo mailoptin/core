@@ -121,6 +121,8 @@ class Base
         Audience\PreferenceCentre::get_instance();
         Audience\SubscriberImport::get_instance();
         \MailOptin\MailOptinConnect\Connect::get_instance();
+        Api\SubscribersApi::get_instance();
+        require_once __DIR__ . '/Api/functions.php';
 
         $this->admin_hooks();
         Admin\Customizer\EmailCampaign\Customizer::instance();
@@ -171,6 +173,7 @@ class Base
         }
 
         Admin\SettingsPage\Settings::get_instance();
+        Admin\SettingsPage\ApiSettings::get_instance();
         Admin\SettingsPage\Connections::get_instance();
         Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();

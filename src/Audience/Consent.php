@@ -16,6 +16,7 @@ class Consent
     const METHOD_ADMIN = 'admin';
     const METHOD_IMPORT = 'import';
     const METHOD_IMPORT_CONFIRM = 'import_confirm';
+    const METHOD_API = 'api';
 
     /**
      * Read the consent wording from an optin form. With the Acceptance Checkbox on, the form's Note
@@ -62,6 +63,7 @@ class Consent
             self::METHOD_ADMIN               => __('Added by an admin', 'mailoptin'),
             self::METHOD_IMPORT              => __('Imported by an admin who confirmed they have permission', 'mailoptin'),
             self::METHOD_IMPORT_CONFIRM      => __('Imported; asked to confirm by email', 'mailoptin'),
+            self::METHOD_API                 => __('Added through the Subscriber API', 'mailoptin'),
         ];
 
         return $labels[$method] ?? '';
