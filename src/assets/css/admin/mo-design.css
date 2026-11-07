@@ -1,0 +1,444 @@
+/*
+ * MailOptin admin design system.
+ *
+ * One set of colours, spacing and components shared by every MailOptin admin screen:
+ * the page header and tabs, buttons, badges, chips, cards, notices, search boxes and
+ * list tables. Components use the "mo-ui-" prefix so they never clash with WordPress
+ * core or other plugins. Markup helpers live in MailOptin\Core\Admin\UI.
+ */
+
+body.mailoptin-admin {
+    --mo-blue: #2271b1;
+    --mo-blue-dark: #135e96;
+    --mo-blue-soft: #f0f6fc;
+    --mo-ink: #1d2327;
+    --mo-text: #3c434a;
+    --mo-muted: #646970;
+    --mo-line: #dcdcde;
+    --mo-line-soft: #f0f0f1;
+    --mo-bg: #f6f7f7;
+    --mo-card: #fff;
+    --mo-ok: #00701a;
+    --mo-ok-bg: #edfaef;
+    --mo-warn: #8a6100;
+    --mo-warn-bg: #fcf9e8;
+    --mo-bad: #b32d2e;
+    --mo-bad-bg: #fcf0f1;
+    --mo-pro: #5b2a9e;
+    --mo-pro-bg: #f3ecff;
+    --mo-radius: 10px;
+    --mo-radius-sm: 6px;
+}
+
+/* ---------- Page header: white top bar with the page name, then underlined tabs ---------- */
+
+body.mailoptin-admin .mailoptin-admin-wrap {
+    background: #fff;
+    border-bottom: 1px solid var(--mo-line);
+    min-height: 60px;
+    padding: 0 28px;
+}
+
+body.mailoptin-admin .mailoptin-header-items {
+    gap: 12px;
+}
+
+body.mailoptin-admin .mailoptin-header-items img {
+    background: var(--mo-blue);
+    border-radius: 7px;
+    box-sizing: border-box;
+    height: 30px;
+    padding: 6px;
+    width: 30px;
+}
+
+body.mailoptin-admin h2.mailoptin-headers-main-title {
+    border-left: 0;
+    color: var(--mo-ink);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    margin: 0;
+    padding: 0;
+}
+
+body.mailoptin-admin .mailoptin-headers-header-close {
+    max-width: none;
+}
+
+/* Keep the help links clear of WordPress's absolutely positioned "Screen Options" button. */
+body.mailoptin-admin:has(#screen-meta-links) .mailoptin-admin-wrap {
+    padding-right: 170px;
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks {
+    white-space: nowrap;
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks a {
+    color: var(--mo-text);
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks a:hover,
+body.mailoptin-admin .mo-admin-banner__helplinks a:focus {
+    color: var(--mo-blue);
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks a.mailoptin-right-nav-active {
+    background: var(--mo-pro-bg);
+    border-radius: 99px;
+    color: var(--mo-pro);
+    padding: 4px 12px;
+}
+
+body.mailoptin-admin .mailoptin-header-menus {
+    border-bottom: 1px solid var(--mo-line);
+    box-shadow: none;
+    padding: 0 28px;
+}
+
+body.mailoptin-admin .mailoptin-nav-tab-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 22px;
+}
+
+body.mailoptin-admin .mailoptin-nav-tab {
+    border-bottom: 2px solid transparent;
+    color: var(--mo-text);
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+    padding: 12px 0 11px;
+    white-space: nowrap;
+}
+
+body.mailoptin-admin .mailoptin-nav-tab:hover {
+    color: var(--mo-blue);
+}
+
+body.mailoptin-admin .mailoptin-nav-tab.mailoptin-nav-active {
+    border-bottom-color: var(--mo-blue);
+    color: var(--mo-blue);
+    font-size: 13px;
+}
+
+/* ---------- Page body ---------- */
+
+.mo-ui-page {
+    color: var(--mo-ink);
+    font-size: 13px;
+    max-width: 1320px;
+    padding: 22px 28px;
+}
+
+.mo-ui-heading {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.mo-ui-heading h1 {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+    padding: 0;
+}
+
+.mo-ui-heading .mo-ui-sub {
+    color: var(--mo-muted);
+}
+
+.mo-ui-heading .mo-ui-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+/* ---------- Buttons ---------- */
+
+.mo-ui-btn,
+a.mo-ui-btn,
+button.mo-ui-btn {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-shadow: none;
+    box-sizing: border-box;
+    color: var(--mo-ink);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 6px;
+    height: 32px;
+    line-height: 1;
+    padding: 0 12px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.mo-ui-btn:hover,
+.mo-ui-btn:focus {
+    border-color: #8c8f94;
+    color: var(--mo-ink);
+}
+
+.mo-ui-btn:focus-visible {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--mo-blue);
+    outline: none;
+}
+
+.mo-ui-btn.mo-ui-primary {
+    background: var(--mo-blue);
+    border-color: var(--mo-blue);
+    color: #fff;
+}
+
+.mo-ui-btn.mo-ui-primary:hover,
+.mo-ui-btn.mo-ui-primary:focus {
+    background: var(--mo-blue-dark);
+    border-color: var(--mo-blue-dark);
+    color: #fff;
+}
+
+.mo-ui-btn.mo-ui-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--mo-blue);
+}
+
+.mo-ui-btn.mo-ui-ghost:hover {
+    background: var(--mo-blue-soft);
+}
+
+.mo-ui-btn.mo-ui-danger {
+    color: var(--mo-bad);
+}
+
+.mo-ui-btn[disabled],
+.mo-ui-btn.mo-ui-disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+/* ---------- Cards ---------- */
+
+.mo-ui-card {
+    background: var(--mo-card);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    box-sizing: border-box;
+}
+
+.mo-ui-card-pad {
+    padding: 18px 22px;
+}
+
+/* ---------- Badges, pills, chips ---------- */
+
+.mo-ui-badge {
+    align-items: center;
+    background: var(--mo-line-soft);
+    border-radius: 99px;
+    color: #50575e;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 500;
+    gap: 5px;
+    line-height: 18px;
+    padding: 1px 8px;
+    white-space: nowrap;
+}
+
+.mo-ui-badge::before {
+    background: currentColor;
+    border-radius: 50%;
+    content: "";
+    height: 6px;
+    width: 6px;
+}
+
+.mo-ui-badge.mo-ui-ok {
+    background: var(--mo-ok-bg);
+    color: var(--mo-ok);
+}
+
+.mo-ui-badge.mo-ui-warn {
+    background: var(--mo-warn-bg);
+    color: var(--mo-warn);
+}
+
+.mo-ui-badge.mo-ui-bad {
+    background: var(--mo-bad-bg);
+    color: var(--mo-bad);
+}
+
+.mo-ui-badge.mo-ui-info {
+    background: var(--mo-blue-soft);
+    color: var(--mo-blue);
+}
+
+.mo-ui-pro,
+.mo-premium-badge,
+.mo-premium-pill {
+    background: var(--mo-pro-bg, #f3ecff);
+    border-radius: 99px;
+    color: var(--mo-pro, #5b2a9e);
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    margin-left: 4px;
+    padding: 0 7px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.mo-ui-chip {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--mo-line);
+    border-radius: 99px;
+    box-sizing: border-box;
+    color: var(--mo-ink);
+    display: inline-flex;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.mo-ui-chip b {
+    font-weight: 600;
+}
+
+.mo-ui-chip .mo-ui-chip-x {
+    color: var(--mo-muted);
+    text-decoration: none;
+}
+
+.mo-ui-chip .mo-ui-chip-x:hover {
+    color: var(--mo-bad);
+}
+
+.mo-ui-chip.mo-ui-chip-add {
+    border-style: dashed;
+    color: var(--mo-blue);
+}
+
+/* ---------- Notices ---------- */
+
+.mo-ui-note {
+    background: var(--mo-blue-soft);
+    border: 1px solid #c5d9ed;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.mo-ui-note.mo-ui-warn {
+    background: var(--mo-warn-bg);
+    border-color: #f0e2a8;
+}
+
+.mo-ui-note.mo-ui-bad {
+    background: var(--mo-bad-bg);
+    border-color: #f1c4c5;
+}
+
+.mo-ui-note.mo-ui-ok {
+    background: var(--mo-ok-bg);
+    border-color: #b8e6bf;
+}
+
+/* ---------- Forms ---------- */
+
+input.mo-ui-search {
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23646970' stroke-width='2'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='M9.5 9.5 13 13'/%3E%3C/svg%3E") no-repeat 10px center;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-sizing: border-box;
+    height: 32px;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 0 10px 0 30px;
+    width: 280px;
+}
+
+/* ---------- List screens ---------- */
+
+.mo-ui-views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 12px;
+}
+
+.mo-ui-views a {
+    border: 1px solid transparent;
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-text);
+    padding: 6px 12px;
+    text-decoration: none;
+}
+
+.mo-ui-views a.mo-ui-on {
+    background: #fff;
+    border-color: var(--mo-line);
+    color: var(--mo-ink);
+    font-weight: 600;
+}
+
+.mo-ui-views a .mo-ui-count {
+    color: var(--mo-muted);
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+.mo-ui-toolbar {
+    align-items: center;
+    border-bottom: 1px solid var(--mo-line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+}
+
+.mo-ui-toolbar .mo-ui-end {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
+/* ---------- Small screens ---------- */
+
+@media screen and (max-width: 782px) {
+    body.mailoptin-admin:has(#screen-meta-links) .mailoptin-admin-wrap,
+    body.mailoptin-admin .mailoptin-admin-wrap,
+    body.mailoptin-admin .mailoptin-header-menus,
+    .mo-ui-page {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    body.mailoptin-admin .mailoptin-header-menus {
+        overflow-x: auto;
+    }
+
+    body.mailoptin-admin .mailoptin-headers-header-close {
+        display: none;
+    }
+
+    body.mailoptin-admin .mailoptin-nav-tab-wrapper {
+        flex-wrap: nowrap;
+    }
+
+    input.mo-ui-search {
+        width: 100%;
+    }
+}

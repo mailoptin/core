@@ -256,7 +256,6 @@ class Subscribers_Segments
 .mo-save-segment{margin-left:auto}
 .mo-save-segment .mo-add-filter-body{left:auto;right:0}
 .mo-save-segment-upsell{margin-left:auto;padding:4px 6px;text-decoration:none}
-.mo-premium-badge{display:inline-block;font-size:11px;line-height:16px;padding:0 6px;border-radius:99px;background:#f0e6ff;color:#5b2a9e;margin-left:2px}
 .mo-upsell-box{max-width:72ch;background:#fff;border:1px solid #c3c4c7;border-left:4px solid #7e3bd0;padding:4px 20px 8px;margin:12px 0 16px}
 .mo-upsell-box ul{list-style:disc;margin-left:20px}
 </style>';
