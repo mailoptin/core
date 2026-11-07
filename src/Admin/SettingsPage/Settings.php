@@ -266,17 +266,19 @@ class Settings extends AbstractSettingsPage
 
         do_action('mailoptin_before_settings_page', MAILOPTIN_SETTINGS_DB_OPTION_NAME);
         $settings_args    = apply_filters('mailoptin_settings_page', $args);
-        $nav_tabs         = '';
         $tab_content_area = '';
 
         if ( ! empty($settings_args)) {
             $instance = $this->instance;
+            $grouped  = self::group_tabs(array_keys($settings_args));
+            $nav_tabs = [];
+
             foreach ($settings_args as $key => $settings_arg) {
                 $tab_title     = $settings_arg['tab_title'];
                 $section_title = $settings_arg['tab_title'];
                 unset($settings_arg['tab_title']);
                 unset($settings_arg['section_title']);
-                $nav_tabs .= sprintf('<a href="#%1$s" class="nav-tab" id="%1$s-tab"><span class="dashicons dashicons-admin-generic"></span> %2$s</a>', $key, $tab_title);
+                $nav_tabs[$key] = sprintf('<a href="#%1$s" class="nav-tab" id="%1$s-tab">%2$s<span class="mo-settings-matches" hidden></span></a>', esc_attr($key), $tab_title);
 
                 if (isset($settings_arg[0]['section_title'])) {
                     $tab_content_area .= sprintf('<div id="%s" class="mailoptin-group-wrapper">', $key);
@@ -296,19 +298,201 @@ class Settings extends AbstractSettingsPage
             settings_errors('wp_csa_notice');
             echo '<div class="wrap">';
             $instance->settings_page_heading();
-            echo '<div class="mailoptin-settings-wrap" data-option-name="' . MAILOPTIN_SETTINGS_DB_OPTION_NAME . '">';
-            echo '<h2 class="nav-tab-wrapper">' . $nav_tabs . '</h2>';
+            echo '<div class="mailoptin-settings-wrap mo-settings-v2" data-option-name="' . MAILOPTIN_SETTINGS_DB_OPTION_NAME . '">';
+            echo $this->search_html();
+            // Group labels are spans, not links, so the existing tab script (which works on "a" tags) is unchanged.
+            echo '<h2 class="nav-tab-wrapper">';
+            foreach ($grouped as $group_label => $keys) {
+                echo '<span class="mo-settings-nav-group">' . esc_html($group_label) . '</span>';
+                foreach ($keys as $key) echo $nav_tabs[$key];
+            }
+            echo '</h2>';
             echo '<div class="metabox-holder mailoptin-tab-settings">';
-            echo '<form method="post">';
+            echo '<form method="post" class="mo-settings-form">';
             $instance->nonce_field();
             echo $tab_content_area;
+            echo self::save_bar_html();
             echo '</form>';
             echo '</div>';
             echo '</div>';
             echo '</div>';
+            echo self::styles() . self::script();
 
             do_action('mailoptin_after_settings_page', MAILOPTIN_SETTINGS_DB_OPTION_NAME);
         }
+    }
+
+    /**
+     * Sort the settings tabs into labelled groups for the left-hand menu. Tabs added by add-ons that
+     * aren't in a group go under "More", so nothing disappears.
+     *
+     * @param string[] $keys tab keys in their registered order
+     *
+     * @return array group label => tab keys
+     */
+    public static function group_tabs($keys)
+    {
+        $groups = apply_filters('mailoptin_settings_tab_groups', [
+            __('General', 'mailoptin')         => ['general_settings'],
+            __('Sending', 'mailoptin')         => ['sending_settings', 'email_campaign_settings'],
+            __('Forms', 'mailoptin')           => ['optin_campaign_settings', 'leadbank_settings'],
+            __('Spam protection', 'mailoptin') => ['recaptcha_settings', 'turnstile_settings'],
+        ]);
+
+        $out    = [];
+        $placed = [];
+
+        foreach ($groups as $label => $group_keys) {
+            $present = array_values(array_intersect((array)$group_keys, $keys));
+            $present = array_diff($present, $placed);
+            if (empty($present)) continue;
+            $out[$label] = array_values($present);
+            $placed      = array_merge($placed, $present);
+        }
+
+        $rest = array_values(array_diff($keys, $placed));
+        if ( ! empty($rest)) $out[__('More', 'mailoptin')] = $rest;
+
+        return $out;
+    }
+
+    protected function search_html()
+    {
+        return '<div class="mo-settings-search">'
+               . '<label class="screen-reader-text" for="mo-settings-search">' . esc_html__('Search settings', 'mailoptin') . '</label>'
+               . '<input type="search" id="mo-settings-search" class="mo-ui-search" placeholder="' . esc_attr__('Search settings', 'mailoptin') . '" hidden>'
+               . '<p class="mo-ui-note mo-settings-search-note" role="status" hidden></p>'
+               . '</div>';
+    }
+
+    /**
+     * Shown once a setting changes. Its button saves every tab, like the per-section buttons do.
+     */
+    protected static function save_bar_html()
+    {
+        return '<div class="mo-settings-savebar" hidden>'
+               . '<span class="mo-ui-badge mo-ui-warn">' . esc_html__('Unsaved changes', 'mailoptin') . '</span>'
+               . '<span class="mo-settings-savebar-end"></span>'
+               . '<a class="mo-ui-btn" href="' . esc_url(remove_query_arg(wp_removable_query_args())) . '">' . esc_html__('Discard', 'mailoptin') . '</a>'
+               . '<input type="submit" class="mo-ui-btn mo-ui-primary" name="save_' . esc_attr(MAILOPTIN_SETTINGS_DB_OPTION_NAME) . '" value="' . esc_attr__('Save changes', 'mailoptin') . '">'
+               . '</div>';
+    }
+
+    protected static function styles()
+    {
+        return '<style>
+.mailoptin-settings-wrap.mo-settings-v2{display:grid;grid-template-columns:230px minmax(0,1fr);gap:8px 24px;align-items:start;margin-top:8px;border:0}
+.mailoptin-settings-wrap.mo-settings-v2 h2.nav-tab-wrapper{background:transparent;border:0}
+.mailoptin-settings-wrap.mo-settings-v2 h2.nav-tab-wrapper a.nav-tab-active{width:auto;border:1px solid #dcdcde}
+.mailoptin-settings-wrap.mo-settings-v2 .metabox-holder{background:transparent;padding:0}
+.mailoptin-settings-wrap.mo-settings-v2 .mailoptin-tab-settings .postbox{border:1px solid #dcdcde;background:#fff}
+.mailoptin-settings-wrap.mo-settings-v2 .metabox-holder h3.hndle{border:0}
+.mo-settings-v2 .mo-settings-search{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.mo-settings-v2 .mo-settings-search-note{margin:0;flex:1}
+.mo-settings-v2 .nav-tab-wrapper{display:flex;flex-direction:column;float:none;width:auto;margin:0;padding:0;border:0;position:sticky;top:46px}
+.mo-settings-v2 .mo-settings-nav-group{color:#646970;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:14px 12px 4px}
+.mo-settings-v2 .mo-settings-nav-group:first-child{margin-top:4px}
+.mo-settings-v2 .nav-tab-wrapper .nav-tab{display:flex;justify-content:space-between;align-items:center;float:none;margin:0 0 2px;padding:8px 12px;border:1px solid transparent;border-radius:6px;background:transparent;color:#3c434a;font-size:13px;font-weight:500;line-height:1.4;white-space:normal}
+.mo-settings-v2 .nav-tab-wrapper .nav-tab:hover{background:#fff;color:#2271b1}
+.mo-settings-v2 .nav-tab-wrapper .nav-tab.nav-tab-active,.mo-settings-v2 .nav-tab-wrapper .nav-tab.nav-tab-active:hover{background:#fff;border-color:#dcdcde;color:#1d2327;font-weight:600;box-shadow:none}
+.mo-settings-v2 .mo-settings-matches{background:#fff8c5;color:#8a6100;border-radius:99px;padding:0 7px;font-size:11px;font-weight:600}
+.mo-settings-v2 .mailoptin-tab-settings{padding:0;margin:0;min-width:0}
+.mo-settings-v2 .postbox{border:1px solid #dcdcde;border-radius:10px;box-shadow:none;margin-bottom:16px;overflow:hidden}
+.mo-settings-v2 .postbox-header{border-bottom:1px solid #f0f0f1}
+.mo-settings-v2 .postbox .hndle{font-size:15px;padding:14px 22px}
+.mo-settings-v2 .postbox .inside{padding:0 22px 8px;margin:0}
+.mo-settings-v2 .form-table th{padding:16px 20px 16px 0;width:240px}
+.mo-settings-v2 .form-table td{padding:14px 10px}
+.mo-settings-v2 .form-table tr+tr{border-top:1px solid #f0f0f1}
+.mo-settings-v2 .mo-settings-searching .postbox:not(:has(tr:not([hidden]))){display:none}
+.mo-settings-savebar{position:sticky;bottom:12px;z-index:20;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #dcdcde;border-radius:10px;padding:10px 14px;box-shadow:0 6px 20px rgba(0,0,0,.08);margin-top:8px}
+.mo-settings-savebar[hidden]{display:none}
+.mo-settings-savebar-end{margin-left:auto}
+@media (max-width:782px){.mo-settings-v2{grid-template-columns:1fr}.mo-settings-v2 .nav-tab-wrapper{position:static;flex-direction:row;flex-wrap:wrap;gap:4px}.mo-settings-v2 .mo-settings-nav-group{display:none}.mo-settings-v2 .form-table th{width:auto;padding-bottom:0}}
+</style>';
+    }
+
+    /**
+     * Settings search and the unsaved-changes bar. Without JavaScript the page works as before:
+     * the search box stays hidden and each section has its own Save button.
+     */
+    protected static function script()
+    {
+        ob_start();
+        ?>
+        <script>
+            (function () {
+                var wrap = document.querySelector('.mo-settings-v2');
+                if (!wrap) return;
+                var form = wrap.querySelector('.mo-settings-form'),
+                    input = document.getElementById('mo-settings-search'),
+                    note = wrap.querySelector('.mo-settings-search-note'),
+                    bar = wrap.querySelector('.mo-settings-savebar'),
+                    holder = wrap.querySelector('.mailoptin-tab-settings'),
+                    groups = [].slice.call(wrap.querySelectorAll('.mailoptin-group-wrapper')),
+                    rows = [].slice.call(wrap.querySelectorAll('.form-table tr'));
+
+                var dirty = false;
+                var markDirty = function (e) {
+                    if (e.target === input || dirty) return;
+                    dirty = true;
+                    bar.hidden = false;
+                };
+                form.addEventListener('input', markDirty);
+                form.addEventListener('change', markDirty);
+                form.addEventListener('submit', function () { dirty = false; });
+                window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+                bar.querySelector('a').addEventListener('click', function () { dirty = false; });
+
+                input.hidden = false;
+                var activeTab = null, restoring = false;
+
+                // Picking a section from the menu ends the search (but not our own click that reopens the tab).
+                wrap.querySelector('.nav-tab-wrapper').addEventListener('click', function (e) {
+                    if (restoring || !e.target.closest('a.nav-tab') || input.value === '') return;
+                    activeTab = null;
+                    input.value = '';
+                    input.dispatchEvent(new Event('input'));
+                }, true);
+
+                input.addEventListener('input', function () {
+                    var term = input.value.trim().toLowerCase();
+                    rows.forEach(function (row) { row.hidden = false; });
+                    wrap.querySelectorAll('.mo-settings-matches').forEach(function (b) { b.hidden = true; });
+
+                    if (term.length < 2) {
+                        holder.classList.remove('mo-settings-searching');
+                        note.hidden = true;
+                        if (activeTab) { restoring = true; activeTab.click(); restoring = false; activeTab = null; }
+                        return;
+                    }
+
+                    if (!activeTab) activeTab = wrap.querySelector('.nav-tab-wrapper .nav-tab-active');
+                    holder.classList.add('mo-settings-searching');
+                    var total = 0;
+
+                    groups.forEach(function (group) {
+                        var hits = 0;
+                        group.querySelectorAll('.form-table tr').forEach(function (row) {
+                            var match = row.textContent.toLowerCase().indexOf(term) !== -1;
+                            row.hidden = !match;
+                            if (match) hits++;
+                        });
+                        group.style.display = hits ? 'block' : 'none';
+                        var badge = wrap.querySelector('#' + group.id + '-tab .mo-settings-matches');
+                        if (badge && hits) { badge.textContent = hits; badge.hidden = false; }
+                        total += hits;
+                    });
+
+                    note.hidden = false;
+                    note.textContent = total
+                        ? <?php echo wp_json_encode(__('Settings matching "%2$s": %1$d. Clear the search to see everything again.', 'mailoptin')); ?>.replace('%1$d', total).replace('%2$s', input.value.trim())
+                        : <?php echo wp_json_encode(__('No settings match "%s".', 'mailoptin')); ?>.replace('%s', input.value.trim());
+                });
+            })();
+        </script>
+        <?php
+        return ob_get_clean();
     }
 
     public function install_missing_db_tables()
