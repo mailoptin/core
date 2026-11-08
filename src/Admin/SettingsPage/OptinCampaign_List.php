@@ -309,14 +309,20 @@ class OptinCampaign_List extends \WP_List_Table
     }
 
     /**
-     * Text displayed when no email optin form is available
-     */
-    /**
-     * Whether the list shows its first screen instead of the table: nothing in it at all.
+     * Whether the list shows its first screen instead of the table: nothing in it at all. On the free
+     * plan, Premium-type optins left from an earlier licence aren't listed, so they don't count.
      */
     public function shows_empty_state()
     {
-        return empty($_GET['optin-type']) && 0 === (int)$this->record_count();
+        global $wpdb;
+
+        if ( ! empty($_GET['optin-type'])) return false;
+
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) return 0 === (int)$this->record_count();
+
+        $in = implode(',', array_fill(0, count($this->fqn_lite_themes), '%s'));
+
+        return 0 === (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $this->table WHERE CONCAT_WS('/', optin_type, optin_class) IN ($in)", array_values($this->fqn_lite_themes)));
     }
 
     /**
@@ -366,6 +372,9 @@ class OptinCampaign_List extends \WP_List_Table
         ]);
     }
 
+    /**
+     * Text displayed when no email optin form is available
+     */
     public function no_items()
     {
         $optin_type = isset($_GET['optin-type']) ? sanitize_text_field($_GET['optin-type']) : '';

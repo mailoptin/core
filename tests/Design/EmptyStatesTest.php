@@ -97,6 +97,20 @@ class EmptyStatesTest extends WP_UnitTestCase
         $this->assertFalse($logs->shows_empty_state());
     }
 
+    public function test_premium_optins_hidden_on_the_free_plan_dont_count()
+    {
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) $this->markTestSkipped('Free plan only.');
+
+        global $wpdb;
+
+        $list = new OptinCampaign_List($wpdb);
+        \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign('a1b2c3', 'Old bar', 'Neutron', 'bar');
+        $this->assertTrue($list->shows_empty_state());
+
+        \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign('d4e5f6', 'Popup', 'BareMetal', 'lightbox');
+        $this->assertFalse($list->shows_empty_state());
+    }
+
     public function test_post_notifications_digest_card_and_broadcast_list_note()
     {
         $this->assertStringContainsString('mo-ui-pro', Email_Campaign_List::empty_state());
