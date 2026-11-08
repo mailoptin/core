@@ -296,7 +296,9 @@ trait TemplateTrait
 
             // In the customizer the tag stays, so you can see which detail is missing. In an email it goes,
             // with the comma or line break that was there for it.
-            if ( ! is_customize_preview()) $content = self::remove_empty_footer_tag($content, $search[$key]);
+            // (A customizer save request also counts as preview, but emails it triggers, like a page published
+            // from the customizer, are real.)
+            if ( ! is_customize_preview() || did_action('customize_save')) $content = self::remove_empty_footer_tag($content, $search[$key]);
 
             unset($search[$key], $replace[$key]);
         }
@@ -320,8 +322,10 @@ trait TemplateTrait
         $patterns = [
             // Alone on a line, with its comma or full stop and line break.
             '/^[ \t]*' . $t . '[ \t]*[,.]?[ \t]*(?:<br\s*\/?>)?[ \t]*\r?\n/m' => '',
-            // Last in its paragraph: the line break before it goes too.
-            '/(?:<br\s*\/?>)?\s*' . $t . '[ \t]*[,.]?(?=\s*<\/)/' => '',
+            // Between line breaks in one-line HTML: "<br>{{company_address_2}}<br>".
+            '/<br\s*\/?>[ \t]*' . $t . '[ \t]*[,.]?[ \t]*(?=<br)/' => '',
+            // Last in its paragraph: the line break or comma before it goes too ("Portland, {{company_state}}</p>").
+            '/(?:<br\s*\/?>\s*|[ \t]*,[ \t]*)?' . $t . '[ \t]*[,.]?(?=\s*<\/)/' => '',
             // Followed by a comma: "{{company_city}}, OR".
             '/' . $t . '[ \t]*,[ \t]*/' => '',
             // After a comma or space: "Portland, {{company_state}}".

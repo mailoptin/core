@@ -109,4 +109,15 @@ class FooterAddressTest extends WP_UnitTestCase
         $wp_customize->stop_previewing_theme();
         $wp_customize = null;
     }
+
+    public function test_custom_footers()
+    {
+        // Last before the closing tag, after a comma.
+        $this->assertSame('<p>Portland</p>', FooterAddressDouble::remove_empty_footer_tag('<p>Portland, {{company_state}}</p>', '{{company_state}}'));
+        // One-line HTML with <br> between details.
+        $this->assertSame('<p>Acme<br>Portland</p>', FooterAddressDouble::remove_empty_footer_tag('<p>Acme<br>{{company_address_2}}<br>Portland</p>', '{{company_address_2}}'));
+        $this->assertSame('<p>Acme<br />Portland</p>', FooterAddressDouble::remove_empty_footer_tag('<p>Acme<br />{{company_address_2}},<br />Portland</p>', '{{company_address_2}}'));
+        // Elsewhere in the email only the tag goes.
+        $this->assertSame('<td></td>', FooterAddressDouble::remove_empty_footer_tag('<td>{{company_address_2}}</td>', '{{company_address_2}}'));
+    }
 }
