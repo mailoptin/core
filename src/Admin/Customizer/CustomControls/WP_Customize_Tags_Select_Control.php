@@ -12,9 +12,6 @@ class WP_Customize_Tags_Select_Control extends WP_Customize_Chosen_Select_Contro
 {
     public $type = 'mailoptin_tags_select';
 
-    // Not one of chosen.js's AJAX search types: typing filters the tags already listed.
-    public $search_type = 'mo_subscriber_tags';
-
     public function enqueue()
     {
         parent::enqueue();
@@ -28,9 +25,16 @@ class WP_Customize_Tags_Select_Control extends WP_Customize_Chosen_Select_Contro
      */
     protected static function sync_script()
     {
+        // Initialised here rather than by chosen.js (no "mailoptin-chosen" class): that one searches posts over
+        // AJAX as you type, which tags don't need. Same timing as chosen.js: controls are in the page by then.
         return "jQuery(document).on('change', '.mo-tags-select', function () {
             var id = this.getAttribute('data-mo-setting'), setting = wp.customize(id);
             if (setting) setting.set((jQuery(this).val() || []).join(','));
+        });
+        jQuery(window).on('load', function () {
+            setTimeout(function () {
+                jQuery('select.mo-tags-select').chosen({width: '100%', search_contains: true, hide_results_on_select: false});
+            }, 1000);
         });";
     }
 
@@ -43,7 +47,7 @@ class WP_Customize_Tags_Select_Control extends WP_Customize_Chosen_Select_Contro
             <?php if ( ! empty($this->label)) : ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
             <?php endif; ?>
-            <select class="mailoptin-chosen mo-tags-select" data-search-type="<?php echo esc_attr($this->search_type); ?>" data-mo-setting="<?php echo esc_attr($setting); ?>" data-placeholder="<?php esc_attr_e('Choose tags…', 'mailoptin'); ?>" multiple>
+            <select class="mo-tags-select" data-mo-setting="<?php echo esc_attr($setting); ?>" data-placeholder="<?php esc_attr_e('Choose tags…', 'mailoptin'); ?>" multiple>
                 <?php foreach ($this->choices as $id => $name) : ?>
                     <option value="<?php echo absint($id); ?>" <?php selected(in_array((int)$id, $selected, true)); ?>><?php echo esc_html($name); ?></option>
                 <?php endforeach; ?>

@@ -67,7 +67,7 @@ class Broadcast_Page
         wp_enqueue_script('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', ['jquery'], MAILOPTIN_VERSION_NUMBER, true);
         wp_add_inline_script('mailoptin-chosen', "jQuery(function ($) {
             $('select.mo-tags-select').each(function () {
-                var select = this, changed = false;
+                var select = this, changed = false, pending = null;
                 $(select).chosen({width: '100%', search_contains: true, hide_results_on_select: false})
                     .on('change', function (e, params) {
                         if (!params) return;
@@ -75,12 +75,15 @@ class Broadcast_Page
                         if (params.deselected && !$(select).data('chosen').results_showing) return select.dispatchEvent(new Event('change'));
                         changed = true;
                     })
-                    // Saved once the list closes, not on every pick (each save reloads the page).
+                    // Saved once the list closes, not on every pick (each save reloads the page). Not when the
+                    // list closed because a button was clicked: that button's own submit saves the tags too, and
+                    // an autosave in between would replace its action (Review, Send test) with Save.
                     .on('chosen:hiding_dropdown', function () {
                         if (!changed) return;
                         changed = false;
-                        select.dispatchEvent(new Event('change'));
+                        pending = setTimeout(function () { select.dispatchEvent(new Event('change')); }, 300);
                     });
+                if (select.form) select.form.addEventListener('submit', function () { clearTimeout(pending); });
             });
         });");
     }

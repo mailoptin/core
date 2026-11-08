@@ -61,7 +61,7 @@ class ExcludeTagsSelectTest extends WP_UnitTestCase
         $html = Broadcast_Page::html();
 
         $this->assertSame(1, substr_count($html, 'id="mo-exclude-tags"'));
-        $this->assertStringContainsString('multiple', $html);
+        $this->assertMatchesRegularExpression('/<select id="mo-exclude-tags" name="exclude_tags\[\]"[^>]*\bmultiple\b/', $html);
         $this->assertSame(0, substr_count($html, 'type="checkbox" name="exclude_tags[]"'));
         $this->assertSame(50, preg_match_all('/<option value="\d+"\s*(selected=\'selected\')?\s*>tag-\d\d<\/option>/', $html));
         $this->assertSame(2, preg_match_all('/selected=\'selected\'\s*>tag-(03|12)</', $html));
@@ -110,6 +110,8 @@ class ExcludeTagsSelectTest extends WP_UnitTestCase
         $this->assertSame(2, substr_count($html, "selected='selected'"));
         $this->assertStringContainsString('data-mo-setting="' . esc_attr($id) . '"', $html);
         $this->assertStringNotContainsString('data-customize-setting-link', $html);
+        // Not picked up by chosen.js, which would search posts over AJAX as you type.
+        $this->assertStringNotContainsString('mailoptin-chosen', $html);
         $this->assertSame(50, substr_count($html, '<option '));
     }
 
@@ -122,5 +124,16 @@ class ExcludeTagsSelectTest extends WP_UnitTestCase
         $controls = (new \MailOptin\MailOptinConnect\CampaignAudience())->controls([], $manager, MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME . '[' . $this->campaign_id . ']', $customer);
 
         $this->assertInstanceOf(WP_Customize_Tags_Select_Control::class, $controls[Segments::EXCLUDE_TAGS_SETTING]);
+    }
+
+    public function test_the_customizer_setting_stores_comma_separated_ids()
+    {
+        $settings = (new \MailOptin\MailOptinConnect\CampaignAudience())->settings([]);
+        $sanitize = $settings[Segments::EXCLUDE_TAGS_SETTING]['sanitize_callback'];
+
+        $this->assertSame($this->tags[2] . ',' . $this->tags[9], $sanitize([(string)$this->tags[2], (string)$this->tags[9]]));
+        $this->assertSame($this->tags[2] . ',' . $this->tags[9], $sanitize($this->tags[2] . ',' . $this->tags[9]));
+        $this->assertSame('', $sanitize(''));
+        $this->assertSame('', $sanitize([]));
     }
 }
