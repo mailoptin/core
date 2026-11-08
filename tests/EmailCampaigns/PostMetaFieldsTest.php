@@ -126,6 +126,11 @@ class PostMetaFieldsTest extends WP_UnitTestCase
 
         $this->assertSame(['author', 'date', 'category', 'tags', 'comments', 'reading_time', 'tax:season'], array_keys($choices));
         $this->assertArrayNotHasKey('woo:price', $choices);
+
+        // Taxonomies that mean nothing to readers aren't offered.
+        register_taxonomy('product_shipping_class', 'post', ['public' => true]);
+        $this->assertArrayNotHasKey('tax:product_shipping_class', PostMetaFields::choices('post'));
+        unregister_taxonomy('product_shipping_class');
     }
 
     public function test_woocommerce_details()
@@ -140,10 +145,20 @@ class PostMetaFieldsTest extends WP_UnitTestCase
 
         $this->assertArrayHasKey('woo:price', PostMetaFields::choices('post'));
         // Screen reader text would show in an email, so it goes with its words.
-        $this->assertSame('<del><span>£14.00</span></del> <ins><span>£11.50</span></ins>x', PostMetaFields::value($post, 'woo:price'));
+        $this->assertSame('<del><span>£14.00</span></del> <ins style="text-decoration:none"><span>£11.50</span></ins>x', PostMetaFields::value($post, 'woo:price'));
         $this->assertSame('★★★★★ 4.6', PostMetaFields::value($post, 'woo:rating'));
         $this->assertSame('In stock', PostMetaFields::value($post, 'woo:stock'));
         $this->assertSame('TUL-20', PostMetaFields::value($post, 'woo:sku'));
+
+        // The post content shows WooCommerce's price itself, unless the details already include it.
+        if ( ! class_exists('WooCommerce')) eval('class WooCommerce {}');
+        $campaign = $this->campaign(ER::NEW_PUBLISH_POST, ['content_post_meta' => 'woo:price,date']);
+        $html     = (new NewPostTemplatify($campaign, $this->post_id))->forge();
+        $this->assertStringNotContainsString('mo-wc-price', $html);
+        $this->assertSame(1, substr_count($html, '£11.50'));
+
+        ER::update_settings_by_id($campaign, ['content_post_meta' => 'date']);
+        $this->assertStringContainsString('mo-wc-price', (new NewPostTemplatify($campaign, $this->post_id))->forge());
     }
 
     public function test_existing_emails_show_the_same_details_in_the_same_place()

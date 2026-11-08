@@ -660,7 +660,7 @@ CSS;
         <tr>
             <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
                 <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
-                    <?= $this->post_content($post, $post_content_length) ?>
+                    <?= $this->post_content($post, $post_content_length, (array)$post_metas) ?>
                 </div>
             </td>
         </tr>

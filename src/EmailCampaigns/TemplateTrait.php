@@ -111,7 +111,7 @@ trait TemplateTrait
      *
      * @return string
      */
-    public function post_content($post, $post_content_length = null)
+    public function post_content($post, $post_content_length = null, $post_metas = null)
     {
         $is_remove_post_content = ER::get_merged_customizer_value(
             $this->email_campaign_id,
@@ -139,7 +139,11 @@ trait TemplateTrait
 
         $wc_price = '';
 
-        if (class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
+        // The price is already in the post details when they include it: don't show it twice.
+        $metas      = null === $post_metas ? ER::get_customizer_value($this->email_campaign_id, 'content_post_meta') : $post_metas;
+        $show_price = ! in_array('woo:price', PostMetaFields::parse($metas), true);
+
+        if ($show_price && class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
             $product = wc_get_product($post->ID);
             if (false !== $product && is_object($product)) {
                 $wc_price = sprintf('<p class="mo-wc-price">%s</p>', $product->get_price_html());

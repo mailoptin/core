@@ -71,7 +71,8 @@ class PostMetaFields
 
         foreach ($post_types as $post_type) {
             foreach (get_object_taxonomies($post_type, 'objects') as $taxonomy) {
-                if ( ! $taxonomy->public || in_array($taxonomy->name, ['category', 'post_tag', 'post_format'], true)) continue;
+                // Categories and tags have their own choices; shipping classes and visibility mean nothing to readers.
+                if ( ! $taxonomy->public || in_array($taxonomy->name, ['category', 'post_tag', 'post_format', 'product_shipping_class', 'product_visibility'], true)) continue;
 
                 $label = $taxonomy->labels->name;
 
@@ -296,8 +297,10 @@ class PostMetaFields
                 // Screen reader text ("Original price was: …") would show in an email: drop it with its words.
                 $price = preg_replace('#<span[^>]*class=["\'][^"\']*screen-reader-text[^"\']*["\'][^>]*>.*?</span>#is', '', (string)$product->get_price_html());
 
-                // Keeps the sale price's strike-through; nothing else from the price HTML.
-                return trim(wp_kses($price, ['del' => [], 'ins' => [], 'span' => [], 'bdi' => []]));
+                // Keeps the sale price's strike-through, without the underline email clients give <ins>.
+                $price = trim(wp_kses($price, ['del' => [], 'ins' => [], 'span' => [], 'bdi' => []]));
+
+                return str_replace('<ins>', '<ins style="text-decoration:none">', $price);
 
             case 'rating':
                 $rating = (float)$product->get_average_rating();
