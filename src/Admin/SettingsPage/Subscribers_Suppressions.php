@@ -59,6 +59,7 @@ class Subscribers_Suppressions
         $labels = [
             'unsubscribe_link'        => __('Unsubscribe link or preference centre', 'mailoptin'),
             'resubscribe'             => __('An earlier unsubscribe', 'mailoptin'),
+            'subscriber_status'       => __('A bounce or spam report on the subscriber', 'mailoptin'),
             'mo_leadbank_unsubscribe' => __('MailOptin Leads unsubscribe (older version)', 'mailoptin'),
             'mo_wp_user_unsubscribe'  => __('WordPress users unsubscribe (older version)', 'mailoptin'),
             Suppressions::SOURCE_ADMIN => __('An admin', 'mailoptin'),
@@ -132,7 +133,8 @@ class Subscribers_Suppressions
     public static function add_by_hand($text)
     {
         $result = ['added' => 0, 'already' => 0, 'unsubscribed' => 0, 'invalid' => [], 'invalid_count' => 0];
-        $lines  = array_slice(preg_split('/[\r\n,;\t]+/', $text), 0, self::MAX_LINES);
+        // Cut the text first so a huge paste isn't split in full before the line limit applies.
+        $lines  = array_slice(preg_split('/[\r\n,;\t]+/', substr($text, 0, self::MAX_LINES * 100)), 0, self::MAX_LINES);
         $seen   = [];
 
         foreach ($lines as $line) {
@@ -150,7 +152,14 @@ class Subscribers_Suppressions
             if (isset($seen[$email])) continue;
             $seen[$email] = true;
 
-            if (Suppressions::get_reason($email)) {
+            $existing = Suppressions::get_reason($email);
+
+            if (Suppressions::REASON_UNSUBSCRIBED === $existing) {
+                // An unsubscribe is lifted when they confirm a new signup; "never email" must not be.
+                Suppressions::make_manual($email);
+                $result['added']++;
+            } elseif ($existing) {
+                // Bounced, complained, already added by hand, or erased: each already blocks every email.
                 $result['already']++;
             } else {
                 Suppressions::add($email, Suppressions::REASON_MANUAL, Suppressions::SOURCE_ADMIN);
@@ -190,6 +199,9 @@ class Subscribers_Suppressions
 
         if ( ! $row) return 'lift_missing';
 
+        // An erasure marker keeps an erased person from coming back through an old import.
+        if (Suppressions::REASON_ERASED === $row['reason']) return 'lift_erased';
+
         if (self::needs_check($row['reason']) && ! $checked) return 'lift_unchecked';
 
         $subscribers = Suppressions::subscribers_by_hash([$hash]);
@@ -207,6 +219,14 @@ class Subscribers_Suppressions
 
         if ($subscriber) {
             Subscribers::log_event($subscriber['id'], Subscribers::EVENT_SUPPRESSION_LIFTED, ['reason' => $row['reason'], 'by_admin' => get_current_user_id()]);
+
+            // Lifting a hand block doesn't lift a bounce or complaint that came after it: put that back,
+            // so it shows here and can be lifted on its own, with its warning.
+            if (in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)) {
+                Suppressions::add($subscriber['email'], $subscriber['status'], 'subscriber_status');
+
+                return 'lift_kept_bounce';
+            }
         }
 
         return 'lifted';
@@ -222,6 +242,8 @@ class Subscribers_Suppressions
             'lifted'                => [__('MailOptin can email this address again. It wasn\'t added back to any list.', 'mailoptin'), 'success'],
             'lift_kept_unsubscribe' => [__('The bounce or spam report was lifted. They had unsubscribed before it, so they stay unsubscribed.', 'mailoptin'), 'warning'],
             'lift_unchecked'        => [__('Tick "I\'ve checked this address works" to allow emails again.', 'mailoptin'), 'error'],
+            'lift_kept_bounce'      => [__('The hand block was lifted, but this address has bounced or marked an email as spam since, so it stays suppressed for that reason.', 'mailoptin'), 'warning'],
+            'lift_erased'           => [__('An erased person\'s address stays suppressed, so an old import can\'t bring them back.', 'mailoptin'), 'error'],
             'lift_missing'          => [__('That address isn\'t on the suppression list any more.', 'mailoptin'), 'warning'],
         ];
     }
@@ -331,7 +353,9 @@ class Subscribers_Suppressions
 
         if (isset($what[$row['reason']])) $html .= ' ' . esc_html($what[$row['reason']]);
 
-        $html .= ' <a href="' . esc_url(self::lift_url($row['email_hash'])) . '">' . esc_html__('Allow emails again…', 'mailoptin') . '</a>';
+        if (Suppressions::REASON_ERASED !== $row['reason']) {
+            $html .= ' <a href="' . esc_url(self::lift_url($row['email_hash'])) . '">' . esc_html__('Allow emails again…', 'mailoptin') . '</a>';
+        }
 
         return UI::note($html, 'warn');
     }
@@ -382,6 +406,8 @@ class Subscribers_Suppressions
         $row = Suppressions::get_by_hash($hash);
 
         if ( ! $row) return UI::note(esc_html__('That address isn\'t on the suppression list any more.', 'mailoptin'), 'warn');
+
+        if (Suppressions::REASON_ERASED === $row['reason']) return UI::note(esc_html(self::notices()['lift_erased'][0]), 'warn');
 
         $subscribers = Suppressions::subscribers_by_hash([$hash]);
         $who         = isset($subscribers[$hash]) ? '<strong>' . esc_html($subscribers[$hash]['email']) . '</strong>' : esc_html__('this address', 'mailoptin');

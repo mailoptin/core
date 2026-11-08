@@ -67,15 +67,20 @@ class Suppression_List extends \WP_List_Table
         if ('' === $item['email']) {
             return '<span class="mo-supp-not-stored">' . esc_html__('Address not stored', 'mailoptin') . '</span>'
                    . '<br><span class="description">' . esc_html__('Only a fingerprint is kept', 'mailoptin') . '</span>'
-                   . $this->row_actions(['lift' => sprintf('<a href="%s">%s</a>', esc_url(Subscribers_Suppressions::lift_url($item['email_hash'])), esc_html__('Allow emails again', 'mailoptin'))]);
+                   . $this->row_actions($this->lift_action($item));
         }
 
-        $actions = [
-            'view' => sprintf('<a href="%s">%s</a>', esc_url(add_query_arg('subscriber', $item['subscriber_id'], Subscribers_Page::page_url())), esc_html__('View subscriber', 'mailoptin')),
-            'lift' => sprintf('<a href="%s">%s</a>', esc_url(Subscribers_Suppressions::lift_url($item['email_hash'])), esc_html__('Allow emails again', 'mailoptin')),
-        ];
+        $actions = ['view' => sprintf('<a href="%s">%s</a>', esc_url(add_query_arg('subscriber', $item['subscriber_id'], Subscribers_Page::page_url())), esc_html__('View subscriber', 'mailoptin'))] + $this->lift_action($item);
 
         return '<strong>' . esc_html($item['email']) . '</strong>' . $this->row_actions($actions);
+    }
+
+    /** An erased person's marker can't be lifted. */
+    protected function lift_action($item)
+    {
+        if (Suppressions::REASON_ERASED === $item['reason']) return [];
+
+        return ['lift' => sprintf('<a href="%s">%s</a>', esc_url(Subscribers_Suppressions::lift_url($item['email_hash'])), esc_html__('Allow emails again', 'mailoptin'))];
     }
 
     public function column_reason($item)

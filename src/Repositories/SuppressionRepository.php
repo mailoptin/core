@@ -143,6 +143,18 @@ class SuppressionRepository extends AbstractRepository
     }
 
     /**
+     * Turn an unsubscribe into a hand block, which confirming a new signup doesn't lift.
+     */
+    public static function make_manual($email)
+    {
+        return (bool)self::wpdb()->update(
+            self::table(),
+            ['reason' => self::REASON_MANUAL, 'source' => self::SOURCE_ADMIN, 'created_at' => gmdate('Y-m-d H:i:s')],
+            ['email_hash' => self::hash($email), 'reason' => self::REASON_UNSUBSCRIBED]
+        );
+    }
+
+    /**
      * The row for an address, by its hash.
      *
      * @return array|null email_hash, reason, source, created_at

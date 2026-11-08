@@ -163,4 +163,45 @@ class SuppressionListTest extends WP_UnitTestCase
         $this->assertStringContainsString('name="checked"', $html);
         $this->assertStringContainsString('<strong>bounced</strong>', $html);
     }
+
+    public function test_a_hand_block_over_an_unsubscribe_survives_a_new_signup()
+    {
+        $id = $this->member('ana@example.org');
+        Subscription::unsubscribe($id);
+
+        $result = Screen::add_by_hand('ana@example.org');
+        $this->assertSame(1, $result['added']);
+        $this->assertSame(Suppressions::REASON_MANUAL, Suppressions::get_reason('ana@example.org'));
+
+        $this->assertSame(Subscription::RESULT_REFUSED, Subscription::subscribe('ana@example.org', $this->list_id)['result']);
+        Subscription::confirm($id);
+        $this->assertSame(Suppressions::REASON_MANUAL, Suppressions::get_reason('ana@example.org'));
+    }
+
+    public function test_an_erased_marker_cant_be_lifted()
+    {
+        Suppressions::add('erased@example.org', Suppressions::REASON_ERASED, 'privacy');
+        $hash = Suppressions::hash('erased@example.org');
+
+        $this->assertSame('lift_erased', Screen::lift($hash, true));
+        $this->assertSame(Suppressions::REASON_ERASED, Suppressions::get_reason('erased@example.org'));
+
+        $this->assertSame(0, Screen::add_by_hand('erased@example.org')['added']);
+        $this->assertSame(Suppressions::REASON_ERASED, Suppressions::get_reason('erased@example.org'));
+
+        $_GET = ['page' => 'mailoptin-subscribers', 'view' => Screen::TAB, 'lift' => $hash];
+        $this->assertStringNotContainsString('name="hash"', Screen::html());
+    }
+
+    public function test_lifting_a_hand_block_keeps_a_later_bounce()
+    {
+        $id = $this->member('tom@example.org');
+        Screen::add_by_hand('tom@example.org');
+        DeliveryEvents::record(['type' => 'hard_bounce', 'email' => 'tom@example.org', 'provider' => 'postmark']);
+        $this->assertSame(Suppressions::REASON_MANUAL, Suppressions::get_reason('tom@example.org'));
+        $this->assertSame(Subscribers::STATUS_BOUNCED, Subscribers::get($id)['status']);
+
+        $this->assertSame('lift_kept_bounce', Screen::lift(Suppressions::hash('tom@example.org'), false));
+        $this->assertSame(Suppressions::REASON_BOUNCED, Suppressions::get_reason('tom@example.org'));
+    }
 }
