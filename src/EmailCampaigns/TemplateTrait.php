@@ -289,13 +289,45 @@ trait TemplateTrait
             \MailOptin\Core\country_code_to_name(Settings::instance()->company_country()),
         ];
 
+        $content = apply_filters('mailoptin_settings_replace_footer_placeholder_tags', $content);
+
         foreach ($replace as $key => $item) {
-            if (empty($item)) {
-                unset($search[$key]);
-                unset($replace[$key]);
-            }
+            if ( ! empty($item)) continue;
+
+            // In the customizer the tag stays, so you can see which detail is missing. In an email it goes,
+            // with the comma or line break that was there for it.
+            if ( ! is_customize_preview()) $content = self::remove_empty_footer_tag($content, $search[$key]);
+
+            unset($search[$key], $replace[$key]);
         }
 
-        return str_replace($search, $replace, apply_filters('mailoptin_settings_replace_footer_placeholder_tags', $content));
+        return str_replace($search, $replace, $content);
+    }
+
+    /**
+     * Take an empty detail's tag out of the footer, with its own punctuation: a line of its own goes
+     * entirely ("{{company_address_2}}<br>"), and so does the comma beside it ("{{company_city}}, ").
+     *
+     * @param string $content
+     * @param string $tag e.g. "{{company_address_2}}"
+     *
+     * @return string
+     */
+    public static function remove_empty_footer_tag($content, $tag)
+    {
+        $t = preg_quote($tag, '/');
+
+        $patterns = [
+            // Alone on a line, with its comma or full stop and line break.
+            '/^[ \t]*' . $t . '[ \t]*[,.]?[ \t]*(?:<br\s*\/?>)?[ \t]*\r?\n/m' => '',
+            // Last in its paragraph: the line break before it goes too.
+            '/(?:<br\s*\/?>)?\s*' . $t . '[ \t]*[,.]?(?=\s*<\/)/' => '',
+            // Followed by a comma: "{{company_city}}, OR".
+            '/' . $t . '[ \t]*,[ \t]*/' => '',
+            // After a comma or space: "Portland, {{company_state}}".
+            '/[ \t]*,?[ \t]*' . $t . '/' => '',
+        ];
+
+        return preg_replace(array_keys($patterns), array_values($patterns), $content);
     }
 }
