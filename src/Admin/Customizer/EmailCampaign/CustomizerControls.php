@@ -407,6 +407,26 @@ class CustomizerControls
             unset($campaign_settings_controls['email_digest_schedule']);
         }
 
+        // Send the digest now, from where its schedule is set.
+        if ($email_campaign_type == ER::POSTS_EMAIL_DIGEST && \MailOptin\Core\Admin\SettingsPage\Digest_Send_Page::is_enabled()) {
+            $campaign_settings_controls['digest_send_now'] = new WP_Customize_Custom_Content(
+                $this->wp_customize,
+                $this->option_prefix . '[digest_send_now]',
+                [
+                    'content'  => sprintf(
+                        '<p><a class="button" href="%s">%s</a></p><p class="description customize-control-description">%s</p>',
+                        esc_url(\MailOptin\Core\Admin\SettingsPage\Digest_Send_Page::url($this->customizerClassInstance->email_campaign_id)),
+                        esc_html__('Send now…', 'mailoptin'),
+                        esc_html__('Choose the posts and send this digest straight away. Publish your changes here first: the digest uses its saved design.', 'mailoptin')
+                    ),
+                    'section'  => $this->customizerClassInstance->campaign_settings_section_id,
+                    // Content-only: tied to the schedule's setting so it shows and hides with it.
+                    'settings' => $this->option_prefix . '[schedule_interval]',
+                    'priority' => 311,
+                ]
+            );
+        }
+
         if ( ! apply_filters('mailoptin_enable_email_automation_post_category_support', false)) {
             unset($campaign_settings_controls['post_categories']);
         }
