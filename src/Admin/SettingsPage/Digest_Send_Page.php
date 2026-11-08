@@ -110,7 +110,10 @@ class Digest_Send_Page
         $latest   = ! empty($_GET['latest']);
         $posts    = $latest ? $digest->latest_posts($email_campaign_id) : $digest->post_collection($email_campaign_id);
         $since    = $digest->posts_since($email_campaign_id);
-        $next     = $digest->next_scheduled_at($email_campaign_id);
+        $next     = $digest->next_unskipped_at($email_campaign_id);
+        $skipped  = $digest->next_scheduled_at($email_campaign_id);
+        $skipped  = $skipped && $next && $skipped->notEqualTo($next) ? $skipped : null;
+        $can_send = (bool)\MailOptin\Core\Connections\ConnectionFactory::make((string)ER::get_merged_customizer_value($email_campaign_id, 'connection_service'));
         $manual   = $digest->is_manual_only($email_campaign_id);
         $sent_ago = (string)$digest->last_processed_at($email_campaign_id);
 
@@ -185,6 +188,9 @@ class Digest_Send_Page
                     <?php elseif ($next) : ?>
                         <?php $after = $digest->next_scheduled_at($email_campaign_id, $next->addHours(2)); ?>
                         <h2><?php echo esc_html(sprintf(__('And the scheduled digest on %s?', 'mailoptin'), self::when($next))); ?></h2>
+                        <?php if ($skipped) : ?>
+                            <p class="mo-muted"><?php echo esc_html(sprintf(__('The one on %s is already skipped: an earlier send took its place.', 'mailoptin'), self::when($skipped))); ?></p>
+                        <?php endif; ?>
                         <label class="mo-choice"><input type="radio" name="skip_next" value="1" checked> <?php esc_html_e('Skip it', 'mailoptin'); ?>
                             <small><?php echo esc_html($after
                                     ? sprintf(__('This send takes its place. The next scheduled digest goes out %s.', 'mailoptin'), self::when($after))
@@ -194,7 +200,7 @@ class Digest_Send_Page
                     <?php endif; ?>
                 </div>
 
-                <?php if ( ! empty($posts)) : ?>
+                <?php if ( ! empty($posts) && $can_send) : ?>
                     <div class="mo-ui-card mo-ui-card-pad">
                         <h2><?php esc_html_e('Send a test', 'mailoptin'); ?></h2>
                         <p class="mo-actions">

@@ -295,14 +295,6 @@ class Email_Campaign_List extends \WP_List_Table
     }
 
     /**
-     * Display campaign type data and any other data.
-     *
-     * @param object $item
-     * @param string $column_name
-     *
-     * @return string
-     */
-    /**
      * When a digest next goes out, and how many posts it would carry now.
      */
     public function column_next_send($item)
@@ -322,17 +314,21 @@ class Email_Campaign_List extends \WP_List_Table
             return esc_html__('Not activated', 'mailoptin') . '<br>' . $waiting_html;
         }
 
-        $next = $digest->next_scheduled_at($email_campaign_id);
+        $next = $digest->next_unskipped_at($email_campaign_id);
 
         if ( ! $next) return '&mdash;';
-
-        if ($digest->is_skipped($email_campaign_id, $next)) {
-            $next = $digest->next_scheduled_at($email_campaign_id, $next->addHours(2));
-        }
 
         return esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $next->getTimestamp())) . '<br>' . $waiting_html;
     }
 
+    /**
+     * Display campaign type data and any other data.
+     *
+     * @param object $item
+     * @param string $column_name
+     *
+     * @return string
+     */
     public function column_default($item, $column_name)
     {
         return ER::get_type_name(

@@ -76,6 +76,22 @@ class DigestSendNowTest extends WP_UnitTestCase
         $this->clock(CarbonImmutable::create(2026, 11, 7, 15, 0, 0, 'Europe/London'));
     }
 
+    /**
+     * A connection whose sends always fail, as a revoked API key would.
+     */
+    protected function failing_connection()
+    {
+        if ( ! class_exists('MailOptin\\DigestFailingConnect\\Connect')) {
+            eval('namespace MailOptin\\DigestFailingConnect; class Connect {
+                public static function get_instance() { return new self(); }
+                public function replace_placeholder_tags($content, $type = "html") { return $content; }
+                public function send_newsletter() { return ["success" => false, "message" => "Bad API key"]; }
+            }');
+        }
+
+        ER::update_settings_by_id($this->campaign_id, ['connection_service' => 'DigestFailingConnect']);
+    }
+
     public function tear_down()
     {
         Carbon::setTestNow();
@@ -346,5 +362,117 @@ class DigestSendNowTest extends WP_UnitTestCase
         $this->assertStringContainsString('No posts have been published since the last digest', $html);
         $this->assertStringContainsString('latest=1', $html);
         $this->assertStringNotContainsString('value="send"', $html);
+    }
+
+    public function test_no_email_service_means_nothing_changes()
+    {
+        $tulips = $this->post('Planting tulips in November', '2026-11-07 10:00:00');
+        ER::update_settings_by_id($this->campaign_id, ['connection_service' => '']);
+
+        $result = $this->digest->send_now($this->campaign_id, ['post_ids' => [$tulips]]);
+
+        $this->assertWPError($result);
+        $this->assertSame('mo_digest_no_connection', $result->get_error_code());
+        $this->assertSame([], $this->logs());
+        $this->assertSame('', (string)$this->meta(PostsEmailDigest::SKIP_UNTIL_META));
+        $this->assertSame('2026-11-03 09:00:00', $this->meta('last_processed_at'));
+
+        // The page doesn't offer to send.
+        $_GET = $_REQUEST = ['page' => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG, 'view' => Digest_Send_Page::VIEW, 'id' => $this->campaign_id];
+        $html = Digest_Send_Page::html();
+        $this->assertStringContainsString('No email service is chosen yet', $html);
+        $this->assertStringNotContainsString('value="send"', $html);
+    }
+
+    public function test_a_failed_send_keeps_the_posts_and_the_schedule()
+    {
+        $tulips = $this->post('Planting tulips in November', '2026-11-07 10:00:00');
+        $this->failing_connection();
+
+        $result = $this->digest->send_now($this->campaign_id, ['post_ids' => [$tulips], 'skip_next' => true]);
+
+        $this->assertWPError($result);
+        $this->assertSame('mo_digest_send_failed', $result->get_error_code());
+        $this->assertSame('failed', $this->logs()[0]['status']);
+        $this->assertSame('2026-11-03 09:00:00', $this->meta('last_processed_at'));
+        $this->assertSame('', (string)$this->meta(PostsEmailDigest::SKIP_UNTIL_META));
+        $this->assertSame([$tulips], wp_list_pluck($this->digest->post_collection($this->campaign_id), 'ID'));
+        $this->assertFalse(get_option('mo_digest_send_lock_' . $this->campaign_id));
+    }
+
+    public function test_the_lock_is_taken_once()
+    {
+        $this->assertTrue($this->digest->lock($this->campaign_id));
+        // Even with a different timestamp, and with the options cache saying there's no lock.
+        wp_cache_delete('mo_digest_send_lock_' . $this->campaign_id, 'options');
+        wp_cache_set('notoptions', ['mo_digest_send_lock_' . $this->campaign_id => true], 'options');
+        $this->assertFalse($this->digest->lock($this->campaign_id));
+
+        // A stale lock is taken over once: the second taker finds it fresh.
+        global $wpdb;
+        $wpdb->update($wpdb->options, ['option_value' => time() - 11 * MINUTE_IN_SECONDS], ['option_name' => 'mo_digest_send_lock_' . $this->campaign_id]);
+        $this->assertTrue($this->digest->lock($this->campaign_id));
+        $this->assertFalse($this->digest->lock($this->campaign_id));
+
+        $this->digest->unlock($this->campaign_id);
+        $this->assertTrue($this->digest->lock($this->campaign_id));
+    }
+
+    public function test_a_late_slot_is_still_the_next_send()
+    {
+        ER::update_settings_by_id($this->campaign_id, ['schedule_interval' => 'every_day', 'schedule_time' => 9]);
+        EmailCampaignMeta::update_meta_data($this->campaign_id, 'last_processed_at', '2026-11-06 09:00:00');
+
+        // 10:30, cron late: today's 9:00 can still go out, as should_send() agrees.
+        $this->clock(CarbonImmutable::create(2026, 11, 7, 10, 30, 0, 'Europe/London'));
+        $this->assertSame('2026-11-07 09:00', $this->digest->next_scheduled_at($this->campaign_id)->format('Y-m-d H:i'));
+
+        $this->post('Planting tulips in November', '2026-11-07 08:00:00');
+        $this->digest->run_job();
+        $this->assertCount(1, $this->logs());
+
+        // At 11:30 it's too late for today.
+        $this->clock(CarbonImmutable::create(2026, 11, 7, 11, 30, 0, 'Europe/London'));
+        EmailCampaignMeta::delete_meta_data($this->campaign_id, PostsEmailDigest::LAST_SCHEDULED_META);
+        EmailCampaignMeta::update_meta_data($this->campaign_id, 'last_processed_at', '2026-11-06 09:00:00');
+        $this->assertSame('2026-11-08 09:00', $this->digest->next_scheduled_at($this->campaign_id)->format('Y-m-d H:i'));
+    }
+
+    public function test_week_start_and_month_end()
+    {
+        // Weeks starting Sunday, digest on Sunday 9:00: from Saturday the 7th, the next is Sunday the 8th.
+        update_option('start_of_week', 0);
+        ER::update_settings_by_id($this->campaign_id, ['schedule_day' => Carbon::SUNDAY]);
+        $this->assertSame('2026-11-08 09:00', $this->digest->next_scheduled_at($this->campaign_id)->format('Y-m-d H:i'));
+
+        // Monthly on the 28th, from 30 November: 28 December.
+        ER::update_settings_by_id($this->campaign_id, ['schedule_interval' => 'every_month', 'schedule_month_date' => 28]);
+        $this->clock(CarbonImmutable::create(2026, 11, 30, 12, 0, 0, 'Europe/London'));
+        $this->assertSame('2026-12-28 09:00', $this->digest->next_scheduled_at($this->campaign_id)->format('Y-m-d H:i'));
+
+        // A broken stored day can't hang the page.
+        ER::update_settings_by_id($this->campaign_id, ['schedule_interval' => 'every_week', 'schedule_day' => 99]);
+        $this->assertNotNull($this->digest->next_scheduled_at($this->campaign_id));
+    }
+
+    public function test_an_earlier_skip_survives_a_later_send()
+    {
+        $tulips = $this->post('Planting tulips in November', '2026-11-07 10:00:00');
+        $this->digest->send_now($this->campaign_id, ['post_ids' => [$tulips], 'skip_next' => true]);
+        $this->assertSame('2026-11-09 09:00:00', $this->meta(PostsEmailDigest::SKIP_UNTIL_META));
+
+        // The page now asks about the slot after the skipped one, and says so.
+        $_GET = $_REQUEST = ['page' => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG, 'view' => Digest_Send_Page::VIEW, 'id' => $this->campaign_id, 'latest' => 1];
+        $html = Digest_Send_Page::html();
+        $this->assertStringContainsString('is already skipped', $html);
+        $this->assertSame('2026-11-16 09:00', $this->digest->next_unskipped_at($this->campaign_id)->format('Y-m-d H:i'));
+
+        // Sending again and keeping the next scheduled one leaves Monday's skip in place.
+        $this->digest->send_now($this->campaign_id, ['post_ids' => [$tulips], 'skip_next' => false, 'include_latest' => true]);
+        $this->assertSame('2026-11-09 09:00:00', $this->meta(PostsEmailDigest::SKIP_UNTIL_META));
+
+        // Skipping again moves it to the slot after.
+        $this->digest->send_now($this->campaign_id, ['post_ids' => [$tulips], 'skip_next' => true, 'include_latest' => true]);
+        $this->assertSame('2026-11-16 09:00:00', $this->meta(PostsEmailDigest::SKIP_UNTIL_META));
     }
 }

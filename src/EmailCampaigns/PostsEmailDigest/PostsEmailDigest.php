@@ -68,24 +68,48 @@ class PostsEmailDigest extends AbstractTriggers
      */
     public function lock($email_campaign_id)
     {
-        $name = 'mo_digest_send_lock_' . absint($email_campaign_id);
+        global $wpdb;
 
-        // add_option() only succeeds for one caller: it's an INSERT on a unique key.
-        if (add_option($name, time(), '', 'no')) return true;
+        $name = self::lock_name($email_campaign_id);
+        $now  = time();
 
-        $since = (int)get_option($name);
+        // INSERT IGNORE succeeds for exactly one caller: option_name is a unique key. (add_option() won't do:
+        // it upserts, and it trusts the options cache.)
+        $taken = $wpdb->query($wpdb->prepare("INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $name, $now));
 
-        if ($since && time() - $since < self::LOCK_TTL) return false;
+        if (1 === (int)$taken) return $this->lock_taken($name);
 
-        // Abandoned: a send that died mid-way. Take it over.
-        delete_option($name);
+        $since = $wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name));
 
-        return add_option($name, time(), '', 'no');
+        if (null === $since || $now - (int)$since < self::LOCK_TTL) return false;
+
+        // Abandoned by a send that died mid-way: take it over, unless someone else just did.
+        $taken = $wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $now, $name, $since));
+
+        return 1 === (int)$taken ? $this->lock_taken($name) : false;
+    }
+
+    protected static function lock_name($email_campaign_id)
+    {
+        return 'mo_digest_send_lock_' . absint($email_campaign_id);
+    }
+
+    protected function lock_taken($name)
+    {
+        wp_cache_delete($name, 'options');
+        wp_cache_delete('notoptions', 'options');
+
+        return true;
     }
 
     public function unlock($email_campaign_id)
     {
-        delete_option('mo_digest_send_lock_' . absint($email_campaign_id));
+        global $wpdb;
+
+        $name = self::lock_name($email_campaign_id);
+
+        $wpdb->delete($wpdb->options, ['option_name' => $name]);
+        wp_cache_delete($name, 'options');
     }
 
     /**
@@ -114,9 +138,9 @@ class PostsEmailDigest extends AbstractTriggers
     {
         return [
             'interval'   => (string)ER::get_merged_customizer_value($email_campaign_id, 'schedule_interval'),
-            'hour'       => absint(ER::get_merged_customizer_value($email_campaign_id, 'schedule_time')),
-            'day'        => absint(ER::get_merged_customizer_value($email_campaign_id, 'schedule_day')),
-            'month_date' => absint(ER::get_merged_customizer_value($email_campaign_id, 'schedule_month_date')),
+            'hour'       => min(23, absint(ER::get_merged_customizer_value($email_campaign_id, 'schedule_time'))),
+            'day'        => min(6, absint(ER::get_merged_customizer_value($email_campaign_id, 'schedule_day'))),
+            'month_date' => min(28, max(1, absint(ER::get_merged_customizer_value($email_campaign_id, 'schedule_month_date')))),
         ];
     }
 
@@ -126,7 +150,7 @@ class PostsEmailDigest extends AbstractTriggers
     }
 
     /**
-     * The next time the schedule would send the digest, counting a slot that passed under an hour ago and
+     * The next time the schedule would send the digest, counting a slot that passed under two hours ago and
      * hasn't gone out yet (the hourly job still catches those). Ignores whether there will be posts to send.
      *
      * @param int $email_campaign_id
@@ -139,8 +163,8 @@ class PostsEmailDigest extends AbstractTriggers
         $schedule = $this->schedule($email_campaign_id);
         $now      = $now ?: CarbonImmutable::now($this->timezone());
 
-        // A slot can still be sent up to an hour after its time.
-        $from = $now->subHour();
+        // should_send() still sends a slot while it's under two hours late (diffInRealHours() <= 1).
+        $from = $now->subHours(2)->addSecond();
 
         switch ($schedule['interval']) {
             case 'every_day':
@@ -149,13 +173,12 @@ class PostsEmailDigest extends AbstractTriggers
                 break;
             case 'every_week':
                 $slot = $from->startOfDay()->hour($schedule['hour']);
-                while ($slot->dayOfWeek !== $schedule['day'] || $slot->lessThan($from)) {
+                for ($i = 0; $i < 8 && ($slot->dayOfWeek !== $schedule['day'] || $slot->lessThan($from)); $i++) {
                     $slot = $slot->addDay();
                 }
                 break;
             case 'every_month':
-                $date = min(max(1, $schedule['month_date']), 28);
-                $slot = $from->startOfMonth()->day($date)->hour($schedule['hour']);
+                $slot = $from->startOfMonth()->day($schedule['month_date'])->hour($schedule['hour']);
                 if ($slot->lessThan($from)) $slot = $slot->addMonthNoOverflow();
                 break;
             default:
@@ -168,6 +191,23 @@ class PostsEmailDigest extends AbstractTriggers
         }
 
         return $slot;
+    }
+
+    /**
+     * The next scheduled send that will really go out: {@see next_scheduled_at()} past any slot a send by hand
+     * already took the place of.
+     *
+     * @return CarbonImmutable|null
+     */
+    public function next_unskipped_at($email_campaign_id, $now = null)
+    {
+        $next = $this->next_scheduled_at($email_campaign_id, $now);
+
+        for ($i = 0; $next && $i < 5 && $this->is_skipped($email_campaign_id, $next); $i++) {
+            $next = $this->next_scheduled_at($email_campaign_id, $next->addHours(2));
+        }
+
+        return $next;
     }
 
     /**
@@ -488,35 +528,30 @@ class PostsEmailDigest extends AbstractTriggers
             return new \WP_Error('mo_digest_not_found', __('That digest no longer exists.', 'mailoptin'));
         }
 
-        $available = $args['include_latest'] ? $this->latest_posts($email_campaign_id) : $this->post_collection($email_campaign_id);
-        $wanted    = array_map('absint', (array)$args['post_ids']);
-
-        // Only posts the digest would send anyway: the form can't add others.
-        $posts = array_values(array_filter($available, function ($post) use ($wanted) {
-            return in_array((int)$post->ID, $wanted, true);
-        }));
-
-        if (empty($posts)) {
-            return new \WP_Error('mo_digest_no_posts', __('Choose at least one post to send.', 'mailoptin'));
+        if ( ! ConnectionFactory::make($this->connection_service($email_campaign_id))) {
+            return new \WP_Error('mo_digest_no_connection', __('Choose who the digest goes to in its settings first.', 'mailoptin'));
         }
 
+        // Before choosing posts: a scheduled send in progress may be about to move the start of the next digest.
         if ( ! $this->lock($email_campaign_id)) {
             return new \WP_Error('mo_digest_busy', __('This digest is being sent right now. Check the campaign log in a minute.', 'mailoptin'));
         }
 
         try {
-            $next = $this->next_scheduled_at($email_campaign_id);
+            $available = $args['include_latest'] ? $this->latest_posts($email_campaign_id) : $this->post_collection($email_campaign_id);
+            $wanted    = array_map('absint', (array)$args['post_ids']);
 
-            // From now on the schedule's own record decides whether this period's digest went out.
-            if ('' === (string)EmailCampaignMeta::get_meta_data($email_campaign_id, self::LAST_SCHEDULED_META)) {
-                EmailCampaignMeta::update_meta_data($email_campaign_id, self::LAST_SCHEDULED_META, $this->last_processed_at($email_campaign_id) ?: self::NEVER);
+            // Only posts the digest would send anyway: the form can't add others.
+            $posts = array_values(array_filter($available, function ($post) use ($wanted) {
+                return in_array((int)$post->ID, $wanted, true);
+            }));
+
+            if (empty($posts)) {
+                return new \WP_Error('mo_digest_no_posts', __('Choose at least one post to send.', 'mailoptin'));
             }
 
-            if ($args['skip_next'] && $next) {
-                EmailCampaignMeta::update_meta_data($email_campaign_id, self::SKIP_UNTIL_META, $next->format('Y-m-d H:i:s'));
-            } else {
-                EmailCampaignMeta::delete_meta_data($email_campaign_id, self::SKIP_UNTIL_META);
-            }
+            $next           = $this->next_unskipped_at($email_campaign_id);
+            $last_processed = (string)$this->last_processed_at($email_campaign_id);
 
             $campaign_log_id = $this->create_campaign($email_campaign_id, $posts);
 
@@ -524,7 +559,26 @@ class PostsEmailDigest extends AbstractTriggers
                 return new \WP_Error('mo_digest_not_created', __('The digest couldn\'t be created. Try again.', 'mailoptin'));
             }
 
-            $this->send_campaign($email_campaign_id, $campaign_log_id);
+            // From now on the schedule's own record decides whether this period's digest went out.
+            if ('' === (string)EmailCampaignMeta::get_meta_data($email_campaign_id, self::LAST_SCHEDULED_META)) {
+                EmailCampaignMeta::update_meta_data($email_campaign_id, self::LAST_SCHEDULED_META, $last_processed ?: self::NEVER);
+            }
+
+            if ( ! $this->send_campaign($email_campaign_id, $campaign_log_id)) {
+                // Nothing went out: the posts stay for the next digest and the schedule is untouched.
+                if ('' === $last_processed) {
+                    EmailCampaignMeta::delete_meta_data($email_campaign_id, 'last_processed_at');
+                } else {
+                    EmailCampaignMeta::update_meta_data($email_campaign_id, 'last_processed_at', $last_processed);
+                }
+
+                return new \WP_Error('mo_digest_send_failed', __('The digest couldn\'t be sent. The campaign log says why.', 'mailoptin'));
+            }
+
+            // "Still send it" leaves any earlier skip alone: it's about the slot after it.
+            if ($args['skip_next'] && $next) {
+                EmailCampaignMeta::update_meta_data($email_campaign_id, self::SKIP_UNTIL_META, $next->format('Y-m-d H:i:s'));
+            }
 
             do_action('mailoptin_digest_sent_by_hand', $email_campaign_id, $campaign_log_id, $posts);
 
@@ -564,6 +618,8 @@ class PostsEmailDigest extends AbstractTriggers
      *
      * @param int $email_campaign_id
      * @param int $campaign_log_id
+     *
+     * @return bool whether it was sent (or queued)
      */
     public function send_campaign($email_campaign_id, $campaign_log_id)
     {
@@ -574,7 +630,7 @@ class PostsEmailDigest extends AbstractTriggers
 
         $connection_instance = ConnectionFactory::make($connection_service);
 
-        if ( ! $connection_instance) return;
+        if ( ! $connection_instance) return false;
 
         EmailCampaignMeta::update_meta_data($email_campaign_id, 'last_processed_at', $this->now_mysql());
 
@@ -591,9 +647,13 @@ class PostsEmailDigest extends AbstractTriggers
             if (($response['status'] ?? '') !== QueueRunner::LOG_STATUS_SENDING) {
                 $this->update_campaign_status($campaign_log_id, 'processed');
             }
-        } else {
-            $this->update_campaign_status($campaign_log_id, 'failed');
+
+            return true;
         }
+
+        $this->update_campaign_status($campaign_log_id, 'failed');
+
+        return false;
     }
 
     /**
