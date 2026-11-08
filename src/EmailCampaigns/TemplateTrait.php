@@ -41,20 +41,23 @@ trait TemplateTrait
     }
 
     /**
+     * The chosen post details (author, date, terms, custom fields, product price…) as one line of HTML.
+     *
      * @param WP_Post $post
+     * @param string|array $post_metas keys from {@see PostMetaFields}; empty for the email's own setting
      *
-     * @param string $post_metas
-     *
-     * @return string
+     * @return string|false
      */
     public function post_meta($post, $post_metas = '')
     {
+        $class = '';
+
         if (empty($post_metas)) {
             $post_metas = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
 
             if (empty($post_metas)) return '';
 
-            $post_metas = array_map('sanitize_text_field', explode(',', $post_metas));
+            if (PostMetaFields::POSITION_BELOW_IMAGE === $this->post_meta_position()) $class = ' mo-post-meta-below-image';
         }
 
         $post = get_post($post);
@@ -63,27 +66,45 @@ trait TemplateTrait
             return false;
         }
 
-        $bucket = [];
+        $bucket = PostMetaFields::render($post, $post_metas);
 
-        foreach ($post_metas as $meta) {
-            switch ($meta) {
-                case 'author':
-                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_author_meta('display_name', $post->post_author)));
-                    break;
-                case 'date':
-                    $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option('date_format'), $post));
-                    break;
-                case 'category':
-                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_term_list($post->ID, 'category', '', ', ')));
-                    break;
-            }
-        }
+        if (empty($bucket)) return '';
 
-        $html = '<div class="mo-post-meta mo-content-text-color">';
+        $html = '<div class="mo-post-meta mo-content-text-color' . $class . '">';
         $html .= implode('<span>&nbsp;•&nbsp;</span>', $bucket);
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * Where the post details go: under the title, or under the featured image.
+     */
+    public function post_meta_position()
+    {
+        $position = ER::get_customizer_value($this->email_campaign_id, PostMetaFields::POSITION_SETTING);
+
+        return PostMetaFields::POSITION_BELOW_IMAGE === $position ? PostMetaFields::POSITION_BELOW_IMAGE : PostMetaFields::POSITION_BELOW_TITLE;
+    }
+
+    /**
+     * Leave one {{post.meta}} in the template, where the details should go: under the title (the template's
+     * own {{post.meta}}) or under the featured image ({{post.meta.below_image}}). A template without the
+     * second slot keeps them under the title.
+     *
+     * @param string $template
+     *
+     * @return string
+     */
+    public function place_post_meta_slot($template)
+    {
+        $template = (string)$template;
+
+        if (PostMetaFields::POSITION_BELOW_IMAGE === $this->post_meta_position() && false !== strpos($template, '{{post.meta.below_image}}')) {
+            return str_replace(['{{post.meta}}', '{{post.meta.below_image}}'], ['', '{{post.meta}}'], $template);
+        }
+
+        return str_replace('{{post.meta.below_image}}', '', $template);
     }
 
     /**

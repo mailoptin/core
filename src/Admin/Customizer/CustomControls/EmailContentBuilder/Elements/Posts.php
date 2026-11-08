@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Ele
 
 use MailOptin\Core\Admin\Customizer\CustomControls\ControlsHelpers;
 use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\AbstractElement;
+use MailOptin\Core\EmailCampaigns\PostMetaFields;
 
 class Posts extends AbstractElement
 {
@@ -89,13 +90,18 @@ class Posts extends AbstractElement
                 'post_metas'            => [
                     'label'    => esc_html__('Post Meta Data', 'mailoptin'),
                     'type'     => 'select',
-                    'choices'  => [
-                        'author'   => esc_html__('Author', 'mailoptin'),
-                        'date'     => esc_html__('Date', 'mailoptin'),
-                        'category' => esc_html__('Categories', 'mailoptin'),
-                    ],
+                    'choices'  => self::post_meta_choices(),
                     'multiple' => true,
                     'tab'      => 'tab-content'
+                ],
+                'post_meta_position'    => [
+                    'label'   => esc_html__('Show Post Meta Data', 'mailoptin'),
+                    'type'    => 'select',
+                    'choices' => [
+                        PostMetaFields::POSITION_BELOW_TITLE => esc_html__('Below the title', 'mailoptin'),
+                        PostMetaFields::POSITION_BELOW_IMAGE => esc_html__('Below the featured image', 'mailoptin'),
+                    ],
+                    'tab'     => 'tab-content'
                 ],
                 'read_more_text'        => [
                     'label' => esc_html__('Read More Link Text', 'mailoptin'),
@@ -139,5 +145,19 @@ class Posts extends AbstractElement
                 ],
             ]
         );
+    }
+
+    /**
+     * Every post detail, plus the custom fields posts use.
+     */
+    public static function post_meta_choices()
+    {
+        $choices = PostMetaFields::choices();
+
+        foreach (PostMetaFields::suggested_meta_keys(array_keys(get_post_types(['public' => true]))) as $meta_key) {
+            $choices['meta:' . $meta_key] = PostMetaFields::label('meta:' . $meta_key, []);
+        }
+
+        return $choices;
     }
 }

@@ -100,7 +100,7 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
             echo $this->item_wrapper_start();
             echo apply_filters(
                 'mo_email_campaign_ped_single_post_item',
-                str_replace($search, $replace, $this->single_post_item()),
+                str_replace($search, $replace, $this->place_post_meta_slot($this->single_post_item())),
                 $post, $this->email_campaign_id, $this
             );
             echo $this->item_wrapper_end();

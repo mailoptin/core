@@ -473,6 +473,11 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),
+                'content_post_meta_position'               => array(
+                    'default'   => $this->customizer_defaults['content_post_meta_position'],
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
                 'content_remove_post_link'                 => array(
                     'default'   => $this->customizer_defaults['content_remove_post_link'],
                     'type'      => 'option',

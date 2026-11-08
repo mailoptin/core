@@ -3,6 +3,7 @@
 namespace MailOptin\Core\EmailCampaigns\Newsletter\Templates;
 
 use MailOptin\Core\EmailCampaigns\Newsletter\AbstractTemplate;
+use MailOptin\Core\EmailCampaigns\PostMetaFields;
 
 class Lucid extends AbstractTemplate
 {
@@ -605,6 +606,25 @@ CSS;
 
         $width = $this->get_post_item_width($column_count);
 
+        // The details row: under the title, or under the featured image.
+        $meta_html        = empty($post_metas) ? '' : (string)$this->post_meta($post, $post_metas);
+        $meta_below_title = PostMetaFields::POSITION_BELOW_IMAGE !== ($settings['post_meta_position'] ?? '') || $remove_feature_image === true;
+        $meta_row         = '';
+
+        if ('' !== $meta_html) {
+            ob_start();
+            ?>
+        <tr>
+            <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
+                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
+                    <?= $meta_html ?>
+                </div>
+            </td>
+        </tr>
+            <?php
+            $meta_row = ob_get_clean();
+        }
+
         ob_start();
         ?>
         <tr>
@@ -616,15 +636,7 @@ CSS;
             </td>
         </tr>
 
-        <?php if ( ! empty($post_metas)) : ?>
-        <tr>
-            <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
-                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
-                    <?= $this->post_meta($post, $post_metas) ?>
-                </div>
-            </td>
-        </tr>
-    <?php endif; ?>
+        <?php if ($meta_below_title) echo $meta_row; ?>
 
         <?php if ($remove_feature_image !== true) : ?>
         <tr>
@@ -641,6 +653,8 @@ CSS;
             </td>
         </tr>
     <?php endif; ?>
+
+        <?php if ( ! $meta_below_title) echo $meta_row; ?>
 
         <?php if ($remove_post_content !== true) : ?>
         <tr>

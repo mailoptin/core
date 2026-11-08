@@ -40,7 +40,7 @@ class Templatify implements TemplatifyInterface
 
     public function post_content_forge()
     {
-        $preview_structure = EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure();
+        $preview_structure = $this->place_post_meta_slot(EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure());
 
         $preview_structure = str_replace('{{post.feature.image}}', $this->feature_image($this->post), $preview_structure);
         $preview_structure = str_replace('{{post.feature.image.alt}}', $this->feature_image_alt($this->post), $preview_structure);

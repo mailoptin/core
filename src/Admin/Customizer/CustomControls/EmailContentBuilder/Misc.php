@@ -76,6 +76,7 @@ class Misc
                 ],
             'posts'   => $block_settings_default + [
                     'post_metas'            => ['author', 'date', 'category'],
+                    'post_meta_position'    => 'below_title',
                     'post_font_family'      => '',
                     'post_title_color'      => '',
                     'post_content_length'   => '150',

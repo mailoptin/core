@@ -178,6 +178,7 @@ class Lucid extends AbstractTemplate
             <a href="{{post.url}}">
                 <img class="mo-imgix" src="{{post.feature.image}}" alt="{{post.feature.image.alt}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
             </a>
+            {{post.meta.below_image}}
         <?php endif;
 
         if ($content_remove_post_link == true) : ?>
@@ -185,6 +186,7 @@ class Lucid extends AbstractTemplate
             <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
             {{post.meta}}
             <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+            {{post.meta.below_image}}
         <?php endif;
 
         return ob_get_clean();
@@ -440,6 +442,10 @@ HTML;
       padding: 0;
     }
     
+    .mo-post-meta-below-image {
+      padding-top: 10px !important;
+    }
+
     .mo-post-meta {
       color: #6f6f6f;
       font-size: 12px;
