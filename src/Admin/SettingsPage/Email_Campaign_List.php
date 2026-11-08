@@ -177,6 +177,50 @@ class Email_Campaign_List extends \WP_List_Table
         );
     }
 
+    /**
+     * Whether the list shows its first screen instead of the table: nothing in it at all.
+     */
+    public function shows_empty_state()
+    {
+        return 0 === (int)$this->record_count('');
+    }
+
+    /**
+     * With no post notifications at all, a first screen with the two kinds to start from.
+     */
+    public function display()
+    {
+        if ($this->shows_empty_state()) {
+            echo self::empty_state();
+
+            return;
+        }
+
+        parent::display();
+    }
+
+    public static function empty_state()
+    {
+        $url = function ($type) {
+            return add_query_arg(['view' => 'add-new-email-automation', 'type' => $type], MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
+        };
+
+        return \MailOptin\Core\Admin\EmptyState::render([
+            'icon'  => 'email',
+            'title' => __('Email subscribers when you publish', 'mailoptin'),
+            'text'  => __('Send each new post as it goes live, or a round-up of new posts every day, week or month.', 'mailoptin'),
+            'cards' => [
+                ['label' => __('New post alert', 'mailoptin'), 'sub' => __('One email per post', 'mailoptin'), 'url' => $url(ER::NEW_PUBLISH_POST)],
+                [
+                    'label' => __('Posts digest', 'mailoptin'),
+                    'sub'   => __('A round-up on a schedule', 'mailoptin'),
+                    'url'   => $url(ER::POSTS_EMAIL_DIGEST),
+                    'pro'   => ! apply_filters('mailoptin_enable_post_email_digest', false),
+                ],
+            ],
+        ]);
+    }
+
     /** Text displayed when no email campaign is available */
     public function no_items()
     {

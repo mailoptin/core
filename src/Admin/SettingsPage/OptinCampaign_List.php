@@ -309,6 +309,70 @@ class OptinCampaign_List extends \WP_List_Table
     }
 
     /**
+     * Whether the list shows its first screen instead of the table: nothing in it at all. On the free
+     * plan, Premium-type optins left from an earlier licence aren't listed, so they don't count.
+     */
+    public function shows_empty_state()
+    {
+        global $wpdb;
+
+        if ( ! empty($_GET['optin-type'])) return false;
+
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) return 0 === (int)$this->record_count();
+
+        $in = implode(',', array_fill(0, count($this->fqn_lite_themes), '%s'));
+
+        return 0 === (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $this->table WHERE CONCAT_WS('/', optin_type, optin_class) IN ($in)", array_values($this->fqn_lite_themes)));
+    }
+
+    /**
+     * With no optins at all, a first screen saying what optins are and how to start, instead of an empty
+     * table. A type filter with nothing in it keeps the table and its short message.
+     */
+    public function display()
+    {
+        if ($this->shows_empty_state()) {
+            echo self::empty_state($this->lite_optin_types_support);
+
+            return;
+        }
+
+        parent::display();
+    }
+
+    /**
+     * @param string[] $free_types optin types available without Premium
+     */
+    public static function empty_state($free_types)
+    {
+        $premium = defined('MAILOPTIN_DETACH_LIBSODIUM');
+        $url     = function ($type) {
+            return add_query_arg(['view' => 'add-new-optin', 'optin-type' => $type], MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE);
+        };
+
+        $cards = [];
+        foreach (
+            [
+                'lightbox' => __('Lightbox popup', 'mailoptin'),
+                'inpost'   => __('In-post form', 'mailoptin'),
+                'sidebar'  => __('Sidebar form', 'mailoptin'),
+                'slidein'  => __('Slide-in', 'mailoptin'),
+                'bar'      => __('Notification bar', 'mailoptin'),
+            ] as $type => $label
+        ) {
+            $cards[] = ['label' => $label, 'url' => $url($type), 'shape' => $type, 'pro' => ! $premium && ! in_array($type, (array)$free_types, true)];
+        }
+
+        return \MailOptin\Core\Admin\EmptyState::render([
+            'icon'    => 'optin',
+            'title'   => __('Start collecting email addresses', 'mailoptin'),
+            'text'    => __('Optins are the popups, slide-ins, bars and forms that ask visitors to subscribe. Pick a type to start; you can change everything after.', 'mailoptin'),
+            'cards'   => $cards,
+            'buttons' => [['label' => __('Create an optin', 'mailoptin'), 'url' => add_query_arg('view', 'add-new-optin', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE), 'primary' => true]],
+        ]);
+    }
+
+    /**
      * Text displayed when no email optin form is available
      */
     public function no_items()
