@@ -105,7 +105,9 @@ class SubscriberApiTest extends WP_UnitTestCase
         $this->assertStringNotContainsString($secret, serialize($stored), 'The secret is never stored.');
 
         $this->assertSame($created['record']['id'], ApiKeys::verify($created['key'])['id']);
-        $this->assertNull(ApiKeys::verify(substr($created['key'], 0, -1) . 'x'));
+        // A wrong last character: one that differs from the real one (a fixed "x" is the real one 1 time in 62).
+        $wrong = 'x' === substr($created['key'], -1) ? 'y' : 'x';
+        $this->assertNull(ApiKeys::verify(substr($created['key'], 0, -1) . $wrong));
         $this->assertNull(ApiKeys::verify('mo_live_nope'));
         $this->assertSame('mo_live_' . $created['record']['id'] . '_••••', ApiKeys::masked($created['record']));
         $this->assertWPError(ApiKeys::create('  ', 'write', $this->admin));
