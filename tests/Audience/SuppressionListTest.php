@@ -97,18 +97,43 @@ class SuppressionListTest extends WP_UnitTestCase
         $this->assertSame(Subscription::RESULT_REFUSED, $result['result']);
     }
 
-    public function test_lifting_an_unsubscribe_doesnt_add_them_back_to_lists()
+    public function test_only_the_person_can_lift_an_unsubscribe()
     {
         $id = $this->member('ana@example.org');
         Subscription::unsubscribe($id);
         $hash = Suppressions::hash('ana@example.org');
 
-        $this->assertSame('lifted', Screen::lift($hash, false));
+        $this->assertSame('lift_unsubscribed', Screen::lift($hash, true));
+        $this->assertSame(Suppressions::REASON_UNSUBSCRIBED, Suppressions::get_reason('ana@example.org'));
+
+        // No lift on the screen: not in the table, not after a check, not on the lift panel.
+        $_GET = ['page' => 'mailoptin-subscribers', 'view' => Screen::TAB];
+        $this->assertStringNotContainsString('lift=' . $hash, Screen::html());
+
+        $_POST = $_REQUEST = ['mo_suppression_check' => '1', 'check_email' => 'ana@example.org', '_wpnonce' => wp_create_nonce('mo_suppression_check')];
+        $html = Screen::html();
+        $this->assertStringContainsString('Only they can undo this', $html);
+        $this->assertStringNotContainsString('lift=' . $hash, $html);
+
+        $_POST = $_REQUEST = [];
+        $_GET['lift'] = $hash;
+        $this->assertStringNotContainsString('name="hash"', Screen::html());
+
+        // Their own signup, once confirmed, still lifts it.
+        $this->assertSame(Subscription::RESULT_PENDING, Subscription::subscribe('ana@example.org', $this->list_id)['result']);
+        Subscription::confirm($id);
+        $this->assertNull(Suppressions::get_reason('ana@example.org'));
+    }
+
+    public function test_lifting_a_hand_block_doesnt_add_them_back_to_lists()
+    {
+        $id = $this->member('ana@example.org');
+        Screen::add_by_hand('ana@example.org');
+
+        $this->assertSame('lifted', Screen::lift(Suppressions::hash('ana@example.org'), false));
         $this->assertNull(Suppressions::get_reason('ana@example.org'));
         $this->assertSame(Subscribers::STATUS_UNSUBSCRIBED, Subscribers::get_membership($id, $this->list_id)['status']);
         $this->assertContains(Subscribers::EVENT_SUPPRESSION_LIFTED, $this->events($id));
-
-        $this->assertSame('lift_missing', Screen::lift($hash, false));
     }
 
     public function test_a_bounce_needs_the_box_ticked_and_goes_through_resubscribe()

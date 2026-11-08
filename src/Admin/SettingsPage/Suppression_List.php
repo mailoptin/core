@@ -75,10 +75,10 @@ class Suppression_List extends \WP_List_Table
         return '<strong>' . esc_html($item['email']) . '</strong>' . $this->row_actions($actions);
     }
 
-    /** An erased person's marker can't be lifted. */
+    /** Unsubscribes and erasure markers can't be lifted here, see Subscribers_Suppressions::can_lift(). */
     protected function lift_action($item)
     {
-        if (Suppressions::REASON_ERASED === $item['reason']) return [];
+        if ( ! Subscribers_Suppressions::can_lift($item['reason'])) return [];
 
         return ['lift' => sprintf('<a href="%s">%s</a>', esc_url(Subscribers_Suppressions::lift_url($item['email_hash'])), esc_html__('Allow emails again', 'mailoptin'))];
     }
