@@ -27,6 +27,16 @@ class AddEmailCampaign extends AbstractSettingsPage
     }
 
     /**
+     * The type to open on: ?type= when it's one of the automation types.
+     */
+    public static function chosen_type()
+    {
+        $type = sanitize_key($_GET['type'] ?? '');
+
+        return array_key_exists($type, self::get_instance()->email_campaign_types()) ? $type : '';
+    }
+
+    /**
      * Back to campaign overview button.
      */
     public function back_to_optin_overview()
@@ -76,7 +86,7 @@ class AddEmailCampaign extends AbstractSettingsPage
         echo '<select name="mo_email_newsletter_title"   id="mo-email-newsletter-title">';
         echo sprintf('<option value="...">%s</option>', __('Select...', 'mailoptin'));
         foreach ($this->email_campaign_types() as $key => $value) {
-            echo sprintf('<option value="%s">%s</option>', $key, $value);
+            echo sprintf('<option value="%s"%s>%s</option>', esc_attr($key), selected(self::chosen_type(), $key, false), esc_html($value));
         }
         echo '</select>';
     }
@@ -94,7 +104,9 @@ class AddEmailCampaign extends AbstractSettingsPage
 
     public function template_listing_tmpl($campaign_type)
     {
-        echo "<div id=\"notifType_{$campaign_type}\" class=\"mailoptin-email-templates mailoptin-template-clear\" style=\"display:none\">";
+        // Shown straight away when the type was chosen on the empty Post Notifications screen.
+        $display = self::chosen_type() === $campaign_type ? '' : 'display:none';
+        echo "<div id=\"notifType_{$campaign_type}\" class=\"mailoptin-email-templates mailoptin-template-clear\" style=\"{$display}\">";
         if ($campaign_type == EmailCampaignRepository::POSTS_EMAIL_DIGEST && ! apply_filters('mailoptin_enable_post_email_digest', false)) {
             echo '<div class="mo-error-box" style="padding: 87px 10px;margin:0;">';
             printf(

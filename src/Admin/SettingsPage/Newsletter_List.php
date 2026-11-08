@@ -32,6 +32,49 @@ class Newsletter_List extends \WP_List_Table
         ));
     }
 
+    /**
+     * Whether the list shows its first screen instead of the table: nothing in it at all.
+     */
+    public function shows_empty_state()
+    {
+        return 0 === (int)Email_Campaign_List::get_instance()->record_count(ER::NEWSLETTER);
+    }
+
+    /**
+     * With no broadcasts at all, a first screen with the one button to start.
+     */
+    public function display()
+    {
+        if ($this->shows_empty_state()) {
+            echo self::empty_state();
+
+            return;
+        }
+
+        parent::display();
+    }
+
+    public static function empty_state()
+    {
+        $note = '';
+
+        if ([] === (array)\MailOptin\Core\Repositories\ListsRepository::get_all()) {
+            $note = sprintf(
+                esc_html__('To send with MailOptin\'s own lists, %screate a list%s first. You can also send through a connected email service.', 'mailoptin'),
+                '<a href="' . esc_url(Subscribers_Page::page_url('lists')) . '">',
+                '</a>'
+            );
+        }
+
+        return \MailOptin\Core\Admin\EmptyState::render([
+            'icon'    => 'broadcast',
+            'title'   => __('Send your first broadcast', 'mailoptin'),
+            'text'    => __('A one-off email to a list: news, an offer, an announcement. Write it now, send it now or schedule it.', 'mailoptin'),
+            'buttons' => [['label' => __('Create a broadcast', 'mailoptin'), 'url' => add_query_arg('view', 'create-broadcast', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE), 'primary' => true]],
+            'note'    => $note,
+        ]);
+    }
+
     public function no_items()
     {
         printf(

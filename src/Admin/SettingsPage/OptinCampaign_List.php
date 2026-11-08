@@ -311,6 +311,61 @@ class OptinCampaign_List extends \WP_List_Table
     /**
      * Text displayed when no email optin form is available
      */
+    /**
+     * Whether the list shows its first screen instead of the table: nothing in it at all.
+     */
+    public function shows_empty_state()
+    {
+        return empty($_GET['optin-type']) && 0 === (int)$this->record_count();
+    }
+
+    /**
+     * With no optins at all, a first screen saying what optins are and how to start, instead of an empty
+     * table. A type filter with nothing in it keeps the table and its short message.
+     */
+    public function display()
+    {
+        if ($this->shows_empty_state()) {
+            echo self::empty_state($this->lite_optin_types_support);
+
+            return;
+        }
+
+        parent::display();
+    }
+
+    /**
+     * @param string[] $free_types optin types available without Premium
+     */
+    public static function empty_state($free_types)
+    {
+        $premium = defined('MAILOPTIN_DETACH_LIBSODIUM');
+        $url     = function ($type) {
+            return add_query_arg(['view' => 'add-new-optin', 'optin-type' => $type], MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE);
+        };
+
+        $cards = [];
+        foreach (
+            [
+                'lightbox' => __('Lightbox popup', 'mailoptin'),
+                'inpost'   => __('In-post form', 'mailoptin'),
+                'sidebar'  => __('Sidebar form', 'mailoptin'),
+                'slidein'  => __('Slide-in', 'mailoptin'),
+                'bar'      => __('Notification bar', 'mailoptin'),
+            ] as $type => $label
+        ) {
+            $cards[] = ['label' => $label, 'url' => $url($type), 'shape' => $type, 'pro' => ! $premium && ! in_array($type, (array)$free_types, true)];
+        }
+
+        return \MailOptin\Core\Admin\EmptyState::render([
+            'icon'    => 'optin',
+            'title'   => __('Start collecting email addresses', 'mailoptin'),
+            'text'    => __('Optins are the popups, slide-ins, bars and forms that ask visitors to subscribe. Pick a type to start; you can change everything after.', 'mailoptin'),
+            'cards'   => $cards,
+            'buttons' => [['label' => __('Create an optin', 'mailoptin'), 'url' => add_query_arg('view', 'add-new-optin', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE), 'primary' => true]],
+        ]);
+    }
+
     public function no_items()
     {
         $optin_type = isset($_GET['optin-type']) ? sanitize_text_field($_GET['optin-type']) : '';

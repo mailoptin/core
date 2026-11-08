@@ -415,6 +415,107 @@ input.mo-ui-search {
     margin-left: auto;
 }
 
+/* ---------- Empty states ---------- */
+
+.mo-ui-empty {
+    align-items: center;
+    background: var(--mo-card);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    box-sizing: border-box;
+    color: var(--mo-text);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0 20px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.mo-ui-empty h2 {
+    color: var(--mo-ink);
+    font-size: 18px;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.mo-ui-empty p {
+    color: var(--mo-muted);
+    font-size: 14px;
+    margin: 0;
+    max-width: 46em;
+}
+
+.mo-ui-empty-icon {
+    color: var(--mo-ink);
+    height: 72px;
+    width: 96px;
+}
+
+.mo-ui-empty-cards {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    margin-top: 6px;
+    max-width: 640px;
+    width: 100%;
+}
+
+.mo-ui-empty-card {
+    align-items: center;
+    background: var(--mo-card);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 10px;
+    text-decoration: none;
+}
+
+.mo-ui-empty-card:hover,
+.mo-ui-empty-card:focus {
+    border-color: var(--mo-blue);
+    color: var(--mo-blue);
+}
+
+.mo-ui-empty-card-sub {
+    color: var(--mo-muted);
+    font-size: 12px;
+}
+
+.mo-ui-empty-shape {
+    border: 1.5px solid var(--mo-muted);
+    border-radius: 4px;
+    display: block;
+    height: 30px;
+    position: relative;
+    width: 44px;
+}
+
+.mo-ui-empty-shape:after {
+    background: var(--mo-blue);
+    border-radius: 2px;
+    content: "";
+    opacity: .7;
+    position: absolute;
+}
+
+.mo-ui-shape-lightbox:after { inset: 7px 9px; }
+.mo-ui-shape-slidein:after { bottom: 3px; height: 10px; right: 3px; width: 16px; }
+.mo-ui-shape-bar:after { border-radius: 0; height: 6px; left: 0; right: 0; top: 0; }
+.mo-ui-shape-inpost:after { height: 7px; left: 6px; right: 6px; top: 11px; }
+.mo-ui-shape-sidebar:after { bottom: 3px; right: 3px; top: 3px; width: 12px; }
+
+.mo-ui-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 6px !important;
+}
+
 /* ---------- Small screens ---------- */
 
 @media screen and (max-width: 782px) {
