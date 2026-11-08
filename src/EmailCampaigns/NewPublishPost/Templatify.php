@@ -54,7 +54,7 @@ class Templatify implements TemplatifyInterface
 
         $replace = [
             apply_filters('mo_new_publish_post_title', $this->post->post_title, $this->post, $this->email_campaign_id),
-            apply_filters('mo_new_publish_post_content', $this->post_content($this->post), $this->post, $this->email_campaign_id),
+            apply_filters('mo_new_publish_post_content', $this->post_content($this->post, null, (string)ER::get_customizer_value($this->email_campaign_id, 'content_post_meta')), $this->post, $this->email_campaign_id),
             apply_filters('mo_new_publish_post_url', $this->post_url($this->post), $this->post, $this->email_campaign_id),
             apply_filters('mo_new_publish_post_meta', $this->post_meta($this->post), $this->post, $this->email_campaign_id)
         ];

@@ -139,9 +139,9 @@ trait TemplateTrait
 
         $wc_price = '';
 
-        // The price is already in the post details when they include it: don't show it twice.
-        $metas      = null === $post_metas ? ER::get_customizer_value($this->email_campaign_id, 'content_post_meta') : $post_metas;
-        $show_price = ! in_array('woo:price', PostMetaFields::parse($metas), true);
+        // The price is already in the post details when they include it: don't show it twice. Only callers
+        // that render the details pass them; others (the [post-content] shortcode) keep the price.
+        $show_price = null === $post_metas || ! in_array('woo:price', PostMetaFields::parse($post_metas), true);
 
         if ($show_price && class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
             $product = wc_get_product($post->ID);

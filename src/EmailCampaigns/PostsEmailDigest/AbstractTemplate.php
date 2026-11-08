@@ -4,6 +4,7 @@ namespace MailOptin\Core\EmailCampaigns\PostsEmailDigest;
 
 use MailOptin\Core\EmailCampaigns\AbstractTemplate as ParentAbstractTemplate;
 use MailOptin\Core\EmailCampaigns\TemplateTrait;
+use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use WP_Post;
 
 abstract class AbstractTemplate extends ParentAbstractTemplate
@@ -90,7 +91,7 @@ abstract class AbstractTemplate extends ParentAbstractTemplate
 
             $replace = apply_filters('mo_email_campaign_ped_replace_args', [
                 apply_filters('mo_posts_email_digest_post_title', $this->post_title($post), $post, $this->email_campaign_id),
-                apply_filters('mo_posts_email_digest_post_content', $this->post_content($post), $post, $this->email_campaign_id),
+                apply_filters('mo_posts_email_digest_post_content', $this->post_content($post, null, (string)ER::get_customizer_value($this->email_campaign_id, 'content_post_meta')), $post, $this->email_campaign_id),
                 apply_filters('mo_posts_email_digest_post_feature_image', $this->feature_image($post), $post, $this->email_campaign_id),
                 apply_filters('mo_posts_email_digest_post_feature_image_alt', $this->feature_image_alt($post), $post, $this->email_campaign_id),
                 apply_filters('mo_posts_email_digest_post_url', $this->post_url($post), $post, $this->email_campaign_id),

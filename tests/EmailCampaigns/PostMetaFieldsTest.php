@@ -133,6 +133,12 @@ class PostMetaFieldsTest extends WP_UnitTestCase
         unregister_taxonomy('product_shipping_class');
     }
 
+    /**
+     * Fakes WooCommerce, which then stays for the whole process.
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_woocommerce_details()
     {
         if ( ! function_exists('wc_get_product')) {
@@ -248,5 +254,25 @@ class PostMetaFieldsTest extends WP_UnitTestCase
         $this->assertArrayHasKey('meta:Grower_Name', $choices);
         $this->assertArrayHasKey('meta:brand', $choices);
         $this->assertArrayNotHasKey('meta:_secret_token', $choices);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_the_price_is_kept_where_the_details_row_is_not_shown()
+    {
+        if ( ! class_exists('WooCommerce')) eval('class WooCommerce {}');
+        if ( ! function_exists('wc_get_product')) eval('function wc_get_product($id) { return new \\MailOptin\\Tests\\Core\\EmailCampaigns\\FakeProduct(); }');
+
+        $double                    = new PostMetaSlotDouble();
+        $double->email_campaign_id = $this->campaign(ER::NEW_PUBLISH_POST, ['content_post_meta' => 'woo:price']);
+
+        // No details passed (the [post-content] shortcode): the price stays, whatever the setting.
+        $this->assertStringContainsString('mo-wc-price', $double->post_content($this->post_id));
+        // Details with the price: left out. As a comma string too.
+        $this->assertStringNotContainsString('mo-wc-price', $double->post_content($this->post_id, null, ['woo:price']));
+        $this->assertStringNotContainsString('mo-wc-price', $double->post_content($this->post_id, null, 'author,woo:price'));
+        $this->assertStringContainsString('mo-wc-price', $double->post_content($this->post_id, null, []));
     }
 }
