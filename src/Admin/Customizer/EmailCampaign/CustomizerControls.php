@@ -420,7 +420,7 @@ class CustomizerControls
                         esc_html__('Choose the posts and send this digest straight away. Publish your changes here first: the digest uses its saved design.', 'mailoptin')
                     ),
                     'section'  => $this->customizerClassInstance->campaign_settings_section_id,
-                    // Content-only: tied to the schedule's setting so it shows and hides with it.
+                    // Content only: a control needs a registered setting, and this one never writes to it.
                     'settings' => $this->option_prefix . '[schedule_interval]',
                     'priority' => 311,
                 ]
