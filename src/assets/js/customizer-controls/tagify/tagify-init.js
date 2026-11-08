@@ -4,7 +4,7 @@ wp.customize.controlConstructor.mailoptin_tagit = wp.customize.Control.extend({
         var control = this,
             input = control.container.find('input.mo-tagify').get(0);
 
-        if (!input || input._tagify) return;
+        if (!input || input.__tagify) return;
 
         var options = JSON.parse(input.getAttribute('data-tagify-options') || '{}');
 
@@ -12,6 +12,8 @@ wp.customize.controlConstructor.mailoptin_tagit = wp.customize.Control.extend({
             placeholder: options.placeholder || '',
             whitelist: options.whitelist || [],
             enforceWhitelist: false,
+            // tag-it also split on spaces, and a referrer never contains one.
+            delimiters: ',| ',
             duplicates: false,
             dropdown: {enabled: options.onFocus ? 0 : 1, maxItems: 20, closeOnSelect: true},
             // As before: "http://", "https://" and "www." aren't accepted anywhere in a tag.
@@ -19,11 +21,6 @@ wp.customize.controlConstructor.mailoptin_tagit = wp.customize.Control.extend({
                 return !/(https?:\/\/|www\.)/i.test(tag.value);
             },
             editTags: false
-        });
-
-        // A rejected tag is removed straight away rather than left in red.
-        tagify.on('invalid', function (e) {
-            setTimeout(function () { tagify.removeTags(e.detail.tag); }, 600);
         });
 
         var save = function () {

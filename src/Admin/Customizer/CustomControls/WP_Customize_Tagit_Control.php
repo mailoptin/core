@@ -27,6 +27,8 @@ class WP_Customize_Tagit_Control extends WP_Customize_Control
     {
         wp_enqueue_style('mailoptin-tagify', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/tagify/tagify.css', [], '4.31.3');
         wp_enqueue_script('mailoptin-tagify', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/tagify/tagify.min.js', [], '4.31.3', true);
+        // Tagify adds its suggestions list to <body>; it has to sit above the customizer (z-index 500000).
+        wp_add_inline_style('mailoptin-tagify', '.tagify__dropdown{z-index:500001}');
         wp_enqueue_script('mailoptin-tagify-init', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/tagify/tagify-init.js', ['mailoptin-tagify', 'customize-controls'], MAILOPTIN_VERSION_NUMBER, true);
     }
 
