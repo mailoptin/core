@@ -14,6 +14,13 @@ class SuppressionRepository extends AbstractRepository
     const REASON_BOUNCED = 'bounced';
     const REASON_COMPLAINED = 'complained';
     const REASON_ERASED = 'erased';
+    /** Added by an admin on the Suppression list screen: never emailed, not even to confirm a signup. */
+    const REASON_MANUAL = 'manual';
+
+    /** Reasons that stop every email, confirmations included. Only an admin can lift these. */
+    const HARD_REASONS = [self::REASON_BOUNCED, self::REASON_COMPLAINED, self::REASON_MANUAL];
+
+    const SOURCE_ADMIN = 'admin';
 
     public static function table()
     {
@@ -133,5 +140,91 @@ class SuppressionRepository extends AbstractRepository
         );
 
         return array_values(array_intersect_key($hash_to_email, array_flip($found)));
+    }
+
+    /**
+     * The row for an address, by its hash.
+     *
+     * @return array|null email_hash, reason, source, created_at
+     */
+    public static function get_by_hash($hash)
+    {
+        $table = self::table();
+
+        return self::wpdb()->get_row(self::wpdb()->prepare("SELECT email_hash, reason, source, created_at FROM $table WHERE email_hash = %s", (string)$hash), 'ARRAY_A');
+    }
+
+    public static function remove_hash($hash)
+    {
+        return (bool)self::wpdb()->delete(self::table(), ['email_hash' => (string)$hash], ['%s']);
+    }
+
+    /**
+     * @return int[] reason => number of addresses, plus 'all'
+     */
+    public static function counts()
+    {
+        $table  = self::table();
+        $counts = ['all' => 0];
+
+        foreach ((array)self::wpdb()->get_results("SELECT reason, COUNT(*) AS n FROM $table GROUP BY reason", 'ARRAY_A') as $row) {
+            $counts[$row['reason']] = (int)$row['n'];
+            $counts['all']          += (int)$row['n'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * A page of the list, newest first. Each row carries the subscriber whose address has that hash,
+     * if there is one (subscriber_id and email), since the list itself keeps no addresses.
+     *
+     * @param string $reason '' for every reason
+     *
+     * @return array[]
+     */
+    public static function page($reason, $per_page, $offset)
+    {
+        $table = self::table();
+        $where = '' === $reason ? '1=1' : self::wpdb()->prepare('reason = %s', $reason);
+
+        $rows = (array)self::wpdb()->get_results(
+            self::wpdb()->prepare("SELECT email_hash, reason, source, created_at FROM $table WHERE $where ORDER BY created_at DESC, email_hash ASC LIMIT %d OFFSET %d", absint($per_page), absint($offset)),
+            'ARRAY_A'
+        );
+
+        if (empty($rows)) return [];
+
+        $by_hash = self::subscribers_by_hash(array_column($rows, 'email_hash'));
+
+        foreach ($rows as &$row) {
+            $row['subscriber_id'] = isset($by_hash[$row['email_hash']]) ? (int)$by_hash[$row['email_hash']]['id'] : 0;
+            $row['email']         = isset($by_hash[$row['email_hash']]) ? $by_hash[$row['email_hash']]['email'] : '';
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Subscribers whose address has one of these hashes. Subscriber emails are stored lowercased and
+     * trimmed, as hash() expects.
+     *
+     * @return array hash => ['id' => int, 'email' => string]
+     */
+    public static function subscribers_by_hash($hashes)
+    {
+        $hashes = array_values(array_unique(array_filter((array)$hashes)));
+
+        if (empty($hashes)) return [];
+
+        $table = SubscribersRepository::table();
+        $in    = implode(',', array_fill(0, count($hashes), '%s'));
+
+        $found = [];
+        foreach ((array)self::wpdb()->get_results(self::wpdb()->prepare("SELECT id, email, SHA2(email, 256) AS h FROM $table WHERE SHA2(email, 256) IN ($in)", $hashes), 'ARRAY_A') as $row) {
+            $found[$row['h']] = ['id' => (int)$row['id'], 'email' => $row['email']];
+        }
+
+        return $found;
     }
 }

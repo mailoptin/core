@@ -32,6 +32,8 @@ class SubscribersRepository extends AbstractRepository
     const EVENT_SOFT_BOUNCED = 'soft_bounced';
     const EVENT_COMPLAINED = 'complained';
     const EVENT_RESUBSCRIBED = 'resubscribed';
+    const EVENT_SUPPRESSED = 'suppressed';
+    const EVENT_SUPPRESSION_LIFTED = 'suppression_lifted';
 
     public static function table()
     {
