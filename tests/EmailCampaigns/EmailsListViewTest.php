@@ -1,6 +1,6 @@
 <?php
 
-namespace MailOptin\Tests\Core\Admin;
+namespace MailOptin\Tests\Core\EmailCampaigns;
 
 use MailOptin\Core\Admin\SettingsPage\EmailCampaigns;
 use WP_UnitTestCase;
