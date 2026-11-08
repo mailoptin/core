@@ -41,11 +41,12 @@ trait TemplateTrait
     }
 
     /**
+     * The chosen post details (author, date, terms, custom fields, product price…) as one line of HTML.
+     *
      * @param WP_Post $post
+     * @param string|array $post_metas keys from {@see PostMetaFields}; empty for the email's own setting
      *
-     * @param string $post_metas
-     *
-     * @return string
+     * @return string|false
      */
     public function post_meta($post, $post_metas = '')
     {
@@ -53,8 +54,6 @@ trait TemplateTrait
             $post_metas = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
 
             if (empty($post_metas)) return '';
-
-            $post_metas = array_map('sanitize_text_field', explode(',', $post_metas));
         }
 
         $post = get_post($post);
@@ -63,21 +62,9 @@ trait TemplateTrait
             return false;
         }
 
-        $bucket = [];
+        $bucket = PostMetaFields::render($post, $post_metas);
 
-        foreach ($post_metas as $meta) {
-            switch ($meta) {
-                case 'author':
-                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_author_meta('display_name', $post->post_author)));
-                    break;
-                case 'date':
-                    $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option('date_format'), $post));
-                    break;
-                case 'category':
-                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_term_list($post->ID, 'category', '', ', ')));
-                    break;
-            }
-        }
+        if (empty($bucket)) return '';
 
         $html = '<div class="mo-post-meta mo-content-text-color">';
         $html .= implode('<span>&nbsp;•&nbsp;</span>', $bucket);
@@ -87,13 +74,44 @@ trait TemplateTrait
     }
 
     /**
+     * Where the post details go: under the title, or under the featured image.
+     */
+    public function post_meta_position()
+    {
+        $position = ER::get_customizer_value($this->email_campaign_id, PostMetaFields::POSITION_SETTING);
+
+        return PostMetaFields::POSITION_BELOW_IMAGE === $position ? PostMetaFields::POSITION_BELOW_IMAGE : PostMetaFields::POSITION_BELOW_TITLE;
+    }
+
+    /**
+     * Leave one {{post.meta}} in the template, where the details should go: under the title (the template's
+     * own {{post.meta}}) or under the featured image ({{post.meta.below_image}}). A template without the
+     * second slot keeps them under the title.
+     *
+     * @param string $template
+     *
+     * @return string
+     */
+    public function place_post_meta_slot($template)
+    {
+        $template = (string)$template;
+
+        if (PostMetaFields::POSITION_BELOW_IMAGE === $this->post_meta_position() && false !== strpos($template, '{{post.meta.below_image}}')) {
+            // The wrapper gives the details some room below the image (see .mo-post-meta-below-image).
+            return str_replace(['{{post.meta}}', '{{post.meta.below_image}}'], ['', '<div class="mo-post-meta-below-image">{{post.meta}}</div>'], $template);
+        }
+
+        return str_replace('{{post.meta.below_image}}', '', $template);
+    }
+
+    /**
      * @param int|WP_Post $post
      *
      * @param null|mixed $post_content_length
      *
      * @return string
      */
-    public function post_content($post, $post_content_length = null)
+    public function post_content($post, $post_content_length = null, $post_metas = null)
     {
         $is_remove_post_content = ER::get_merged_customizer_value(
             $this->email_campaign_id,
@@ -121,7 +139,11 @@ trait TemplateTrait
 
         $wc_price = '';
 
-        if (class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
+        // The price is already in the post details when they include it: don't show it twice. Only callers
+        // that render the details pass them; others (the [post-content] shortcode) keep the price.
+        $show_price = null === $post_metas || ! in_array('woo:price', PostMetaFields::parse($post_metas), true);
+
+        if ($show_price && class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
             $product = wc_get_product($post->ID);
             if (false !== $product && is_object($product)) {
                 $wc_price = sprintf('<p class="mo-wc-price">%s</p>', $product->get_price_html());

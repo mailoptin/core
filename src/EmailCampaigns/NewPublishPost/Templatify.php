@@ -40,7 +40,7 @@ class Templatify implements TemplatifyInterface
 
     public function post_content_forge()
     {
-        $preview_structure = EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure();
+        $preview_structure = $this->place_post_meta_slot(EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure());
 
         $preview_structure = str_replace('{{post.feature.image}}', $this->feature_image($this->post), $preview_structure);
         $preview_structure = str_replace('{{post.feature.image.alt}}', $this->feature_image_alt($this->post), $preview_structure);
@@ -54,7 +54,7 @@ class Templatify implements TemplatifyInterface
 
         $replace = [
             apply_filters('mo_new_publish_post_title', $this->post->post_title, $this->post, $this->email_campaign_id),
-            apply_filters('mo_new_publish_post_content', $this->post_content($this->post), $this->post, $this->email_campaign_id),
+            apply_filters('mo_new_publish_post_content', $this->post_content($this->post, null, (string)ER::get_customizer_value($this->email_campaign_id, 'content_post_meta')), $this->post, $this->email_campaign_id),
             apply_filters('mo_new_publish_post_url', $this->post_url($this->post), $this->post, $this->email_campaign_id),
             apply_filters('mo_new_publish_post_meta', $this->post_meta($this->post), $this->post, $this->email_campaign_id)
         ];

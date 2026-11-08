@@ -11,6 +11,8 @@ use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Input_Con
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_EA_CPT_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Email_Schedule_Time_Fields_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Multiple_Checkbox;
+use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Post_Meta_Control;
+use MailOptin\Core\EmailCampaigns\PostMetaFields;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Range_Value_Control;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Tinymce_Expanded_Editor;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Toggle_Control;
@@ -72,6 +74,7 @@ class CustomizerControls
                     'content_before_main_content',
                     'content_after_main_content',
                     'content_post_meta',
+                    'content_post_meta_position',
                     'content_remove_post_link',
                     'content_remove_post_body',
                     'content_remove_feature_image',
@@ -1332,20 +1335,29 @@ HTML;
                         )
                     )
                 ),
-                'content_post_meta'                        => new WP_Customize_Multiple_Checkbox(
+                'content_post_meta'                        => new WP_Customize_Post_Meta_Control(
                     $this->wp_customize,
                     $this->option_prefix . '[content_post_meta]',
                     apply_filters('mailoptin_template_customizer_content_post_meta_args', array(
-                            'label'    => esc_html__('Post Meta Data', 'mailoptin'),
-                            'section'  => $this->customizerClassInstance->campaign_content_section_id,
-                            'settings' => $this->option_prefix . '[content_post_meta]',
-                            'choices'  => array(
-                                'author'   => __('Author', 'mailoptin'),
-                                'category' => __('Categories', 'mailoptin'),
-                                'date'     => __('Date', 'mailoptin'),
-                            ),
-                            'priority' => 23
+                            'label'       => esc_html__('Post Meta Data', 'mailoptin'),
+                            'description' => esc_html__('Tick what to show with each post and drag to change the order.', 'mailoptin'),
+                            'section'     => $this->customizerClassInstance->campaign_content_section_id,
+                            'settings'    => $this->option_prefix . '[content_post_meta]',
+                            'post_types'  => array_filter([(string)ER::get_merged_customizer_value($this->customizerClassInstance->email_campaign_id, 'custom_post_type')]),
+                            'priority'    => 23
                         )
+                    )
+                ),
+                'content_post_meta_position'               => apply_filters('mailoptin_template_customizer_content_post_meta_position_args', array(
+                        'type'     => 'select',
+                        'label'    => esc_html__('Show Post Meta Data', 'mailoptin'),
+                        'section'  => $this->customizerClassInstance->campaign_content_section_id,
+                        'settings' => $this->option_prefix . '[content_post_meta_position]',
+                        'choices'  => array(
+                            PostMetaFields::POSITION_BELOW_TITLE => esc_html__('Below the title', 'mailoptin'),
+                            PostMetaFields::POSITION_BELOW_IMAGE => esc_html__('Below the featured image', 'mailoptin'),
+                        ),
+                        'priority' => 23
                     )
                 ),
                 'content_remove_post_link'                 => new WP_Customize_Toggle_Control(

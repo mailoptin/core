@@ -239,6 +239,7 @@ class Lucid extends AbstractTemplate
                         <a href="{{post.url}}">
                             <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
                         </a>
+                        {{post.meta.below_image}}
                     <?php endif;
 
                     if ($content_remove_post_link == true) : ?>
@@ -246,6 +247,7 @@ class Lucid extends AbstractTemplate
                             {{post.title}}</h1>
                         {{post.meta}}
                         <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
+                        {{post.meta.below_image}}
                     <?php endif;
                     do_action('mailoptin_email_campaign_lucid_before_post_content');
                     ?>
@@ -536,6 +538,10 @@ HTML;
       line-height: 22px;
       mso-line-height-rule: exactly;
       padding: 0 0 5px 0;
+    }
+
+    .mo-post-meta-below-image .mo-post-meta {
+      padding-top: 10px;
     }
 
     .body-sub {
