@@ -531,10 +531,6 @@ HTML;
       padding: 0;
     }
     
-    .mo-post-meta-below-image {
-      padding-top: 10px !important;
-    }
-
     .mo-post-meta {
       color: #6f6f6f;
       font-size: 12px;
@@ -542,6 +538,10 @@ HTML;
       line-height: 22px;
       mso-line-height-rule: exactly;
       padding: 0 0 5px 0;
+    }
+
+    .mo-post-meta-below-image .mo-post-meta {
+      padding-top: 10px;
     }
 
     .body-sub {

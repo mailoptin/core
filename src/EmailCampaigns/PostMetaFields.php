@@ -150,8 +150,8 @@ class PostMetaFields
     }
 
     /**
-     * Custom field keys used by posts of these types, for suggestions. Hidden ones (starting with _) are
-     * left out apart from a few well known ones.
+     * Custom field keys used by the latest posts of these types, for suggestions. Hidden ones (starting
+     * with _) are left out; they can still be typed in.
      *
      * @return string[]
      */
@@ -165,12 +165,24 @@ class PostMetaFields
         $keys      = get_transient($cache_key);
 
         if (false === $keys) {
-            $in   = implode(',', array_fill(0, count($post_types), '%s'));
-            $keys = $wpdb->get_col($wpdb->prepare(
-                "SELECT DISTINCT pm.meta_key FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-                 WHERE p.post_type IN ($in) AND pm.meta_key NOT LIKE %s ORDER BY pm.meta_key LIMIT 200",
-                array_merge($post_types, [$wpdb->esc_like('_') . '%'])
+            $in = implode(',', array_fill(0, count($post_types), '%s'));
+
+            // Only the latest posts' fields: a DISTINCT over all of postmeta is slow on big stores.
+            $ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ($in) AND post_status = 'publish' ORDER BY ID DESC LIMIT 300",
+                $post_types
             ));
+
+            $keys = [];
+
+            if ( ! empty($ids)) {
+                $ids  = implode(',', array_map('absint', $ids));
+                $keys = $wpdb->get_col($wpdb->prepare(
+                    "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id IN ($ids) AND meta_key NOT LIKE %s LIMIT 200",
+                    $wpdb->esc_like('_') . '%'
+                ));
+                sort($keys);
+            }
 
             $keys = array_values(array_filter(array_map([__CLASS__, 'clean_meta_key'], (array)$keys)));
 
@@ -236,7 +248,8 @@ class PostMetaFields
                 break;
 
             case 'reading_time' === $key:
-                $words   = str_word_count(wp_strip_all_tags(strip_shortcodes($post->post_content)));
+                // Any script's words, not only Latin ones (str_word_count() counts 0 for Cyrillic).
+                $words   = (int)preg_match_all('/[\p{L}\p{N}]+/u', wp_strip_all_tags(strip_shortcodes($post->post_content)));
                 $minutes = max(1, (int)ceil($words / (int)apply_filters('mailoptin_post_meta_words_per_minute', 200)));
                 $value   = $words ? esc_html(sprintf(_n('%s min read', '%s min read', $minutes, 'mailoptin'), number_format_i18n($minutes))) : '';
                 break;
@@ -280,8 +293,11 @@ class PostMetaFields
 
         switch ($what) {
             case 'price':
+                // Screen reader text ("Original price was: …") would show in an email: drop it with its words.
+                $price = preg_replace('#<span[^>]*class=["\'][^"\']*screen-reader-text[^"\']*["\'][^>]*>.*?</span>#is', '', (string)$product->get_price_html());
+
                 // Keeps the sale price's strike-through; nothing else from the price HTML.
-                return wp_kses((string)$product->get_price_html(), ['del' => [], 'ins' => [], 'span' => [], 'bdi' => []]);
+                return trim(wp_kses($price, ['del' => [], 'ins' => [], 'span' => [], 'bdi' => []]));
 
             case 'rating':
                 $rating = (float)$product->get_average_rating();

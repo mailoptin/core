@@ -50,14 +50,10 @@ trait TemplateTrait
      */
     public function post_meta($post, $post_metas = '')
     {
-        $class = '';
-
         if (empty($post_metas)) {
             $post_metas = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
 
             if (empty($post_metas)) return '';
-
-            if (PostMetaFields::POSITION_BELOW_IMAGE === $this->post_meta_position()) $class = ' mo-post-meta-below-image';
         }
 
         $post = get_post($post);
@@ -70,7 +66,7 @@ trait TemplateTrait
 
         if (empty($bucket)) return '';
 
-        $html = '<div class="mo-post-meta mo-content-text-color' . $class . '">';
+        $html = '<div class="mo-post-meta mo-content-text-color">';
         $html .= implode('<span>&nbsp;•&nbsp;</span>', $bucket);
         $html .= '</div>';
 
@@ -101,7 +97,8 @@ trait TemplateTrait
         $template = (string)$template;
 
         if (PostMetaFields::POSITION_BELOW_IMAGE === $this->post_meta_position() && false !== strpos($template, '{{post.meta.below_image}}')) {
-            return str_replace(['{{post.meta}}', '{{post.meta.below_image}}'], ['', '{{post.meta}}'], $template);
+            // The wrapper gives the details some room below the image (see .mo-post-meta-below-image).
+            return str_replace(['{{post.meta}}', '{{post.meta.below_image}}'], ['', '<div class="mo-post-meta-below-image">{{post.meta}}</div>'], $template);
         }
 
         return str_replace('{{post.meta.below_image}}', '', $template);

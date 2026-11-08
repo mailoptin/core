@@ -154,10 +154,11 @@ class Posts extends AbstractElement
     {
         $choices = PostMetaFields::choices();
 
-        foreach (PostMetaFields::suggested_meta_keys(array_keys(get_post_types(['public' => true]))) as $meta_key) {
+        foreach (PostMetaFields::suggested_meta_keys(array_diff(array_keys(get_post_types(['public' => true])), ['attachment'])) as $meta_key) {
             $choices['meta:' . $meta_key] = PostMetaFields::label('meta:' . $meta_key, []);
         }
 
-        return $choices;
+        // The builder prints labels into a JS template as they are.
+        return array_map('esc_html', $choices);
     }
 }

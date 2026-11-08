@@ -16,7 +16,7 @@ use WP_UnitTestCase;
  */
 class FakeProduct
 {
-    public function get_price_html() { return '<del><span class="amount">£14.00</span></del> <ins><span class="amount">£11.50</span></ins><script>x</script>'; }
+    public function get_price_html() { return '<del aria-hidden="true"><span class="amount">£14.00</span></del> <span class="screen-reader-text">Original price was: £14.00.</span><ins aria-hidden="true"><span class="amount">£11.50</span></ins><span class="screen-reader-text">Current price is: £11.50.</span><script>x</script>'; }
     public function get_average_rating() { return '4.6'; }
     public function get_stock_status() { return 'instock'; }
     public function get_sku() { return 'TUL-20'; }
@@ -107,6 +107,10 @@ class PostMetaFieldsTest extends WP_UnitTestCase
         $this->assertSame('Autumn', PostMetaFields::value($post, 'tax:season'));
         $this->assertSame('Okafor Gardens', PostMetaFields::value($post, 'meta:Grower_Name'));
 
+        // Words in any script count towards reading time.
+        $russian = self::factory()->post->create(['post_content' => str_repeat('Посадите луковицы глубоко и полейте их. ', 60)]);
+        $this->assertSame('2 min read', PostMetaFields::value(get_post($russian), 'reading_time'));
+
         // Custom field values are text, never HTML.
         $this->assertSame('Hortus &amp; Co', PostMetaFields::value($post, 'meta:brand'));
 
@@ -135,6 +139,7 @@ class PostMetaFieldsTest extends WP_UnitTestCase
         $post = get_post($this->post_id);
 
         $this->assertArrayHasKey('woo:price', PostMetaFields::choices('post'));
+        // Screen reader text would show in an email, so it goes with its words.
         $this->assertSame('<del><span>£14.00</span></del> <ins><span>£11.50</span></ins>x', PostMetaFields::value($post, 'woo:price'));
         $this->assertSame('★★★★★ 4.6', PostMetaFields::value($post, 'woo:rating'));
         $this->assertSame('In stock', PostMetaFields::value($post, 'woo:stock'));
@@ -158,7 +163,8 @@ class PostMetaFieldsTest extends WP_UnitTestCase
 
         $html = $this->plain((new NewPostTemplatify($campaign, $this->post_id))->forge());
 
-        $this->assertSame(1, substr_count($html, 'class="mo-post-meta mo-content-text-color mo-post-meta-below-image"'));
+        $this->assertSame(1, substr_count($html, '<div class="mo-post-meta-below-image"><div class="mo-post-meta mo-content-text-color">'));
+        $this->assertSame(1, substr_count($html, 'class="mo-post-meta '));
         $this->assertGreaterThan(strpos($html, 'class="mo-imgix"'), strpos($html, 'mo-post-meta-below-image"'));
         $this->assertStringContainsString('<span>spring, tulips</span><span> • </span><span>Okafor Gardens</span>', $html);
         $this->assertStringNotContainsString('{{post.meta', $html);
@@ -177,7 +183,7 @@ class PostMetaFieldsTest extends WP_UnitTestCase
         $double->email_campaign_id = $this->campaign(ER::NEW_PUBLISH_POST, ['content_post_meta_position' => PostMetaFields::POSITION_BELOW_IMAGE]);
 
         $this->assertSame('<h1>T</h1>{{post.meta}}<img>', $double->place_post_meta_slot('<h1>T</h1>{{post.meta}}<img>'));
-        $this->assertSame('<h1>T</h1><img>{{post.meta}}', $double->place_post_meta_slot('<h1>T</h1>{{post.meta}}<img>{{post.meta.below_image}}'));
+        $this->assertSame('<h1>T</h1><img><div class="mo-post-meta-below-image">{{post.meta}}</div>', $double->place_post_meta_slot('<h1>T</h1>{{post.meta}}<img>{{post.meta.below_image}}'));
 
         ER::update_settings_by_id($double->email_campaign_id, ['content_post_meta_position' => PostMetaFields::POSITION_BELOW_TITLE]);
         $this->assertSame('<h1>T</h1>{{post.meta}}<img>', $double->place_post_meta_slot('<h1>T</h1>{{post.meta}}<img>{{post.meta.below_image}}'));
@@ -211,5 +217,21 @@ class PostMetaFieldsTest extends WP_UnitTestCase
         $html = $template->posts_block_tmpl('b1', get_post($this->post_id), ['post_meta_position' => PostMetaFields::POSITION_BELOW_IMAGE, 'remove_feature_image' => true] + $settings, 1);
         $this->assertStringContainsString('spring, tulips', $html);
         $this->assertStringNotContainsString('<img', $html);
+    }
+
+    public function test_builder_labels_are_escaped_and_suggestions_skip_hidden_fields()
+    {
+        update_post_meta($this->post_id, '_secret_token', 'x');
+        delete_transient('mo_post_meta_keys_' . md5('post'));
+        add_filter('mailoptin_post_meta_choices', function ($choices) {
+            return $choices + ['custom' => 'Price <b>& tax</b>'];
+        });
+
+        $choices = \MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\Posts::post_meta_choices();
+
+        $this->assertSame('Price &lt;b&gt;&amp; tax&lt;/b&gt;', $choices['custom']);
+        $this->assertArrayHasKey('meta:Grower_Name', $choices);
+        $this->assertArrayHasKey('meta:brand', $choices);
+        $this->assertArrayNotHasKey('meta:_secret_token', $choices);
     }
 }
