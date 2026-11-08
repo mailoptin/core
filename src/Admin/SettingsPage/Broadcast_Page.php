@@ -68,7 +68,7 @@ class Broadcast_Page
         wp_add_inline_script('mailoptin-chosen', "jQuery(function ($) {
             $('select.mo-tags-select').each(function () {
                 var select = this, changed = false;
-                $(select).chosen({width: '100%', search_contains: true})
+                $(select).chosen({width: '100%', search_contains: true, hide_results_on_select: false})
                     .on('change', function (e, params) {
                         if (!params) return;
                         // Removing a tag with its × doesn't open the list: save it now.
