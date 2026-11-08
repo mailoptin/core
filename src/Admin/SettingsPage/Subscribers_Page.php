@@ -35,7 +35,7 @@ class Subscribers_Page extends AbstractSettingsPage
 
             $instance = Custom_Settings_Page_Api::instance();
             $instance->option_name(self::OPTION_NAME);
-            $headers = ['lists' => __('Lists', 'mailoptin'), 'tags' => __('Tags', 'mailoptin'), 'fields' => __('Custom fields', 'mailoptin'), 'segments' => __('Segments', 'mailoptin'), 'import' => __('Import subscribers', 'mailoptin'), 'export' => __('Export subscribers', 'mailoptin')];
+            $headers = ['lists' => __('Lists', 'mailoptin'), 'tags' => __('Tags', 'mailoptin'), 'fields' => __('Custom fields', 'mailoptin'), 'segments' => __('Segments', 'mailoptin'), 'import' => __('Import subscribers', 'mailoptin'), 'export' => __('Export subscribers', 'mailoptin'), Subscribers_Suppressions::TAB => __('Suppression list', 'mailoptin')];
             $instance->page_header($headers[$active_menu] ?? __('Subscribers', 'mailoptin'));
             $instance->remove_h2_header();
             $this->set_settings_page_instance($instance);
@@ -48,6 +48,7 @@ class Subscribers_Page extends AbstractSettingsPage
         add_action('mailoptin_admin_settings_submenu_page_segments', [$this, 'render_segments']);
         add_action('mailoptin_admin_settings_submenu_page_import', [$this, 'render_import']);
         add_action('mailoptin_admin_settings_submenu_page_export', [$this, 'render_export']);
+        add_action('mailoptin_admin_settings_submenu_page_' . Subscribers_Suppressions::TAB, [$this, 'render_suppressions']);
 
         add_action('admin_init', [$this, 'handle_actions']);
         add_action('admin_notices', [$this, 'confirmation_limit_notice']);
@@ -125,6 +126,8 @@ class Subscribers_Page extends AbstractSettingsPage
             $tabs[] = ['id' => 'segments', 'url' => self::page_url('segments'), 'label' => __('Segments', 'mailoptin')];
         }
 
+        $tabs[] = ['id' => Subscribers_Suppressions::TAB, 'url' => self::page_url(Subscribers_Suppressions::TAB), 'label' => __('Suppression list', 'mailoptin')];
+
         return $tabs;
     }
 
@@ -138,6 +141,7 @@ class Subscribers_Page extends AbstractSettingsPage
         if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::styles();
         if (Subscribers_Segments::is_ready()) echo Subscribers_Segments::styles();
         if (in_array($this->active_menu_tab(), ['import', 'export'], true)) echo Subscribers_Import_Page::styles();
+        if (Subscribers_Suppressions::TAB === $this->active_menu_tab()) echo Subscribers_Suppressions::styles();
         echo '<div class="wrap mo-subscribers-wrap">' . $html . '</div>';
         if (Subscribers_Tags_Fields::is_ready()) echo Subscribers_Tags_Fields::script();
     }
@@ -219,7 +223,7 @@ class Subscribers_Page extends AbstractSettingsPage
             'segment_deleted'      => [__('Segment deleted. Its subscribers were kept.', 'mailoptin'), 'success'],
             'import_deleted'       => [__('Import report deleted. The imported subscribers were kept.', 'mailoptin'), 'success'],
             'error'                => [__('That didn\'t work. Please try again.', 'mailoptin'), 'error'],
-        ];
+        ] + Subscribers_Suppressions::notices();
 
         $key = sanitize_key($_GET['mo_notice'] ?? '');
 
@@ -407,6 +411,14 @@ class Subscribers_Page extends AbstractSettingsPage
                 return $label . ($via ? ' · ' . sprintf(__('via %s', 'mailoptin'), $via) : '') . ( ! empty($meta['detail']) ? ' · ' . $meta['detail'] : '');
             case Subscribers::EVENT_RESUBSCRIBED:
                 return sprintf(__('Marked as subscribed again by %s', 'mailoptin'), Subscribers_Tags_Fields::admin_name($meta['by_admin'] ?? 0) ?: __('an admin', 'mailoptin'));
+            case Subscribers::EVENT_SUPPRESSED:
+                /* translators: %s: admin name */
+                return sprintf(__('Added to the suppression list by %s', 'mailoptin'), Subscribers_Tags_Fields::admin_name($meta['by_admin'] ?? 0) ?: __('an admin', 'mailoptin'));
+            case Subscribers::EVENT_SUPPRESSION_LIFTED:
+                $was = Subscribers_Suppressions::reason_labels()[$meta['reason'] ?? ''] ?? '';
+
+                /* translators: 1: admin name, 2: why the address was suppressed, e.g. "Unsubscribed" */
+                return sprintf(__('Allowed emails again by %1$s (was: %2$s)', 'mailoptin'), Subscribers_Tags_Fields::admin_name($meta['by_admin'] ?? 0) ?: __('an admin', 'mailoptin'), $was ?: __('suppressed', 'mailoptin'));
         }
 
         return $event['type'];
@@ -638,6 +650,13 @@ class Subscribers_Page extends AbstractSettingsPage
         $this->build_page($this->notice_html() . Subscribers_Import_Page::export_html());
     }
 
+    public function render_suppressions()
+    {
+        if ( ! $this->is_this_page()) return;
+
+        $this->build_page($this->notice_html() . Subscribers_Suppressions::html());
+    }
+
     public function render_fields()
     {
         if ( ! $this->is_this_page() || ! Subscribers_Tags_Fields::is_ready()) return;
@@ -859,6 +878,8 @@ class Subscribers_Page extends AbstractSettingsPage
         $subscriber_id = absint($_REQUEST['subscriber'] ?? 0);
 
         $handled = Subscribers_Import_Page::handle_action($action);
+
+        if ( ! $handled) $handled = Subscribers_Suppressions::handle_action($action);
 
         if ($handled) return $this->redirect($handled[0], $handled[1]);
 

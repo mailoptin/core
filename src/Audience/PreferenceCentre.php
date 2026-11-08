@@ -171,7 +171,7 @@ class PreferenceCentre
 
     public static function form_html($subscriber, $result = null)
     {
-        $blocked     = in_array(SuppressionRepository::get_reason($subscriber['email']), [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED], true)
+        $blocked     = in_array(SuppressionRepository::get_reason($subscriber['email']), SuppressionRepository::HARD_REASONS, true)
                        || in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true);
         $memberships = self::memberships($subscriber['id']);
         $fields      = self::editable_fields();
@@ -327,7 +327,7 @@ class PreferenceCentre
 
         // Lists.
         $unsubscribed_all = false;
-        $blocked          = in_array(SuppressionRepository::get_reason($subscriber['email']), [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED], true)
+        $blocked          = in_array(SuppressionRepository::get_reason($subscriber['email']), SuppressionRepository::HARD_REASONS, true)
                             || in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true);
 
         if ( ! empty($post['lists_shown']) && ! $blocked) {
