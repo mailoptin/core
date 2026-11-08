@@ -41,6 +41,9 @@ class EmailsListViewTest extends WP_UnitTestCase
         return [
             'no view'            => [null, true],
             'post-notifications' => ['post-notifications', true],
+            // Other views have their own pages and must not build the list.
+            'add-new'            => ['add-new', false],
+            'campaign-log'       => ['campaign-log', false],
         ];
     }
 }
