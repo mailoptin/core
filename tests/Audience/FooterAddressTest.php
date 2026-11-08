@@ -20,14 +20,37 @@ class FooterAddressTest extends WP_UnitTestCase
     /** The default footer, as the email template renders it (line breaks added). */
     const FOOTER = "<p class=\"mo-footer-description\">Our mailing address is:<br>\n{{company_name}}<br>\n{{company_address}},<br>\n{{company_address_2}}<br>\n{{company_city}}, {{company_state}} {{company_zip}}.<br>\n{{company_country}}.</p>";
 
+    /** What the shared Settings instance held before each test, put back after it. */
+    protected $saved;
+
+    protected function settings_property()
+    {
+        $property = new \ReflectionProperty(\MailOptin\Core\PluginSettings\Settings::class, 'settings_data');
+        $property->setAccessible(true);
+
+        return $property;
+    }
+
+    public function set_up()
+    {
+        parent::set_up();
+
+        $this->saved = $this->settings_property()->getValue(\MailOptin\Core\PluginSettings\Settings::instance());
+    }
+
+    public function tear_down()
+    {
+        $this->settings_property()->setValue(\MailOptin\Core\PluginSettings\Settings::instance(), $this->saved);
+
+        parent::tear_down();
+    }
+
     protected function footer($details)
     {
         update_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, $details);
 
-        // Settings::instance() keeps what it read first; give it the details for this test.
-        $property = new \ReflectionProperty(\MailOptin\Core\PluginSettings\Settings::class, 'settings_data');
-        $property->setAccessible(true);
-        $property->setValue(\MailOptin\Core\PluginSettings\Settings::instance(), $details);
+        // Settings::instance() keeps what it read first; give it the details for this test (tear_down restores).
+        $this->settings_property()->setValue(\MailOptin\Core\PluginSettings\Settings::instance(), $details);
 
         return (new FooterAddressDouble())->replace_footer_placeholder_tags(self::FOOTER);
     }
