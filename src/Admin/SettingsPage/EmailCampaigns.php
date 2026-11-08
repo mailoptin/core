@@ -141,7 +141,8 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function screen_option()
     {
-        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! isset($_GET['view'])) {
+        // The list shows with no view, or with its own tab's name (view=post-notifications) in the address.
+        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && in_array($_GET['view'] ?? '', ['', 'post-notifications'], true)) {
             $option = 'per_page';
             $args   = [
                     'label'   => __('Email Automation', 'mailoptin'),

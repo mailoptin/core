@@ -84,7 +84,7 @@ jobs:
           WP_TESTS_PHPUNIT_POLYFILLS_PATH: ${{ runner.temp }}/wptest/vendor/yoast/phpunit-polyfills
         run: |
           status=0
-          for suite in tests/SendQueue tests/Audience tests/Submissions tests/Repositories/CampaignSettingsStorageTest.php tests/Design tests/Api; do
+          for suite in tests/SendQueue tests/Audience tests/Submissions tests/Repositories/CampaignSettingsStorageTest.php tests/Design tests/Api tests/Admin/EmailsListViewTest.php; do
             echo "::group::$suite"
             "$RUNNER_TEMP/wptest/vendor/bin/phpunit" --no-configuration --bootstrap tests/bootstrap.php "$suite" || status=1
             echo "::endgroup::"
