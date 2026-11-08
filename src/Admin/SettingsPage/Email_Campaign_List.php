@@ -221,6 +221,10 @@ class Email_Campaign_List extends \WP_List_Table
             'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', $delete_url, __('Delete', 'mailoptin')),
         ];
 
+        if (ER::POSTS_EMAIL_DIGEST === ($item['campaign_type'] ?? '') && Digest_Send_Page::is_enabled()) {
+            $actions = ['send_now' => sprintf('<a href="%s">%s</a>', esc_url(Digest_Send_Page::url($email_campaign_id)), __('Send now', 'mailoptin'))] + $actions;
+        }
+
         return $name . $this->row_actions($actions);
     }
 
@@ -298,6 +302,37 @@ class Email_Campaign_List extends \WP_List_Table
      *
      * @return string
      */
+    /**
+     * When a digest next goes out, and how many posts it would carry now.
+     */
+    public function column_next_send($item)
+    {
+        if (ER::POSTS_EMAIL_DIGEST !== ($item['campaign_type'] ?? '') || ! Digest_Send_Page::is_enabled()) return '&mdash;';
+
+        $email_campaign_id = absint($item['id']);
+        $digest            = \MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest::get_instance();
+        $waiting           = Digest_Send_Page::waiting_count($email_campaign_id);
+        $waiting_html      = \MailOptin\Core\Admin\UI::badge(sprintf(_n('%s post waiting', '%s posts waiting', $waiting, 'mailoptin'), number_format_i18n($waiting)), $waiting ? 'info' : '');
+
+        if ($digest->is_manual_only($email_campaign_id)) {
+            return esc_html__('When you send it', 'mailoptin') . '<br>' . $waiting_html;
+        }
+
+        if ( ! ER::is_campaign_active($email_campaign_id)) {
+            return esc_html__('Not activated', 'mailoptin') . '<br>' . $waiting_html;
+        }
+
+        $next = $digest->next_scheduled_at($email_campaign_id);
+
+        if ( ! $next) return '&mdash;';
+
+        if ($digest->is_skipped($email_campaign_id, $next)) {
+            $next = $digest->next_scheduled_at($email_campaign_id, $next->addHours(2));
+        }
+
+        return esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $next->getTimestamp())) . '<br>' . $waiting_html;
+    }
+
     public function column_default($item, $column_name)
     {
         return ER::get_type_name(
@@ -316,6 +351,7 @@ class Email_Campaign_List extends \WP_List_Table
             'cb'            => '<input type="checkbox">',
             'name'          => __('Name', 'mailoptin'),
             'campaign_type' => __('Automation Type', 'mailoptin'),
+            'next_send'     => __('Next send', 'mailoptin'),
             'action'        => __('Actions', 'mailoptin'),
             'activated'     => __('Activated', 'mailoptin'),
         );
