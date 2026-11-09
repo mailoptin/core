@@ -92,9 +92,11 @@ class Engine
     /**
      * Start every live automation of this trigger that the event and person pass.
      *
+     * @param int $automation_id only this automation (for scans); 0 for every live one
+     *
      * @return int[] run IDs started
      */
-    public static function start(AbstractTrigger $trigger, $email, $trigger_ref, $context)
+    public static function start(AbstractTrigger $trigger, $email, $trigger_ref, $context, $automation_id = 0)
     {
         $email = strtolower(trim((string)$email));
 
@@ -107,6 +109,9 @@ class Engine
         $started    = [];
 
         foreach (Repo::live_for_trigger($trigger->id()) as $automation) {
+            // A scan looks for people for one automation; it mustn't start the others on the same trigger.
+            if ($automation_id && (int)$automation['id'] !== (int)$automation_id) continue;
+
             $settings = $automation['trigger_settings'];
             $runs     = $settings['runs'] ?? $trigger->default_runs();
 
@@ -199,13 +204,19 @@ class Engine
     {
         $deadline = $deadline ?: time() + (int)apply_filters('mailoptin_automations_time_budget', 20);
         $handled  = 0;
+        $seen     = [];
 
         while (time() < $deadline) {
-            $runs = Repo::claim_due($this->worker_id, 25, self::LEASE_SECONDS);
+            // A run that threw stays claimed by this worker until its lease ends; don't take it again now.
+            $runs = array_filter(Repo::claim_due($this->worker_id, 25, self::LEASE_SECONDS), function ($run) use ($seen) {
+                return ! isset($seen[$run['id']]);
+            });
 
             if (empty($runs)) break;
 
             foreach ($runs as $run) {
+                $seen[$run['id']] = true;
+
                 try {
                     $this->process($run);
                 } catch (\Throwable $e) {
@@ -226,6 +237,9 @@ class Engine
     public function scan()
     {
         if ( ! self::is_available()) return;
+
+        // The tick is cleared while automations are unavailable; bring it back for runs still waiting.
+        if (Repo::has_active_runs()) self::ensure_tick();
 
         foreach (Triggers::get_instance()->all() as $trigger) {
             foreach (Repo::live_for_trigger($trigger->id()) as $automation) {

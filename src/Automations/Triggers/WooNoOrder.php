@@ -71,16 +71,27 @@ class WooNoOrder extends AbstractTrigger
         $days = max(1, (int)($automation['trigger_settings']['days'] ?? 120));
         $line = time() - $days * DAY_IN_SECONDS;
 
-        // Last orders placed in the week before the line, oldest first.
-        $order_ids = wc_get_orders([
-            'status'       => array_map(function ($s) { return 'wc-' . $s; }, Woo::PAID_STATUSES),
-            'date_created' => ($line - self::WINDOW_DAYS * DAY_IN_SECONDS) . '...' . $line,
-            'orderby'      => 'date',
-            'order'        => 'ASC',
-            'limit'        => self::BATCH,
-            'return'       => 'ids',
-        ]);
+        // Orders placed in the week before the line, oldest first, a page at a time: orders from people
+        // who bought again stay in the window, so a single batch could fill with them and stall.
+        $page = 1;
 
+        do {
+            $order_ids = wc_get_orders([
+                'status'       => array_map(function ($s) { return 'wc-' . $s; }, Woo::PAID_STATUSES),
+                'date_created' => ($line - self::WINDOW_DAYS * DAY_IN_SECONDS) . '...' . $line,
+                'orderby'      => 'ID',
+                'order'        => 'ASC',
+                'limit'        => self::BATCH,
+                'paged'        => $page++,
+                'return'       => 'ids',
+            ]);
+
+            $this->start_for_orders($automation, (array)$order_ids);
+        } while (count($order_ids) === self::BATCH);
+    }
+
+    protected function start_for_orders($automation, $order_ids)
+    {
         foreach ($order_ids as $order_id) {
             $order = Woo::order($order_id);
 
@@ -91,7 +102,7 @@ class WooNoOrder extends AbstractTrigger
             // Not their last order: they bought again since.
             if (Woo::ordered_since($email, gmdate('Y-m-d H:i:s', $order->get_date_created()->getTimestamp()), $order_id)) continue;
 
-            $this->start($email, 'last-order-' . $order_id, ['order_id' => (int)$order_id]);
+            $this->start($email, 'last-order-' . $order_id, ['order_id' => (int)$order_id], $automation['id']);
         }
     }
 

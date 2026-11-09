@@ -109,17 +109,24 @@ class DateField extends AbstractTrigger
         $runs = \MailOptin\Core\Repositories\AutomationsRepository::runs_table();
         $year = $target->format('Y');
 
-        $rows = $wpdb->get_results($wpdb->prepare(
-            'SELECT s.id, s.email FROM ' . Fields::values_table() . ' v INNER JOIN ' . Subscribers::table() . " s ON s.id = v.subscriber_id
-            WHERE v.field_id = %d AND s.status = %s AND ((MONTH(v.value_date) = %d AND DAY(v.value_date) = %d)$leap_extra)
-            AND NOT EXISTS (SELECT 1 FROM $runs r WHERE r.automation_id = %d AND r.email = s.email AND r.trigger_ref = %s)
-            ORDER BY s.id LIMIT %d",
-            $field_id, Subscribers::STATUS_SUBSCRIBED, $month, $day, $automation['id'], $year, self::BATCH
-        ), 'ARRAY_A');
+        // Page by ID: people who aren't started (left out by the audience, suppressed, already part-way)
+        // would otherwise fill every batch and keep everyone after them from ever starting.
+        $last_id = 0;
 
-        foreach ((array)$rows as $row) {
-            $this->start($row['email'], $year, ['field_id' => $field_id, 'date' => $target->format('Y-m-d')]);
-        }
+        do {
+            $rows = (array)$wpdb->get_results($wpdb->prepare(
+                'SELECT s.id, s.email FROM ' . Fields::values_table() . ' v INNER JOIN ' . Subscribers::table() . " s ON s.id = v.subscriber_id
+                WHERE v.field_id = %d AND s.status = %s AND s.id > %d AND ((MONTH(v.value_date) = %d AND DAY(v.value_date) = %d)$leap_extra)
+                AND NOT EXISTS (SELECT 1 FROM $runs r WHERE r.automation_id = %d AND r.email = s.email AND r.trigger_ref = %s)
+                ORDER BY s.id LIMIT %d",
+                $field_id, Subscribers::STATUS_SUBSCRIBED, $last_id, $month, $day, $automation['id'], $year, self::BATCH
+            ), 'ARRAY_A');
+
+            foreach ($rows as $row) {
+                $last_id = (int)$row['id'];
+                $this->start($row['email'], $year, ['field_id' => $field_id, 'date' => $target->format('Y-m-d')], $automation['id']);
+            }
+        } while (count($rows) === self::BATCH);
     }
 
     public function matches($context, $settings, $audience)

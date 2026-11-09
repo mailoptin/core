@@ -138,9 +138,9 @@ abstract class AbstractTrigger
      *
      * @return int[] run IDs started
      */
-    protected function start($email, $trigger_ref, $context = [])
+    protected function start($email, $trigger_ref, $context = [], $automation_id = 0)
     {
-        return Engine::start($this, $email, (string)$trigger_ref, (array)$context);
+        return Engine::start($this, $email, (string)$trigger_ref, (array)$context, $automation_id);
     }
 
     /**

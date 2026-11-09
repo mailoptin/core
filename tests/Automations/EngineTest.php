@@ -44,8 +44,14 @@ class TestEventTrigger extends AbstractTrigger
         return empty($settings['only']) || ($context['kind'] ?? '') === $settings['only'];
     }
 
+    public static $stop_calls = 0;
+
     public function stop_reason($run)
     {
+        self::$stop_calls++;
+
+        if ('throw' === self::$stop) throw new \RuntimeException('Broken trigger');
+
         return self::$stop;
     }
 
@@ -475,5 +481,31 @@ class EngineTest extends WP_UnitTestCase
 
         $this->automation([$this->email_step()]);
         $this->assertSame([], self::$trigger->fire('free@example.org', 'r1'));
+    }
+
+    public function test_a_run_that_throws_is_tried_once_per_pass_not_in_a_loop()
+    {
+        $this->automation([$this->email_step()]);
+        self::$trigger->fire('broken@example.org', 'r1', ['number' => '1']);
+
+        TestEventTrigger::$stop       = 'throw';
+        TestEventTrigger::$stop_calls = 0;
+        $log                          = ini_set('error_log', '/dev/null');
+
+        Engine::get_instance()->run(time() + 2);
+        ini_set('error_log', $log);
+
+        $this->assertSame(1, TestEventTrigger::$stop_calls);
+    }
+
+    public function test_the_hourly_scan_brings_back_the_tick_for_waiting_runs()
+    {
+        $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 3, 'unit' => 'days']], $this->email_step()]);
+        self::$trigger->fire('waiting@example.org', 'r1', ['number' => '1']);
+
+        wp_clear_scheduled_hook(Engine::TICK_HOOK);
+        Engine::get_instance()->scan();
+
+        $this->assertNotFalse(wp_next_scheduled(Engine::TICK_HOOK));
     }
 }

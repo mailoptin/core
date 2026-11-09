@@ -155,4 +155,26 @@ class BuiltInTriggersTest extends EngineTest
             }
         }
     }
+
+    public function test_a_scan_only_starts_the_automation_it_is_scanning()
+    {
+        $list  = ListsRepository::create(['name' => 'Two birthdays', 'double_optin' => 0]);
+        $week  = (new \DateTimeImmutable('now', wp_timezone()))->modify('+7 days');
+        $field = Fields::create(['label' => 'Birthday two', 'type' => Fields::TYPE_DATE]);
+        $field = is_array($field) ? $field['id'] : $field;
+
+        Subscription::subscribe('week@example.org', $list);
+        Fields::set_values(Subscribers::get_by_email('week@example.org')['id'], [$field => $week->format('1990-m-d')]);
+
+        $on_the_day = $this->automation_for('date_field', ['field_id' => $field, 'days_before' => 0, 'time' => '00:00']);
+        $week_ahead = $this->automation_for('date_field', ['field_id' => $field, 'days_before' => 7, 'time' => '00:00']);
+
+        $trigger = Triggers::get_instance()->get('date_field');
+        $trigger->scan(Repo::get($week_ahead));
+        $trigger->scan(Repo::get($on_the_day));
+
+        $this->assertCount(1, $this->runs($week_ahead));
+        // A week early for this one: it starts on the day, not now.
+        $this->assertCount(0, $this->runs($on_the_day));
+    }
 }

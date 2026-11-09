@@ -332,6 +332,14 @@ class AutomationsRepository extends AbstractRepository
     }
 
     /**
+     * Whether any run is still in progress, in any automation.
+     */
+    public static function has_active_runs()
+    {
+        return (bool)self::wpdb()->get_var(self::wpdb()->prepare('SELECT 1 FROM ' . self::runs_table() . ' WHERE status = %s LIMIT 1', self::RUN_ACTIVE));
+    }
+
+    /**
      * Reserve up to $limit due runs of live automations for one worker. The reservation lasts
      * $lease_seconds, after which another worker may take a run whose worker died.
      *
