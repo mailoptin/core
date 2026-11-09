@@ -32,6 +32,7 @@ final class Core
     const automation_runs_table_name = 'mo_automation_runs';
     const automation_run_steps_table_name = 'mo_automation_run_steps';
     const abandoned_carts_table_name = 'mo_abandoned_carts';
+    const abandoned_cart_runs_table_name = 'mo_abandoned_cart_runs';
 
     public function __construct()
     {

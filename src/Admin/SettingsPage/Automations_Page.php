@@ -472,7 +472,7 @@ class Automations_Page
                                     ? esc_html__('Changes apply straight away, also to people part-way through. Emails already sent are never sent again.', 'mailoptin')
                                     : esc_html__('Nothing is sent while it is a draft.', 'mailoptin'); ?></p>
                             <?php echo self::report_html($automation); ?>
-                            <?php if (WooCartAbandoned::ID === $automation['trigger_id']) echo self::recovery_html(); ?>
+                            <?php if (WooCartAbandoned::ID === $automation['trigger_id']) echo self::recovery_html($automation['id']); ?>
                         </div>
                         <div class="mo-auto-actions">
                             <button class="button" name="mo_automation_action" value="save"><?php esc_html_e('Save', 'mailoptin'); ?></button>
@@ -786,16 +786,16 @@ class Automations_Page
     /**
      * Carts recovered in the last 30 days, on a cart automation's sidebar.
      */
-    protected static function recovery_html()
+    protected static function recovery_html($automation_id)
     {
         if ( ! Carts::is_ready() || ! Woo::active()) return '';
 
-        $stats = Carts::recovery_stats(Carts::now(-30 * DAY_IN_SECONDS));
+        $stats = Carts::recovery_stats($automation_id, Carts::now(-30 * DAY_IN_SECONDS));
         $share = $stats['abandoned'] ? round(100 * $stats['recovered'] / $stats['abandoned']) : 0;
 
         return '<div class="mo-auto-recovery"><p><b>' . esc_html(number_format_i18n($stats['recovered'])) . '</b> ' . esc_html__('carts recovered', 'mailoptin')
                . ' · <b>' . esc_html(Woo::money($stats['revenue'])) . '</b></p>'
-               . '<p class="description">' . esc_html(sprintf(__('Last 30 days · %s%% of abandoned carts', 'mailoptin'), number_format_i18n($share))) . '</p>'
+               . '<p class="description">' . esc_html(sprintf(__('Last 30 days · %s%% of the carts it emailed', 'mailoptin'), number_format_i18n($share))) . '</p>'
                . '<p><a href="' . esc_url(self::url(['screen' => 'carts'])) . '">' . esc_html__('View abandoned carts', 'mailoptin') . '</a></p></div>';
     }
 
@@ -813,9 +813,7 @@ class Automations_Page
         list($carts, $total) = Carts::page($view, $page, 50);
 
         $counts = Carts::view_counts();
-        $refs   = [];
-        foreach ($carts as $cart) $refs['cart-' . $cart['id']] = $cart['email'];
-        $sent   = Repo::sent_counts_for_refs($refs);
+        $sent   = Carts::sent_counts(wp_list_pluck($carts, 'id'));
         $dt     = get_option('date_format') . ' ' . get_option('time_format');
 
         ob_start();
@@ -851,7 +849,8 @@ class Automations_Page
             <?php foreach ($carts as $cart) :
                 $names = [];
                 foreach ($cart['items'] as $item) $names[] = $item['name'] . ($item['quantity'] > 1 ? ' × ' . (int)$item['quantity'] : '');
-                $order = $cart['order_id'] ? Woo::order($cart['order_id']) : null;
+                // A link from the ID, without loading every order.
+                $order_url = $cart['order_id'] && class_exists('\Automattic\WooCommerce\Utilities\OrderUtil') ? \Automattic\WooCommerce\Utilities\OrderUtil::get_order_admin_edit_url($cart['order_id']) : '';
                 ?>
                 <tr>
                     <td><strong><?php echo esc_html($cart['first_name'] ?: '—'); ?></strong><div class="description"><?php echo esc_html($cart['email']); ?><?php echo $cart['user_id'] ? '' : ' ' . esc_html__('(guest)', 'mailoptin'); ?></div></td>
@@ -859,8 +858,8 @@ class Automations_Page
                     <td class="num"><?php echo esc_html(html_entity_decode(wp_strip_all_tags(wc_price($cart['total'], ['currency' => $cart['currency']])), ENT_QUOTES, 'UTF-8')); ?></td>
                     <td><?php echo Carts::STATUS_RECOVERED === $cart['status'] ? UI::badge(__('Recovered', 'mailoptin'), 'ok') : UI::badge(__('Abandoned', 'mailoptin')); ?></td>
                     <td><?php echo esc_html($cart['abandoned_at'] ? wp_date($dt, strtotime($cart['abandoned_at'] . ' UTC')) : '—'); ?></td>
-                    <td class="num"><?php echo esc_html(number_format_i18n($sent['cart-' . $cart['id']] ?? 0)); ?></td>
-                    <td><?php echo $order ? '<a href="' . esc_url($order->get_edit_order_url()) . '">#' . esc_html($order->get_order_number()) . '</a>' : '—'; ?></td>
+                    <td class="num"><?php echo esc_html(number_format_i18n($sent[$cart['id']] ?? 0)); ?></td>
+                    <td><?php echo Carts::STATUS_RECOVERED === $cart['status'] && $order_url ? '<a href="' . esc_url($order_url) . '">#' . absint($cart['order_id']) . '</a>' : '—'; ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

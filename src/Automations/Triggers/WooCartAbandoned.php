@@ -109,27 +109,34 @@ class WooCartAbandoned extends AbstractTrigger
         $delay  = self::delay_minutes($automation['trigger_settings']);
         $newest = Carts_Repo::now(-$delay * MINUTE_IN_SECONDS);
         $oldest = Carts_Repo::now(-self::MAX_AGE_DAYS * DAY_IN_SECONDS);
-        $last   = 0;
+        $after  = null;
 
         do {
-            $carts = Carts_Repo::due_for($automation['id'], $newest, $oldest, $last, self::BATCH);
+            $carts = Carts_Repo::due_for($automation['id'], $newest, $oldest, $after, self::BATCH);
 
             foreach ($carts as $cart) {
-                $last = $cart['id'];
+                $after = [$cart['updated_at'], $cart['id']];
 
-                if (Carts_Repo::STATUS_ACTIVE === $cart['status']) {
+                $runs = $this->start($cart['email'], 'cart-' . $cart['id'], ['cart_id' => $cart['id']], $automation['id']);
+
+                // Every cart is looked at once per automation, whether it started (left out by the
+                // audience, suppressed, already part-way through): never again on later scans.
+                Carts_Repo::mark_seen($cart['id'], $automation['id'], $runs ? (int)$runs[0] : 0);
+
+                if ($runs && Carts_Repo::STATUS_ACTIVE === $cart['status']) {
                     Carts_Repo::update($cart['id'], ['status' => Carts_Repo::STATUS_ABANDONED, 'abandoned_at' => Carts_Repo::now()]);
                 }
-
-                $this->start($cart['email'], 'cart-' . $cart['id'], ['cart_id' => $cart['id']], $automation['id']);
             }
         } while (count($carts) === self::BATCH);
     }
 
     public function matches($context, $settings, $audience)
     {
-        $cart = Carts_Repo::get($context['cart_id'] ?? 0);
+        return self::cart_matches(Carts_Repo::get($context['cart_id'] ?? 0), $audience);
+    }
 
+    public static function cart_matches($cart, $audience)
+    {
         if ( ! $cart || empty($cart['items'])) return false;
 
         $categories = array_map('intval', (array)($audience['category_ids'] ?? []));
@@ -137,8 +144,10 @@ class WooCartAbandoned extends AbstractTrigger
         if ( ! empty($categories)) {
             $in_cart = [];
 
+            // get_the_terms() reads the term cache, which count_recent() fills for many carts at once.
             foreach ($cart['items'] as $item) {
-                $in_cart = array_merge($in_cart, (array)wp_get_post_terms(absint($item['product_id']), 'product_cat', ['fields' => 'ids']));
+                $terms   = get_the_terms(absint($item['product_id']), 'product_cat');
+                $in_cart = array_merge($in_cart, is_array($terms) ? wp_list_pluck($terms, 'term_id') : []);
             }
 
             if ( ! array_intersect($categories, array_map('intval', $in_cart))) return false;
@@ -155,7 +164,10 @@ class WooCartAbandoned extends AbstractTrigger
 
         if ( ! $cart) return 'cart_deleted';
 
-        if (Carts_Repo::STATUS_RECOVERED === $cart['status'] || $cart['order_id']) return 'ordered';
+        if (Carts_Repo::STATUS_RECOVERED === $cart['status']) return 'ordered';
+
+        // Checked out but not paid (the payment failed, or they left the payment page): still abandoned.
+        if ($cart['order_id'] && ($order = Woo::order($cart['order_id'])) && $order->is_paid()) return 'ordered';
 
         if (empty($cart['items'])) return 'cart_emptied';
 
@@ -209,13 +221,25 @@ class WooCartAbandoned extends AbstractTrigger
 
     public function count_recent($automation)
     {
-        $carts = Carts_Repo::abandoned_since(Carts_Repo::now(-30 * DAY_IN_SECONDS));
-        $match = 0;
+        list($carts, $total) = Carts_Repo::recent(Carts_Repo::now(-30 * DAY_IN_SECONDS));
 
-        foreach ($carts as $cart) {
-            if ($this->matches(['cart_id' => $cart['id']], $automation['trigger_settings'], $automation['audience'])) $match++;
+        if (empty($automation['audience']['category_ids']) && ('' === ($automation['audience']['min_total'] ?? '') || ! is_numeric($automation['audience']['min_total'] ?? ''))) {
+            $match = $total;
+        } else {
+            $products = [];
+            foreach ($carts as $cart) $products = array_merge($products, array_map('absint', wp_list_pluck($cart['items'], 'product_id')));
+
+            // One query for every product's categories, not one per cart line.
+            if ( ! empty($products)) update_object_term_cache(array_values(array_unique($products)), 'product');
+
+            $match = count(array_filter($carts, function ($cart) use ($automation) {
+                return self::cart_matches($cart, $automation['audience']);
+            }));
+
+            // Counted on the newest carts only; scale to all of them.
+            if (count($carts) && $total > count($carts)) $match = (int)round($match * $total / count($carts));
         }
 
-        return ['matched' => $match, 'total' => count($carts), 'label' => __('carts abandoned in the last 30 days', 'mailoptin')];
+        return ['matched' => $match, 'total' => $total, 'label' => __('carts with an email in the last 30 days', 'mailoptin')];
     }
 }

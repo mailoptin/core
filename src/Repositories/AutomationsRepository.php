@@ -111,9 +111,11 @@ class AutomationsRepository extends AbstractRepository
             'updated_at'       => $now,
         ]);
 
-        self::flush_cache();
+        $id = (int)self::wpdb()->insert_id;
 
-        return (int)self::wpdb()->insert_id;
+        self::changed();
+
+        return $id;
     }
 
     public static function update($automation_id, $data)
@@ -132,9 +134,11 @@ class AutomationsRepository extends AbstractRepository
 
         $fields['updated_at'] = self::now();
 
-        self::flush_cache();
+        $updated = false !== self::wpdb()->update(self::table(), $fields, ['id' => absint($automation_id)]);
 
-        return false !== self::wpdb()->update(self::table(), $fields, ['id' => absint($automation_id)]);
+        self::changed();
+
+        return $updated;
     }
 
     public static function get($automation_id)
@@ -293,28 +297,6 @@ class AutomationsRepository extends AbstractRepository
     }
 
     /**
-     * Emails sent for runs started by some events, such as carts.
-     *
-     * @param array $refs trigger ref (e.g. "cart-12") => the person's email; looked up by email, which is indexed
-     *
-     * @return array trigger ref => int
-     */
-    public static function sent_counts_for_refs($refs)
-    {
-        $refs = array_filter((array)$refs);
-
-        if (empty($refs)) return [];
-
-        $rows = self::wpdb()->get_results(self::wpdb()->prepare(
-            'SELECT r.trigger_ref, COUNT(*) n FROM ' . self::runs_table() . ' r INNER JOIN ' . self::run_steps_table() . ' rs ON rs.run_id = r.id
-            WHERE r.email IN (' . implode(',', array_fill(0, count($refs), '%s')) . ') AND r.trigger_ref IN (' . implode(',', array_fill(0, count($refs), '%s')) . ') AND rs.status = %s GROUP BY r.trigger_ref',
-            array_merge(array_map(function ($e) { return strtolower(trim((string)$e)); }, array_values($refs)), array_map('strval', array_keys($refs)), [self::RUN_STEP_SENT])
-        ), 'ARRAY_A');
-
-        return array_map('intval', wp_list_pluck((array)$rows, 'n', 'trigger_ref'));
-    }
-
-    /**
      * The most recent run of an automation: a real person to fill a test email with.
      */
     public static function latest_run($automation_id)
@@ -358,6 +340,17 @@ class AutomationsRepository extends AbstractRepository
         }
     }
 
+    /**
+     * After an automation is created, changed or deleted: forget what this request read, and tell
+     * anyone keeping their own summary (such as whether a cart automation is live).
+     */
+    protected static function changed()
+    {
+        self::flush_cache();
+
+        do_action('mailoptin_automations_changed');
+    }
+
     public static function flush_cache()
     {
         self::$live_cache = [];
@@ -384,7 +377,11 @@ class AutomationsRepository extends AbstractRepository
         self::wpdb()->delete($runs, ['automation_id' => $automation_id]);
         self::wpdb()->delete(self::steps_table(), ['automation_id' => $automation_id]);
 
-        return (bool)self::wpdb()->delete(self::table(), ['id' => $automation_id]);
+        $deleted = (bool)self::wpdb()->delete(self::table(), ['id' => $automation_id]);
+
+        self::changed();
+
+        return $deleted;
     }
 
     /* ---------------------------------------------------------------------------------------------

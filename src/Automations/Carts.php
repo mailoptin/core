@@ -13,47 +13,67 @@ use MailOptin\Core\Repositories\CartsRepository as Carts_Repo;
  * kept only while such an automation is live, and only once we know whose cart it is (a logged-in
  * customer, or a guest who typed their email at checkout).
  *
- * Also restores a cart from its email link, and marks carts recovered when their order is paid.
+ * Also restores a cart from its email link, and marks a cart recovered when its order is paid.
  */
 class Carts
 {
     /** Single event that looks for carts whose wait has passed. */
     const CHECK_HOOK = 'mo_carts_check';
 
+    /** Autoloaded: whether a cart automation is live, so other sites pay nothing per page view. */
+    const LIVE_OPTION = 'mo_cart_automations_live';
+
     const SESSION_EMAIL = 'mo_cart_email';
     const SESSION_HASH = 'mo_cart_hash';
+    const SESSION_EMAILS_TRIED = 'mo_cart_emails_tried';
 
     const RESTORE_ARG = 'mo_cart_restore';
 
+    /** Guest emails one IP address can attach to carts per hour, and one session at all. */
+    const IP_HOURLY_LIMIT = 5;
+    const SESSION_EMAIL_LIMIT = 3;
+
     public function __construct()
     {
+        add_action('mailoptin_automations_changed', [__CLASS__, 'refresh_live_flag']);
+
+        // Carts already kept stay usable after an automation stops: links in sent emails, orders
+        // recovering them, the check, and personal data requests.
+        add_action('woocommerce_order_status_changed', [$this, 'order_status_changed'], 10, 3);
+        add_action('template_redirect', [$this, 'restore']);
+        add_action(self::CHECK_HOOK, [$this, 'check']);
+        add_filter('wp_privacy_personal_data_erasers', [$this, 'register_eraser']);
+        add_filter('wp_privacy_personal_data_exporters', [$this, 'register_exporter']);
+
+        // Recording is hooked only while a cart automation is live: other stores pay nothing per page view.
+        if ( ! get_option(self::LIVE_OPTION)) return;
+
         add_action('woocommerce_cart_updated', [$this, 'record']);
         add_action('woocommerce_cart_emptied', [$this, 'emptied']);
         add_action('wp_ajax_mo_cart_email', [$this, 'ajax_email']);
         add_action('wp_ajax_nopriv_mo_cart_email', [$this, 'ajax_email']);
         add_action('wp_enqueue_scripts', [$this, 'checkout_script']);
-
         add_action('woocommerce_checkout_order_processed', [$this, 'checked_out'], 10, 1);
         add_action('woocommerce_store_api_checkout_order_processed', [$this, 'checked_out'], 10, 1);
-        add_action('woocommerce_order_status_changed', [$this, 'order_status_changed'], 10, 3);
-
-        add_action('template_redirect', [$this, 'restore']);
-        add_action(self::CHECK_HOOK, [$this, 'check']);
-
-        add_filter('wp_privacy_personal_data_erasers', [$this, 'register_eraser']);
-        add_filter('wp_privacy_personal_data_exporters', [$this, 'register_exporter']);
     }
 
     /* ---------------------------------------------------------------------------------------------
      * Which carts are kept
      * ------------------------------------------------------------------------------------------ */
 
+    public static function refresh_live_flag()
+    {
+        $live = Repo::is_ready() && ! empty(Repo::live_for_trigger(WooCartAbandoned::ID));
+
+        if ((bool)get_option(self::LIVE_OPTION) !== $live) update_option(self::LIVE_OPTION, $live ? 1 : 0, true);
+    }
+
     /**
      * @return array[] live "A cart is abandoned" automations
      */
     public static function automations()
     {
-        if ( ! Woo::active() || ! Engine::is_available()) return [];
+        if ( ! get_option(self::LIVE_OPTION) || ! Woo::active() || ! Engine::is_available()) return [];
 
         return Repo::live_for_trigger(WooCartAbandoned::ID);
     }
@@ -103,28 +123,33 @@ class Carts
      * Recording
      * ------------------------------------------------------------------------------------------ */
 
+    /**
+     * On every cart change, and on page views (WooCommerce fires it when loading the cart): the cheap
+     * checks come first, so a visitor without a cart costs nothing.
+     */
     public function record()
     {
-        if ( ! self::is_recording() || ! function_exists('WC') || ! WC()->cart || '' === self::session_key()) return;
+        $session = self::session();
 
-        $cart = WC()->cart;
+        if ( ! $session || ! $session->has_session() || ! function_exists('WC') || ! WC()->cart) return;
 
-        if ($cart->is_empty()) {
-            $this->emptied();
+        if (WC()->cart->is_empty()) {
+            // Only a session whose cart we recorded has anything to let go of.
+            if ($session->get(self::SESSION_HASH)) $this->emptied();
 
             return;
         }
 
-        $user    = wp_get_current_user();
-        $email   = $user && $user->exists() ? $user->user_email : (string)self::session()->get(self::SESSION_EMAIL);
-        $first   = $user && $user->exists() ? $user->first_name : '';
+        $user  = wp_get_current_user();
+        $known = $user && $user->exists();
+        $email = $known ? $user->user_email : (string)$session->get(self::SESSION_EMAIL);
 
         // Whose cart it is: nothing to keep for an anonymous visitor.
-        if ( ! is_email($email) || ( ! ($user && $user->exists()) && ! self::records_guests())) return;
+        if ( ! is_email($email)) return;
 
         $items = [];
 
-        foreach ($cart->get_cart() as $line) {
+        foreach (WC()->cart->get_cart() as $line) {
             $product = $line['data'] ?? null;
 
             $items[] = [
@@ -137,19 +162,29 @@ class Carts
             ];
         }
 
-        $total = (float)$cart->get_total('edit');
+        $total = (float)WC()->cart->get_total('edit');
         $hash  = md5(wp_json_encode([$items, $total, strtolower($email)]));
 
-        // woocommerce_cart_updated fires on every cart change and on some page loads: only write changes.
-        if ($hash === self::session()->get(self::SESSION_HASH)) return;
+        // Fired several times a request and on page views: only write changes.
+        if ($hash === $session->get(self::SESSION_HASH)) return;
 
-        self::session()->set(self::SESSION_HASH, $hash);
+        if ( ! self::is_recording() || ( ! $known && ! self::records_guests())) return;
+
+        $session->set(self::SESSION_HASH, $hash);
+
+        $key  = self::session_key();
+        $cart = Carts_Repo::get_by_session($key);
+
+        // An abandoned cart whose emails are over: this is a new cart, not more of that one.
+        if ($cart && Carts_Repo::STATUS_ACTIVE !== $cart['status'] && ! Carts_Repo::has_active_run($cart['id'])) {
+            Carts_Repo::release_session($key, false);
+        }
 
         Carts_Repo::save([
-            'session_key' => self::session_key(),
-            'user_id'     => $user ? $user->ID : 0,
+            'session_key' => $key,
+            'user_id'     => $known ? $user->ID : 0,
             'email'       => $email,
-            'first_name'  => $first,
+            'first_name'  => $known ? $user->first_name : '',
             'items'       => $items,
             'total'       => $total,
             'currency'    => get_woocommerce_currency(),
@@ -164,28 +199,52 @@ class Carts
 
         if ('' === $key) return;
 
-        Carts_Repo::delete_active($key);
+        // Still being shopped: forgotten. Abandoned: its emails stop ("emptied their cart").
+        Carts_Repo::release_session($key, true);
 
         if (self::session()) self::session()->set(self::SESSION_HASH, null);
     }
 
     /**
-     * A guest typed their email at checkout.
+     * A guest typed their email at checkout. The nonce is the same for every guest, so it proves
+     * little: what limits misuse (someone typing other people's addresses) is that it only counts for
+     * a session with products in its cart, a few addresses per session, and a few per IP an hour.
      */
     public function ajax_email()
     {
         check_ajax_referer('mo_cart_email', 'nonce');
 
-        $email = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+        $session = self::session();
+        $email   = strtolower(sanitize_email(wp_unslash($_POST['email'] ?? '')));
 
-        if ( ! self::session() || ! is_email($email) || ! self::records_guests()) wp_send_json_success();
+        if ( ! $session || ! $session->has_session() || ! WC()->cart || WC()->cart->is_empty() || ! is_email($email) || ! self::records_guests()) {
+            wp_send_json_success();
+        }
 
-        self::session()->set(self::SESSION_EMAIL, strtolower($email));
-        self::session()->set(self::SESSION_HASH, null);
+        $tried = array_values(array_unique(array_merge((array)$session->get(self::SESSION_EMAILS_TRIED), [$email])));
+
+        if (count($tried) > self::SESSION_EMAIL_LIMIT || ! self::ip_allows()) wp_send_json_success();
+
+        $session->set(self::SESSION_EMAILS_TRIED, $tried);
+        $session->set(self::SESSION_EMAIL, $email);
+        $session->set(self::SESSION_HASH, null);
 
         $this->record();
 
         wp_send_json_success();
+    }
+
+    protected static function ip_allows()
+    {
+        $ip  = class_exists('\WC_Geolocation') ? \WC_Geolocation::get_ip_address() : ($_SERVER['REMOTE_ADDR'] ?? '');
+        $key = 'mo_cart_ip_' . md5((string)$ip);
+        $n   = (int)get_transient($key);
+
+        if ($n >= self::IP_HOURLY_LIMIT) return false;
+
+        set_transient($key, $n + 1, HOUR_IN_SECONDS);
+
+        return true;
     }
 
     public function checkout_script()
@@ -234,46 +293,51 @@ class Carts
      * ------------------------------------------------------------------------------------------ */
 
     /**
-     * Tie the cart to its order at checkout, while the shopper's session is still known; whether it
-     * was recovered is decided when the order is paid.
+     * Tie the cart to its order at checkout, while the shopper's session is still known. Whether it
+     * was recovered is decided when the order is paid; an unpaid order stops nothing.
      */
     public function checked_out($order)
     {
         $order_id = is_object($order) && method_exists($order, 'get_id') ? $order->get_id() : absint($order);
-        $cart     = '' !== self::session_key() ? Carts_Repo::get_by_session(self::session_key()) : null;
+        $key      = self::session_key();
+        $cart     = '' !== $key && Carts_Repo::is_ready() ? Carts_Repo::get_by_session($key) : null;
 
         if ( ! $cart || ! $order_id) return;
 
         Carts_Repo::update($cart['id'], ['order_id' => $order_id]);
-
-        // A new cart for the next order starts fresh.
-        if (self::session()) self::session()->set(self::SESSION_HASH, null);
     }
 
     public function order_status_changed($order_id, $from, $to)
     {
-        if ( ! in_array($to, Woo::PAID_STATUSES, true) || in_array($from, Woo::PAID_STATUSES, true)) return;
+        if ( ! in_array($to, Woo::PAID_STATUSES, true) || in_array($from, Woo::PAID_STATUSES, true) || ! Carts_Repo::is_ready()) return;
 
         $order = Woo::order($order_id);
 
         if ( ! $order) return;
 
-        foreach (Carts_Repo::for_order($order_id, Woo::order_email($order)) as $cart) {
-            if (Carts_Repo::STATUS_ABANDONED === $cart['status']) {
-                Carts_Repo::update($cart['id'], [
-                    'status'          => Carts_Repo::STATUS_RECOVERED,
-                    'order_id'        => $order_id,
-                    'recovered_total' => (float)$order->get_total(),
-                    'recovered_at'    => Carts_Repo::now(),
-                    'session_key'     => 'done-' . $cart['id'],
-                ]);
-            } else {
-                // Ordered before it was ever abandoned: nothing to recover or to remember.
-                Carts_Repo::delete($cart['id']);
-            }
+        // Only orders placed by the shopper count; not ones made in the admin or renewals.
+        $from_checkout = in_array($order->get_created_via(), ['checkout', 'store-api'], true);
+        $cart          = Carts_Repo::for_order($order_id, Woo::order_email($order), $from_checkout);
+
+        if ( ! $cart) return;
+
+        if (Carts_Repo::STATUS_ABANDONED === $cart['status']) {
+            Carts_Repo::update($cart['id'], [
+                'status'          => Carts_Repo::STATUS_RECOVERED,
+                'order_id'        => $order_id,
+                'recovered_total' => (float)$order->get_total(),
+                'recovered_at'    => Carts_Repo::now(),
+                'session_key'     => 'done-' . $cart['id'],
+            ]);
 
             // Its emails stop now rather than at their next step.
-            Repo::stop_runs(['trigger_ref' => 'cart-' . $cart['id'], 'email' => $cart['email']], 'ordered');
+            foreach (Carts_Repo::run_ids($cart['id']) as $run_id) {
+                $run = Repo::get_run($run_id);
+                if ($run && Repo::RUN_ACTIVE === $run['status']) Repo::finish_run($run_id, Repo::RUN_STOPPED, 'ordered');
+            }
+        } else {
+            // Ordered before it was ever abandoned: nothing to recover or to remember.
+            Carts_Repo::delete($cart['id']);
         }
     }
 
@@ -291,18 +355,14 @@ class Carts
 
     public function restore()
     {
-        if (empty($_GET[self::RESTORE_ARG]) || ! Woo::active() || ! function_exists('WC') || ! WC()->cart) return;
+        if (empty($_GET[self::RESTORE_ARG]) || ! Woo::active() || ! function_exists('WC') || ! WC()->cart || ! Carts_Repo::is_ready()) return;
 
         $cart = Carts_Repo::get(absint($_GET[self::RESTORE_ARG]));
 
-        if ( ! $cart || ! Tokens::check('cart_restore', [$cart['id'], $cart['email']], (string)wp_unslash($_GET['mo_token'] ?? ''))) {
-            wp_safe_redirect(wc_get_cart_url());
-            exit;
-        }
-
-        // Already ordered: just the shop's cart page.
-        if (Carts_Repo::STATUS_RECOVERED !== $cart['status']) {
-            WC()->cart->empty_cart(false);
+        // A link only ever adds to an empty cart: it never replaces what a visitor is buying, and
+        // someone sending their own link to another person can't take their cart over.
+        if ($cart && Carts_Repo::STATUS_RECOVERED !== $cart['status'] && WC()->cart->is_empty()
+            && Tokens::check('cart_restore', [$cart['id'], $cart['email']], (string)wp_unslash($_GET['mo_token'] ?? ''))) {
 
             foreach ($cart['items'] as $item) {
                 $product = wc_get_product($item['variation_id'] ?: $item['product_id']);
@@ -312,16 +372,14 @@ class Carts
                 WC()->cart->add_to_cart($item['product_id'], max(1, (int)$item['quantity']), $item['variation_id'], (array)$item['variation']);
             }
 
-            if (self::session()) {
-                self::session()->set(self::SESSION_EMAIL, $cart['email']);
-                self::session()->set(self::SESSION_HASH, null);
+            $session = self::session();
+            $key     = self::session_key();
 
-                // This browser now holds the cart: its order recovers it.
-                $key = self::session_key();
-                if ('' !== $key && $key !== $cart['session_key']) {
-                    Carts_Repo::delete_active($key);
-                    Carts_Repo::update($cart['id'], ['session_key' => $key]);
-                }
+            // This browser now holds the cart, so its order recovers it; unless it already has one.
+            if ($session && '' !== $key && $key !== $cart['session_key'] && ! Carts_Repo::get_by_session($key)) {
+                Carts_Repo::update($cart['id'], ['session_key' => $key]);
+                if ( ! $session->get(self::SESSION_EMAIL)) $session->set(self::SESSION_EMAIL, $cart['email']);
+                $session->set(self::SESSION_HASH, null);
             }
         }
 
@@ -338,7 +396,7 @@ class Carts
         $erasers['mailoptin-carts'] = [
             'eraser_friendly_name' => __('MailOptin abandoned carts', 'mailoptin'),
             'callback'             => function ($email) {
-                $removed = Carts_Repo::erase_email($email);
+                $removed = Carts_Repo::is_ready() ? Carts_Repo::erase_email($email) : 0;
 
                 return ['items_removed' => $removed > 0, 'items_retained' => false, 'messages' => [], 'done' => true];
             },
@@ -354,14 +412,21 @@ class Carts
             'callback'               => function ($email) {
                 $data = [];
 
-                foreach (Carts_Repo::for_email($email) as $cart) {
+                foreach (Carts_Repo::is_ready() ? Carts_Repo::for_email($email) : [] as $cart) {
+                    $names = [];
+                    foreach ($cart['items'] as $item) $names[] = $item['name'] . ' × ' . (int)$item['quantity'];
+
                     $data[] = [
                         'group_id'    => 'mailoptin-carts',
                         'group_label' => __('Abandoned carts', 'mailoptin'),
                         'item_id'     => 'mo-cart-' . $cart['id'],
                         'data'        => [
-                            ['name' => __('Products', 'mailoptin'), 'value' => implode(', ', wp_list_pluck($cart['items'], 'name'))],
+                            ['name' => __('Email', 'mailoptin'), 'value' => $cart['email']],
+                            ['name' => __('First name', 'mailoptin'), 'value' => $cart['first_name']],
+                            ['name' => __('Products', 'mailoptin'), 'value' => implode(', ', $names)],
+                            ['name' => __('Total', 'mailoptin'), 'value' => $cart['total'] . ' ' . $cart['currency']],
                             ['name' => __('Status', 'mailoptin'), 'value' => $cart['status']],
+                            ['name' => __('Order', 'mailoptin'), 'value' => $cart['order_id'] ?: ''],
                             ['name' => __('Last changed', 'mailoptin'), 'value' => $cart['updated_at']],
                         ],
                     ];

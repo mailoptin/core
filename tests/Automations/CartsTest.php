@@ -77,8 +77,26 @@ class CartsTest extends EngineTest
         $this->assertSame(9.0, $cart['total']);
         $this->assertSame(Carts::STATUS_ACTIVE, $cart['status']);
 
-        Carts::delete_active('s1');
+        // Still being shopped: emptying it forgets it.
+        Carts::release_session('s1', true);
         $this->assertNull(Carts::get($id));
+    }
+
+    public function test_an_abandoned_cart_keeps_its_email_and_emptying_it_stops_its_emails()
+    {
+        $automation = $this->cart_automation();
+        $cart       = $this->cart('s2', 'first@example.org', 90);
+        $this->carts->scan(Repo::get($automation));
+        $run = Repo::get_run($this->runs($automation)[0]['id']);
+
+        // A new address typed after the emails started doesn't take them over.
+        Carts::save(['session_key' => 's2', 'email' => 'second@example.org', 'items' => [['name' => 'B', 'quantity' => 1]], 'total' => 3]);
+        $this->assertSame('first@example.org', Carts::get($cart)['email']);
+
+        Carts::release_session('s2', true);
+        $this->assertSame('cart_emptied', $this->carts->stop_reason($run));
+        $this->assertSame('gone-' . $cart, Carts::get($cart)['session_key'], 'The next cart of this session is a new one.');
+        $this->assertNull(Carts::get_by_session('s2'));
     }
 
     public function test_a_scan_starts_carts_past_their_wait_once_and_marks_them_abandoned()
@@ -99,6 +117,29 @@ class CartsTest extends EngineTest
         $this->assertSame(Carts::STATUS_ACTIVE, Carts::get($recent)['status']);
         $this->assertSame(Carts::STATUS_ACTIVE, Carts::get($ancient)['status']);
         $this->assertSame(Carts::STATUS_ACTIVE, Carts::get($nobody)['status']);
+        $this->assertSame([(int)$this->runs($automation)[0]['id']], Carts::run_ids($old));
+    }
+
+    public function test_carts_are_looked_at_once_even_when_nothing_starts_and_in_once_mode()
+    {
+        $once   = $this->cart_automation(['runs' => 'once']);
+        $big    = $this->cart_automation([], ['min_total' => 1000]);
+        $first  = $this->cart('one', 'same@example.org', 90);
+        $second = $this->cart('two', 'same@example.org', 80);
+
+        global $wpdb;
+        foreach ([$once, $big] as $automation) $this->carts->scan(Repo::get($automation));
+
+        $this->assertCount(1, $this->runs($once), 'Once per customer.');
+        $this->assertSame('', $this->runs($once)[0]['trigger_ref']);
+        $this->assertCount(0, $this->runs($big));
+        $this->assertSame([(int)$this->runs($once)[0]['id']], Carts::run_ids($first), 'Found from the cart even though the run has no cart ref.');
+        $this->assertSame(Carts::STATUS_ACTIVE, Carts::get($second)['status'], 'Not abandoned: no automation started for it.');
+
+        // Nothing left for a later scan to do.
+        foreach ([$once, $big] as $automation) {
+            $this->assertSame([], Carts::due_for($automation, Carts::now(), Carts::now(-7 * DAY_IN_SECONDS), null, 200));
+        }
     }
 
     public function test_the_audience_minimum_total_and_the_wait_are_per_automation()
@@ -126,7 +167,11 @@ class CartsTest extends EngineTest
         $this->assertSame('', $this->carts->stop_reason($run));
         $this->assertTrue($this->carts->checks()['not_recovered']['callback']($run));
 
-        Carts::update($cart, ['status' => Carts::STATUS_RECOVERED, 'order_id' => 77]);
+        // Checked out but not paid (no such paid order): still abandoned, the reminders carry on.
+        Carts::update($cart, ['order_id' => 77]);
+        $this->assertSame('', $this->carts->stop_reason($run));
+
+        Carts::update($cart, ['status' => Carts::STATUS_RECOVERED]);
         $this->assertSame('ordered', $this->carts->stop_reason($run));
         $this->assertFalse($this->carts->checks()['not_recovered']['callback']($run));
 
@@ -145,22 +190,18 @@ class CartsTest extends EngineTest
         $this->assertStringContainsString('mo_cart_restore=', Engine::replace_placeholders('{{cart.url}}', $this->carts, $run, false));
     }
 
-    public function test_orders_find_the_checked_out_cart_and_open_carts_of_the_same_address()
+    public function test_an_order_recovers_one_cart_its_own_or_the_newest_of_that_address()
     {
-        $checked_out = $this->cart('a', 'buyer@example.org', 5);
-        $abandoned   = $this->cart('b', 'buyer@example.org', 600);
-        $other       = $this->cart('c', 'someone@example.org', 600);
-        $stale       = $this->cart('d', 'buyer@example.org', 40 * 24 * 60);
+        $older = $this->cart('a', 'buyer@example.org', 900);
+        $newer = $this->cart('b', 'buyer@example.org', 600);
+        $this->cart('c', 'someone@example.org', 500);
+        $this->cart('d', 'buyer@example.org', 40 * 24 * 60);
 
-        Carts::update($checked_out, ['order_id' => 99]);
-        Carts::update($abandoned, ['status' => Carts::STATUS_ABANDONED, 'abandoned_at' => Carts::now(-500 * MINUTE_IN_SECONDS)]);
+        $this->assertSame($newer, Carts::for_order(99, 'Buyer@example.org', true)['id']);
+        $this->assertNull(Carts::for_order(99, 'buyer@example.org', false), 'An admin-made order or renewal recovers nothing by email alone.');
 
-        $found = wp_list_pluck(Carts::for_order(99, 'Buyer@example.org'), 'id');
-        sort($found);
-
-        $this->assertSame([$checked_out, $abandoned], $found);
-        $this->assertNotContains($other, $found);
-        $this->assertNotContains($stale, $found);
+        Carts::update($older, ['order_id' => 99]);
+        $this->assertSame($older, Carts::for_order(99, 'buyer@example.org', false)['id'], 'The checked-out cart first.');
     }
 
     public function test_the_carts_screen_views_and_recovery_numbers()
@@ -176,7 +217,9 @@ class CartsTest extends EngineTest
 
         $this->assertSame(['' => 3, 'in_progress' => 1, 'recovered' => 1, 'lost' => 1], Carts::view_counts());
         $this->assertSame([$going], wp_list_pluck(Carts::page('in_progress')[0], 'id'));
-        $this->assertSame(['abandoned' => 3, 'recovered' => 1, 'revenue' => 40.0], Carts::recovery_stats(Carts::now(-DAY_IN_SECONDS)));
+        $this->assertSame(['abandoned' => 3, 'recovered' => 1, 'revenue' => 40.0], Carts::recovery_stats($automation, Carts::now(-DAY_IN_SECONDS)));
+        $this->assertSame(['abandoned' => 0, 'recovered' => 0, 'revenue' => 0.0], Carts::recovery_stats($automation + 1000, Carts::now(-DAY_IN_SECONDS)));
+        $this->assertSame([], Carts::sent_counts([$won, $going, $lost]), 'Nothing sent yet: their first step is a wait.');
     }
 
     public function test_old_carts_are_pruned_and_privacy_erases_them()
@@ -192,5 +235,17 @@ class CartsTest extends EngineTest
         $result  = call_user_func($erasers['mailoptin-carts']['callback'], 'gone@example.org');
         $this->assertTrue($result['items_removed']);
         $this->assertNull(Carts::get($keep));
+    }
+
+    public function test_the_live_flag_follows_cart_automations()
+    {
+        delete_option(\MailOptin\Core\Automations\Carts::LIVE_OPTION);
+
+        $id = $this->cart_automation();
+        // Cart automations need WooCommerce, which tests don't load: the flag still follows the table.
+        $this->assertSame('1', (string)get_option(\MailOptin\Core\Automations\Carts::LIVE_OPTION));
+
+        Repo::update($id, ['status' => Repo::STATUS_DRAFT]);
+        $this->assertSame('0', (string)get_option(\MailOptin\Core\Automations\Carts::LIVE_OPTION));
     }
 }

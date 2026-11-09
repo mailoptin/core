@@ -128,6 +128,7 @@ class CreateDBTables
         $runs        = $wpdb->prefix . Core::automation_runs_table_name;
         $run_steps   = $wpdb->prefix . Core::automation_run_steps_table_name;
         $carts       = $wpdb->prefix . Core::abandoned_carts_table_name;
+        $cart_runs   = $wpdb->prefix . Core::abandoned_cart_runs_table_name;
 
         return [
             "CREATE TABLE $automations (
@@ -215,6 +216,14 @@ class CreateDBTables
   KEY status_abandoned (status,abandoned_at),
   KEY email (email),
   KEY order_id (order_id)
+) $collate;",
+            "CREATE TABLE $cart_runs (
+  cart_id bigint(20) unsigned NOT NULL,
+  automation_id bigint(20) unsigned NOT NULL,
+  run_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  created_at datetime NOT NULL,
+  PRIMARY KEY  (cart_id,automation_id),
+  KEY automation_run (automation_id,run_id)
 ) $collate;",
         ];
     }
