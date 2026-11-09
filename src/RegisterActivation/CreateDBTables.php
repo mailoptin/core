@@ -95,6 +95,7 @@ class CreateDBTables
         $sqls[] = self::segments_table_sql($collate);
         $sqls = array_merge($sqls, self::tracking_tables_sql($collate));
         $sqls[] = self::campaign_settings_table_sql($collate);
+        $sqls = array_merge($sqls, self::automations_tables_sql($collate));
 
         $sqls = apply_filters('mo_create_database_tables', $sqls, $collate);
 
@@ -106,6 +107,86 @@ class CreateDBTables
 
         // A new site starts on the table; an existing one moves its settings across.
         \MailOptin\Core\Repositories\CampaignSettingsRepository::migrate();
+    }
+
+    /**
+     * Automations: each automation and its steps, one run per person per starting event, and the
+     * steps each run has done. Settings are JSON. Datetimes are UTC.
+     *
+     * A run is unique per automation, email and trigger_ref (the order, cart, year or list that
+     * started it), so an event seen twice never starts a second run. A run step is unique per run
+     * and step, so an email step is never queued twice for the same run.
+     */
+    public static function automations_tables_sql($collate)
+    {
+        global $wpdb;
+
+        $automations = $wpdb->prefix . Core::automations_table_name;
+        $steps       = $wpdb->prefix . Core::automation_steps_table_name;
+        $runs        = $wpdb->prefix . Core::automation_runs_table_name;
+        $run_steps   = $wpdb->prefix . Core::automation_run_steps_table_name;
+
+        return [
+            "CREATE TABLE $automations (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(200) NOT NULL,
+  trigger_id varchar(100) NOT NULL,
+  trigger_settings longtext NULL,
+  audience longtext NULL,
+  settings longtext NULL,
+  status varchar(20) NOT NULL DEFAULT 'draft',
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  KEY trigger_status (trigger_id,status)
+) $collate;",
+            "CREATE TABLE $steps (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  automation_id bigint(20) unsigned NOT NULL,
+  position int(11) NOT NULL DEFAULT 0,
+  type varchar(20) NOT NULL,
+  settings longtext NULL,
+  deleted tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY  (id),
+  KEY automation_position (automation_id,position)
+) $collate;",
+            "CREATE TABLE $runs (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  automation_id bigint(20) unsigned NOT NULL,
+  email varchar(191) NOT NULL,
+  subscriber_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  trigger_ref varchar(100) NOT NULL DEFAULT '',
+  context longtext NULL,
+  status varchar(20) NOT NULL DEFAULT 'active',
+  current_step_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  waiting_step_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  next_run_at datetime NOT NULL,
+  claimed_by varchar(32) NOT NULL DEFAULT '',
+  claimed_until datetime NULL,
+  attempts smallint(5) unsigned NOT NULL DEFAULT 0,
+  stop_reason varchar(100) NOT NULL DEFAULT '',
+  started_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  finished_at datetime NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY automation_person_ref (automation_id,email,trigger_ref),
+  KEY due (status,next_run_at),
+  KEY email (email),
+  KEY subscriber (subscriber_id)
+) $collate;",
+            "CREATE TABLE $run_steps (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  run_id bigint(20) unsigned NOT NULL,
+  step_id bigint(20) unsigned NOT NULL,
+  email varchar(191) NOT NULL DEFAULT '',
+  queue_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  status varchar(20) NOT NULL DEFAULT 'queued',
+  created_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY run_step (run_id,step_id),
+  KEY email_created (email,created_at)
+) $collate;",
+        ];
     }
 
     /**
@@ -228,7 +309,7 @@ class CreateDBTables
   sent_at datetime NULL,
   error text NULL,
   PRIMARY KEY  (id),
-  UNIQUE KEY campaign_email (campaign_log_id,email),
+  UNIQUE KEY campaign_recipient (campaign_log_id,email,recipient_id),
   KEY claim (campaign_log_id,status,next_attempt_at),
   KEY sent_at (status,sent_at),
   KEY recipient (recipient_id,sent_at)

@@ -13,7 +13,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 23;
+    const DB_VER = 24;
 
     public function init_options()
     {
@@ -405,6 +405,34 @@ class DBUpdates
         dbDelta(CreateDBTables::campaign_settings_table_sql($collate));
 
         \MailOptin\Core\Repositories\CampaignSettingsRepository::migrate();
+    }
+
+    /**
+     * Automations tables, and the send queue allowing one address more than once per campaign
+     * log when the recipient differs: an automation email reaches the same person once per run.
+     */
+    public function update_routine_24()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::automations_tables_sql($collate) as $sql) {
+            dbDelta($sql);
+        }
+
+        $queue = $wpdb->prefix . Core::send_queue_table_name;
+
+        // Add the new key before dropping the old, so the table is never without one.
+        if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $queue WHERE Key_name = %s", 'campaign_recipient'))) {
+            $wpdb->query("ALTER TABLE $queue ADD UNIQUE KEY campaign_recipient (campaign_log_id,email,recipient_id)");
+        }
+
+        if ($wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $queue WHERE Key_name = %s", 'campaign_email'))) {
+            $wpdb->query("ALTER TABLE $queue DROP INDEX campaign_email");
+        }
     }
 
     public static function get_instance()

@@ -170,11 +170,22 @@ class Tracking
     {
         $row = SendQueueRepository::get($ids[0]);
 
-        if ( ! $row || CampaignRenderer::RECIPIENT_TYPE !== $row['recipient_type'] || empty($row['recipient_id'])) return null;
+        if ( ! $row || ! self::subscriber_id($row)) return null;
 
         if (self::row_ids($row) !== $ids) return null;
 
         return $row;
+    }
+
+    /**
+     * The subscriber a queue row was sent to: its recipient for a campaign to a list; for other
+     * recipient types (an automation's run step), whoever that type says, or 0 when it isn't a subscriber.
+     */
+    public static function subscriber_id($row)
+    {
+        if (CampaignRenderer::RECIPIENT_TYPE === ($row['recipient_type'] ?? '')) return absint($row['recipient_id'] ?? 0);
+
+        return absint(apply_filters('mo_send_queue_row_subscriber_id', 0, $row));
     }
 
     public function handle_request()
@@ -189,7 +200,7 @@ class Tracking
      */
     protected static function should_count($row)
     {
-        return Activity::is_ready() && 'HEAD' !== strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') && Subscribers::get($row['recipient_id']);
+        return Activity::is_ready() && 'HEAD' !== strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') && Subscribers::get(self::subscriber_id($row));
     }
 
     /**
@@ -209,7 +220,7 @@ class Tracking
 
         $row = self::queue_row($ids);
 
-        if ($row && self::tracks_opens() && self::should_count($row)) Activity::record_open($row['campaign_log_id'], $row['recipient_id']);
+        if ($row && self::tracks_opens() && self::should_count($row)) Activity::record_open($row['campaign_log_id'], self::subscriber_id($row));
 
         return true;
     }
@@ -240,7 +251,7 @@ class Tracking
         $row = self::queue_row($ids);
 
         if ($row && self::tracks_clicks() && self::should_count($row)) {
-            Activity::record_click($row['campaign_log_id'], $row['recipient_id'], $link, self::tracks_opens());
+            Activity::record_click($row['campaign_log_id'], self::subscriber_id($row), $link, self::tracks_opens());
         }
 
         return $link;

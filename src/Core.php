@@ -27,6 +27,10 @@ final class Core
     const campaign_activity_table_name = 'mo_campaign_activity';
     const campaign_stats_table_name = 'mo_campaign_stats';
     const campaign_settings_table_name = 'mo_campaign_settings';
+    const automations_table_name = 'mo_automations';
+    const automation_steps_table_name = 'mo_automation_steps';
+    const automation_runs_table_name = 'mo_automation_runs';
+    const automation_run_steps_table_name = 'mo_automation_run_steps';
 
     public function __construct()
     {
