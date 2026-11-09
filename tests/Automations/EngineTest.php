@@ -28,6 +28,9 @@ class TestEventTrigger extends AbstractTrigger
 {
     public static $stop = '';
     public static $listened = 0;
+    public static $available = true;
+
+    public function is_available() { return self::$available; }
 
     public function id() { return 'test_event'; }
     public function group() { return 'Tests'; }
@@ -93,7 +96,9 @@ class EngineTest extends WP_UnitTestCase
             Triggers::get_instance()->add(self::$trigger);
         }
 
-        TestEventTrigger::$stop = '';
+        TestEventTrigger::$stop      = '';
+        TestEventTrigger::$available = true;
+        Repo::flush_cache();
         update_option('timezone_string', 'Europe/London');
         reset_phpmailer_instance();
     }
@@ -507,5 +512,84 @@ class EngineTest extends WP_UnitTestCase
         Engine::get_instance()->scan();
 
         $this->assertNotFalse(wp_next_scheduled(Engine::TICK_HOOK));
+    }
+
+    public function test_a_trigger_that_throws_at_send_time_does_not_break_the_shared_queue()
+    {
+        $this->automation([$this->email_step()]);
+        self::$trigger->fire('queue@example.org', 'r1', ['number' => '1']);
+        Engine::get_instance()->run(time() + 5);
+
+        TestEventTrigger::$stop = 'throw';
+        $log                    = ini_set('error_log', '/dev/null');
+        reset_phpmailer_instance();
+        QueueRunner::get_instance()->run_all();
+        ini_set('error_log', $log);
+
+        $this->assertCount(0, tests_retrieve_phpmailer_instance()->mock_sent);
+        $run = Repo::runs_for_email('queue@example.org')[0];
+        $this->assertSame('error', $run['stop_reason']);
+    }
+
+    public function test_runs_wait_while_their_trigger_is_unavailable_and_carry_on_after()
+    {
+        $this->automation([$this->email_step()]);
+        $run_id = self::$trigger->fire('paused@example.org', 'r1', ['number' => '1'])[0];
+
+        TestEventTrigger::$available = false;
+        Engine::get_instance()->run(time() + 5);
+        $this->assertSame(Repo::RUN_ACTIVE, Repo::get_run($run_id)['status']);
+
+        TestEventTrigger::$available = true;
+        $this->assertCount(1, $this->deliver());
+        $this->assertSame(Repo::RUN_COMPLETED, Repo::get_run($run_id)['status']);
+    }
+
+    public function test_a_wait_that_is_already_over_carries_straight_on()
+    {
+        $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 0, 'unit' => 'minutes']], $this->email_step()]);
+        $run_id = self::$trigger->fire('zero@example.org', 'r1', ['number' => '1'])[0];
+
+        $this->assertCount(1, $this->deliver());
+        $this->assertSame(Repo::RUN_COMPLETED, Repo::get_run($run_id)['status']);
+    }
+
+    public function test_the_tick_sleeps_until_the_next_run_is_due()
+    {
+        wp_clear_scheduled_hook(Engine::TICK_HOOK);
+        Engine::get_instance()->tick();
+        $this->assertFalse(wp_next_scheduled(Engine::TICK_HOOK), 'Nothing waiting: no tick.');
+
+        $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 3, 'unit' => 'hours']], $this->email_step()]);
+        self::$trigger->fire('later@example.org', 'r1', ['number' => '1']);
+        Engine::get_instance()->tick();
+
+        $next = wp_next_scheduled(Engine::TICK_HOOK);
+        $this->assertGreaterThan(time() + 2 * HOUR_IN_SECONDS, $next);
+        $this->assertLessThanOrEqual(time() + 3 * HOUR_IN_SECONDS + 5, $next);
+
+        // A new run brings it forward.
+        self::$trigger->fire('now@example.org', 'r2', ['number' => '2']);
+        $this->assertLessThanOrEqual(time(), wp_next_scheduled(Engine::TICK_HOOK));
+    }
+
+    public function test_old_finished_runs_are_pruned_but_once_runs_are_kept()
+    {
+        global $wpdb;
+
+        $every = $this->automation([$this->email_step()]);
+        $once  = $this->automation([$this->email_step()], ['runs' => 'once']);
+        $old   = self::$trigger->fire('old@example.org', 'r1', ['number' => '1']);
+        $this->deliver();
+
+        $wpdb->query($wpdb->prepare('UPDATE ' . Repo::runs_table() . ' SET finished_at = %s', gmdate('Y-m-d H:i:s', time() - 100 * DAY_IN_SECONDS)));
+        self::$trigger->fire('active@example.org', 'r2', ['number' => '2']);
+
+        $this->assertSame(1, Repo::prune(90));
+
+        $left = $wpdb->get_results('SELECT automation_id, email, status FROM ' . Repo::runs_table(), 'ARRAY_A');
+        $this->assertCount(3, $left);
+        $this->assertSame(0, (int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . Repo::run_steps_table() . ' rs INNER JOIN ' . Repo::runs_table() . ' r ON r.id = rs.run_id WHERE r.automation_id = %d AND r.email = %s', $every, 'old@example.org')));
+        $this->assertNotEmpty(array_filter($left, function ($r) use ($once) { return (int)$r['automation_id'] === $once && 'old@example.org' === $r['email']; }));
     }
 }

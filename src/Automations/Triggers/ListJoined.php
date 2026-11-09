@@ -55,6 +55,11 @@ class ListJoined extends AbstractTrigger
         ];
     }
 
+    public function requires_subscription()
+    {
+        return true;
+    }
+
     public function listen()
     {
         add_action('mo_subscriber_subscribed', [$this, 'joined'], 20, 2);
@@ -63,6 +68,13 @@ class ListJoined extends AbstractTrigger
 
     public function joined($subscriber_id, $list_id)
     {
+        // Imports join thousands of people in one request: do nothing unless this list is automated.
+        $watched = array_map(function ($automation) {
+            return absint($automation['trigger_settings']['list_id'] ?? 0);
+        }, \MailOptin\Core\Repositories\AutomationsRepository::live_for_trigger($this->id()));
+
+        if ( ! in_array(absint($list_id), $watched, true)) return;
+
         $subscriber = Subscribers::get($subscriber_id);
         $membership = $subscriber ? Subscribers::get_membership($subscriber_id, $list_id) : null;
 

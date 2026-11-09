@@ -111,6 +111,8 @@ class AutomationsRepository extends AbstractRepository
             'updated_at'       => $now,
         ]);
 
+        self::flush_cache();
+
         return (int)self::wpdb()->insert_id;
     }
 
@@ -129,6 +131,8 @@ class AutomationsRepository extends AbstractRepository
         if (empty($fields)) return false;
 
         $fields['updated_at'] = self::now();
+
+        self::flush_cache();
 
         return false !== self::wpdb()->update(self::table(), $fields, ['id' => absint($automation_id)]);
     }
@@ -153,14 +157,46 @@ class AutomationsRepository extends AbstractRepository
     /**
      * @return array[] live automations started by this trigger
      */
+    /** @var array trigger ID => live automations, for this request */
+    protected static $live_cache = [];
+
     public static function live_for_trigger($trigger_id)
     {
-        $table = self::table();
+        // Events can fire thousands of times in one request (bulk tagging, imports): look once.
+        if ( ! isset(self::$live_cache[$trigger_id])) {
+            $table = self::table();
 
-        return array_map([__CLASS__, 'inflate'], (array)self::wpdb()->get_results(
-            self::wpdb()->prepare("SELECT * FROM $table WHERE trigger_id = %s AND status = %s ORDER BY id", $trigger_id, self::STATUS_LIVE),
-            'ARRAY_A'
-        ));
+            self::$live_cache[$trigger_id] = array_map([__CLASS__, 'inflate'], (array)self::wpdb()->get_results(
+                self::wpdb()->prepare("SELECT * FROM $table WHERE trigger_id = %s AND status = %s ORDER BY id", $trigger_id, self::STATUS_LIVE),
+                'ARRAY_A'
+            ));
+        }
+
+        return self::$live_cache[$trigger_id];
+    }
+
+    /**
+     * Where a scanning trigger got to for an automation (e.g. a unix time). Kept in an option, not autoloaded.
+     */
+    public static function get_cursor($automation_id)
+    {
+        return get_option('mo_automation_cursor_' . absint($automation_id), '');
+    }
+
+    public static function set_cursor($automation_id, $value)
+    {
+        $name = 'mo_automation_cursor_' . absint($automation_id);
+
+        if (false === get_option($name)) {
+            add_option($name, $value, '', 'no');
+        } else {
+            update_option($name, $value, false);
+        }
+    }
+
+    public static function flush_cache()
+    {
+        self::$live_cache = [];
     }
 
     /**
@@ -169,6 +205,9 @@ class AutomationsRepository extends AbstractRepository
     public static function delete($automation_id)
     {
         $automation_id = absint($automation_id);
+
+        self::flush_cache();
+        delete_option('mo_automation_cursor_' . $automation_id);
 
         foreach (self::steps($automation_id, true) as $step) {
             self::cancel_queued_for_step($step['id'], __('The automation was deleted.', 'mailoptin'));
@@ -332,41 +371,105 @@ class AutomationsRepository extends AbstractRepository
     }
 
     /**
-     * Whether any run is still in progress, in any automation.
-     */
-    public static function has_active_runs()
-    {
-        return (bool)self::wpdb()->get_var(self::wpdb()->prepare('SELECT 1 FROM ' . self::runs_table() . ' WHERE status = %s LIMIT 1', self::RUN_ACTIVE));
-    }
-
-    /**
      * Reserve up to $limit due runs of live automations for one worker. The reservation lasts
      * $lease_seconds, after which another worker may take a run whose worker died.
      *
      * @return array[]
      */
-    public static function claim_due($worker_id, $limit, $lease_seconds)
+    public static function claim_due($worker_id, $limit, $lease_seconds, $trigger_ids = null)
     {
         $runs        = self::runs_table();
         $automations = self::table();
         $now         = self::now();
+        $wpdb        = self::wpdb();
 
-        // MySQL can't ORDER/LIMIT a joined UPDATE; the derived table also lets it read the table it updates.
-        self::wpdb()->query(self::wpdb()->prepare(
+        // Runs whose trigger isn't available (its plugin is off) wait where they are, untouched.
+        $trigger_sql = '';
+        if (is_array($trigger_ids)) {
+            if (empty($trigger_ids)) return [];
+            $trigger_sql = ' AND a.trigger_id IN (' . implode(',', array_fill(0, count($trigger_ids), '%s')) . ')';
+        }
+
+        // Three small steps rather than one UPDATE ... IN (subquery): MySQL runs that as a scan of the
+        // whole runs table, locking every row it reads. These are an index range read and key lookups.
+        $ids = array_map('intval', (array)$wpdb->get_col($wpdb->prepare(
+            "SELECT r.id FROM $runs r INNER JOIN $automations a ON a.id = r.automation_id
+            WHERE r.status = %s AND r.next_run_at <= %s AND (r.claimed_until IS NULL OR r.claimed_until < %s) AND a.status = %s$trigger_sql
+            ORDER BY r.next_run_at, r.id LIMIT %d",
+            array_merge([self::RUN_ACTIVE, $now, $now, self::STATUS_LIVE], is_array($trigger_ids) ? array_values($trigger_ids) : [], [absint($limit)])
+        )));
+
+        if (empty($ids)) return [];
+
+        $in = implode(',', $ids);
+
+        // Re-checks the lease, so two workers can't both take a run.
+        $wpdb->query($wpdb->prepare(
             "UPDATE $runs SET claimed_by = %s, claimed_until = %s, attempts = attempts + 1
-            WHERE id IN (SELECT id FROM (
-                SELECT r.id FROM $runs r INNER JOIN $automations a ON a.id = r.automation_id
-                WHERE r.status = %s AND a.status = %s AND r.next_run_at <= %s AND (r.claimed_until IS NULL OR r.claimed_until < %s)
-                ORDER BY r.next_run_at, r.id LIMIT %d
-            ) due)
-            AND (claimed_until IS NULL OR claimed_until < %s)",
-            $worker_id, self::now($lease_seconds), self::RUN_ACTIVE, self::STATUS_LIVE, $now, $now, $limit, $now
+            WHERE id IN ($in) AND status = %s AND (claimed_until IS NULL OR claimed_until < %s)",
+            $worker_id, self::now($lease_seconds), self::RUN_ACTIVE, $now
         ));
 
-        return array_map([__CLASS__, 'inflate'], (array)self::wpdb()->get_results(
-            self::wpdb()->prepare("SELECT * FROM $runs WHERE claimed_by = %s AND claimed_until > %s AND status = %s ORDER BY next_run_at, id", $worker_id, $now, self::RUN_ACTIVE),
+        return array_map([__CLASS__, 'inflate'], (array)$wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM $runs WHERE id IN ($in) AND claimed_by = %s AND status = %s ORDER BY next_run_at, id", $worker_id, self::RUN_ACTIVE),
             'ARRAY_A'
         ));
+    }
+
+    /**
+     * When the next active run of a live automation is due, or null when none is waiting.
+     *
+     * @param string[]|null $trigger_ids only runs of these triggers
+     *
+     * @return int|null unix time
+     */
+    public static function next_due_at($trigger_ids = null)
+    {
+        $runs        = self::runs_table();
+        $automations = self::table();
+        $wpdb        = self::wpdb();
+
+        $trigger_sql = '';
+        if (is_array($trigger_ids)) {
+            if (empty($trigger_ids)) return null;
+            $trigger_sql = ' AND a.trigger_id IN (' . implode(',', array_fill(0, count($trigger_ids), '%s')) . ')';
+        }
+
+        // ORDER BY ... LIMIT 1 walks the "due" index and stops at the first live match; MIN() over the
+        // join would read every active run.
+        $next = $wpdb->get_var($wpdb->prepare(
+            "SELECT r.next_run_at FROM $runs r INNER JOIN $automations a ON a.id = r.automation_id
+            WHERE r.status = %s AND a.status = %s$trigger_sql ORDER BY r.next_run_at LIMIT 1",
+            array_merge([self::RUN_ACTIVE, self::STATUS_LIVE], is_array($trigger_ids) ? array_values($trigger_ids) : [])
+        ));
+
+        return $next ? (int)strtotime($next . ' UTC') : null;
+    }
+
+    /**
+     * Delete finished runs, and their run steps, older than $days. Runs of "once" automations
+     * (empty trigger_ref) are kept: they are what stops the person starting again.
+     *
+     * @return int runs deleted
+     */
+    public static function prune($days, $limit = 1000)
+    {
+        $runs      = self::runs_table();
+        $run_steps = self::run_steps_table();
+        $wpdb      = self::wpdb();
+
+        $ids = array_map('intval', (array)$wpdb->get_col($wpdb->prepare(
+            "SELECT id FROM $runs WHERE status IN (%s, %s) AND trigger_ref <> '' AND finished_at < %s ORDER BY id LIMIT %d",
+            self::RUN_COMPLETED, self::RUN_STOPPED, self::now(-absint($days) * DAY_IN_SECONDS), absint($limit)
+        )));
+
+        if (empty($ids)) return 0;
+
+        $in = implode(',', $ids);
+        $wpdb->query("DELETE FROM $run_steps WHERE run_id IN ($in)");
+        $wpdb->query("DELETE FROM $runs WHERE id IN ($in)");
+
+        return count($ids);
     }
 
     /**

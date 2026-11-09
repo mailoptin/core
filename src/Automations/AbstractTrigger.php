@@ -38,6 +38,15 @@ abstract class AbstractTrigger
         return '';
     }
 
+    /**
+     * Whether only confirmed subscribers can be in it. True for triggers about subscribers (a list,
+     * a tag, a field); false for ones about customers, who are emailed about what they bought.
+     */
+    public function requires_subscription()
+    {
+        return false;
+    }
+
     /** Whether it can be used on this site, e.g. false when WooCommerce isn't active. */
     public function is_available()
     {

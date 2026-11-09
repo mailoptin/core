@@ -3,7 +3,7 @@
 namespace MailOptin\Core\Automations\Triggers;
 
 use MailOptin\Core\Automations\AbstractTrigger;
-use MailOptin\Core\Repositories\AutomationsRepository;
+use MailOptin\Core\Repositories\AutomationsRepository as Repo;
 
 /**
  * A customer hasn't ordered for a while: win-back emails. Checked hourly.
@@ -71,14 +71,20 @@ class WooNoOrder extends AbstractTrigger
         $days = max(1, (int)($automation['trigger_settings']['days'] ?? 120));
         $line = time() - $days * DAY_IN_SECONDS;
 
-        // Orders placed in the week before the line, oldest first, a page at a time: orders from people
-        // who bought again stay in the window, so a single batch could fill with them and stall.
+        // Only orders that crossed the line since the last scan; the first scan (or one after a long
+        // gap) looks back a week. Without this every order in the week was checked again every hour.
+        $cursor = (int)Repo::get_cursor($automation['id']);
+        $from   = max($cursor, $line - self::WINDOW_DAYS * DAY_IN_SECONDS) + 1;
+
+        if ($from > $line) return;
+
+        // A page at a time: orders from people who bought again are skipped, and could fill a batch.
         $page = 1;
 
         do {
             $order_ids = wc_get_orders([
                 'status'       => array_map(function ($s) { return 'wc-' . $s; }, Woo::PAID_STATUSES),
-                'date_created' => ($line - self::WINDOW_DAYS * DAY_IN_SECONDS) . '...' . $line,
+                'date_created' => $from . '...' . $line,
                 'orderby'      => 'ID',
                 'order'        => 'ASC',
                 'limit'        => self::BATCH,
@@ -88,6 +94,8 @@ class WooNoOrder extends AbstractTrigger
 
             $this->start_for_orders($automation, (array)$order_ids);
         } while (count($order_ids) === self::BATCH);
+
+        Repo::set_cursor($automation['id'], $line);
     }
 
     protected function start_for_orders($automation, $order_ids)

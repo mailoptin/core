@@ -60,6 +60,11 @@ class TagAdded extends AbstractTrigger
         ];
     }
 
+    public function requires_subscription()
+    {
+        return true;
+    }
+
     public function listen()
     {
         add_action('mo_subscriber_tags_added', [$this, 'tagged']);
@@ -67,12 +72,24 @@ class TagAdded extends AbstractTrigger
 
     public function tagged($added)
     {
+        // Bulk tagging can add tags to thousands of people at once: only look anyone up when a
+        // live automation watches one of the tags.
+        $watched = array_map(function ($automation) {
+            return absint($automation['trigger_settings']['tag_id'] ?? 0);
+        }, \MailOptin\Core\Repositories\AutomationsRepository::live_for_trigger($this->id()));
+
+        if (empty($watched)) return;
+
         foreach ((array)$added as $subscriber_id => $tag_ids) {
+            $tag_ids = array_intersect(array_map('absint', (array)$tag_ids), $watched);
+
+            if (empty($tag_ids)) continue;
+
             $subscriber = Subscribers::get($subscriber_id);
 
             if ( ! $subscriber) continue;
 
-            foreach ((array)$tag_ids as $tag_id) {
+            foreach ($tag_ids as $tag_id) {
                 $this->start($subscriber['email'], 'tag-' . absint($tag_id) . '-' . gmdate('YmdHis'), ['tag_id' => absint($tag_id)]);
             }
         }

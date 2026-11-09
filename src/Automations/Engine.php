@@ -34,7 +34,6 @@ use MailOptin\Core\SendQueue\QueueRunner;
 class Engine
 {
     const TICK_HOOK = 'mo_automations_tick';
-    const SCHEDULE = 'mo_every_minute';
 
     const RECIPIENT_TYPE = 'automation';
 
@@ -59,7 +58,6 @@ class Engine
         } else {
             add_action('init', [Triggers::get_instance(), 'load'], 20);
         }
-        add_filter('cron_schedules', [$this, 'cron_schedules']);
         add_action(self::TICK_HOOK, [$this, 'tick']);
         add_action('mo_hourly_recurring_job', [$this, 'scan']);
 
@@ -102,20 +100,30 @@ class Engine
 
         if ( ! self::is_available() || ! $trigger->is_available() || ! is_email($email)) return [];
 
+        // Cheapest first: most events (a tag nobody automates) match no automation, and need no lookups.
+        $automations = array_filter(Repo::live_for_trigger($trigger->id()), function ($automation) use ($trigger, $context, $automation_id) {
+            // A scan looks for people for one automation; it mustn't start the others on the same trigger.
+            if ($automation_id && (int)$automation['id'] !== (int)$automation_id) return false;
+
+            return $trigger->matches($context, $automation['trigger_settings'], $automation['audience']);
+        });
+
+        if (empty($automations)) return [];
+
         // Nothing will ever be sent to a suppressed address; don't start a run for it.
         if (SuppressionRepository::is_suppressed($email)) return [];
 
         $subscriber = Subscribers::get_by_email($email);
-        $started    = [];
 
-        foreach (Repo::live_for_trigger($trigger->id()) as $automation) {
-            // A scan looks for people for one automation; it mustn't start the others on the same trigger.
-            if ($automation_id && (int)$automation['id'] !== (int)$automation_id) continue;
+        // Someone who hasn't confirmed (or has unsubscribed) isn't emailed by subscriber automations.
+        // Otherwise a form that tags people would email any address typed into it.
+        if ($trigger->requires_subscription() && ! self::is_subscribed($subscriber)) return [];
 
+        $started = [];
+
+        foreach ($automations as $automation) {
             $settings = $automation['trigger_settings'];
             $runs     = $settings['runs'] ?? $trigger->default_runs();
-
-            if ( ! $trigger->matches($context, $settings, $automation['audience'])) continue;
 
             if ( ! self::audience_allows($automation['audience'], $subscriber)) continue;
 
@@ -133,6 +141,11 @@ class Engine
         if ( ! empty($started)) self::ensure_tick();
 
         return $started;
+    }
+
+    public static function is_subscribed($subscriber)
+    {
+        return $subscriber && Subscribers::STATUS_SUBSCRIBED === ($subscriber['status'] ?? '');
     }
 
     /**
@@ -170,29 +183,52 @@ class Engine
      * The tick
      * ------------------------------------------------------------------------------------------ */
 
-    public function cron_schedules($schedules)
+    /**
+     * Make sure a tick is scheduled by $at. The tick is a single event set for the next due run, so a
+     * site with nothing due doesn't wake WP-Cron every minute.
+     *
+     * @param int|null $at unix time; now when not given
+     */
+    public static function ensure_tick($at = null)
     {
-        $schedules[self::SCHEDULE] = ['interval' => MINUTE_IN_SECONDS, 'display' => __('Every minute (MailOptin automations)', 'mailoptin')];
+        $at   = max(time(), (int)($at ?: time()));
+        $next = wp_next_scheduled(self::TICK_HOOK);
 
-        return $schedules;
-    }
+        if ($next && $next <= $at) return;
 
-    public static function ensure_tick()
-    {
-        if ( ! wp_next_scheduled(self::TICK_HOOK)) {
-            wp_schedule_event(time(), self::SCHEDULE, self::TICK_HOOK);
-        }
+        if ($next) wp_clear_scheduled_hook(self::TICK_HOOK);
+
+        wp_schedule_single_event($at, self::TICK_HOOK);
     }
 
     public function tick()
     {
-        if ( ! self::is_available()) {
-            wp_clear_scheduled_hook(self::TICK_HOOK);
+        wp_clear_scheduled_hook(self::TICK_HOOK);
 
-            return;
-        }
+        if ( ! self::is_available()) return;
+
+        // If this request dies part-way, the work it claimed is picked up when the leases end.
+        wp_schedule_single_event(time() + self::LEASE_SECONDS, self::TICK_HOOK);
 
         $this->run();
+
+        // Then sleep until the next run is due (at least a minute). That includes runs started while
+        // this tick worked, so replacing the schedule loses nothing.
+        wp_clear_scheduled_hook(self::TICK_HOOK);
+
+        $next = Repo::next_due_at(self::available_trigger_ids());
+
+        if ($next) wp_schedule_single_event(max(time() + MINUTE_IN_SECONDS, $next), self::TICK_HOOK);
+    }
+
+    /**
+     * IDs of the triggers that can run now.
+     *
+     * @return string[]
+     */
+    public static function available_trigger_ids()
+    {
+        return array_keys(Triggers::get_instance()->all());
     }
 
     /**
@@ -208,7 +244,7 @@ class Engine
 
         while (time() < $deadline) {
             // A run that threw stays claimed by this worker until its lease ends; don't take it again now.
-            $runs = array_filter(Repo::claim_due($this->worker_id, 25, self::LEASE_SECONDS), function ($run) use ($seen) {
+            $runs = array_filter(Repo::claim_due($this->worker_id, 25, self::LEASE_SECONDS, self::available_trigger_ids()), function ($run) use ($seen) {
                 return ! isset($seen[$run['id']]);
             });
 
@@ -228,6 +264,8 @@ class Engine
             }
         }
 
+        self::start_queued();
+
         return $handled;
     }
 
@@ -238,8 +276,12 @@ class Engine
     {
         if ( ! self::is_available()) return;
 
-        // The tick is cleared while automations are unavailable; bring it back for runs still waiting.
-        if (Repo::has_active_runs()) self::ensure_tick();
+        // Finished runs aren't needed for long; a "once" run is kept, as it stops a second start.
+        Repo::prune((int)apply_filters('mailoptin_automation_runs_keep_days', 90));
+
+        // In case the tick was lost (WP-Cron cleared, automations unavailable for a while).
+        $next = Repo::next_due_at(self::available_trigger_ids());
+        if ($next) self::ensure_tick($next);
 
         foreach (Triggers::get_instance()->all() as $trigger) {
             foreach (Repo::live_for_trigger($trigger->id()) as $automation) {
@@ -256,8 +298,15 @@ class Engine
         $automation = Repo::get($run['automation_id']);
         $trigger    = $automation ? Triggers::get_instance()->get($automation['trigger_id']) : null;
 
+        if ( ! $automation) {
+            Repo::finish_run($run['id'], Repo::RUN_STOPPED, 'automation_deleted');
+
+            return;
+        }
+
+        // Its plugin is off (WooCommerce deactivated while chasing a conflict): wait, don't end it.
         if ( ! $trigger || ! $trigger->is_available()) {
-            Repo::finish_run($run['id'], Repo::RUN_STOPPED, 'trigger_unavailable');
+            Repo::release_run($run['id'], ['next_run_at' => Repo::now(HOUR_IN_SECONDS)]);
 
             return;
         }
@@ -291,11 +340,14 @@ class Engine
             }
 
             if (Repo::STEP_WAIT === $step['type']) {
-                if ($run['waiting_step_id'] !== $step['id']) {
+                $until = $run['waiting_step_id'] === $step['id'] ? 0 : self::wait_until($step['settings'], $now);
+
+                // A wait that's already over (0 minutes) carries straight on.
+                if ($until > $now) {
                     Repo::release_run($run['id'], [
                         'current_step_id' => $current['id'] ?? 0,
                         'waiting_step_id' => $step['id'],
-                        'next_run_at'     => gmdate('Y-m-d H:i:s', self::wait_until($step['settings'], $now)),
+                        'next_run_at'     => gmdate('Y-m-d H:i:s', $until),
                     ]);
 
                     return;
@@ -342,7 +394,7 @@ class Engine
             $position = $step['position'];
         }
 
-        Repo::release_run($run['id'], ['current_step_id' => $current['id'] ?? 0, 'waiting_step_id' => 0, 'next_run_at' => Repo::now()]);
+        Repo::release_run($run['id'], ['current_step_id' => $current['id'] ?? 0, 'waiting_step_id' => 0, 'next_run_at' => Repo::now(MINUTE_IN_SECONDS)]);
     }
 
     /**
@@ -352,6 +404,10 @@ class Engine
     public static function stop_reason($run, AbstractTrigger $trigger)
     {
         if (SuppressionRepository::is_suppressed($run['email'])) return 'suppressed';
+
+        if ($trigger->requires_subscription() && ! self::is_subscribed($run['subscriber_id'] ? Subscribers::get($run['subscriber_id']) : null)) {
+            return 'not_subscribed';
+        }
 
         return (string)$trigger->stop_reason($run);
     }
@@ -566,9 +622,26 @@ class Engine
 
         Repo::update_run_step($run_step_id, ['queue_id' => $queue_id]);
 
-        QueueRunner::get_instance()->start($log_id, $email_campaign_id, []);
+        // Started once per email at the end of the pass, not once per person.
+        self::$to_start[$log_id] = $email_campaign_id;
 
         return true;
+    }
+
+    /** @var array campaign log ID => email campaign ID, queued this pass and not yet started */
+    protected static $to_start = [];
+
+    /** @var array email campaign ID => campaign log ID, for this request */
+    protected static $log_ids = [];
+
+    public static function start_queued()
+    {
+        $to_start       = self::$to_start;
+        self::$to_start = [];
+
+        foreach ($to_start as $log_id => $email_campaign_id) {
+            QueueRunner::get_instance()->start($log_id, $email_campaign_id, []);
+        }
     }
 
     /**
@@ -580,6 +653,9 @@ class Engine
     public static function campaign_log_id($email_campaign_id)
     {
         global $wpdb;
+
+        // Looked up (and checked for edits) once per request: it's needed for every person in a pass.
+        if (isset(self::$log_ids[$email_campaign_id])) return self::$log_ids[$email_campaign_id];
 
         if ( ! $email_campaign_id || Repo::EMAIL_CAMPAIGN_TYPE !== ER::get_email_campaign_type($email_campaign_id)) return 0;
 
@@ -608,6 +684,8 @@ class Engine
         } elseif (self::changed_since_render($email_campaign_id, $log_id)) {
             self::render_log($email_campaign_id, $log_id);
         }
+
+        self::$log_ids[$email_campaign_id] = $log_id;
 
         return $log_id;
     }
@@ -706,7 +784,13 @@ class Engine
             return __('The automation stopped for this person.', 'mailoptin');
         }
 
-        $stop = self::stop_reason($run, $context['trigger']);
+        try {
+            $stop = self::stop_reason($run, $context['trigger']);
+        } catch (\Throwable $e) {
+            // The send queue is shared with broadcasts and welcome emails; a broken trigger mustn't stop it.
+            error_log('MailOptin automation run ' . $run['id'] . ': ' . $e->getMessage());
+            $stop = 'error';
+        }
 
         if ('' !== $stop) {
             Repo::finish_run($run['id'], Repo::RUN_STOPPED, $stop, true);

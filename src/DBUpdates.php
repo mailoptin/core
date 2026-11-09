@@ -433,6 +433,13 @@ class DBUpdates
         if ($wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $queue WHERE Key_name = %s", 'campaign_email'))) {
             $wpdb->query("ALTER TABLE $queue DROP INDEX campaign_email");
         }
+
+        // The send queue reads a campaign's state from this table on every pass.
+        $log_meta = $wpdb->prefix . Core::campaign_log_meta_table_name;
+
+        if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $log_meta WHERE Key_name = %s", 'campaign_log_id'))) {
+            $wpdb->query("ALTER TABLE $log_meta ADD KEY campaign_log_id (campaign_log_id)");
+        }
     }
 
     public static function get_instance()

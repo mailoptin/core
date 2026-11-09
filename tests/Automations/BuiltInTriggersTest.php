@@ -177,4 +177,55 @@ class BuiltInTriggersTest extends EngineTest
         // A week early for this one: it starts on the day, not now.
         $this->assertCount(0, $this->runs($on_the_day));
     }
+
+    public function test_a_tag_on_someone_who_has_not_confirmed_starts_nothing()
+    {
+        $list = ListsRepository::create(['name' => 'Ebook', 'double_optin' => 1]);
+        $tag  = TagsRepository::create('ebook');
+        $id   = $this->automation_for('tag_added', ['tag_id' => $tag], [$this->email_step('Ebook')]);
+
+        // A public form with double opt-in, and someone else's address typed in.
+        Subscription::subscribe('victim@example.org', $list, ['tags' => [$tag]]);
+
+        $this->assertCount(0, $this->runs($id));
+        $this->assertCount(0, $this->deliver());
+    }
+
+    public function test_someone_who_unsubscribes_while_waiting_gets_nothing_more()
+    {
+        $list = ListsRepository::create(['name' => 'Tagged', 'double_optin' => 0]);
+        Subscription::subscribe('leaver@example.org', $list);
+        $subscriber = Subscribers::get_by_email('leaver@example.org');
+        $tag        = TagsRepository::create('leaver');
+        $id         = $this->automation_for('tag_added', ['tag_id' => $tag], [['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days']], $this->email_step('Later')]);
+
+        TagsRepository::add_to_subscribers([$tag], [$subscriber['id']]);
+        $run = $this->runs($id)[0];
+
+        global $wpdb;
+        $wpdb->update(Subscribers::table(), ['status' => Subscribers::STATUS_UNSUBSCRIBED], ['id' => $subscriber['id']]);
+        $this->make_due($run['id']);
+
+        $this->assertCount(0, $this->deliver());
+        $this->assertSame('not_subscribed', Repo::get_run($run['id'])['stop_reason']);
+    }
+
+    public function test_bulk_tagging_with_a_tag_nobody_automates_does_no_per_person_work()
+    {
+        $list = ListsRepository::create(['name' => 'Bulk', 'double_optin' => 0]);
+        $ids  = [];
+        for ($i = 0; $i < 50; $i++) {
+            Subscription::subscribe("bulk$i@example.org", $list);
+            $ids[] = Subscribers::get_by_email("bulk$i@example.org")['id'];
+        }
+        $watched   = TagsRepository::create('watched');
+        $unwatched = TagsRepository::create('unwatched');
+        $this->automation_for('tag_added', ['tag_id' => $watched]);
+
+        global $wpdb;
+        $before = $wpdb->num_queries;
+        do_action('mo_subscriber_tags_added', array_fill_keys($ids, [$unwatched]));
+
+        $this->assertLessThanOrEqual(2, $wpdb->num_queries - $before);
+    }
 }

@@ -70,6 +70,11 @@ class DateField extends AbstractTrigger
         ];
     }
 
+    public function requires_subscription()
+    {
+        return true;
+    }
+
     public function listen()
     {
         // Started by scan(), not by an event.
