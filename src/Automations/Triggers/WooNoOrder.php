@@ -61,6 +61,11 @@ class WooNoOrder extends AbstractTrigger
         ];
     }
 
+    public function stops_when()
+    {
+        return __('They place an order, or they unsubscribe.', 'mailoptin');
+    }
+
     public function listen()
     {
         // Started by scan(), not by an event.

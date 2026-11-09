@@ -570,6 +570,7 @@ class Subscribers_Page extends AbstractSettingsPage
                         <p class="description"><?php esc_html_e('Opens are an estimate; clicks are exact.', 'mailoptin'); ?></p>
                     </div>
                 <?php endif; ?>
+                <?php do_action('mailoptin_subscriber_profile_side', $subscriber); ?>
                 <div class="mo-card">
                     <h3><?php esc_html_e('Consent record', 'mailoptin'); ?></h3>
                     <dl class="mo-kv">

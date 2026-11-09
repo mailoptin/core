@@ -37,7 +37,8 @@ class CreateDBTables
                   campaign_log_id bigint(20) NOT NULL,
                   meta_key varchar(255) NULL,
                   meta_value longtext NULL,
-                  KEY campaign_log_id (campaign_log_id)
+                  KEY campaign_log_id (campaign_log_id),
+                  KEY key_value (meta_key(64),meta_value(32))
 				) $collate;
 				";
         $sqls[] = "CREATE TABLE IF NOT EXISTS $optin_campaigns_table (
@@ -173,6 +174,7 @@ class CreateDBTables
   UNIQUE KEY automation_person_ref (automation_id,email,trigger_ref),
   KEY due (status,next_run_at),
   KEY finished (finished_at),
+  KEY status_automation (status,automation_id,stop_reason),
   KEY email (email),
   KEY subscriber (subscriber_id)
 ) $collate;",
@@ -187,6 +189,7 @@ class CreateDBTables
   PRIMARY KEY  (id),
   UNIQUE KEY run_step (run_id,step_id),
   KEY step_status (step_id,status),
+  KEY status_created (status,created_at),
   KEY email_created (email,created_at)
 ) $collate;",
         ];

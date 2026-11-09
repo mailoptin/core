@@ -75,6 +75,11 @@ class WooOrderStatus extends AbstractTrigger
         ];
     }
 
+    public function stops_when()
+    {
+        return __('The order is refunded, cancelled, failed or deleted, or they unsubscribe.', 'mailoptin');
+    }
+
     public function listen()
     {
         add_action('woocommerce_order_status_changed', [$this, 'status_changed'], 20, 3);

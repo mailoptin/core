@@ -30,6 +30,12 @@ class AbstractCustomizer
         $this->email_campaign_id = $email_campaign_id;
 
         $this->email_campaign_type  = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
+
+        // An automation's emails take the same defaults as broadcasts.
+        if (\MailOptin\Core\Repositories\AutomationsRepository::EMAIL_CAMPAIGN_TYPE === $this->email_campaign_type) {
+            $this->email_campaign_type = EmailCampaignRepository::NEWSLETTER;
+        }
+
         $this->email_campaign_class = EmailCampaignRepository::get_template_class($email_campaign_id);
 
         $this->customizer_defaults = $this->register_customizer_defaults();

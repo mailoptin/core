@@ -75,10 +75,15 @@ class Customizer
                 $this->email_campaign_id
             );
 
+            // An automation's emails are designed like broadcasts: the block content builder.
+            if (ER::is_automation_email($this->email_campaign_id)) {
+                $this->email_campaign_type = ER::NEWSLETTER;
+            }
+
             add_action('customize_controls_print_scripts', function () {
-                $email_campaign_is_code_your_own = ! ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
-                $newsletter_is_code_your_own     = ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
-                $is_email_newsletter             = ER::is_newsletter($this->email_campaign_id) ? 'true' : 'false';
+                $email_campaign_is_code_your_own = ! ER::is_built_email($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $newsletter_is_code_your_own     = ER::is_built_email($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $is_email_newsletter             = ER::is_built_email($this->email_campaign_id) ? 'true' : 'false';
 
                 echo '<script type="text/javascript">';
                 echo "var mailoptin_email_campaign_option_prefix = '{$this->campaign_settings}';";
@@ -134,6 +139,10 @@ class Customizer
 
         if (ER::is_newsletter($this->email_campaign_id)) {
             $return_url = \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($this->email_campaign_id, ['designed' => 1]);
+        }
+
+        if (ER::is_automation_email($this->email_campaign_id)) {
+            $return_url = (string)apply_filters('mailoptin_automation_email_return_url', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE, $this->email_campaign_id);
         }
 
         $wp_customize->set_preview_url($preview_url);
@@ -208,7 +217,7 @@ class Customizer
      */
     public function add_activate_switch()
     {
-        if (ER::is_newsletter($this->email_campaign_id)) return;
+        if (ER::is_built_email($this->email_campaign_id)) return;
 
         $input_value = ER::is_campaign_active($this->email_campaign_id) ? 'yes' : 'no';
         $checked     = ($input_value == 'yes') ? 'checked="checked"' : null;
@@ -263,7 +272,7 @@ class Customizer
         ]);
 
 
-        if ( ! ER::is_newsletter($this->email_campaign_id)) {
+        if ( ! ER::is_built_email($this->email_campaign_id)) {
             $mappings[] = [
                 'selector' => '.mo-body-container',
                 'type'     => 'section',
@@ -365,7 +374,7 @@ class Customizer
             MAILOPTIN_VERSION_NUMBER
         );
 
-        if ( ! ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id)) {
+        if ( ! ER::is_built_email($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id)) {
 
             wp_enqueue_script(
                 'mailoptin-ace-js',
@@ -389,7 +398,7 @@ class Customizer
             ));
         }
 
-        if (ER::is_newsletter($this->email_campaign_id)) {
+        if (ER::is_built_email($this->email_campaign_id)) {
 
             wp_enqueue_script(
                 'mailoptin-email-newsletter-editor',
@@ -565,6 +574,10 @@ class Customizer
     public function save_email_campaign_title($wp_customize_manager)
     {
         $email_campaign_id = $this->email_campaign_id;
+
+        // An automation's emails keep their internal name; the subject can repeat across emails.
+        if (ER::is_automation_email($email_campaign_id)) return;
+
         $option_name       = "mo_email_campaigns[$email_campaign_id][email_campaign_title]";
         $posted_values     = $wp_customize_manager->unsanitized_post_values();
 
@@ -624,7 +637,7 @@ class Customizer
                 )
             );
 
-            if ( ! ER::is_newsletter($this->email_campaign_id)) {
+            if ( ! ER::is_built_email($this->email_campaign_id)) {
                 $wp_customize->add_section($this->campaign_content_section_id, array(
                         'title'    => __('Content', 'mailoptin'),
                         'priority' => 40,

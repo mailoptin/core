@@ -60,6 +60,28 @@ class ListJoined extends AbstractTrigger
         return true;
     }
 
+    public function stops_when()
+    {
+        return __('They leave the list, or they unsubscribe.', 'mailoptin');
+    }
+
+    public function count_recent($automation)
+    {
+        $list_id = absint($automation['trigger_settings']['list_id'] ?? 0);
+
+        if ( ! $list_id) return null;
+
+        $join   = 'INNER JOIN ' . Subscribers::memberships_table() . ' m ON m.subscriber_id = s.id AND m.list_id = %d';
+        $since  = gmdate('Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS);
+        $total  = \MailOptin\Core\Automations\Engine::count_audience([], $join, ['m.status = %s', 'm.subscribed_at >= %s'], [$list_id, Subscribers::STATUS_SUBSCRIBED, $since]);
+        // With no segment or tags to leave out, everyone counted matches.
+        $match = \MailOptin\Core\Automations\Engine::audience_is_everyone($automation['audience']) ? $total : \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['m.status = %s', 'm.subscribed_at >= %s'], [$list_id, Subscribers::STATUS_SUBSCRIBED, $since]);
+
+        if (null === $match) return null;
+
+        return ['matched' => $match, 'total' => (int)$total, 'label' => __('people who joined the list in the last 30 days', 'mailoptin')];
+    }
+
     public function listen()
     {
         add_action('mo_subscriber_subscribed', [$this, 'joined'], 20, 2);

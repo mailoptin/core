@@ -33,7 +33,8 @@ class EmailCampaigns extends AbstractSettingsPage
                             'add-new',
                             'add-new-email-automation',
                             'create-broadcast',
-                            Broadcast_Page::VIEW
+                            Broadcast_Page::VIEW,
+                            Automations_Page::VIEW
                     ])) {
 
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
@@ -41,7 +42,7 @@ class EmailCampaigns extends AbstractSettingsPage
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
                 $this->settingsInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
                 $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
-                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast', Broadcast_Page::VIEW])) {
+                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast', Broadcast_Page::VIEW, Automations_Page::VIEW])) {
                     $this->settingsInstance->sidebar($this->sidebar_args());
                 }
 

@@ -39,6 +39,15 @@ abstract class AbstractTrigger
     }
 
     /**
+     * When a run of this trigger ends before its last step, for the automation page. Unsubscribing
+     * and the suppression list always stop it.
+     */
+    public function stops_when()
+    {
+        return __('They unsubscribe.', 'mailoptin');
+    }
+
+    /**
      * Whether only confirmed subscribers can be in it. True for triggers about subscribers (a list,
      * a tag, a field); false for ones about customers, who are emailed about what they bought.
      */

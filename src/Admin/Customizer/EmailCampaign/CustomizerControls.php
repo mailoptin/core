@@ -411,7 +411,7 @@ class CustomizerControls
             unset($campaign_settings_controls['post_categories']);
         }
 
-        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false) && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if ( ! apply_filters('mailoptin_enable_email_automation_cpt_support', false) && ! ER::is_built_email($this->customizerClassInstance->email_campaign_id)) {
             unset($campaign_settings_controls['post_tags']);
             unset($campaign_settings_controls['post_authors']);
             $content = sprintf(
@@ -436,7 +436,7 @@ class CustomizerControls
             );
         }
 
-        if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false) && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if ( ! apply_filters('mailoptin_enable_email_customizer_connections', false) && ! ER::is_built_email($this->customizerClassInstance->email_campaign_id)) {
 
             $content2 = sprintf(
                 __('%sUpgrade your MailOptin plan%s to send email campaigns directly to your list in Mailchimp, Campaign Monitor, AWeber, Constant Contact, Drip, MailerLite, ActiveCampaign etc. and to customers/users in WooCommerce, MemberPress, LearnDash, Paid Memberships Pro, Easy Digital Downloads, GiveWP, LifterLMS, Restrict Content Pro, Tutor LMS.', 'mailoptin'),
@@ -464,7 +464,7 @@ class CustomizerControls
             unset($campaign_settings_controls['email_campaign_preheader']);
         }
 
-        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if (ER::is_built_email($this->customizerClassInstance->email_campaign_id)) {
             unset($campaign_settings_controls['email_campaign_subject']);
             unset($campaign_settings_controls['post_content_type']);
             unset($campaign_settings_controls['post_content_length']);
@@ -475,6 +475,13 @@ class CustomizerControls
             unset($campaign_settings_controls['post_authors']);
             unset($campaign_settings_controls['schedule_header']);
             $campaign_settings_controls['email_campaign_title']['label'] = __('Email Subject', 'mailoptin');
+        }
+
+        // An automation sends to the people it starts for: no list, audience or schedule here.
+        if (ER::is_automation_email($this->customizerClassInstance->email_campaign_id)) {
+            foreach (['connection_service', 'connection_email_list', 'send_immediately', 'email_campaign_schedule', 'email_campaign_settings_notice', 'email_campaign_settings_notice2'] as $id) {
+                unset($campaign_settings_controls[$id]);
+            }
         }
 
         $email_campaign_settings_control_args = apply_filters(
@@ -914,7 +921,7 @@ HTML;
             unset($control_args['email_digest_tag_help']);
         }
 
-        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id) &&
+        if (ER::is_built_email($this->customizerClassInstance->email_campaign_id) &&
             ER::is_code_your_own_template($this->customizerClassInstance->email_campaign_id)) {
             foreach ($control_args as $id => $args) {
                 if ( ! in_array($id,
@@ -1058,7 +1065,7 @@ HTML;
             $this->customizerClassInstance
         );
 
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && ! ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && ! ER::is_built_email($this->customizerClassInstance->email_campaign_id)) {
             $content = sprintf(
                 __('Upgrade to %sMailOptin Premium%s to access the Custom CSS feature that will allow you customize this template to your heart content.', 'mailoptin'),
                 '<a target="_blank" href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=email_automation_custom_css_upgrade">',
@@ -1081,7 +1088,7 @@ HTML;
             );
         }
 
-        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if (ER::is_built_email($this->customizerClassInstance->email_campaign_id)) {
             $page_control_args['content_background_color'] = new \WP_Customize_Color_Control(
                 $this->wp_customize,
                 $this->option_prefix . '[content_background_color]',
@@ -1481,7 +1488,7 @@ HTML;
             $this->customizerClassInstance
         );
 
-        if (ER::is_newsletter($this->customizerClassInstance->email_campaign_id)) {
+        if (ER::is_built_email($this->customizerClassInstance->email_campaign_id)) {
             unset($content_control_args['content_background_color']);
             unset($content_control_args['content_text_color']);
             unset($content_control_args['content_headline_color']);
