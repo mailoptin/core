@@ -75,6 +75,21 @@ class DateField extends AbstractTrigger
         return true;
     }
 
+    public function count_recent($automation)
+    {
+        $field_id = absint($automation['trigger_settings']['field_id'] ?? 0);
+
+        if ( ! $field_id) return null;
+
+        $join  = 'INNER JOIN ' . Fields::values_table() . ' v ON v.subscriber_id = s.id AND v.field_id = %d';
+        $total = \MailOptin\Core\Automations\Engine::count_audience([], $join, ['v.value_date IS NOT NULL'], [$field_id]);
+        $match = \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['v.value_date IS NOT NULL'], [$field_id]);
+
+        if (null === $match) return null;
+
+        return ['matched' => $match, 'total' => (int)$total, 'label' => __('subscribers with this date set; each one starts once a year', 'mailoptin')];
+    }
+
     public function listen()
     {
         // Started by scan(), not by an event.

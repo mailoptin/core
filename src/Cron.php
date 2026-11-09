@@ -47,14 +47,21 @@ class Cron
         }
 
         $digest_campaigns = EmailCampaignRepository::get_by_email_campaign_type(EmailCampaignRepository::POSTS_EMAIL_DIGEST, 1);
+        $has_digests      = is_array($digest_campaigns) && ! empty($digest_campaigns);
 
-        if ( ! is_array($digest_campaigns) || empty($digest_campaigns)) return;
+        // Automations' waits and emails also rely on WP-Cron: the hourly scan and their own tick.
+        $has_automations = \MailOptin\Core\Automations\Engine::is_available() && \MailOptin\Core\Repositories\AutomationsRepository::has_live();
 
-        $cron = wp_get_scheduled_event('mo_hourly_recurring_job');
+        if ( ! $has_digests && ! $has_automations) return;
 
-        if ( ! $cron) return;
+        $late = false;
 
-        if ( ! $this->is_late(wp_get_scheduled_event('mo_hourly_recurring_job'))) return;
+        foreach (array_merge(['mo_hourly_recurring_job'], $has_automations ? [\MailOptin\Core\Automations\Engine::TICK_HOOK] : []) as $hook) {
+            $event = wp_get_scheduled_event($hook);
+            if ($event && $this->is_late($event)) $late = true;
+        }
+
+        if ( ! $late) return;
 
         printf(
             '<div id="mailoptin-crontrol-late-message" data-dismissible="catch_late_email_digest_event-7" class="notice notice-warning is-dismissible"><p>%4$s %1$s</p><p><a target="_blank" href="%2$s">%3$s</a></p></div>',

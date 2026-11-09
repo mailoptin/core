@@ -187,6 +187,7 @@ class CreateDBTables
   PRIMARY KEY  (id),
   UNIQUE KEY run_step (run_id,step_id),
   KEY step_status (step_id,status),
+  KEY status_created (status,created_at),
   KEY email_created (email,created_at)
 ) $collate;",
         ];

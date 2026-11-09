@@ -320,6 +320,23 @@ class EmailCampaignRepository extends AbstractRepository
     }
 
     /**
+     * An email of an automation. Sent by the automation, not from the customizer.
+     */
+    public static function is_automation_email($email_campaign_id)
+    {
+        return self::get_email_campaign_type($email_campaign_id) == \MailOptin\Core\Repositories\AutomationsRepository::EMAIL_CAMPAIGN_TYPE;
+    }
+
+    /**
+     * Built from blocks in the customizer, like a broadcast, rather than from posts: broadcasts and
+     * automation emails. Use is_newsletter() for what is about sending a broadcast.
+     */
+    public static function is_built_email($email_campaign_id)
+    {
+        return self::is_newsletter($email_campaign_id) || self::is_automation_email($email_campaign_id);
+    }
+
+    /**
      * Is this email campaign active?
      *
      * @param $email_campaign_id

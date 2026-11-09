@@ -143,6 +143,30 @@ class Engine
         return $started;
     }
 
+    /**
+     * How many subscribed people match an automation's audience (segment, tags left out) among those
+     * a trigger picks with $join, $where and $params on the subscribers table "s".
+     *
+     * @return int|null null when the segment or tags can't be read
+     */
+    public static function count_audience($audience, $join, array $where, array $params)
+    {
+        $segment_id  = absint($audience['segment_id'] ?? 0);
+        $exclude_ids = array_values(array_filter(array_map('absint', (array)($audience['exclude_tag_ids'] ?? []))));
+        $filters     = SegmentsRepository::filters_for($segment_id, $exclude_ids);
+
+        if (is_wp_error($filters)) return null;
+
+        $where[]  = 's.status = %s';
+        $params[] = Subscribers::STATUS_SUBSCRIBED;
+
+        Subscribers::filter_where((array)$filters, $where, $params);
+
+        global $wpdb;
+
+        return (int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(DISTINCT s.id) FROM ' . Subscribers::table() . " s $join WHERE " . implode(' AND ', $where), $params));
+    }
+
     public static function is_subscribed($subscriber)
     {
         return $subscriber && Subscribers::STATUS_SUBSCRIBED === ($subscriber['status'] ?? '');
@@ -362,7 +386,8 @@ class Engine
                 return;
             }
 
-            if (Repo::STEP_EMAIL === $step['type']) {
+            // A paused email is passed by: people carry on to the steps after it.
+            if (Repo::STEP_EMAIL === $step['type'] && empty($step['settings']['paused'])) {
                 $done = Repo::find_run_step($run['id'], $step['id']);
 
                 // Already queued for this run (a step moved, or a second worker): never sent again.
@@ -659,11 +684,7 @@ class Engine
 
         if ( ! $email_campaign_id || Repo::EMAIL_CAMPAIGN_TYPE !== ER::get_email_campaign_type($email_campaign_id)) return 0;
 
-        $log_id = (int)$wpdb->get_var($wpdb->prepare(
-            'SELECT m.campaign_log_id FROM ' . $wpdb->prefix . Core::campaign_log_meta_table_name . ' m INNER JOIN ' . $wpdb->prefix . Core::campaign_log_table_name . ' l ON l.id = m.campaign_log_id
-            WHERE m.meta_key = %s AND m.meta_value = %s ORDER BY m.campaign_log_id DESC LIMIT 1',
-            self::LOG_META_KEY, (string)$email_campaign_id
-        ));
+        $log_id = self::existing_log_id($email_campaign_id);
 
         if ( ! $log_id) {
             $wpdb->insert($wpdb->prefix . Core::campaign_log_table_name, [
@@ -688,6 +709,67 @@ class Engine
         self::$log_ids[$email_campaign_id] = $log_id;
 
         return $log_id;
+    }
+
+    /**
+     * The campaign log an automation email has been sent under, without creating one.
+     *
+     * @return int 0 when it hasn't been sent yet
+     */
+    public static function existing_log_id($email_campaign_id)
+    {
+        global $wpdb;
+
+        if ( ! $email_campaign_id) return 0;
+
+        return (int)$wpdb->get_var($wpdb->prepare(
+            'SELECT m.campaign_log_id FROM ' . $wpdb->prefix . Core::campaign_log_meta_table_name . ' m INNER JOIN ' . $wpdb->prefix . Core::campaign_log_table_name . ' l ON l.id = m.campaign_log_id
+            WHERE m.meta_key = %s AND m.meta_value = %s ORDER BY m.campaign_log_id DESC LIMIT 1',
+            self::LOG_META_KEY, (string)absint($email_campaign_id)
+        ));
+    }
+
+    /**
+     * Send one of an automation's emails as a test, filled in from the latest person who started
+     * it, or with sample values when nobody has yet. Links that would change their settings (such
+     * as unsubscribe) go nowhere.
+     *
+     * @return bool
+     */
+    public static function send_test($automation, $step, $to)
+    {
+        $trigger           = Triggers::get_instance()->get($automation['trigger_id']);
+        $email_campaign_id = absint($step['settings']['email_campaign_id'] ?? 0);
+
+        if ( ! $trigger || ! $email_campaign_id || ! ER::get_email_campaign_by_id($email_campaign_id) || ! is_email($to)) return false;
+
+        $run    = Repo::latest_run($automation['id']);
+        $sample = ! $run;
+
+        if ( ! $run) {
+            $run = ['id' => 0, 'automation_id' => $automation['id'], 'email' => $to, 'subscriber_id' => 0, 'context' => [], 'started_at' => Repo::now()];
+        }
+
+        $subscriber = $run['subscriber_id'] ? Subscribers::get($run['subscriber_id']) : null;
+        $person     = $subscriber ?: ['id' => 0, 'email' => $run['email'], 'first_name' => '', 'last_name' => ''];
+        $fields     = $subscriber && TagsRepository::is_ready() ? CustomFieldsRepository::merge_values($subscriber['id']) : [];
+        $links      = ['{{unsubscribe}}' => '#', '{{webversion}}' => '#', '{{preferences}}' => '#'];
+
+        $fill = function ($text, $escape) use ($trigger, $run, $sample, $person, $fields, $links) {
+            $text = self::replace_placeholders($text, $trigger, $run, $escape, $sample);
+            $text = CampaignRenderer::replace_fallback_tags($text, $person, $escape, $fields);
+
+            return CampaignRenderer::replace_tags($text, $links, $escape);
+        };
+
+        $content  = self::render_email($email_campaign_id);
+        $settings = new \MailOptin\Core\PluginSettings\Settings();
+        $headers  = ['Content-Type: text/html; charset=UTF-8', sprintf('From: %s <%s>', $settings->from_name(), $settings->from_email())];
+
+        /* translators: %s: email subject */
+        $subject = sprintf(__('[Test] %s', 'mailoptin'), $fill($content['subject'], false));
+
+        return (bool)wp_mail($to, $subject, $fill($content['html'], true), $headers);
     }
 
     protected static function changed_since_render($email_campaign_id, $log_id)
@@ -925,7 +1007,8 @@ class Engine
             Subscribers::log_event($context['run']['subscriber_id'], Subscribers::EVENT_SENT, ['automation_id' => (int)$context['automation']['id']], $campaign_log_id);
         }
 
-        if (Activity::is_ready()) Activity::record_sent($campaign_log_id);
+        // Only subscribers' opens and clicks are tracked, so only they count towards the rates.
+        if ($context['run']['subscriber_id'] && Activity::is_ready()) Activity::record_sent($campaign_log_id);
     }
 
     public function email_failed($row, $campaign_log_id, $message)

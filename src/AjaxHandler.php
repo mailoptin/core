@@ -185,11 +185,16 @@ class AjaxHandler
 
         $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
 
-        if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
+        if (EmailCampaignRepository::is_built_email($email_campaign_id)) {
             $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_title'));
         }
 
         $campaign_type = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
+
+        // An automation's email is tested like a broadcast; its placeholders show sample values.
+        if (EmailCampaignRepository::is_automation_email($email_campaign_id)) {
+            $campaign_type = EmailCampaignRepository::NEWSLETTER;
+        }
 
         $plugin_settings = new Settings();
         $from_name       = $plugin_settings->from_name();

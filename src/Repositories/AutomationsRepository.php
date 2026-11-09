@@ -154,12 +154,17 @@ class AutomationsRepository extends AbstractRepository
         return array_map([__CLASS__, 'inflate'], (array)self::wpdb()->get_results("SELECT * FROM $table ORDER BY id DESC", 'ARRAY_A'));
     }
 
-    /**
-     * @return array[] live automations started by this trigger
-     */
+    public static function has_live()
+    {
+        return (bool)self::wpdb()->get_var(self::wpdb()->prepare('SELECT 1 FROM ' . self::table() . ' WHERE status = %s LIMIT 1', self::STATUS_LIVE));
+    }
+
     /** @var array trigger ID => live automations, for this request */
     protected static $live_cache = [];
 
+    /**
+     * @return array[] live automations started by this trigger
+     */
     public static function live_for_trigger($trigger_id)
     {
         // Events can fire thousands of times in one request (bulk tagging, imports): look once.
@@ -173,6 +178,95 @@ class AutomationsRepository extends AbstractRepository
         }
 
         return self::$live_cache[$trigger_id];
+    }
+
+    /**
+     * For the automations list: people in progress, and emails sent in the last 30 days.
+     *
+     * @return array automation ID => ['active' => int, 'sent_30' => int]
+     */
+    public static function list_stats()
+    {
+        $wpdb  = self::wpdb();
+        $runs  = self::runs_table();
+        $stats = [];
+
+        foreach ((array)$wpdb->get_results($wpdb->prepare("SELECT automation_id, COUNT(*) n FROM $runs WHERE status = %s GROUP BY automation_id", self::RUN_ACTIVE), 'ARRAY_A') as $row) {
+            $stats[(int)$row['automation_id']]['active'] = (int)$row['n'];
+        }
+
+        foreach ((array)$wpdb->get_results($wpdb->prepare(
+            'SELECT r.automation_id, COUNT(*) n FROM ' . self::run_steps_table() . " rs INNER JOIN $runs r ON r.id = rs.run_id
+            WHERE rs.status = %s AND rs.created_at >= %s GROUP BY r.automation_id",
+            self::RUN_STEP_SENT, self::now(-30 * DAY_IN_SECONDS)
+        ), 'ARRAY_A') as $row) {
+            $stats[(int)$row['automation_id']]['sent_30'] = (int)$row['n'];
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Emails sent by each step of an automation, ever.
+     *
+     * @return array step ID => int
+     */
+    public static function step_sent_counts($automation_id)
+    {
+        $steps = wp_list_pluck(self::steps($automation_id, true), 'id');
+
+        if (empty($steps)) return [];
+
+        $rows = self::wpdb()->get_results(self::wpdb()->prepare(
+            'SELECT step_id, COUNT(*) n FROM ' . self::run_steps_table() . ' WHERE step_id IN (' . implode(',', array_map('absint', $steps)) . ') AND status = %s GROUP BY step_id',
+            self::RUN_STEP_SENT
+        ), 'ARRAY_A');
+
+        return array_map('intval', wp_list_pluck((array)$rows, 'n', 'step_id'));
+    }
+
+    /**
+     * Emails sent in each of some runs.
+     *
+     * @return array run ID => int
+     */
+    public static function sent_counts_for_runs($run_ids)
+    {
+        $ids = array_filter(array_map('absint', (array)$run_ids));
+
+        if (empty($ids)) return [];
+
+        $rows = self::wpdb()->get_results(self::wpdb()->prepare(
+            'SELECT run_id, COUNT(*) n FROM ' . self::run_steps_table() . ' WHERE run_id IN (' . implode(',', $ids) . ') AND status = %s GROUP BY run_id',
+            self::RUN_STEP_SENT
+        ), 'ARRAY_A');
+
+        return array_map('intval', wp_list_pluck((array)$rows, 'n', 'run_id'));
+    }
+
+    /**
+     * The most recent run of an automation: a real person to fill a test email with.
+     */
+    public static function latest_run($automation_id)
+    {
+        $row = self::wpdb()->get_row(self::wpdb()->prepare('SELECT * FROM ' . self::runs_table() . ' WHERE automation_id = %d ORDER BY id DESC LIMIT 1', $automation_id), 'ARRAY_A');
+
+        return $row ? self::inflate($row) : null;
+    }
+
+    /**
+     * Why runs of an automation stopped early, with how many, for the report.
+     *
+     * @return array reason => int
+     */
+    public static function stop_reasons($automation_id)
+    {
+        $rows = self::wpdb()->get_results(self::wpdb()->prepare(
+            'SELECT stop_reason, COUNT(*) n FROM ' . self::runs_table() . ' WHERE automation_id = %d AND status = %s GROUP BY stop_reason ORDER BY n DESC',
+            $automation_id, self::RUN_STOPPED
+        ), 'ARRAY_A');
+
+        return array_map('intval', wp_list_pluck((array)$rows, 'n', 'stop_reason'));
     }
 
     /**

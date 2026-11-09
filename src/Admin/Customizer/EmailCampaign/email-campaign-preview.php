@@ -8,6 +8,11 @@ $email_campaign_id = absint($_REQUEST['mailoptin_email_campaign_id']);
 
 $email_campaign_type = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
 
+// An automation's emails are previewed like broadcasts.
+if (EmailCampaignRepository::is_automation_email($email_campaign_id)) {
+    $email_campaign_type = EmailCampaignRepository::NEWSLETTER;
+}
+
 $email_campaign_type_namespace = EmailCampaignFactory::get_campaign_type_namespace($email_campaign_type);
 
 $template_preview_class = "MailOptin\\Core\\Admin\\Customizer\\EmailCampaign\\{$email_campaign_type_namespace}TemplatePreview";
