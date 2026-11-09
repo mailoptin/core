@@ -73,6 +73,7 @@ class Triggers
                      new Triggers\DateField(),
                      new Triggers\WooOrderStatus(),
                      new Triggers\WooNoOrder(),
+                     new Triggers\WooCartAbandoned(),
                  ] as $builtin) {
             $this->triggers[$builtin->id()] = $builtin;
         }

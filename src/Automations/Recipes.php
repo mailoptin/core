@@ -22,6 +22,37 @@ class Recipes
     public static function all()
     {
         $recipes = [
+            'cart_recovery'   => [
+                'title'            => __('Abandoned cart recovery', 'mailoptin'),
+                'description'      => __('Remind shoppers who left products in their cart, with a link straight back to it.', 'mailoptin'),
+                'flow'             => __('Cart abandoned for an hour → email → wait 1 day → reminder if not ordered → wait 2 days → last reminder if not ordered', 'mailoptin'),
+                'trigger_id'       => 'woo_cart_abandoned',
+                'trigger_settings' => ['delay' => 60, 'guests' => true, 'runs' => 'every'],
+                'steps'            => [
+                    ['email', __('You left something in your cart', 'mailoptin'), sprintf(
+                        '<p>%s</p><p>%s</p><p><a href="{{cart.url}}">%s</a></p>',
+                        __('Hi {{customer.first_name|there}},', 'mailoptin'),
+                        __('You left {{cart.items}} in your cart. We have kept it for you.', 'mailoptin'),
+                        __('Return to your cart', 'mailoptin')
+                    )],
+                    ['wait', ['amount' => 1, 'unit' => 'days']],
+                    ['check', 'not_recovered'],
+                    ['email', __('Still thinking it over?', 'mailoptin'), sprintf(
+                        '<p>%s</p><p>%s</p><p><a href="{{cart.url}}">%s</a></p>',
+                        __('Hi {{customer.first_name|there}},', 'mailoptin'),
+                        __('Your cart ({{cart.total}}) is still waiting: {{cart.items}}.', 'mailoptin'),
+                        __('Complete your order', 'mailoptin')
+                    )],
+                    ['wait', ['amount' => 2, 'unit' => 'days']],
+                    ['check', 'not_recovered'],
+                    ['email', __('Last chance: your cart', 'mailoptin'), sprintf(
+                        '<p>%s</p><p>%s</p><p><a href="{{cart.url}}">%s</a></p>',
+                        __('Hi {{customer.first_name|there}},', 'mailoptin'),
+                        __('This is the last reminder about the {{cart.items}} in your cart.', 'mailoptin'),
+                        __('Return to your cart', 'mailoptin')
+                    )],
+                ],
+            ],
             'review_reminder' => [
                 'title'            => __('Review reminder', 'mailoptin'),
                 'description'      => __('Ask customers how they are getting on with what they bought, and remind them once if they haven\'t reviewed it.', 'mailoptin'),

@@ -127,6 +127,7 @@ class CreateDBTables
         $steps       = $wpdb->prefix . Core::automation_steps_table_name;
         $runs        = $wpdb->prefix . Core::automation_runs_table_name;
         $run_steps   = $wpdb->prefix . Core::automation_run_steps_table_name;
+        $carts       = $wpdb->prefix . Core::abandoned_carts_table_name;
 
         return [
             "CREATE TABLE $automations (
@@ -191,6 +192,29 @@ class CreateDBTables
   KEY step_status (step_id,status),
   KEY status_created (status,created_at),
   KEY email_created (email,created_at)
+) $collate;",
+            "CREATE TABLE $carts (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  session_key varchar(64) NOT NULL,
+  user_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  email varchar(191) NOT NULL DEFAULT '',
+  first_name varchar(100) NOT NULL DEFAULT '',
+  items longtext NOT NULL,
+  total decimal(19,4) NOT NULL DEFAULT 0,
+  currency char(3) NOT NULL DEFAULT '',
+  status varchar(20) NOT NULL DEFAULT 'active',
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  abandoned_at datetime NULL,
+  order_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  recovered_total decimal(19,4) NOT NULL DEFAULT 0,
+  recovered_at datetime NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY session_key (session_key),
+  KEY status_updated (status,updated_at),
+  KEY status_abandoned (status,abandoned_at),
+  KEY email (email),
+  KEY order_id (order_id)
 ) $collate;",
         ];
     }

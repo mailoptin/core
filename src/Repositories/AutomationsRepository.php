@@ -293,6 +293,28 @@ class AutomationsRepository extends AbstractRepository
     }
 
     /**
+     * Emails sent for runs started by some events, such as carts.
+     *
+     * @param array $refs trigger ref (e.g. "cart-12") => the person's email; looked up by email, which is indexed
+     *
+     * @return array trigger ref => int
+     */
+    public static function sent_counts_for_refs($refs)
+    {
+        $refs = array_filter((array)$refs);
+
+        if (empty($refs)) return [];
+
+        $rows = self::wpdb()->get_results(self::wpdb()->prepare(
+            'SELECT r.trigger_ref, COUNT(*) n FROM ' . self::runs_table() . ' r INNER JOIN ' . self::run_steps_table() . ' rs ON rs.run_id = r.id
+            WHERE r.email IN (' . implode(',', array_fill(0, count($refs), '%s')) . ') AND r.trigger_ref IN (' . implode(',', array_fill(0, count($refs), '%s')) . ') AND rs.status = %s GROUP BY r.trigger_ref',
+            array_merge(array_map(function ($e) { return strtolower(trim((string)$e)); }, array_values($refs)), array_map('strval', array_keys($refs)), [self::RUN_STEP_SENT])
+        ), 'ARRAY_A');
+
+        return array_map('intval', wp_list_pluck((array)$rows, 'n', 'trigger_ref'));
+    }
+
+    /**
      * The most recent run of an automation: a real person to fill a test email with.
      */
     public static function latest_run($automation_id)
