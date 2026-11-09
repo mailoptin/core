@@ -421,7 +421,11 @@ class QueueRunner
             return;
         }
 
-        do_action('mo_send_queue_campaign_completed', $campaign_log_id, Queue::counts($campaign_log_id));
+        // Counting reads every row the campaign ever queued; automation and welcome emails share one
+        // campaign for good and complete after almost every send, so only count when someone listens.
+        if (has_action('mo_send_queue_campaign_completed')) {
+            do_action('mo_send_queue_campaign_completed', $campaign_log_id, Queue::counts($campaign_log_id));
+        }
     }
 
     protected function update_log_status($campaign_log_id, $status)

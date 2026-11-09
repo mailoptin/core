@@ -24,6 +24,11 @@ class EmailCampaignFactory
         $db_email_template_class = EmailCampaignRepository::get_template_class($email_campaign_id);
         $email_campaign_type = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
 
+        // An automation's emails are built like broadcasts, from the same templates and blocks.
+        if (\MailOptin\Core\Repositories\AutomationsRepository::EMAIL_CAMPAIGN_TYPE === $email_campaign_type) {
+            $email_campaign_type = EmailCampaignRepository::NEWSLETTER;
+        }
+
         // convert e.g new_publish_post to NewPublishPost
         $email_campaign_type_namespace = str_replace(' ', '', ucwords(str_replace('_', ' ', $email_campaign_type)));
 

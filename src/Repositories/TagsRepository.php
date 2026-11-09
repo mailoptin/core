@@ -238,6 +238,15 @@ class TagsRepository extends AbstractRepository
             self::wpdb()->query('INSERT IGNORE INTO ' . self::links_table() . ' (subscriber_id, tag_id, created_at) VALUES ' . implode(',', $chunk));
         }
 
+        if ( ! empty($added)) {
+            /**
+             * Tags were newly added to subscribers.
+             *
+             * @param array $added subscriber_id => tag IDs
+             */
+            do_action('mo_subscriber_tags_added', $added);
+        }
+
         return $added;
     }
 
