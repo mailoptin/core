@@ -353,4 +353,89 @@ class AdminPageTest extends EngineTest
         $this->assertStringContainsString('Get MailOptin Premium', $html);
         $this->assertStringNotContainsString('Add New', $html);
     }
+
+    public function test_emails_added_to_a_live_automation_start_paused()
+    {
+        $id    = $this->automation([$this->email_step('A'), ['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days']], $this->email_step('B')]);
+        $first = Repo::steps($id)[0];
+
+        add_filter('mailoptin_automation_daily_cap', '__return_false');
+        $run = self::$trigger->fire('partway@example.org', 'r1', ['number' => '1'])[0];
+        $this->assertSame(['A'], wp_list_pluck($this->deliver(), 'subject'));
+
+        $this->post($id, 'duplicate_email:' . $first['id']);
+        $this->post($id, 'add_email');
+
+        $steps = Repo::steps($id);
+        $this->assertTrue($steps[1]['settings']['paused']);
+        $this->assertTrue($steps[4]['settings']['paused']);
+        $this->assertStringContainsString('paused', get_transient('mo_automation_warning_' . get_current_user_id()));
+
+        $this->make_due($run);
+        $this->assertSame(['B'], wp_list_pluck($this->deliver(), 'subject'), 'Not the copy of A, nor the unwritten new email.');
+    }
+
+    public function test_a_draft_keeps_a_trigger_that_is_not_available_right_now()
+    {
+        $id = $this->automation([$this->email_step()], ['only' => 'x']);
+        Repo::update($id, ['status' => Repo::STATUS_DRAFT]);
+        TestEventTrigger::$available = false;
+
+        $html = $this->render(['screen' => 'edit', 'id' => $id]);
+        $this->assertMatchesRegularExpression('/<option value="test_event" selected>[^<]*\(not available\)/', $html);
+
+        $this->post($id, 'save', ['name' => 'Renamed', 'trigger_id' => 'test_event']);
+        $this->assertSame('test_event', Repo::get($id)['trigger_id']);
+        $this->assertSame('Renamed', Repo::get($id)['name']);
+    }
+
+    public function test_an_only_if_step_that_does_not_apply_blocks_going_live()
+    {
+        $id = Repo::create(['name' => 'Checks', 'trigger_id' => 'test_event', 'status' => Repo::STATUS_DRAFT]);
+        Repo::save_steps($id, [['type' => Repo::STEP_CHECK, 'settings' => ['check' => 'is_vip']], $this->email_step('Hi')]);
+
+        // Another trigger has no "is_vip": the step keeps it, unchosen, and says so.
+        $this->post($id, 'save', ['name' => 'Checks', 'trigger_id' => 'tag_added']);
+        $this->assertStringContainsString('Only if', get_transient('mo_automation_warning_' . get_current_user_id()));
+        $this->assertStringContainsString('<option value="" selected>', $this->render(['screen' => 'edit', 'id' => $id]));
+
+        $step = Repo::steps($id)[0];
+        $this->post($id, 'save', ['name' => 'Checks', 'steps' => [['id' => $step['id'], 'type' => 'check', 'check' => '']], 'trigger' => ['tag_id' => TagsRepository::create('t')]]);
+        $this->assertSame('', Repo::steps($id)[0]['settings']['check'], 'Not silently the first choice.');
+
+        $this->post($id, 'go_live');
+        $this->assertSame(Repo::STATUS_DRAFT, Repo::get($id)['status']);
+        $this->assertStringContainsString('Only if', get_transient('mo_automation_error_' . get_current_user_id()));
+    }
+
+    public function test_going_live_needs_a_list_that_still_exists()
+    {
+        $list = ListsRepository::create(['name' => 'Gone', 'double_optin' => 0]);
+        $id   = Repo::create(['name' => 'Gone', 'trigger_id' => 'list_joined', 'trigger_settings' => ['list_id' => $list], 'status' => Repo::STATUS_DRAFT]);
+        Repo::save_steps($id, [$this->email_step('Hi')]);
+        ListsRepository::delete($list);
+
+        $this->post($id, 'go_live');
+        $this->assertSame(Repo::STATUS_DRAFT, Repo::get($id)['status']);
+    }
+
+    public function test_reports_use_one_lookup_for_many_emails_and_label_every_stop()
+    {
+        $id     = $this->automation([$this->email_step('One'), $this->email_step('Two')]);
+        $emails = wp_list_pluck(wp_list_pluck(Repo::steps($id), 'settings'), 'email_campaign_id');
+
+        $this->assertSame([], Engine::existing_log_ids($emails));
+
+        add_filter('mailoptin_automation_daily_cap', '__return_false');
+        self::$trigger->fire('two@example.org', 'r1', ['number' => '1']);
+        $this->deliver();
+
+        $logs = Engine::existing_log_ids($emails);
+        $this->assertCount(2, $logs);
+        $this->assertSame(Engine::existing_log_id($emails[0]), $logs[$emails[0]]);
+        $this->assertSame(['active' => 0, 'sent_30' => 2], Repo::automation_stats($id));
+        $this->assertSame([Repo::get($id), Repo::steps($id)[1]], Repo::email_owner($emails[1]));
+
+        $this->assertSame('Unsubscribed', Automations_Page::reason_label('unsubscribed'));
+    }
 }

@@ -76,27 +76,9 @@ class Automations_Page
      */
     public function email_return_url($url, $email_campaign_id)
     {
-        $automation_id = self::automation_of_email($email_campaign_id);
+        $owner = Repo::email_owner($email_campaign_id);
 
-        return $automation_id ? self::edit_url($automation_id, ['mo_notice' => 'email_saved']) : self::url();
-    }
-
-    protected static function automation_of_email($email_campaign_id)
-    {
-        global $wpdb;
-
-        // Email steps store their email as {"email_campaign_id":N,...}; matched exactly on the decoded value below.
-        $rows = $wpdb->get_results($wpdb->prepare(
-            'SELECT automation_id, settings FROM ' . Repo::steps_table() . ' WHERE type = %s AND settings LIKE %s',
-            Repo::STEP_EMAIL, '%' . $wpdb->esc_like('"email_campaign_id":' . absint($email_campaign_id)) . '%'
-        ), 'ARRAY_A');
-
-        foreach ((array)$rows as $row) {
-            $settings = json_decode($row['settings'], true);
-            if (absint($settings['email_campaign_id'] ?? 0) === absint($email_campaign_id)) return absint($row['automation_id']);
-        }
-
-        return 0;
+        return $owner ? self::edit_url($owner[0]['id'], ['mo_notice' => 'email_saved']) : self::url();
     }
 
     public function enqueue()
@@ -176,6 +158,13 @@ class Automations_Page
 
         if (isset($notices[$key])) $html .= UI::note(esc_html($notices[$key][0]), $notices[$key][1]);
 
+        $warning = get_transient('mo_automation_warning_' . get_current_user_id());
+
+        if ($warning) {
+            delete_transient('mo_automation_warning_' . get_current_user_id());
+            $html .= UI::note(esc_html($warning), 'warn');
+        }
+
         $error = get_transient('mo_automation_error_' . get_current_user_id());
 
         if ($error) {
@@ -193,6 +182,19 @@ class Automations_Page
         $automations = $status ? array_filter($all, function ($a) use ($status) { return $a['status'] === $status; }) : $all;
         $stats       = Repo::list_stats();
         $counts      = array_count_values(wp_list_pluck($all, 'status'));
+        $steps_of    = [];
+        $email_ids   = [];
+
+        foreach ($automations as $automation) {
+            $steps_of[$automation['id']] = Repo::steps($automation['id']);
+            foreach ($steps_of[$automation['id']] as $step) {
+                if (Repo::STEP_EMAIL === $step['type']) $email_ids[] = absint($step['settings']['email_campaign_id'] ?? 0);
+            }
+        }
+
+        // One query each for every email's campaign log and its totals, not one per email.
+        $logs  = Engine::existing_log_ids($email_ids);
+        $totals = Activity::is_ready() ? Activity::stats_for(array_values($logs)) : [];
 
         ob_start();
         ?>
@@ -236,8 +238,8 @@ class Automations_Page
             <?php foreach ($automations as $automation) :
                 $id = $automation['id'];
                 $trigger = Triggers::get_instance()->get($automation['trigger_id']);
-                $steps = Repo::steps($id);
-                $rates = self::rates(array_filter($steps, function ($s) { return Repo::STEP_EMAIL === $s['type']; }));
+                $steps = $steps_of[$id];
+                $rates = self::rates(array_filter($steps, function ($s) { return Repo::STEP_EMAIL === $s['type']; }), $logs, $totals);
                 $live = Repo::STATUS_LIVE === $automation['status'];
                 ?>
                 <tr>
@@ -282,18 +284,16 @@ class Automations_Page
      *
      * @return array ['opened' => string, 'clicked' => string]
      */
-    protected static function rates($email_steps)
+    protected static function rates($email_steps, $logs, $totals)
     {
-        $logs = [];
-
-        foreach ($email_steps as $step) {
-            $log_id = Engine::existing_log_id(absint($step['settings']['email_campaign_id'] ?? 0));
-            if ($log_id) $logs[] = $log_id;
-        }
-
         $sent = $openers = $clickers = 0;
 
-        foreach (Activity::is_ready() ? Activity::stats_for($logs) : [] as $stats) {
+        foreach ($email_steps as $step) {
+            $log_id = $logs[absint($step['settings']['email_campaign_id'] ?? 0)] ?? 0;
+            $stats  = $log_id ? ($totals[$log_id] ?? null) : null;
+
+            if ( ! $stats) continue;
+
             $sent     += $stats[Activity::METRIC_SENT];
             $openers  += $stats[Activity::METRIC_OPENERS];
             $clickers += $stats[Activity::METRIC_CLICKERS];
@@ -417,6 +417,9 @@ class Automations_Page
                                             <p class="description"><?php esc_html_e('Stop the automation to choose another trigger.', 'mailoptin'); ?></p>
                                         <?php else : ?>
                                             <select id="mo-auto-trigger" name="trigger_id" data-autosave>
+                                                <?php if ( ! $trigger || ! $trigger->is_available()) : // Kept as it is until another is chosen. ?>
+                                                    <option value="<?php echo esc_attr($automation['trigger_id']); ?>" selected><?php echo esc_html(($trigger ? $trigger->label() : $automation['trigger_id']) . ' ' . __('(not available)', 'mailoptin')); ?></option>
+                                                <?php endif; ?>
                                                 <?php foreach (Triggers::get_instance()->grouped() as $group => $triggers) : ?>
                                                     <optgroup label="<?php echo esc_attr($group); ?>">
                                                         <?php foreach ($triggers as $trigger_id => $t) : ?>
@@ -637,6 +640,8 @@ class Automations_Page
         $sent   = Repo::step_sent_counts($automation['id']);
         $checks = $trigger ? Engine::checks($trigger) : [];
         $n      = 0;
+        $logs   = Engine::existing_log_ids(array_map(function ($step) { return absint($step['settings']['email_campaign_id'] ?? 0); }, array_filter($steps, function ($s) { return Repo::STEP_EMAIL === $s['type']; })));
+        $totals = Activity::is_ready() ? Activity::stats_for(array_values($logs)) : [];
 
         ob_start();
         echo '<ol class="mo-auto-steps">';
@@ -662,7 +667,7 @@ class Automations_Page
                     echo '<span class="mo-auto-num" aria-hidden="true">' . $n . '</span><div class="mo-auto-step-body">';
                     echo '<strong>' . esc_html('' !== $subject ? $subject : __('(no subject)', 'mailoptin')) . '</strong>';
                     echo '<div class="description">' . esc_html(sprintf(__('Email %d', 'mailoptin'), $n)) . ($paused ? ' · ' . UI::badge(__('Paused: people pass by it', 'mailoptin'), 'warn') : '') . '</div>';
-                    if (isset($sent[$sid]) || $live) echo self::email_stats_html($email_id, $sent[$sid] ?? 0);
+                    if (isset($sent[$sid]) || $live) echo self::email_stats_html($totals[$logs[$email_id] ?? 0] ?? null, $sent[$sid] ?? 0);
                     echo '</div><div class="mo-auto-tools">';
                     if ($email_id) {
                         echo '<button class="button button-small" name="mo_automation_action" value="edit_email:' . $sid . '">' . esc_html__('Edit email', 'mailoptin') . '</button> ';
@@ -693,6 +698,7 @@ class Automations_Page
                     $current = (string)($step['settings']['check'] ?? '');
                     echo '<span class="dashicons dashicons-filter" aria-hidden="true"></span><div class="mo-auto-step-body">';
                     echo '<label for="mo-auto-check-' . $sid . '">' . esc_html__('Continue only if', 'mailoptin') . '</label> <select id="mo-auto-check-' . $sid . '" name="' . esc_attr($prefix) . '[check]">';
+                    if ( ! isset($checks[$current])) echo '<option value="" selected>' . esc_html__('Choose…', 'mailoptin') . '</option>';
                     foreach ($checks as $check_id => $check) echo '<option value="' . esc_attr($check_id) . '"' . selected($check_id, $current, false) . '>' . esc_html($check['label']) . '</option>';
                     echo '</select><div class="description">' . esc_html__("Anyone who doesn't pass stops here.", 'mailoptin') . '</div>';
                     echo '</div><div class="mo-auto-tools">' . $tools . '</div>';
@@ -727,10 +733,8 @@ class Automations_Page
         return ['minutes' => __('minutes', 'mailoptin'), 'hours' => __('hours', 'mailoptin'), 'days' => __('days', 'mailoptin'), 'weeks' => __('weeks', 'mailoptin')];
     }
 
-    protected static function email_stats_html($email_campaign_id, $sent)
+    protected static function email_stats_html($stats, $sent)
     {
-        $log_id = Engine::existing_log_id($email_campaign_id);
-        $stats  = $log_id && Activity::is_ready() ? Activity::stats($log_id) : null;
         $rate   = function ($n) use ($stats) {
             return $stats && $stats[Activity::METRIC_SENT] ? round(100 * $n / $stats[Activity::METRIC_SENT]) . '%' : '—';
         };
@@ -744,10 +748,10 @@ class Automations_Page
 
     protected static function report_html($automation)
     {
-        $stats   = Repo::list_stats()[$automation['id']] ?? [];
+        $stats   = Repo::automation_stats($automation['id']);
         $reasons = Repo::stop_reasons($automation['id']);
 
-        if (empty($stats) && empty($reasons)) return '';
+        if ( ! $stats['active'] && ! $stats['sent_30'] && empty($reasons)) return '';
 
         $html = '<dl class="mo-auto-report">';
         $html .= '<dt>' . esc_html__('In progress', 'mailoptin') . '</dt><dd>' . esc_html(number_format_i18n($stats['active'] ?? 0)) . '</dd>';
@@ -768,6 +772,7 @@ class Automations_Page
     public static function reason_label($reason)
     {
         $labels = [
+            'unsubscribed'       => __('Unsubscribed', 'mailoptin'),
             'suppressed'         => __('Unsubscribed or suppressed', 'mailoptin'),
             'not_subscribed'     => __('No longer subscribed', 'mailoptin'),
             'left_list'          => __('Left the list', 'mailoptin'),
@@ -857,6 +862,11 @@ class Automations_Page
     protected static function error($message)
     {
         set_transient('mo_automation_error_' . get_current_user_id(), $message, MINUTE_IN_SECONDS);
+    }
+
+    protected static function warn($message)
+    {
+        set_transient('mo_automation_warning_' . get_current_user_id(), $message, MINUTE_IN_SECONDS);
     }
 
     public function handle_actions()
@@ -1027,6 +1037,14 @@ class Automations_Page
                 $data['trigger_id'] = $new->id();
                 $trigger            = $new;
                 $_POST['trigger']   = [];
+
+                $checks = Engine::checks($new);
+                foreach (Repo::steps($automation_id) as $step) {
+                    if (Repo::STEP_CHECK === $step['type'] && ! isset($checks[$step['settings']['check'] ?? ''])) {
+                        self::warn(__('An "Only if" step doesn\'t apply to the new trigger. Choose what it checks before going live.', 'mailoptin'));
+                        break;
+                    }
+                }
             }
         }
 
@@ -1088,8 +1106,8 @@ class Automations_Page
                     ];
                     break;
                 case Repo::STEP_CHECK:
-                    $check = sanitize_key($posted['check'] ?? '');
-                    if (isset($checks[$check])) $step['settings'] = ['check' => $check];
+                    $check            = sanitize_key($posted['check'] ?? '');
+                    $step['settings'] = ['check' => isset($checks[$check]) ? $check : ''];
                     break;
             }
 
@@ -1160,14 +1178,20 @@ class Automations_Page
         if ( ! $trigger || ! $trigger->is_available()) return __('Its trigger isn\'t available on this site. Is the plugin it needs active?', 'mailoptin');
 
         foreach ($trigger->settings_fields() as $key => $field) {
-            if ('select' === $field['type'] && empty($automation['trigger_settings'][$key])) {
+            // A list, tag or field that was deleted can never start anyone.
+            if ('select' === $field['type'] && ! array_key_exists((string)($automation['trigger_settings'][$key] ?? ''), array_flip(array_map('strval', array_keys(AbstractTrigger::field_options($field)))))) {
                 return sprintf(__('Choose "%s" under "What starts it" first.', 'mailoptin'), $field['label']);
             }
         }
 
         $emails = 0;
+        $checks = Engine::checks($trigger);
 
         foreach (Repo::steps($automation['id']) as $step) {
+            if (Repo::STEP_CHECK === $step['type'] && ! isset($checks[$step['settings']['check'] ?? ''])) {
+                return __('Choose what each "Only if" step checks first.', 'mailoptin');
+            }
+
             if (Repo::STEP_EMAIL !== $step['type']) continue;
 
             $email_id = absint($step['settings']['email_campaign_id'] ?? 0);
@@ -1210,13 +1234,26 @@ class Automations_Page
             case 'email':
                 $email_id = Recipes::create_email($automation['id'], __('New email', 'mailoptin'));
                 if ( ! $email_id) return;
-                $steps[] = ['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => $email_id]];
+                $steps[] = ['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => $email_id] + self::paused_if_live($automation)];
                 break;
             default:
                 return;
         }
 
         Repo::save_steps($automation['id'], $steps);
+    }
+
+    /**
+     * An email added to a live automation starts paused: people part-way through would otherwise get
+     * it before it is written (a copy would reach people who already had the original). Resume it when ready.
+     */
+    protected static function paused_if_live($automation)
+    {
+        if (Repo::STATUS_LIVE !== $automation['status']) return [];
+
+        self::warn(__('The new email is paused, so nobody gets it before it is ready. Edit it, then choose "Resume this email".', 'mailoptin'));
+
+        return ['paused' => true];
     }
 
     protected static function change_step($automation, $action, $step_id)
@@ -1251,7 +1288,7 @@ class Automations_Page
                 if (Repo::STEP_EMAIL !== $steps[$index]['type']) return;
                 $copy = self::clone_email(absint($steps[$index]['settings']['email_campaign_id'] ?? 0), $automation['id']);
                 if ( ! $copy) return;
-                array_splice($steps, $index + 1, 0, [['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => $copy]]]);
+                array_splice($steps, $index + 1, 0, [['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => $copy] + self::paused_if_live($automation)]]);
                 break;
         }
 

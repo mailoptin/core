@@ -74,7 +74,8 @@ class ListJoined extends AbstractTrigger
         $join   = 'INNER JOIN ' . Subscribers::memberships_table() . ' m ON m.subscriber_id = s.id AND m.list_id = %d';
         $since  = gmdate('Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS);
         $total  = \MailOptin\Core\Automations\Engine::count_audience([], $join, ['m.status = %s', 'm.subscribed_at >= %s'], [$list_id, Subscribers::STATUS_SUBSCRIBED, $since]);
-        $match  = \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['m.status = %s', 'm.subscribed_at >= %s'], [$list_id, Subscribers::STATUS_SUBSCRIBED, $since]);
+        // With no segment or tags to leave out, everyone counted matches.
+        $match = \MailOptin\Core\Automations\Engine::audience_is_everyone($automation['audience']) ? $total : \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['m.status = %s', 'm.subscribed_at >= %s'], [$list_id, Subscribers::STATUS_SUBSCRIBED, $since]);
 
         if (null === $match) return null;
 

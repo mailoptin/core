@@ -167,6 +167,11 @@ class Engine
         return (int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(DISTINCT s.id) FROM ' . Subscribers::table() . " s $join WHERE " . implode(' AND ', $where), $params));
     }
 
+    public static function audience_is_everyone($audience)
+    {
+        return ! absint($audience['segment_id'] ?? 0) && empty(array_filter((array)($audience['exclude_tag_ids'] ?? [])));
+    }
+
     public static function is_subscribed($subscriber)
     {
         return $subscriber && Subscribers::STATUS_SUBSCRIBED === ($subscriber['status'] ?? '');
@@ -718,15 +723,34 @@ class Engine
      */
     public static function existing_log_id($email_campaign_id)
     {
-        global $wpdb;
-
         if ( ! $email_campaign_id) return 0;
 
-        return (int)$wpdb->get_var($wpdb->prepare(
-            'SELECT m.campaign_log_id FROM ' . $wpdb->prefix . Core::campaign_log_meta_table_name . ' m INNER JOIN ' . $wpdb->prefix . Core::campaign_log_table_name . ' l ON l.id = m.campaign_log_id
-            WHERE m.meta_key = %s AND m.meta_value = %s ORDER BY m.campaign_log_id DESC LIMIT 1',
-            self::LOG_META_KEY, (string)absint($email_campaign_id)
-        ));
+        return self::existing_log_ids([$email_campaign_id])[absint($email_campaign_id)] ?? 0;
+    }
+
+    /**
+     * existing_log_id() for several emails in one query, for pages that show many.
+     *
+     * @return array email campaign ID => campaign log ID (only emails that have been sent)
+     */
+    public static function existing_log_ids($email_campaign_ids)
+    {
+        global $wpdb;
+
+        $ids = array_values(array_unique(array_filter(array_map('absint', (array)$email_campaign_ids))));
+
+        if (empty($ids)) return [];
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            'SELECT m.meta_value AS email_campaign_id, MAX(m.campaign_log_id) AS log_id FROM ' . $wpdb->prefix . Core::campaign_log_meta_table_name . ' m INNER JOIN ' . $wpdb->prefix . Core::campaign_log_table_name . ' l ON l.id = m.campaign_log_id
+            WHERE m.meta_key = %s AND m.meta_value IN (' . implode(',', array_fill(0, count($ids), '%s')) . ') GROUP BY m.meta_value',
+            array_merge([self::LOG_META_KEY], array_map('strval', $ids))
+        ), 'ARRAY_A');
+
+        $logs = [];
+        foreach ((array)$rows as $row) $logs[absint($row['email_campaign_id'])] = (int)$row['log_id'];
+
+        return $logs;
     }
 
     /**

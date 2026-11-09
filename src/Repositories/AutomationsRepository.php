@@ -207,6 +207,54 @@ class AutomationsRepository extends AbstractRepository
     }
 
     /**
+     * People in progress in one automation, and its emails sent in the last 30 days.
+     *
+     * @return array ['active' => int, 'sent_30' => int]
+     */
+    public static function automation_stats($automation_id)
+    {
+        $wpdb   = self::wpdb();
+        $active = (int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . self::runs_table() . ' WHERE status = %s AND automation_id = %d', self::RUN_ACTIVE, $automation_id));
+        $steps  = array_map('absint', wp_list_pluck(self::steps($automation_id, true), 'id'));
+        $sent   = $steps ? (int)$wpdb->get_var($wpdb->prepare(
+            'SELECT COUNT(*) FROM ' . self::run_steps_table() . ' WHERE step_id IN (' . implode(',', $steps) . ') AND status = %s AND created_at >= %s',
+            self::RUN_STEP_SENT, self::now(-30 * DAY_IN_SECONDS)
+        )) : 0;
+
+        return ['active' => $active, 'sent_30' => $sent];
+    }
+
+    /**
+     * The automation and step that send an email campaign.
+     *
+     * @return array|null [automation, step]
+     */
+    public static function email_owner($email_campaign_id)
+    {
+        $email_campaign_id = absint($email_campaign_id);
+
+        if ( ! $email_campaign_id) return null;
+
+        // Email steps store {"email_campaign_id":N,...}; checked exactly on the decoded value.
+        $rows = self::wpdb()->get_results(self::wpdb()->prepare(
+            'SELECT * FROM ' . self::steps_table() . ' WHERE type = %s AND deleted = 0 AND settings LIKE %s',
+            self::STEP_EMAIL, '%' . self::wpdb()->esc_like('"email_campaign_id":' . $email_campaign_id) . '%'
+        ), 'ARRAY_A');
+
+        foreach ((array)$rows as $row) {
+            $step = self::get_step($row['id']);
+
+            if ($step && absint($step['settings']['email_campaign_id'] ?? 0) === $email_campaign_id) {
+                $automation = self::get($step['automation_id']);
+
+                return $automation ? [$automation, $step] : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Emails sent by each step of an automation, ever.
      *
      * @return array step ID => int

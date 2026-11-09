@@ -83,7 +83,8 @@ class DateField extends AbstractTrigger
 
         $join  = 'INNER JOIN ' . Fields::values_table() . ' v ON v.subscriber_id = s.id AND v.field_id = %d';
         $total = \MailOptin\Core\Automations\Engine::count_audience([], $join, ['v.value_date IS NOT NULL'], [$field_id]);
-        $match = \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['v.value_date IS NOT NULL'], [$field_id]);
+        // With no segment or tags to leave out, everyone counted matches.
+        $match = \MailOptin\Core\Automations\Engine::audience_is_everyone($automation['audience']) ? $total : \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['v.value_date IS NOT NULL'], [$field_id]);
 
         if (null === $match) return null;
 

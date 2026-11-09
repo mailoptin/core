@@ -79,7 +79,8 @@ class TagAdded extends AbstractTrigger
         $join  = 'INNER JOIN ' . TagsRepository::links_table() . ' st ON st.subscriber_id = s.id AND st.tag_id = %d';
         $since = gmdate('Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS);
         $total = \MailOptin\Core\Automations\Engine::count_audience([], $join, ['st.created_at >= %s'], [$tag_id, $since]);
-        $match = \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['st.created_at >= %s'], [$tag_id, $since]);
+        // With no segment or tags to leave out, everyone counted matches.
+        $match = \MailOptin\Core\Automations\Engine::audience_is_everyone($automation['audience']) ? $total : \MailOptin\Core\Automations\Engine::count_audience($automation['audience'], $join, ['st.created_at >= %s'], [$tag_id, $since]);
 
         if (null === $match) return null;
 

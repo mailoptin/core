@@ -191,8 +191,15 @@ class AjaxHandler
 
         $campaign_type = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
 
-        // An automation's email is tested like a broadcast; its placeholders show sample values.
+        // An automation's email is tested as the automation page does it: placeholders filled from the
+        // latest person who started it, or with sample values.
         if (EmailCampaignRepository::is_automation_email($email_campaign_id)) {
+            $owner = \MailOptin\Core\Repositories\AutomationsRepository::email_owner($email_campaign_id);
+
+            if ($owner) {
+                wp_send_json(['success' => \MailOptin\Core\Automations\Engine::send_test($owner[0], $owner[1], $admin_email)]);
+            }
+
             $campaign_type = EmailCampaignRepository::NEWSLETTER;
         }
 

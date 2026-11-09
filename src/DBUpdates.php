@@ -440,6 +440,11 @@ class DBUpdates
         if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $log_meta WHERE Key_name = %s", 'campaign_log_id'))) {
             $wpdb->query("ALTER TABLE $log_meta ADD KEY campaign_log_id (campaign_log_id)");
         }
+
+        // Automation emails find their campaign log by meta key and value.
+        if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $log_meta WHERE Key_name = %s", 'key_value'))) {
+            $wpdb->query("ALTER TABLE $log_meta ADD KEY key_value (meta_key(64),meta_value(32))");
+        }
     }
 
     public static function get_instance()
