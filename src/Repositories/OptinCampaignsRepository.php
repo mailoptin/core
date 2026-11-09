@@ -10,6 +10,12 @@ use function MailOptin\Core\cache_transform;
 
 class OptinCampaignsRepository extends AbstractRepository
 {
+    /** @var array In-memory copy of the mo_optin_campaign option, keyed by blog ID. */
+    protected static $saved_customizer_data_cache = [];
+
+    /** @var array Filtered customizer defaults keyed by "{blog_id}_{optin_campaign_id}". */
+    protected static $customizer_defaults_cache = [];
+
     /**
      * Check if an optin campaign name already exist.
      *
@@ -241,6 +247,9 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaign_uuid($optin_campaign_id)
     {
+        // No campaign to look up; avoid a query that returns null and so is never cached by cache_transform().
+        if ( ! absint($optin_campaign_id)) return null;
+
         $table = parent::campaigns_table();
 
         $cache_key = "campaign_uuid_$optin_campaign_id";
@@ -293,6 +302,9 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaign_class($optin_campaign_id)
     {
+        // No campaign to look up; avoid a query that returns null and so is never cached by cache_transform().
+        if ( ! absint($optin_campaign_id)) return null;
+
         $cache_key = 'get_optin_campaign_class_' . $optin_campaign_id;
 
         $callback = function () use ($optin_campaign_id) {
@@ -339,6 +351,9 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaign_type($optin_campaign_id)
     {
+        // No campaign to look up; avoid a query that returns null and so is never cached by cache_transform().
+        if ( ! absint($optin_campaign_id)) return null;
+
         $cache_key = 'get_optin_campaign_type_' . $optin_campaign_id;
 
         $callback = function () use ($optin_campaign_id) {
@@ -525,7 +540,107 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_saved_customizer_data()
     {
-        return get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
+        if ( ! self::can_use_runtime_cache(true)) {
+            return get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
+        }
+
+        self::register_runtime_cache_invalidation();
+
+        $blog_id = get_current_blog_id();
+
+        // WordPress caches the raw serialized option and unserializes it on every get_option() call.
+        // With many campaigns this happens hundreds of times per form render, so keep the array for the request.
+        if ( ! array_key_exists($blog_id, self::$saved_customizer_data_cache)) {
+            self::$saved_customizer_data_cache[$blog_id] = get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
+        }
+
+        return self::$saved_customizer_data_cache[$blog_id];
+    }
+
+    /**
+     * Whether settings and defaults can be kept in memory for the rest of the request.
+     *
+     * Customizer previews inject unsaved values via option filters, so they always read fresh data.
+     *
+     * @param bool $check_option_filters
+     *
+     * @return bool
+     */
+    protected static function can_use_runtime_cache($check_option_filters = false)
+    {
+        if (is_customize_preview()) return false;
+
+        if ($check_option_filters && (
+                has_filter('option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME) ||
+                has_filter('pre_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME)
+            )) {
+            return false;
+        }
+
+        return (bool)apply_filters('mailoptin_optin_settings_runtime_cache_enabled', true);
+    }
+
+    /**
+     * Drop in-memory copies whenever the option is written, and defaults when the locale changes
+     * because they contain translated strings.
+     */
+    protected static function register_runtime_cache_invalidation()
+    {
+        static $registered = false;
+
+        if ($registered) return;
+
+        $registered = true;
+
+        $flush = [__CLASS__, 'flush_saved_customizer_data_cache'];
+
+        add_action('add_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
+        add_action('update_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
+        add_action('delete_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
+
+        add_action('change_locale', [__CLASS__, 'flush_customizer_defaults_cache']);
+    }
+
+    /**
+     * Clear the in-memory copy of saved campaign settings.
+     */
+    public static function flush_saved_customizer_data_cache()
+    {
+        self::$saved_customizer_data_cache = [];
+    }
+
+    /**
+     * Filtered customizer defaults of an optin campaign, built once per campaign per request.
+     *
+     * @param int $optin_campaign_id
+     *
+     * @return array
+     */
+    public static function get_customizer_defaults($optin_campaign_id)
+    {
+        if ( ! self::can_use_runtime_cache()) {
+            return (new AbstractCustomizer($optin_campaign_id))->customizer_defaults;
+        }
+
+        self::register_runtime_cache_invalidation();
+
+        $cache_key = get_current_blog_id() . '_' . absint($optin_campaign_id);
+
+        if ( ! array_key_exists($cache_key, self::$customizer_defaults_cache)) {
+            self::$customizer_defaults_cache[$cache_key] = (new AbstractCustomizer($optin_campaign_id))->customizer_defaults;
+        }
+
+        return self::$customizer_defaults_cache[$cache_key];
+    }
+
+    /**
+     * Clear cached customizer defaults.
+     *
+     * Optin themes register their default filters when instantiated, so defaults built before then can be stale.
+     */
+    public static function flush_customizer_defaults_cache()
+    {
+        self::$customizer_defaults_cache = [];
     }
 
     /**
@@ -559,7 +674,7 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_merged_customizer_value($optin_campaign_id, $settings_name)
     {
-        $customizer_defaults = (new AbstractCustomizer($optin_campaign_id))->customizer_defaults;
+        $customizer_defaults = self::get_customizer_defaults($optin_campaign_id);
 
         $default = isset($customizer_defaults[$settings_name]) ? $customizer_defaults[$settings_name] : '';
 
