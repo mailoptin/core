@@ -65,7 +65,7 @@ class WooCartAbandoned extends AbstractTrigger
                 'label'       => __('Guests', 'mailoptin'),
                 'type'        => 'checkbox',
                 'text'        => __('Also record guests\' carts, once they type their email at checkout', 'mailoptin'),
-                'default'     => true,
+                'default'     => false,
                 'description' => __('Logged-in customers\' carts are recorded as soon as they add a product. Carts are kept 30 days. Mention it in your privacy policy.', 'mailoptin'),
             ],
             'runs'   => [

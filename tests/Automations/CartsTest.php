@@ -248,4 +248,13 @@ class CartsTest extends EngineTest
         Repo::update($id, ['status' => Repo::STATUS_DRAFT]);
         $this->assertSame('0', (string)get_option(\MailOptin\Core\Automations\Carts::LIVE_OPTION));
     }
+
+    public function test_guest_carts_are_off_unless_turned_on()
+    {
+        $this->assertFalse((new WooCartAbandoned())->settings_fields()['guests']['default']);
+
+        $id = $this->cart_automation();
+        // records_guests() needs WooCommerce (not loaded in tests): an automation without the setting has it off.
+        $this->assertArrayNotHasKey('guests', Repo::get($id)['trigger_settings']);
+    }
 }

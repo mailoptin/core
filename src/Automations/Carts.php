@@ -89,7 +89,8 @@ class Carts
     public static function records_guests()
     {
         foreach (self::automations() as $automation) {
-            if ( ! array_key_exists('guests', $automation['trigger_settings']) || ! empty($automation['trigger_settings']['guests'])) return true;
+            // Off unless turned on: a guest hasn't submitted anything when they type their email.
+            if ( ! empty($automation['trigger_settings']['guests'])) return true;
         }
 
         return false;

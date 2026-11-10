@@ -27,7 +27,7 @@ class Recipes
                 'description'      => __('Remind shoppers who left products in their cart, with a link straight back to it.', 'mailoptin'),
                 'flow'             => __('Cart abandoned for an hour → email → wait 1 day → reminder if not ordered → wait 2 days → last reminder if not ordered', 'mailoptin'),
                 'trigger_id'       => 'woo_cart_abandoned',
-                'trigger_settings' => ['delay' => 60, 'guests' => true, 'runs' => 'every'],
+                'trigger_settings' => ['delay' => 60, 'guests' => false, 'runs' => 'every'],
                 'steps'            => [
                     ['email', __('You left something in your cart', 'mailoptin'), sprintf(
                         '<p>%s</p><p>%s</p><p><a href="{{cart.url}}">%s</a></p>',
