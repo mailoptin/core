@@ -60,6 +60,9 @@ abstract class ElementBlock extends AbstractBlock
 
         // Built once per email per request: it reads the email's settings and the template's defaults.
         if ( ! isset(self::$defaults[$email_campaign_id])) {
+            // The template adds its own defaults (sizes, colours) when it is made.
+            if ($email_campaign_id) \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($email_campaign_id);
+
             self::$defaults[$email_campaign_id] = Misc::elements_default_fields_values($email_campaign_id);
         }
 

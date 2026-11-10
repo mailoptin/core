@@ -22,7 +22,8 @@ class Button extends ElementBlock
         $width          = min(100, absint($settings['button_width']) ?: 100);
         $background     = esc_attr(Fields::color($settings['button_background_color']));
         $color          = esc_attr(Fields::color($settings['button_color']));
-        $font_size      = absint($settings['button_font_size']) ? 'font-size:' . absint($settings['button_font_size']) . 'px;' : '';
+        // The cell around it has font-size:0: an unset size would hide the text.
+        $font_size      = 'font-size:' . (absint($settings['button_font_size']) ?: 18) . 'px;';
         $alignment      = in_array($settings['button_alignment'], ['left', 'center', 'right'], true) ? $settings['button_alignment'] : 'center';
         $radius         = absint($settings['button_border_radius']);
         $font_family    = esc_attr($style->font_stack($settings['button_font_family']));

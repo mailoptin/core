@@ -105,7 +105,7 @@ class BlocksTest extends \WP_UnitTestCase
         $this->assertStringContainsString('href="{{cart.url}}"', $html, 'Placeholders are filled in when sending.');
         $this->assertStringNotContainsString('url(x)', $html);
         $this->assertStringNotContainsString('id="b"1"', $html);
-        $this->assertStringNotContainsString('font-size:0px;line-height', $html, 'An unset size is left out, not 0.');
+        $this->assertStringContainsString('font-size:16px;line-height', $html, 'An unset size would inherit the cell\'s 0px: 16px then.');
         $this->assertStringNotContainsString('javascript:', $html);
         $this->assertStringNotContainsString('"x"', $html);
     }
@@ -180,5 +180,15 @@ class BlocksTest extends \WP_UnitTestCase
         ])]);
 
         $this->assertStringContainsString('{{cart.url|https://shop.test/?a=1', (new Templatify($this->email))->forge());
+    }
+
+    public function test_new_blocks_get_the_template_defaults()
+    {
+        ElementBlock::flush_defaults();
+
+        $defaults = $this->blocks()->get('button')->defaults($this->email);
+
+        $this->assertSame('#dc4d2f', $defaults['button_background_color'], "Lucid's button colour.");
+        $this->assertSame('16', $this->blocks()->get('text')->defaults($this->email)['text_font_size']);
     }
 }

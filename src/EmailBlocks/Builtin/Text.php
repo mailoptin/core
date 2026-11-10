@@ -17,8 +17,8 @@ class Text extends ElementBlock
         // Saved by an author; cleaned on save (wp_kses_post for those without unfiltered_html).
         $text        = wpautop(stripslashes((string)$settings['text_content']));
         $font_family = esc_attr($style->font_stack($settings['text_font_family']));
-        // Left out when unset, as before (an empty size was ignored by mail clients, 0px would hide the text).
-        $font_size   = absint($settings['text_font_size']) ? 'font-size:' . absint($settings['text_font_size']) . 'px;' : '';
+        // The cell around it has font-size:0, so an unset size would hide the text: 16px then.
+        $font_size   = 'font-size:' . (absint($settings['text_font_size']) ?: 16) . 'px;';
         $padding     = Fields::padding($settings['block_padding']);
         $id          = esc_attr($id);
 
