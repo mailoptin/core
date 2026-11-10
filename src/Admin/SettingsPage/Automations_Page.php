@@ -1080,7 +1080,9 @@ class Automations_Page
             case 'edit_email':
                 $step = self::step_of($automation_id, $step_id, Repo::STEP_EMAIL);
                 $email_campaign_id = $step ? absint($step['settings']['email_campaign_id'] ?? 0) : 0;
-                self::redirect($email_campaign_id ? Email_Campaign_List::_campaign_customize_url($email_campaign_id) : self::edit_url($automation_id));
+                // The full-page editor; the Customizer for a "code your own" email it can't edit.
+                $editor = \MailOptin\Core\Admin\EmailEditor\EmailEditor::class;
+                self::redirect($email_campaign_id ? ($editor::edits($email_campaign_id) ? $editor::url($email_campaign_id) : Email_Campaign_List::_campaign_customize_url($email_campaign_id)) : self::edit_url($automation_id));
 
                 return;
 
