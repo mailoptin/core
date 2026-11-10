@@ -43,11 +43,13 @@ class EmailEditor
     }
 
     /**
-     * Emails this editor edits: broadcasts and automation emails.
+     * Emails this editor edits: broadcasts and automation emails. A broadcast that has been sent,
+     * or is sending, can't be changed.
      */
     public static function edits($email_campaign_id)
     {
-        return $email_campaign_id && ER::is_built_email($email_campaign_id) && ! ER::is_code_your_own_template($email_campaign_id);
+        return $email_campaign_id && ER::is_built_email($email_campaign_id) && ! ER::is_code_your_own_template($email_campaign_id)
+               && ! \MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts::is_done($email_campaign_id);
     }
 
     protected static function is_this_page()
@@ -159,11 +161,16 @@ class EmailEditor
     }
 
     /**
-     * What the saved email is now, to tell whether it changed since the editor loaded it.
+     * What the saved email is now, to tell whether it changed since the editor loaded it. Only the
+     * settings this editor shows count: a change made elsewhere (say, the broadcast's audience)
+     * isn't a conflict.
      */
     public static function version($email_campaign_id)
     {
-        return md5(wp_json_encode(Settings::get_saved(Settings::TYPE_EMAIL, $email_campaign_id)));
+        $saved = (array)Settings::get_saved(Settings::TYPE_EMAIL, $email_campaign_id);
+        $keys  = array_merge(['email_newsletter_content'], array_keys(self::design_fields()), array_keys(self::settings_fields()));
+
+        return md5(wp_json_encode(array_intersect_key($saved, array_flip($keys))));
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -204,6 +211,7 @@ class EmailEditor
                 'failed'     => __('Couldn\'t save. Check your connection and try again.', 'mailoptin'),
                 'conflict'   => __('This email was changed somewhere else since you opened it. OK loads that version; Cancel keeps yours and saves over it.', 'mailoptin'),
                 'draft'      => __('There are changes from an earlier visit that weren\'t saved. Restore them?', 'mailoptin'),
+                'draftStale' => __('There are unsaved changes from an earlier visit, but the email has been saved since. Restore them? Saving will then ask which version to keep.', 'mailoptin'),
                 'leave'      => __('Leave without saving?', 'mailoptin'),
                 'delete'     => __('Delete this element?', 'mailoptin'),
                 'testSent'   => __('Test sent.', 'mailoptin'),

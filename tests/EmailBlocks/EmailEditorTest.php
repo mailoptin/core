@@ -18,6 +18,9 @@ class EmailEditorTest extends \WP_Ajax_UnitTestCase
     {
         parent::set_up();
 
+        // The campaign log and campaign meta tables: a broadcast's status is read from them.
+        \MailOptin\Core\RegisterActivation\CreateDBTables::make();
+        \MailOptin\Core\DBUpdates::get_instance()->update_routine_7();
         \MailOptin\Core\Base::get_instance()->register_metadata_table();
 
         // admin_init runs update checks; no network in tests.
@@ -57,6 +60,25 @@ class EmailEditorTest extends \WP_Ajax_UnitTestCase
         $this->assertTrue(EmailEditor::edits($this->email));
         $this->assertFalse(EmailEditor::edits(ER::add_email_campaign('Post ' . uniqid(), ER::NEW_PUBLISH_POST, 'Lucid')));
         $this->assertFalse(EmailEditor::edits(0));
+    }
+
+    public function test_a_sent_broadcast_is_not_edited_or_saved()
+    {
+        \MailOptin\Core\Repositories\EmailCampaignMeta::update_meta_data($this->email, 'newsletter_date_sent', '2026-01-01 10:00:00');
+
+        $this->assertFalse(EmailEditor::edits($this->email));
+
+        $res = $this->call('save', ['state' => wp_json_encode($this->state(['settings' => ['email_campaign_title' => 'Changed']])), 'version' => EmailEditor::version($this->email), 'force' => 1]);
+        $this->assertFalse($res['success']);
+        $this->assertSame('Hello', ER::get_customizer_value($this->email, 'email_campaign_title'));
+    }
+
+    public function test_settings_the_editor_does_not_show_are_not_a_conflict()
+    {
+        $version = EmailEditor::version($this->email);
+        ER::update_settings_by_id($this->email, ['connection_service' => 'RegisteredUsersConnect']);
+
+        $this->assertSame($version, EmailEditor::version($this->email));
     }
 
     public function test_saving_cleans_the_email_and_returns_a_new_version()

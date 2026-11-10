@@ -12,7 +12,7 @@
     var version = cfg.version;
     var savedJson = JSON.stringify(state);
     var undoStack = [], redoStack = [], editing = false;
-    var openId = null, previewTimer = null, previewSeq = 0, draftTimer = null, saving = false;
+    var openId = null, previewTimer = null, previewSeq = 0, previewXhr = null, draftTimer = null, saving = false, filling = false;
     var draftKey = 'mo-email-editor-draft-' + cfg.id;
 
     function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -118,7 +118,14 @@
         }
     }
 
+    // Filling the forms from the state is not an edit: the colour picker and the classic editor
+    // report a change when they are set, which would add undo steps and clear redo.
     function fill($scope, obj) {
+        filling = true;
+        try { fillFields($scope, obj); } finally { filling = false; }
+    }
+
+    function fillFields($scope, obj) {
         $scope.find('.mo-ee-input').each(function () {
             var $input = $(this), v = getValue(obj, $input);
 
@@ -126,6 +133,14 @@
             else $input.val(v === undefined || v === null ? '' : v);
 
             if ($input.hasClass('mo-ee-color') && $input.hasClass('wp-color-picker')) $input.wpColorPicker('color', $input.val());
+
+            // An open classic editor shows its own copy of the text; keep it in step after undo,
+            // redo, a save or loading someone else's version.
+            var ed = this.id && window.tinymce ? tinymce.get(this.id) : null;
+            if (ed && ed.initialized) {
+                var html = window.wp && wp.editor && wp.editor.autop ? wp.editor.autop($input.val()) : $input.val();
+                if (ed.getContent() !== html) ed.setContent(html);
+            }
         });
     }
 
@@ -154,10 +169,17 @@
     }
 
     function onField($input) {
+        if (filling) return;
         var obj = target($input);
         if (!obj) return;
+
+        var name = $input.data('name'), next = {};
+        next[name] = obj[name] === undefined ? undefined : clone(obj[name]);
+        setValue(next, $input);
+        if (JSON.stringify(next[name]) === JSON.stringify(obj[name])) return;
+
         beginEdit();
-        setValue(obj, $input);
+        obj[name] = next[name];
         changed(false);
     }
 
@@ -187,7 +209,7 @@
                 tinymce: {
                     wpautop: true, height: 260,
                     setup: function (ed) {
-                        ed.on('input change keyup NodeChange', function () { ed.save(); onField($ta); });
+                        ed.on('input change keyup', function () { if (filling) return; ed.save(); onField($ta); });
                     }
                 },
                 quicktags: true, mediaButtons: true
@@ -230,12 +252,23 @@
         var seq = ++previewSeq;
         $('#mo-ee-updating').prop('hidden', false);
 
-        $.post(cfg.ajax, {action: 'mo_email_editor_preview', id: cfg.id, nonce: cfg.nonce, state: JSON.stringify(state)}).done(function (res) {
+        // One render at a time: an older one still running is no longer wanted.
+        if (previewXhr) previewXhr.abort();
+
+        previewXhr = $.post(cfg.ajax, {action: 'mo_email_editor_preview', id: cfg.id, nonce: cfg.nonce, state: JSON.stringify(state)});
+        previewXhr.done(function (res) {
             // A newer change already asked for a newer preview.
             if (seq !== previewSeq || !res || !res.success) return;
 
             var frame = document.getElementById('mo-ee-frame');
             var doc = frame.contentDocument;
+
+            // A link clicked in the preview took the frame to another site: start it again.
+            if (!doc) {
+                frame.src = 'about:blank';
+                frame.onload = function () { frame.onload = null; drawPreview(); };
+                return;
+            }
             var y = doc && doc.defaultView ? doc.defaultView.scrollY : 0;
 
             // Swapped into the open frame: no reload, and the scroll position is kept.
@@ -244,7 +277,10 @@
             doc.close();
             if (doc.defaultView) doc.defaultView.scrollTo(0, y);
         }).always(function () {
-            if (seq === previewSeq) $('#mo-ee-updating').prop('hidden', true);
+            if (seq === previewSeq) {
+                previewXhr = null;
+                $('#mo-ee-updating').prop('hidden', true);
+            }
         });
     }
 
@@ -255,36 +291,45 @@
         saving = true;
         status(i18n.saving);
 
-        return $.post(cfg.ajax, {action: 'mo_email_editor_save', id: cfg.id, nonce: cfg.nonce, state: JSON.stringify(state), version: version, force: force ? 1 : 0})
+        var posted = JSON.stringify(state);
+        var result = $.Deferred();
+
+        $.post(cfg.ajax, {action: 'mo_email_editor_save', id: cfg.id, nonce: cfg.nonce, state: posted, version: version, force: force ? 1 : 0})
             .done(function (res) {
-                if (!res || !res.success) return;
+                saving = false;
+                if (!res || !res.success) { status(i18n.failed); return result.reject(); }
                 version = res.data.version;
-                state = res.data.state;
-                savedJson = JSON.stringify(state);
+                savedJson = JSON.stringify(res.data.state);
                 try { localStorage.removeItem(draftKey); } catch (e) {}
-                fillAll();
+                // Take the server's cleaned copy only if nothing was typed while saving.
+                if (JSON.stringify(state) === posted) {
+                    state = res.data.state;
+                    fillAll();
+                }
                 changed(true);
+                result.resolve(res);
             })
             .fail(function (xhr) {
+                saving = false;
                 var data = xhr.responseJSON && xhr.responseJSON.data;
                 if (409 === xhr.status && data && data.conflict) {
-                    saving = false;
                     if (window.confirm(i18n.conflict)) {
-                        undoStack.push(JSON.stringify(state));
+                        beginEdit(true);
                         state = data.state;
                         version = data.version;
                         savedJson = JSON.stringify(state);
                         fillAll();
                         changed(true);
-                    } else {
-                        version = data.version;
-                        save(true);
+                        return result.reject();
                     }
-                    return;
+                    version = data.version;
+                    return save(true).then(result.resolve, result.reject);
                 }
                 status(i18n.failed);
-            })
-            .always(function () { saving = false; });
+                result.reject();
+            });
+
+        return result.promise();
     }
 
     function saveDraft() {
@@ -300,9 +345,14 @@
 
         if (!draft || !draft.state || JSON.stringify(draft.state) === savedJson) return;
 
-        if (window.confirm(i18n.draft)) {
+        // A draft made on an older saved version: saving it must not quietly replace the newer one.
+        var stale = draft.version !== version;
+
+        if (window.confirm(stale ? i18n.draftStale : i18n.draft)) {
             undoStack.push(JSON.stringify(state));
             state = draft.state;
+            // Keep the draft's version, so saving it asks about the newer one.
+            if (stale) version = draft.version;
             fillAll();
         } else {
             try { localStorage.removeItem(draftKey); } catch (e) {}
