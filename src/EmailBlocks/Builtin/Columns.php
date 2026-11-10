@@ -67,6 +67,28 @@ class Columns extends AbstractBlock
         ];
     }
 
+    /** The email body's width in the templates, in pixels. */
+    const CONTENT_WIDTH = 570;
+
+    /**
+     * Each column's width in pixels, without the space between columns: the most an image in it
+     * may be.
+     *
+     * @return int[]
+     */
+    public static function pixel_widths($settings)
+    {
+        $widths = self::widths($settings['columns_layout'] ?? '');
+        $gap    = min(40, absint($settings['columns_gap'] ?? 20));
+        $last   = count($widths) - 1;
+
+        return array_map(function ($width, $i) use ($gap, $last) {
+            $gaps = (0 === $i || $last === $i ? 0.5 : 1) * $gap;
+
+            return max(40, (int)floor(self::CONTENT_WIDTH * $width / 100 - $gaps));
+        }, $widths, array_keys($widths));
+    }
+
     /**
      * @return float[] each column's width in percent
      */

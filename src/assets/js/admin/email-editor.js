@@ -150,28 +150,27 @@
         });
     }
 
-    // After a drag: the state follows the order on screen.
+    // After a drag: the state follows the order on screen. New objects are built, so the state
+    // (and the undo step taken from it) is untouched until the order is known to have changed.
     function rebuildFromList() {
-        var byId = {};
+        var before = JSON.stringify(state), byId = {};
         (function walk(list) { list.forEach(function (b) { byId[b.id] = b; if (b.columns) b.columns.forEach(walk); }); })(state.content);
 
         function read($ol) {
             return $ol.children('li').map(function () {
                 var b = byId[$(this).data('id')];
-                if (b && b.columns) b.columns = $(this).find('> .mo-ee-cols > .mo-ee-col-wrap > .mo-ee-col').map(function () { return [read($(this))]; }).get();
-                return b;
+                if (!b) return null;
+                var copy = $.extend({}, b);
+                if (b.columns) copy.columns = $(this).find('> .mo-ee-cols > .mo-ee-col-wrap > .mo-ee-col').map(function () { return [read($(this))]; }).get();
+                return copy;
             }).get();
         }
 
-        var next = read($('#mo-ee-blocks'));
+        var next = JSON.parse(JSON.stringify(read($('#mo-ee-blocks'))));
         if (JSON.stringify(next) === JSON.stringify(state.content)) return;
 
-        var before = JSON.stringify(state);
-        state.content = next;
-        var after = JSON.stringify(state);
-        state = JSON.parse(before);
         beginEdit(true);
-        state = JSON.parse(after);
+        state.content = next;
         changed(true);
     }
 

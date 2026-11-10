@@ -248,4 +248,17 @@ class BlocksTest extends \WP_UnitTestCase
         $this->assertStringContainsString('@media only screen and (max-width: 600px)', $html);
         $this->assertStringContainsString('table.mo-cols-stack td.mo-col{display: block !important', $html, 'The phone rule survives inlining, as written.');
     }
+
+    public function test_an_image_is_no_wider_than_its_column()
+    {
+        $image = ['id' => 'i', 'type' => 'image', 'settings' => ['image_url' => 'https://example.com/a.png', 'image_width' => '500']];
+        $html  = $this->blocks()->render([$this->columns('50-50', [[$image], []])], $this->email);
+
+        // 570px wide, half of it, less half the 20px gap.
+        $this->assertStringContainsString('width="275"', $html);
+        $this->assertStringNotContainsString('500', $html);
+
+        // Outside columns, as set.
+        $this->assertStringContainsString('width="500"', $this->blocks()->render([$image], $this->email));
+    }
 }

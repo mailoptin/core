@@ -106,10 +106,20 @@ class Blocks
         // Columns draw the blocks in each column first; a column never holds columns.
         if ($block instanceof Builtin\Columns) {
             $columns = [];
+            $max     = Builtin\Columns::pixel_widths($settings);
             foreach (array_values((array)($element['columns'] ?? [])) as $i => $children) {
                 $columns[$i] = '';
                 foreach ((array)$children as $child) {
-                    if (is_array($child) && 'columns' !== ($child['type'] ?? '')) $columns[$i] .= $this->render_one($child, $email_campaign_id, $context, $style);
+                    if ( ! is_array($child) || 'columns' === ($child['type'] ?? '')) continue;
+
+                    // A fixed-width image wider than its column would push the column (and the
+                    // email) wider, Outlook ignoring max-width: no wider than the column.
+                    if ('image' === ($child['type'] ?? '') && isset($max[$i]) && ($image = $this->get('image'))) {
+                        $width                         = absint($child['settings']['image_width'] ?? ($image->defaults($email_campaign_id)['image_width'] ?? 0));
+                        $child['settings']['image_width'] = (string)($width ? min($width, $max[$i]) : $max[$i]);
+                    }
+
+                    $columns[$i] .= $this->render_one($child, $email_campaign_id, $context, $style);
                 }
             }
 
