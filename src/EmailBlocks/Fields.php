@@ -62,7 +62,7 @@ class Fields
     }
 
     /**
-     * #fff, #ffffff, rgb() or rgba(), else ''.
+     * #fff, #ffffff, rgb(), rgba() or transparent, else ''.
      */
     public static function color($value)
     {
@@ -72,9 +72,24 @@ class Fields
 
         if (preg_match('/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $value)) return $value;
 
-        if (preg_match('/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(0|1|0?\.\d+)\s*)?\)$/i', $value)) return $value;
+        if (preg_match('/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(\d+(\.\d+)?|\.\d+)\s*)?\)$/i', $value)) return $value;
+
+        if ('transparent' === strtolower($value)) return 'transparent';
 
         return '';
+    }
+
+    /**
+     * A link for an href, escaped: a whole {{placeholder}} (filled in when sending) is kept as it is;
+     * anything else goes through esc_url, which drops unsafe protocols and adds http:// to "www.…".
+     */
+    public static function link($value)
+    {
+        $value = trim((string)$value);
+
+        if (preg_match('/^\{\{\s*[a-z][a-z0-9_.]*\s*(\|[^}]*)?\}\}$/i', $value)) return esc_attr($value);
+
+        return esc_url($value);
     }
 
     /**

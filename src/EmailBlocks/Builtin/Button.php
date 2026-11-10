@@ -17,8 +17,8 @@ class Button extends ElementBlock
         $block_padding  = Fields::padding($settings['block_padding']);
         $button_padding = Fields::padding($settings['button_padding']);
         $text           = esc_html($settings['button_text']);
-        // Not esc_url: the link may be a placeholder such as {{cart.url}}, filled in when sending.
-        $link           = esc_attr($settings['button_link']);
+        // A link, or a placeholder such as {{cart.url}} filled in when sending.
+        $link           = Fields::link($settings['button_link']);
         $width          = min(100, absint($settings['button_width']) ?: 100);
         $background     = esc_attr(Fields::color($settings['button_background_color']));
         $color          = esc_attr(Fields::color($settings['button_color']));

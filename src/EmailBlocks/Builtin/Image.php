@@ -24,8 +24,8 @@ class Image extends ElementBlock
 
         $img = "<img class=\"mo-email-builder-element\" id=\"$id\" alt=\"$alt\" height=\"auto\" src=\"$url\" style=\"border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width:{$width}px\" width=\"$width\"/>";
 
-        // A placeholder link (filled in when sending) is kept as it is; anything else must be a URL.
-        if ('' !== $link) $img = '<a href="' . (false !== strpos($link, '{{') ? esc_attr($link) : esc_url($link)) . '" target="_blank">' . $img . '</a>';
+        // A link, or a placeholder filled in when sending.
+        if ('' !== trim($link)) $img = '<a href="' . Fields::link($link) . '" target="_blank">' . $img . '</a>';
 
         return <<<HTML
 <tr>

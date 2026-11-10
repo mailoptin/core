@@ -157,4 +157,28 @@ class BlocksTest extends \WP_UnitTestCase
         $this->assertStringContainsString('height:30px', $html);
         $this->assertStringContainsString('First paragraph', (new Templatify($this->email))->forge());
     }
+
+    public function test_links_are_urls_or_whole_placeholders()
+    {
+        $html = $this->blocks()->render([
+            ['id' => 'b1', 'type' => 'button', 'settings' => ['button_link' => 'javascript:alert(document.cookie)']],
+            ['id' => 'b2', 'type' => 'button', 'settings' => ['button_link' => 'www.shop.test/sale']],
+            ['id' => 'i1', 'type' => 'image', 'settings' => ['image_link' => 'javascript:alert(1)//{{x}}']],
+        ], $this->email);
+
+        $this->assertStringNotContainsString('javascript:', $html);
+        $this->assertStringContainsString('href="http://www.shop.test/sale"', $html);
+        $this->assertSame('{{cart.url|https://shop.test/?a=1&amp;b=2}}', Fields::link('{{cart.url|https://shop.test/?a=1&b=2}}'));
+        $this->assertSame('transparent', Fields::color('transparent'));
+        $this->assertSame('rgba(255,255,255,1.0)', Fields::color('rgba(255,255,255,1.0)'));
+    }
+
+    public function test_a_placeholder_with_a_fallback_survives_the_full_render()
+    {
+        ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([
+            ['id' => 'b', 'type' => 'button', 'settings' => ['button_link' => '{{cart.url|https://shop.test/?a=1&b=2}}']],
+        ])]);
+
+        $this->assertStringContainsString('{{cart.url|https://shop.test/?a=1', (new Templatify($this->email))->forge());
+    }
 }

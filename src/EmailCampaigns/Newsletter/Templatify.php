@@ -73,7 +73,8 @@ class Templatify implements TemplatifyInterface
         }
 
         return $this->replace_footer_placeholder_tags(
-            str_replace(['%5B', '%5D', '%7B', '%7D', '%24', '%20'], ['[', ']', '{', '}', '$', ' '], $content)
+            // Emogrify URL-encodes these in links; placeholders such as {{cart.url|fallback}} need them back.
+            str_replace(['%5B', '%5D', '%7B', '%7D', '%24', '%20', '%7C'], ['[', ']', '{', '}', '$', ' ', '|'], $content)
         );
     }
 }
