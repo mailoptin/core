@@ -191,4 +191,74 @@ class BlocksTest extends \WP_UnitTestCase
         $this->assertSame('#dc4d2f', $defaults['button_background_color'], "Lucid's button colour.");
         $this->assertSame('16', $this->blocks()->get('text')->defaults($this->email)['text_font_size']);
     }
+
+    protected function columns($layout, $columns, $extra = [])
+    {
+        return ['id' => 'c1', 'type' => 'columns', 'settings' => array_replace(['columns_layout' => $layout], $extra), 'columns' => $columns];
+    }
+
+    protected function text($id, $text)
+    {
+        return ['id' => $id, 'type' => 'text', 'settings' => ['text_content' => $text]];
+    }
+
+    public function test_columns_draw_their_blocks_side_by_side()
+    {
+        $html = $this->blocks()->render([$this->columns('33-67', [[$this->text('a', 'Left side')], [$this->text('b', 'Right side')]])], $this->email);
+
+        $this->assertSame(2, substr_count($html, 'class="mo-col"'));
+        $this->assertStringContainsString('width="33%"', $html);
+        $this->assertStringContainsString('width="67%"', $html);
+        $this->assertLessThan(strpos($html, 'Right side'), strpos($html, 'Left side'));
+        $this->assertStringContainsString('mo-cols-stack', $html, 'Stacking on phones is on by default.');
+
+        $html = $this->blocks()->render([$this->columns('50-50', [[], []], ['columns_stack' => false])], $this->email);
+        $this->assertStringNotContainsString('mo-cols-stack', $html);
+    }
+
+    public function test_columns_are_one_level_deep_and_follow_their_layout()
+    {
+        $clean = $this->blocks()->sanitize_content([
+            $this->columns('50-50', [
+                [$this->text('a', 'One'), $this->columns('50-50', [[$this->text('x', 'Nested')], []]), ['type' => 'nope']],
+                [$this->text('b', 'Two')],
+                [$this->text('c', 'Three')],
+            ]),
+        ]);
+
+        $this->assertCount(2, $clean[0]['columns'], 'Two columns for a two-column layout.');
+        $this->assertSame(['a'], array_column($clean[0]['columns'][0], 'id'), 'Columns inside a column and unknown blocks are dropped.');
+        $this->assertSame(['b', 'c'], array_column($clean[0]['columns'][1], 'id'), 'A third column moves into the last one.');
+
+        // A nested column saved some other way is not drawn either.
+        $html = $this->blocks()->render([$this->columns('50-50', [[$this->columns('50-50', [[$this->text('x', 'Nested')], []])], []])], $this->email);
+        $this->assertStringNotContainsString('Nested', $html);
+    }
+
+    public function test_emails_with_columns_get_the_phone_styles()
+    {
+        ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([$this->text('a', 'Plain')])]);
+        $this->assertSame('base', Blocks::template_css('base', $this->email));
+
+        ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([$this->columns('50-50', [[$this->text('a', 'In a column')], []])])]);
+        $this->assertStringContainsString('mo-cols-stack', Blocks::template_css('base', $this->email));
+
+        $html = (new Templatify($this->email))->forge();
+        $this->assertStringContainsString('In a column', $html);
+        $this->assertStringContainsString('@media only screen and (max-width: 600px)', $html);
+        $this->assertStringContainsString('table.mo-cols-stack td.mo-col{display: block !important', $html, 'The phone rule survives inlining, as written.');
+    }
+
+    public function test_an_image_is_no_wider_than_its_column()
+    {
+        $image = ['id' => 'i', 'type' => 'image', 'settings' => ['image_url' => 'https://example.com/a.png', 'image_width' => '500']];
+        $html  = $this->blocks()->render([$this->columns('50-50', [[$image], []])], $this->email);
+
+        // 570px wide, half of it, less half the 20px gap.
+        $this->assertStringContainsString('width="275"', $html);
+        $this->assertStringNotContainsString('500', $html);
+
+        // Outside columns, as set.
+        $this->assertStringContainsString('width="500"', $this->blocks()->render([$image], $this->email));
+    }
 }

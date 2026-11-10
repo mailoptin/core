@@ -50,6 +50,10 @@ $sections = ['body' => __('Body', 'mailoptin'), 'header' => __('Header', 'mailop
                     <?php foreach ($blocks as $id => $block) : ?>
                         <button type="button" class="mo-ee-add-btn" data-type="<?php echo esc_attr($id); ?>" title="<?php echo esc_attr($block->description()); ?>"><?php echo esc_html($block->title()); ?></button>
                     <?php endforeach; ?>
+                    <?php if (isset($blocks['columns'], $blocks['image'], $blocks['text'])) : ?>
+                        <button type="button" class="mo-ee-add-btn" data-preset="image-text" title="<?php esc_attr_e('An image on the left, text on the right. Stacks on phones.', 'mailoptin'); ?>"><?php esc_html_e('Image + text', 'mailoptin'); ?></button>
+                        <button type="button" class="mo-ee-add-btn" data-preset="text-image" title="<?php esc_attr_e('Text on the left, an image on the right. Stacks on phones.', 'mailoptin'); ?>"><?php esc_html_e('Text + image', 'mailoptin'); ?></button>
+                    <?php endif; ?>
                 </div>
             </section>
 

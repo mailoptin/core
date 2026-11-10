@@ -31,7 +31,16 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-ee-pane.is-on { display: block; }
 
 .mo-ee-blocks { list-style: none; margin: 0; padding: 0; }
-.mo-ee-item { display: flex; align-items: center; gap: 6px; border: 1px solid #dcdcde; border-radius: 4px; padding: 6px 8px; margin: 0 0 6px; background: #fff; }
+.mo-ee-item { border: 1px solid #dcdcde; border-radius: 4px; padding: 6px 8px; margin: 0 0 6px; background: #fff; }
+.mo-ee-item-row { display: flex; align-items: center; gap: 6px; }
+.mo-ee-cols { display: flex; gap: 6px; margin: 6px 0 2px; }
+.mo-ee-col-wrap { flex: 1; min-width: 0; background: #f6f7f7; border: 1px dashed #c3c4c7; border-radius: 4px; padding: 6px; }
+.mo-ee-col-label { display: block; font-size: 11px; color: #646970; margin-bottom: 4px; }
+.mo-ee-col { list-style: none; margin: 0 0 6px; padding: 0; min-height: 28px; }
+.mo-ee-col .mo-ee-item { padding: 4px 6px; }
+.mo-ee-col .mo-ee-item-open span { display: none; }
+.mo-ee-col-add { width: 100%; max-width: 100%; font-size: 12px; }
+.mo-ee-drop { border: 2px dashed #2271b1; border-radius: 4px; height: 30px; margin: 0 0 6px; background: #f0f6fc; }
 .mo-ee-item.is-open { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
 .mo-ee-handle { cursor: move; color: #8c8f94; }
 .mo-ee-item-open { flex: 1; min-width: 0; background: none; border: 0; text-align: left; cursor: pointer; padding: 2px 0; }

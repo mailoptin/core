@@ -59,7 +59,7 @@ class Blocks
 
         $this->loaded = true;
 
-        foreach ([new Builtin\Text(), new Builtin\Image(), new Builtin\Button(), new Builtin\Divider(), new Builtin\Spacer(), new Builtin\Posts()] as $block) {
+        foreach ([new Builtin\Text(), new Builtin\Image(), new Builtin\Button(), new Builtin\Divider(), new Builtin\Spacer(), new Builtin\Posts(), new Builtin\Columns()] as $block) {
             $this->add($block);
         }
 
@@ -103,6 +103,29 @@ class Blocks
         $settings = (array)($element['settings'] ?? []);
         if ($block) $settings = array_replace($block->defaults($email_campaign_id), $settings);
 
+        // Columns draw the blocks in each column first; a column never holds columns.
+        if ($block instanceof Builtin\Columns) {
+            $columns = [];
+            $max     = Builtin\Columns::pixel_widths($settings);
+            foreach (array_values((array)($element['columns'] ?? [])) as $i => $children) {
+                $columns[$i] = '';
+                foreach ((array)$children as $child) {
+                    if ( ! is_array($child) || 'columns' === ($child['type'] ?? '')) continue;
+
+                    // A fixed-width image wider than its column would push the column (and the
+                    // email) wider, Outlook ignoring max-width: no wider than the column.
+                    if ('image' === ($child['type'] ?? '') && isset($max[$i]) && ($image = $this->get('image'))) {
+                        $width                         = absint($child['settings']['image_width'] ?? ($image->defaults($email_campaign_id)['image_width'] ?? 0));
+                        $child['settings']['image_width'] = (string)($width ? min($width, $max[$i]) : $max[$i]);
+                    }
+
+                    $columns[$i] .= $this->render_one($child, $email_campaign_id, $context, $style);
+                }
+            }
+
+            return $block->render_columns($settings, $columns, $id);
+        }
+
         // A template may draw a block its own way.
         $method = $type . '_block';
         if ($style->template && method_exists($style->template, $method)) {
@@ -117,7 +140,7 @@ class Blocks
      *
      * @return array
      */
-    public function sanitize_content($elements)
+    public function sanitize_content($elements, $in_column = false)
     {
         $clean = [];
 
@@ -128,16 +151,76 @@ class Blocks
 
             if ( ! $block) continue;
 
+            $is_columns = $block instanceof Builtin\Columns;
+
+            // One level only: columns inside a column are dropped.
+            if ($is_columns && $in_column) continue;
+
             $id = preg_replace('/[^A-Za-z0-9_-]/', '', (string)($element['id'] ?? ''));
 
-            $clean[] = [
+            $item = [
                 'id'       => '' !== $id ? $id : wp_generate_password(10, false),
                 'type'     => $block->id(),
                 'settings' => $block->sanitize($element['settings'] ?? []),
             ];
+
+            if ($is_columns) $item['columns'] = $this->sanitize_columns($element['columns'] ?? [], $item['settings']['columns_layout'] ?? '');
+
+            $clean[] = $item;
         }
 
         return $clean;
+    }
+
+    /**
+     * As many columns as the layout has. Blocks in columns past that move to the last one, so
+     * going from three columns to two loses nothing.
+     */
+    protected function sanitize_columns($columns, $layout)
+    {
+        $count   = count(Builtin\Columns::widths($layout));
+        $columns = array_values(array_filter((array)$columns, 'is_array'));
+        $clean   = array_fill(0, $count, []);
+
+        foreach ($columns as $i => $children) {
+            $target         = min($i, $count - 1);
+            $clean[$target] = array_merge($clean[$target], $this->sanitize_content($children, true));
+        }
+
+        return $clean;
+    }
+
+    /**
+     * Every block in the content, columns' blocks included, in order.
+     */
+    public static function flatten($elements)
+    {
+        $flat = [];
+
+        foreach ((array)$elements as $element) {
+            if ( ! is_array($element)) continue;
+            $flat[] = $element;
+            foreach ((array)($element['columns'] ?? []) as $children) {
+                foreach ((array)$children as $child) if (is_array($child)) $flat[] = $child;
+            }
+        }
+
+        return $flat;
+    }
+
+    /**
+     * On mailoptin_email_template_css: what blocks need in the email's styles (columns stacking on
+     * phones), only when the email has them.
+     */
+    public static function template_css($css, $email_campaign_id = 0)
+    {
+        $content = json_decode((string)\MailOptin\Core\Repositories\EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_newsletter_content'), true);
+
+        foreach (self::flatten(is_array($content) ? $content : []) as $element) {
+            if ('columns' === ($element['type'] ?? '')) return $css . "\n" . Builtin\Columns::css();
+        }
+
+        return $css;
     }
 
     /**

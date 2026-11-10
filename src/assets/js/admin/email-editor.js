@@ -18,7 +18,31 @@
     function clone(o) { return JSON.parse(JSON.stringify(o)); }
     function uid() { return 'b' + Math.random().toString(36).slice(2, 10); }
     function dirty() { return JSON.stringify(state) !== savedJson; }
-    function blockById(id) { for (var i = 0; i < state.content.length; i++) if (state.content[i].id === id) return state.content[i]; return null; }
+    // Where a block is: the list it sits in (the email, or a column) and its place there.
+    function locate(id) {
+        var found = null;
+        (function walk(list) {
+            for (var i = 0; i < list.length && !found; i++) {
+                if (list[i].id === id) found = {list: list, index: i, block: list[i]};
+                else if (list[i].columns) list[i].columns.forEach(walk);
+            }
+        })(state.content);
+        return found;
+    }
+    function blockById(id) { var at = locate(id); return at ? at.block : null; }
+    function withNewIds(block) {
+        block.id = uid();
+        if (block.columns) block.columns.forEach(function (col) { col.forEach(withNewIds); });
+        return block;
+    }
+    function columnCount(block) { return ((block.settings || {}).columns_layout || '50-50').split('-').length; }
+    // As many columns as the layout has; blocks in columns past that move to the last one.
+    function fitColumns(block) {
+        var n = columnCount(block), cols = block.columns || [];
+        while (cols.length < n) cols.push([]);
+        while (cols.length > n) { var extra = cols.pop(); cols[cols.length - 1] = cols[cols.length - 1].concat(extra); }
+        block.columns = cols;
+    }
 
     /* ---------------------------------------------------------------- history */
 
@@ -65,34 +89,125 @@
 
     function summary(block) {
         var s = block.settings || {};
+        if (block.columns) {
+            var count = block.columns.reduce(function (n, col) { return n + col.length; }, 0);
+            return (i18n.columnsSummary || '%1$s columns, %2$s elements').replace('%1$s', block.columns.length).replace('%2$s', count);
+        }
         var text = s.text_content || s.button_text || s.image_alt_text || '';
         return $('<div>').html(String(text)).text().slice(0, 60);
     }
 
-    function renderList() {
-        var $list = $('#mo-ee-blocks').empty();
+    function itemHtml(block) {
+        var meta = cfg.blocks[block.type] || {title: block.type};
+        var $li = $('<li class="mo-ee-item">').attr('data-id', block.id).toggleClass('is-open', block.id === openId);
+        var $row = $('<div class="mo-ee-item-row">').appendTo($li);
+        $row.append('<span class="mo-ee-handle dashicons dashicons-move" aria-hidden="true"></span>');
+        $('<button type="button" class="mo-ee-item-open">').append($('<strong>').text(meta.title), $('<span>').text(summary(block))).appendTo($row);
+        $row.append($('<button type="button" class="mo-ee-icon mo-ee-dup"><span class="dashicons dashicons-admin-page" aria-hidden="true"></span></button>').attr('aria-label', i18n.duplicate || 'Duplicate'));
+        $row.append($('<button type="button" class="mo-ee-icon mo-ee-del"><span class="dashicons dashicons-trash" aria-hidden="true"></span></button>').attr('aria-label', i18n.remove || 'Delete'));
 
-        state.content.forEach(function (block) {
-            var meta = cfg.blocks[block.type] || {title: block.type};
-            var $li = $('<li class="mo-ee-item">').attr('data-id', block.id).toggleClass('is-open', block.id === openId);
-            $li.append('<span class="mo-ee-handle dashicons dashicons-move" aria-hidden="true"></span>');
-            $('<button type="button" class="mo-ee-item-open">').append($('<strong>').text(meta.title), $('<span>').text(summary(block))).appendTo($li);
-            $li.append('<button type="button" class="mo-ee-icon mo-ee-dup" aria-label="Duplicate"><span class="dashicons dashicons-admin-page"></span></button>');
-            $li.append('<button type="button" class="mo-ee-icon mo-ee-del" aria-label="Delete"><span class="dashicons dashicons-trash"></span></button>');
-            $list.append($li);
-        });
+        if (block.columns) {
+            var $cols = $('<div class="mo-ee-cols">').appendTo($li);
+            block.columns.forEach(function (col, i) {
+                var $col = $('<div class="mo-ee-col-wrap">').appendTo($cols);
+                $('<span class="mo-ee-col-label">').text((i18n.column || 'Column %s').replace('%s', i + 1)).appendTo($col);
+                var $list = $('<ol class="mo-ee-col">').attr('data-col', i).appendTo($col);
+                col.forEach(function (child) { $list.append(itemHtml(child)); });
+                var $add = $('<select class="mo-ee-col-add">').attr('aria-label', i18n.addToColumn || 'Add to this column').attr('data-col', i);
+                $add.append($('<option value="">').text(i18n.addToColumn || '+ Add'));
+                Object.keys(cfg.blocks).forEach(function (type) {
+                    if ('columns' !== type) $add.append($('<option>').val(type).text(cfg.blocks[type].title));
+                });
+                $col.append($add);
+            });
+        }
 
-        $('#mo-ee-empty').toggle(!state.content.length);
+        return $li;
     }
 
-    function addBlock(type) {
-        var meta = cfg.blocks[type];
-        if (!meta) return;
+    function renderList() {
+        var $list = $('#mo-ee-blocks').empty();
+        state.content.forEach(function (block) { $list.append(itemHtml(block)); });
+        $('#mo-ee-empty').toggle(!state.content.length);
+        makeSortable();
+    }
+
+    // Drag within the email, within a column, and between them. Columns stay at the top level.
+    function makeSortable() {
+        $('#mo-ee-blocks, #mo-ee-blocks .mo-ee-col').each(function () {
+            var $l = $(this);
+            if ($l.data('ui-sortable')) $l.sortable('destroy');
+            $l.sortable({
+                handle: '.mo-ee-handle',
+                connectWith: '#mo-ee-blocks, #mo-ee-blocks .mo-ee-col',
+                placeholder: 'mo-ee-drop',
+                tolerance: 'pointer',
+                receive: function (e, ui) {
+                    if ($(this).hasClass('mo-ee-col') && ui.item.find('.mo-ee-cols').length) $(ui.sender).sortable('cancel');
+                },
+                stop: function () { rebuildFromList(); }
+            });
+        });
+    }
+
+    // After a drag: the state follows the order on screen. New objects are built, so the state
+    // (and the undo step taken from it) is untouched until the order is known to have changed.
+    function rebuildFromList() {
+        var before = JSON.stringify(state), byId = {};
+        (function walk(list) { list.forEach(function (b) { byId[b.id] = b; if (b.columns) b.columns.forEach(walk); }); })(state.content);
+
+        function read($ol) {
+            return $ol.children('li').map(function () {
+                var b = byId[$(this).data('id')];
+                if (!b) return null;
+                var copy = $.extend({}, b);
+                if (b.columns) copy.columns = $(this).find('> .mo-ee-cols > .mo-ee-col-wrap > .mo-ee-col').map(function () { return [read($(this))]; }).get();
+                return copy;
+            }).get();
+        }
+
+        var next = JSON.parse(JSON.stringify(read($('#mo-ee-blocks'))));
+        if (JSON.stringify(next) === JSON.stringify(state.content)) return;
+
         beginEdit(true);
-        var block = {id: uid(), type: type, settings: clone(meta.defaults || {})};
-        state.content.push(block);
+        state.content = next;
+        changed(true);
+    }
+
+    function newBlock(type, settings) {
+        var meta = cfg.blocks[type];
+        if (!meta) return null;
+        var block = {id: uid(), type: type, settings: $.extend(clone(meta.defaults || {}), settings || {})};
+        if ('columns' === type) { block.columns = []; fitColumns(block); }
+        return block;
+    }
+
+    // $column: [columns block id, column index] to add inside a column.
+    function addBlock(type, column) {
+        if (column && 'columns' === type) return;
+        var block = newBlock(type);
+        if (!block) return;
+        beginEdit(true);
+        if (column) {
+            var parent = blockById(column[0]);
+            if (!parent) return;
+            parent.columns[column[1]].push(block);
+        } else {
+            state.content.push(block);
+        }
         changed(true);
         openBlock(block.id);
+    }
+
+    // Ready-made columns: an image beside text.
+    function addPreset(name) {
+        var cols = newBlock('columns', {columns_layout: 'image-text' === name ? '33-67' : '67-33'});
+        var image = newBlock('image', {image_width: '170'}), text = newBlock('text');
+        if (!cols || !image || !text) return;
+        cols.columns = 'image-text' === name ? [[image], [text]] : [[text], [image]];
+        beginEdit(true);
+        state.content.push(cols);
+        changed(true);
     }
 
     /* ---------------------------------------------------------------- forms */
@@ -180,6 +295,8 @@
 
         beginEdit();
         obj[name] = next[name];
+        var open = blockById(openId);
+        if ('columns_layout' === name && open && open.columns && obj === open.settings) fitColumns(open);
         changed(false);
     }
 
@@ -377,33 +494,33 @@
             $form.find('.mo-ee-subpanel').prop('hidden', true).filter('[data-tab="' + tab + '"]').prop('hidden', false);
         });
 
-        $('.mo-ee-add-btn').on('click', function () { addBlock($(this).data('type')); });
+        $('.mo-ee-add-btn').on('click', function () {
+            if ($(this).data('preset')) addPreset($(this).data('preset'));
+            else addBlock($(this).data('type'));
+        });
         $('#mo-ee-blocks')
             .on('click', '.mo-ee-item-open', function () { openBlock($(this).closest('li').data('id')); })
+            .on('change', '.mo-ee-col-add', function () {
+                var type = $(this).val(), id = $(this).closest('.mo-ee-cols').closest('li').data('id');
+                if (type) addBlock(type, [id, parseInt($(this).data('col'), 10)]);
+                $(this).val('');
+            })
             .on('click', '.mo-ee-dup', function () {
-                var id = $(this).closest('li').data('id'), i = state.content.indexOf(blockById(id));
+                var at = locate($(this).closest('li').data('id'));
+                if (!at) return;
                 beginEdit(true);
-                var copy = clone(state.content[i]);
-                copy.id = uid();
-                state.content.splice(i + 1, 0, copy);
+                at.list.splice(at.index + 1, 0, withNewIds(clone(at.block)));
                 changed(true);
             })
             .on('click', '.mo-ee-del', function () {
                 var id = $(this).closest('li').data('id');
                 if (!window.confirm(i18n.delete)) return;
+                var at = locate(id);
+                if (!at) return;
                 beginEdit(true);
-                if (id === openId) closeBlock();
-                state.content = state.content.filter(function (b) { return b.id !== id; });
+                if (id === openId || (openId && at.block.columns && JSON.stringify(at.block.columns).indexOf('"' + openId + '"') !== -1)) closeBlock();
+                at.list.splice(at.index, 1);
                 changed(true);
-            })
-            .sortable({
-                handle: '.mo-ee-handle', axis: 'y',
-                update: function () {
-                    beginEdit(true);
-                    var order = $('#mo-ee-blocks > li').map(function () { return $(this).data('id'); }).get();
-                    state.content.sort(function (a, b) { return order.indexOf(a.id) - order.indexOf(b.id); });
-                    changed(true);
-                }
             });
 
         $('.mo-ee-block-done').on('click', closeBlock);

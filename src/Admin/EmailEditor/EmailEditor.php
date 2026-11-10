@@ -214,6 +214,13 @@ class EmailEditor
                 'draftStale' => __('There are unsaved changes from an earlier visit, but the email has been saved since. Restore them? Saving will then ask which version to keep.', 'mailoptin'),
                 'leave'      => __('Leave without saving?', 'mailoptin'),
                 'delete'     => __('Delete this element?', 'mailoptin'),
+                'duplicate'      => __('Duplicate', 'mailoptin'),
+                'remove'         => __('Delete', 'mailoptin'),
+                /* translators: 1: number of columns, 2: number of elements in them */
+                'columnsSummary' => __('%1$s columns, %2$s elements', 'mailoptin'),
+                /* translators: %s: column number */
+                'column'         => __('Column %s', 'mailoptin'),
+                'addToColumn'    => __('+ Add to this column', 'mailoptin'),
                 'testSent'   => __('Test sent.', 'mailoptin'),
                 'testFailed' => __('The test couldn\'t be sent.', 'mailoptin'),
                 'untitled'   => __('(no subject)', 'mailoptin'),
