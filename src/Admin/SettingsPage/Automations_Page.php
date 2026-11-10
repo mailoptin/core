@@ -9,6 +9,9 @@ use MailOptin\Core\Automations\Recipes;
 use MailOptin\Core\Automations\Triggers;
 use MailOptin\Core\Repositories\AutomationsRepository as Repo;
 use MailOptin\Core\Repositories\CampaignActivityRepository as Activity;
+use MailOptin\Core\Repositories\CartsRepository as Carts;
+use MailOptin\Core\Automations\Triggers\WooCartAbandoned;
+use MailOptin\Core\Automations\Triggers\Woo;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 use MailOptin\Core\Repositories\SegmentsRepository as Segments;
 use MailOptin\Core\Repositories\TagsRepository;
@@ -114,6 +117,8 @@ class Automations_Page
             echo self::new_html();
         } elseif ('edit' === $screen) {
             echo self::edit_html(absint($_GET['id'] ?? 0));
+        } elseif ('carts' === $screen) {
+            echo self::carts_html();
         } else {
             echo self::list_html();
         }
@@ -200,6 +205,9 @@ class Automations_Page
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('Automations', 'mailoptin'); ?></h1>
         <a href="<?php echo esc_url(self::url(['screen' => 'new'])); ?>" class="page-title-action"><?php esc_html_e('Add New', 'mailoptin'); ?></a>
+        <?php if (self::has_cart_automation($all)) : ?>
+            <a href="<?php echo esc_url(self::url(['screen' => 'carts'])); ?>" class="page-title-action"><?php esc_html_e('Abandoned carts', 'mailoptin'); ?></a>
+        <?php endif; ?>
         <hr class="wp-header-end">
 
         <?php if (empty($all)) : ?>
@@ -464,6 +472,7 @@ class Automations_Page
                                     ? esc_html__('Changes apply straight away, also to people part-way through. Emails already sent are never sent again.', 'mailoptin')
                                     : esc_html__('Nothing is sent while it is a draft.', 'mailoptin'); ?></p>
                             <?php echo self::report_html($automation); ?>
+                            <?php if (WooCartAbandoned::ID === $automation['trigger_id']) echo self::recovery_html($automation['id']); ?>
                         </div>
                         <div class="mo-auto-actions">
                             <button class="button" name="mo_automation_action" value="save"><?php esc_html_e('Save', 'mailoptin'); ?></button>
@@ -769,6 +778,103 @@ class Automations_Page
         return $html;
     }
 
+    protected static function has_cart_automation($automations)
+    {
+        return Woo::active() && in_array(WooCartAbandoned::ID, wp_list_pluck($automations, 'trigger_id'), true);
+    }
+
+    /**
+     * Carts recovered in the last 30 days, on a cart automation's sidebar.
+     */
+    protected static function recovery_html($automation_id)
+    {
+        if ( ! Carts::is_ready() || ! Woo::active()) return '';
+
+        $stats = Carts::recovery_stats($automation_id, Carts::now(-30 * DAY_IN_SECONDS));
+        $share = $stats['abandoned'] ? round(100 * $stats['recovered'] / $stats['abandoned']) : 0;
+
+        return '<div class="mo-auto-recovery"><p><b>' . esc_html(number_format_i18n($stats['recovered'])) . '</b> ' . esc_html__('carts recovered', 'mailoptin')
+               . ' · <b>' . esc_html(Woo::money($stats['revenue'])) . '</b></p>'
+               . '<p class="description">' . esc_html(sprintf(__('Last 30 days · %s%% of the carts it emailed', 'mailoptin'), number_format_i18n($share))) . '</p>'
+               . '<p><a href="' . esc_url(self::url(['screen' => 'carts'])) . '">' . esc_html__('View abandoned carts', 'mailoptin') . '</a></p></div>';
+    }
+
+    protected static function carts_html()
+    {
+        if ( ! Woo::active() || ! Carts::is_ready()) {
+            return '<p>' . esc_html__('Abandoned carts need WooCommerce.', 'mailoptin') . '</p>';
+        }
+
+        $views = ['' => __('All', 'mailoptin'), 'in_progress' => __('In progress', 'mailoptin'), 'recovered' => __('Recovered', 'mailoptin'), 'lost' => __('Lost', 'mailoptin')];
+        $view  = sanitize_key($_GET['cart_view'] ?? '');
+        $view  = isset($views[$view]) ? $view : '';
+        $page  = max(1, absint($_GET['paged'] ?? 1));
+
+        list($carts, $total) = Carts::page($view, $page, 50);
+
+        $counts = Carts::view_counts();
+        $sent   = Carts::sent_counts(wp_list_pluck($carts, 'id'));
+        $dt     = get_option('date_format') . ' ' . get_option('time_format');
+
+        ob_start();
+        ?>
+        <h1 class="wp-heading-inline"><?php esc_html_e('Abandoned carts', 'mailoptin'); ?></h1>
+        <a href="<?php echo esc_url(self::url()); ?>" class="page-title-action"><?php esc_html_e('Back to Automations', 'mailoptin'); ?></a>
+        <hr class="wp-header-end">
+        <ul class="subsubsub">
+            <?php
+            $links = [];
+            foreach ($views as $key => $label) {
+                $links[] = sprintf('<li><a href="%s"%s>%s <span class="count">(%s)</span></a>', esc_url(self::url(['screen' => 'carts'] + ($key ? ['cart_view' => $key] : []))), $key === $view ? ' class="current"' : '', esc_html($label), number_format_i18n($counts[$key] ?? 0));
+            }
+            echo implode(' |</li>', $links) . '</li>';
+            ?>
+        </ul>
+        <table class="wp-list-table widefat fixed striped mo-auto-carts">
+            <thead>
+            <tr>
+                <th class="mo-col-customer"><?php esc_html_e('Customer', 'mailoptin'); ?></th>
+                <th class="mo-col-cart"><?php esc_html_e('Cart', 'mailoptin'); ?></th>
+                <th class="num"><?php esc_html_e('Total', 'mailoptin'); ?></th>
+                <th><?php esc_html_e('Status', 'mailoptin'); ?></th>
+                <th><?php esc_html_e('Abandoned', 'mailoptin'); ?></th>
+                <th class="num"><?php esc_html_e('Emails sent', 'mailoptin'); ?></th>
+                <th><?php esc_html_e('Order', 'mailoptin'); ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php if (empty($carts)) : ?>
+                <tr><td colspan="7"><?php esc_html_e('No abandoned carts here yet.', 'mailoptin'); ?></td></tr>
+            <?php endif; ?>
+            <?php foreach ($carts as $cart) :
+                $names = [];
+                foreach ($cart['items'] as $item) $names[] = $item['name'] . ($item['quantity'] > 1 ? ' × ' . (int)$item['quantity'] : '');
+                // A link from the ID, without loading every order.
+                $order_url = $cart['order_id'] && class_exists('\Automattic\WooCommerce\Utilities\OrderUtil') ? \Automattic\WooCommerce\Utilities\OrderUtil::get_order_admin_edit_url($cart['order_id']) : '';
+                ?>
+                <tr>
+                    <td><strong><?php echo esc_html($cart['first_name'] ?: '—'); ?></strong><div class="description"><?php echo esc_html($cart['email']); ?><?php echo $cart['user_id'] ? '' : ' ' . esc_html__('(guest)', 'mailoptin'); ?></div></td>
+                    <td><?php echo esc_html(implode(', ', array_filter($names))); ?></td>
+                    <td class="num"><?php echo esc_html(html_entity_decode(wp_strip_all_tags(wc_price($cart['total'], ['currency' => $cart['currency']])), ENT_QUOTES, 'UTF-8')); ?></td>
+                    <td><?php echo Carts::STATUS_RECOVERED === $cart['status'] ? UI::badge(__('Recovered', 'mailoptin'), 'ok') : UI::badge(__('Abandoned', 'mailoptin')); ?></td>
+                    <td><?php echo esc_html($cart['abandoned_at'] ? wp_date($dt, strtotime($cart['abandoned_at'] . ' UTC')) : '—'); ?></td>
+                    <td class="num"><?php echo esc_html(number_format_i18n($sent[$cart['id']] ?? 0)); ?></td>
+                    <td><?php echo Carts::STATUS_RECOVERED === $cart['status'] && $order_url ? '<a href="' . esc_url($order_url) . '">#' . absint($cart['order_id']) . '</a>' : '—'; ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php
+        $pages = (int)ceil($total / 50);
+        if ($pages > 1) {
+            echo '<div class="tablenav"><div class="tablenav-pages">' . paginate_links(['base' => add_query_arg('paged', '%#%'), 'format' => '', 'current' => $page, 'total' => $pages]) . '</div></div>';
+        }
+        ?>
+        <p class="description"><?php printf(esc_html__('A cart is recovered when the customer pays for an order within %d days of abandoning it, whether or not they clicked an email. Carts are kept 30 days; recovered ones a year.', 'mailoptin'), Carts::RECOVERY_DAYS); ?></p>
+        <?php
+        return ob_get_clean();
+    }
+
     public static function reason_label($reason)
     {
         $labels = [
@@ -786,6 +892,8 @@ class Automations_Page
             'automation_deleted' => __('Automation deleted', 'mailoptin'),
             'erased'             => __('Personal data erased', 'mailoptin'),
             'error'              => __('An error', 'mailoptin'),
+            'cart_deleted'       => __('Cart no longer kept', 'mailoptin'),
+            'cart_emptied'       => __('Emptied their cart', 'mailoptin'),
         ];
 
         if (isset($labels[$reason])) return $labels[$reason];
@@ -1445,6 +1553,8 @@ JS;
 .mo-auto-report{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:10px 0}.mo-auto-report dd{margin:0;font-weight:600;text-align:right}
 .mo-auto-reasons summary{cursor:pointer;color:#2271b1}.mo-auto-reasons ul{margin:6px 0 0 16px;list-style:disc}
 .mo-auto-delete{text-align:right}.mo-auto-danger{color:#b32d2e!important}
+.mo-auto-recovery{border-top:1px solid #f0f0f1;margin-top:10px;padding-top:4px}.mo-auto-recovery b{font-size:16px}
+.mo-auto-carts .mo-col-customer{width:22%}.mo-auto-carts .mo-col-cart{width:30%}
 .mo-auto-journey{margin:0}.mo-auto-journey li{margin:0 0 8px}
 .mo-upsell-box{max-width:72ch;background:#fff;border:1px solid #c3c4c7;border-left:4px solid #7e3bd0;padding:4px 20px 8px;margin:12px 0 16px}
 .mo-upsell-box ul{list-style:disc;margin-left:20px}

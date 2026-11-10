@@ -52,6 +52,8 @@ class Engine
     {
         $this->worker_id = substr(md5(uniqid('', true)), 0, 32);
 
+        Carts::get_instance();
+
         // Created after "init" (a late include, or tests): load now rather than never.
         if (did_action('init')) {
             Triggers::get_instance()->load();
@@ -307,6 +309,8 @@ class Engine
 
         // Finished runs aren't needed for long; a "once" run is kept, as it stops a second start.
         Repo::prune((int)apply_filters('mailoptin_automation_runs_keep_days', 90));
+
+        if (\MailOptin\Core\Repositories\CartsRepository::is_ready()) \MailOptin\Core\Repositories\CartsRepository::prune();
 
         // In case the tick was lost (WP-Cron cleared, automations unavailable for a while).
         $next = Repo::next_due_at(self::available_trigger_ids());
