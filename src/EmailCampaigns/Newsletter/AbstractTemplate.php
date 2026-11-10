@@ -85,13 +85,6 @@ HTML;
 
     abstract function email_content_builder_element_defaults($defaults);
 
-    abstract function text_block($id, $settings);
-
-    abstract function button_block($id, $settings);
-
-    abstract function divider_block($id, $settings);
-
-    abstract function image_block($id, $settings);
-
-    abstract function spacer_block($id, $settings);
+    // Blocks are drawn by the block API (src/EmailBlocks). A template can still draw one its own way
+    // by defining {block id}_block($id, $settings), as this one does for posts.
 }
