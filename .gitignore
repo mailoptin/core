@@ -17,3 +17,4 @@ src/BlockEditor/node_modules/*
 !tests/Api/
 !tests/Repositories/
 !tests/Automations/
+!tests/EmailBlocks/
