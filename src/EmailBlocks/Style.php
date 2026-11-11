@@ -14,10 +14,24 @@ class Style
 
     public $email_campaign_id;
 
+    /** @var int the width blocks are drawn in: the email's body, or a column */
+    public $width = 570;
+
     public function __construct($email_campaign_id, $template = null)
     {
         $this->email_campaign_id = absint($email_campaign_id);
         $this->template          = $template;
+    }
+
+    /**
+     * The same style, for blocks drawn in a narrower space (a column).
+     */
+    public function with_width($width)
+    {
+        $style        = clone $this;
+        $style->width = max(1, (int)$width);
+
+        return $style;
     }
 
     /**

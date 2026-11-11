@@ -152,7 +152,6 @@ class BlocksTest extends \WP_UnitTestCase
 
         $html = (new Templatify($this->email))->builderHtml();
 
-        $this->assertStringContainsString('id="one"', $html);
         $this->assertStringContainsString('<p>First paragraph</p>', $html);
         $this->assertStringContainsString('height:30px', $html);
         $this->assertStringContainsString('First paragraph', (new Templatify($this->email))->forge());
@@ -206,14 +205,14 @@ class BlocksTest extends \WP_UnitTestCase
     {
         $html = $this->blocks()->render([$this->columns('33-67', [[$this->text('a', 'Left side')], [$this->text('b', 'Right side')]])], $this->email);
 
-        $this->assertSame(2, substr_count($html, 'class="mo-col"'));
-        $this->assertStringContainsString('width="33%"', $html);
-        $this->assertStringContainsString('width="67%"', $html);
+        $this->assertStringContainsString('mj-column-per-33 ', $html);
+        $this->assertStringContainsString('mj-column-per-67 ', $html);
         $this->assertLessThan(strpos($html, 'Right side'), strpos($html, 'Left side'));
-        $this->assertStringContainsString('mo-cols-stack', $html, 'Stacking on phones is on by default.');
+        $this->assertStringNotContainsString('mj-column-per-100', $html, 'Stacking on phones is on by default: no group.');
 
+        // Kept side by side on phones: an mj-group.
         $html = $this->blocks()->render([$this->columns('50-50', [[], []], ['columns_stack' => false])], $this->email);
-        $this->assertStringNotContainsString('mo-cols-stack', $html);
+        $this->assertStringContainsString('mj-column-per-100', $html);
     }
 
     public function test_columns_are_one_level_deep_and_follow_their_layout()
@@ -238,15 +237,16 @@ class BlocksTest extends \WP_UnitTestCase
     public function test_emails_with_columns_get_the_phone_styles()
     {
         ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([$this->text('a', 'Plain')])]);
-        $this->assertSame('base', Blocks::template_css('base', $this->email));
+        $this->assertStringNotContainsString('mj-column-per', (new Templatify($this->email))->forge());
 
         ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([$this->columns('50-50', [[$this->text('a', 'In a column')], []])])]);
-        $this->assertStringContainsString('mo-cols-stack', Blocks::template_css('base', $this->email));
 
         $html = (new Templatify($this->email))->forge();
         $this->assertStringContainsString('In a column', $html);
-        $this->assertStringContainsString('@media only screen and (max-width: 600px)', $html);
-        $this->assertStringContainsString('table.mo-cols-stack td.mo-col{display: block !important', $html, 'The phone rule survives inlining, as written.');
+        // MJML's head rules, as written: added after inlining, which would drop the .moz-text-html ones.
+        $this->assertStringContainsString('.mj-column-per-50 { width:50% !important; max-width: 50%; }', $html);
+        $this->assertStringContainsString('.moz-text-html .mj-column-per-50', $html);
+        $this->assertLessThan(stripos($html, '</head>'), strpos($html, '.mj-column-per-50 {'), 'In the head.');
     }
 
     public function test_an_image_is_no_wider_than_its_column()
@@ -254,11 +254,68 @@ class BlocksTest extends \WP_UnitTestCase
         $image = ['id' => 'i', 'type' => 'image', 'settings' => ['image_url' => 'https://example.com/a.png', 'image_width' => '500']];
         $html  = $this->blocks()->render([$this->columns('50-50', [[$image], []])], $this->email);
 
-        // 570px wide, half of it, less half the 20px gap.
-        $this->assertStringContainsString('width="275"', $html);
+        // 570px wide, half of it, less half the 20px gap on each side.
+        $this->assertStringContainsString('width="265"', $html);
         $this->assertStringNotContainsString('500', $html);
 
         // Outside columns, as set.
         $this->assertStringContainsString('width="500"', $this->blocks()->render([$image], $this->email));
+    }
+
+    public function test_blocks_carry_their_id_for_the_customizer_preview()
+    {
+        $html = $this->blocks()->render([$this->text('t1', 'Hi'), $this->columns('50-50', [[$this->text('t2', 'In')], []])], $this->email);
+
+        $this->assertSame(1, substr_count($html, 'data-id="t1"'));
+        $this->assertSame(1, substr_count($html, 'data-id="t2"'));
+        $this->assertSame(1, substr_count($html, 'data-id="c1"'), "On the columns' element, not its Outlook table.");
+        $this->assertStringNotContainsString('mo-email-builder-element-outlook" data-id', $html);
+    }
+
+    public function test_padding_wider_than_the_email_gives_no_negative_widths()
+    {
+        $pad  = ['top' => 0, 'right' => 400, 'bottom' => 0, 'left' => 400];
+        $html = $this->blocks()->render([
+            ['id' => 'd', 'type' => 'divider', 'settings' => ['block_padding' => $pad]],
+            ['id' => 'c', 'type' => 'columns', 'settings' => ['block_padding' => $pad], 'columns' => [[], []]],
+        ], $this->email);
+
+        $this->assertDoesNotMatchRegularExpression('/width:-|width="-/', $html);
+    }
+
+    public function test_posts_are_drawn_from_mjml_one_or_more_to_a_row()
+    {
+        // Stored as is, as an author with unfiltered_html could: the block must escape it.
+        kses_remove_filters();
+        $a = self::factory()->post->create(['post_title' => 'First <script>x</script> post', 'post_content' => 'Alpha body']);
+        kses_init_filters();
+        $b = self::factory()->post->create(['post_title' => 'Second post', 'post_content' => 'Beta body']);
+        $c = self::factory()->post->create(['post_title' => 'Third post', 'post_content' => 'Gamma body']);
+
+        $posts = function ($count) use ($a, $b, $c) {
+            return $this->blocks()->render([['id' => 'p', 'type' => 'posts', 'settings' => [
+                'post_list' => [$a, $b, $c], 'post_column_count' => $count, 'read_more_text' => 'Read on', 'post_metas' => [],
+            ]]], $this->email);
+        };
+
+        $one = $posts('1');
+        $this->assertStringContainsString('First &lt;script&gt;x&lt;/script&gt; post', $one, 'Titles are escaped.');
+        $this->assertStringNotContainsString('<script>', $one);
+        $this->assertStringContainsString(get_permalink($b), $one);
+        $this->assertStringContainsString('Read on', $one);
+        $this->assertStringNotContainsString('mj-column-per', $one);
+        $this->assertLessThan(strpos($one, 'Third post'), strpos($one, 'Second post'));
+
+        $two = $posts('2');
+        $this->assertSame(4, substr_count($two, 'class="mj-column-per-50 '), 'Three posts, two to a row: two rows of two columns, the last one empty.');
+
+        $this->assertStringContainsString('mj-column-per-33-33', $posts('3'));
+
+        // Posts side by side get the columns' head styles too.
+        ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([['id' => 'p', 'type' => 'posts', 'settings' => ['post_list' => [$a, $b], 'post_column_count' => '2']]])]);
+        $this->assertStringContainsString('.mj-column-per-50 { width:50% !important', (new Templatify($this->email))->forge());
+
+        // No posts chosen: nothing.
+        $this->assertSame('', $this->blocks()->render([['id' => 'p', 'type' => 'posts', 'settings' => ['post_list' => []]]], $this->email));
     }
 }

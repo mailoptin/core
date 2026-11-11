@@ -4,6 +4,7 @@ namespace MailOptin\Core\EmailBlocks\Builtin;
 
 use MailOptin\Core\EmailBlocks\AbstractBlock;
 use MailOptin\Core\EmailBlocks\Fields;
+use MailOptin\Core\EmailBlocks\Mjml;
 use MailOptin\Core\EmailBlocks\Style;
 
 /**
@@ -17,7 +18,7 @@ class Columns extends AbstractBlock
         '50-50'    => [50, 50],
         '33-67'    => [33, 67],
         '67-33'    => [67, 33],
-        '33-33-33' => [33.33, 33.33, 33.34],
+        '33-33-33' => [33.33, 33.33, 33.33],
     ];
 
     public function id()
@@ -67,26 +68,28 @@ class Columns extends AbstractBlock
         ];
     }
 
-    /** The email body's width in the templates, in pixels. */
-    const CONTENT_WIDTH = 570;
-
     /**
-     * Each column's width in pixels, without the space between columns: the most an image in it
-     * may be.
+     * The space each column gives its blocks, in pixels: its share of the section (less the
+     * section's padding), less the space between columns. Blocks are drawn to fit it.
      *
      * @return int[]
      */
-    public static function pixel_widths($settings)
+    public static function pixel_widths($settings, $container = 570)
     {
-        $widths = self::widths($settings['columns_layout'] ?? '');
-        $gap    = min(40, absint($settings['columns_gap'] ?? 20));
-        $last   = count($widths) - 1;
+        $padding = Mjml::padding($settings['block_padding'] ?? []);
+        $inner   = max(0, $container - $padding['pad_l'] - $padding['pad_r']);
+        $widths  = self::widths($settings['columns_layout'] ?? '');
+        $half    = self::half_gap($settings);
 
-        return array_map(function ($width, $i) use ($gap, $last) {
-            $gaps = (0 === $i || $last === $i ? 0.5 : 1) * $gap;
+        // Every column has half the gap on each side.
+        return array_map(function ($width) use ($inner, $half) {
+            return max(20, (int)floor($inner * $width / 100 - 2 * $half));
+        }, $widths);
+    }
 
-            return max(40, (int)floor(self::CONTENT_WIDTH * $width / 100 - $gaps));
-        }, $widths, array_keys($widths));
+    protected static function half_gap($settings)
+    {
+        return (int)floor(min(40, absint($settings['columns_gap'] ?? 20)) / 2);
     }
 
     /**
@@ -99,56 +102,42 @@ class Columns extends AbstractBlock
 
     public function render($settings, $context, Style $style, $id)
     {
-        return $this->render_columns($settings, [], $id);
+        return $this->render_columns($settings, [], $id, $style->width);
     }
 
     /**
+     * From MJML: a section of columns that sit side by side, and stack on phones unless turned off
+     * (an mj-group). Outlook gets fixed-width cells.
+     *
      * @param array $settings merged over the defaults
-     * @param string[] $columns each column's rows (<tr>s), already drawn
+     * @param string[] $columns each column's rows (<tr>s), already drawn to fit pixel_widths()
+     * @param int $container the width it is drawn in
      */
-    public function render_columns($settings, $columns, $id)
+    public function render_columns($settings, $columns, $id, $container = 570)
     {
-        $widths  = self::widths($settings['columns_layout'] ?? '');
-        $gap     = min(40, absint($settings['columns_gap'] ?? 20));
-        $half    = $gap / 2;
+        $layout  = isset(self::LAYOUTS[$settings['columns_layout'] ?? '']) ? $settings['columns_layout'] : '50-50';
         $valign  = 'middle' === ($settings['columns_valign'] ?? '') ? 'middle' : 'top';
-        $class   = empty($settings['columns_stack']) ? 'mo-cols' : 'mo-cols mo-cols-stack';
+        $padding = Mjml::padding($settings['block_padding'] ?? []);
+        $inner   = max(0, $container - $padding['pad_l'] - $padding['pad_r']);
         $bg      = Fields::color($settings['columns_background'] ?? '');
-        $bg      = '' !== $bg ? 'background-color:' . esc_attr($bg) . ';' : '';
-        $padding = Fields::padding($settings['block_padding'] ?? []);
-        $id      = esc_attr($id);
-        $last    = count($widths) - 1;
 
-        $cells = '';
-        foreach ($widths as $i => $width) {
-            $left  = 0 === $i ? 0 : $half;
-            $right = $last === $i ? 0 : $half;
-            $rows  = $columns[$i] ?? '';
+        $values = $padding + [
+            'container'   => $container,
+            'inner_width' => $inner,
+            'half_gap'    => self::half_gap($settings),
+            'background'  => esc_attr('' !== $bg ? $bg : 'transparent'),
+        ];
 
-            $cells .= sprintf(
-                '<td class="mo-col" valign="%1$s" width="%2$s%%" style="width:%2$s%%;padding:0 %3$spx 0 %4$spx;vertical-align:%1$s;"><table width="100%%" border="0" cellpadding="0" cellspacing="0" role="presentation">%5$s</table></td>',
-                $valign, $width, $right, $left, $rows
-            );
+        // Each share's Outlook cell, named as the build names it ("w33_33"); in a group, whole pixels.
+        foreach (self::widths($layout) as $i => $width) {
+            $key                = str_replace('.', '_', Mjml::number($width));
+            $values['w' . $key]  = Mjml::number($inner * $width / 100);
+            $values['gw' . $key] = (int)floor($inner * $width / 100);
+            $values['col' . $i]  = $columns[$i] ?? '';
         }
 
-        return <<<HTML
-<tr>
-    <td class="mo-email-builder-element" id="$id" style="padding:$padding;{$bg}">
-        <table class="$class" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr>$cells</tr></table>
-    </td>
-</tr>
-HTML;
-    }
+        $name = 'columns-' . $layout . '-' . $valign . (empty($settings['columns_stack']) ? '-nostack' : '');
 
-    /**
-     * Styles every email with columns needs: stacking on phones.
-     */
-    public static function css()
-    {
-        return '@media only screen and (max-width: 600px) {'
-               // A plain descendant selector: the inliner drops selectors that match nothing in the
-               // source (it has no <tbody>), and browsers add a <tbody>, so child selectors miss.
-               . ' table.mo-cols-stack td.mo-col { display:block !important; width:100% !important; padding:0 0 12px 0 !important; box-sizing:border-box; }'
-               . ' }';
+        return '<tr><td style="padding:0;">' . Mjml::fill($name, $values) . '</td></tr>';
     }
 }

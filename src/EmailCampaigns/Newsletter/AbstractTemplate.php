@@ -85,6 +85,6 @@ HTML;
 
     abstract function email_content_builder_element_defaults($defaults);
 
-    // Blocks are drawn by the block API (src/EmailBlocks). A template can still draw one its own way
-    // by defining {block id}_block($id, $settings), as this one does for posts.
+    // Blocks are drawn by the block API (src/EmailBlocks), from MJML. A template can still draw one its
+    // own way by defining {block id}_block($id, $settings).
 }

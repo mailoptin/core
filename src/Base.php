@@ -134,7 +134,6 @@ class Base
         PostsEmailDigest::get_instance();
         Newsletter::get_instance();
         EmailCampaigns\Newsletter\Broadcasts::get_instance();
-        add_filter('mailoptin_email_template_css', [EmailBlocks\Blocks::class, 'template_css'], 10, 2);
         Misc::get_instance();
 
         FrontEndOutput::get_instance();

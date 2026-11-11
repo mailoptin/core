@@ -103,27 +103,21 @@ class Blocks
         $settings = (array)($element['settings'] ?? []);
         if ($block) $settings = array_replace($block->defaults($email_campaign_id), $settings);
 
-        // Columns draw the blocks in each column first; a column never holds columns.
+        // Columns draw the blocks in each column first, to fit the column; a column never holds columns.
         if ($block instanceof Builtin\Columns) {
             $columns = [];
-            $max     = Builtin\Columns::pixel_widths($settings);
+            $widths  = Builtin\Columns::pixel_widths($settings, $style->width);
             foreach (array_values((array)($element['columns'] ?? [])) as $i => $children) {
                 $columns[$i] = '';
+                if ( ! isset($widths[$i])) continue;
                 foreach ((array)$children as $child) {
-                    if ( ! is_array($child) || 'columns' === ($child['type'] ?? '')) continue;
-
-                    // A fixed-width image wider than its column would push the column (and the
-                    // email) wider, Outlook ignoring max-width: no wider than the column.
-                    if ('image' === ($child['type'] ?? '') && isset($max[$i]) && ($image = $this->get('image'))) {
-                        $width                         = absint($child['settings']['image_width'] ?? ($image->defaults($email_campaign_id)['image_width'] ?? 0));
-                        $child['settings']['image_width'] = (string)($width ? min($width, $max[$i]) : $max[$i]);
+                    if (is_array($child) && 'columns' !== ($child['type'] ?? '')) {
+                        $columns[$i] .= $this->render_one($child, $email_campaign_id, $context, $style->with_width($widths[$i]));
                     }
-
-                    $columns[$i] .= $this->render_one($child, $email_campaign_id, $context, $style);
                 }
             }
 
-            return $block->render_columns($settings, $columns, $id);
+            return self::with_id($block->render_columns($settings, $columns, $id, $style->width), $id);
         }
 
         // A template may draw a block its own way.
@@ -132,7 +126,18 @@ class Blocks
             return (string)$style->template->$method($id, $settings);
         }
 
-        return $block ? (string)$block->render($settings, (array)$context, $style, $id) : '';
+        return $block ? self::with_id((string)$block->render($settings, (array)$context, $style, $id), $id) : '';
+    }
+
+    /**
+     * The block's id on its element (the first "mo-email-builder-element"), for the Customizer's
+     * preview: a click there opens the block's settings.
+     */
+    protected static function with_id($html, $id)
+    {
+        if ('' === $id) return $html;
+
+        return preg_replace('/class="([^"]*\bmo-email-builder-element)"/', 'class="$1" data-id="' . esc_attr($id) . '"', $html, 1);
     }
 
     /**
@@ -206,21 +211,6 @@ class Blocks
         }
 
         return $flat;
-    }
-
-    /**
-     * On mailoptin_email_template_css: what blocks need in the email's styles (columns stacking on
-     * phones), only when the email has them.
-     */
-    public static function template_css($css, $email_campaign_id = 0)
-    {
-        $content = json_decode((string)\MailOptin\Core\Repositories\EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_newsletter_content'), true);
-
-        foreach (self::flatten(is_array($content) ? $content : []) as $element) {
-            if ('columns' === ($element['type'] ?? '')) return $css . "\n" . Builtin\Columns::css();
-        }
-
-        return $css;
     }
 
     /**
