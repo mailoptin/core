@@ -98,6 +98,59 @@ class EddCustomers extends AbstractSource
         ];
     }
 
+    public function purchase_targets()
+    {
+        return ['product' => __('Download', 'mailoptin'), 'category' => __('Download category', 'mailoptin'), 'tag' => __('Download tag', 'mailoptin')];
+    }
+
+    public function purchase_choices($target)
+    {
+        if ('category' === $target) return self::term_choices('download_category');
+        if ('tag' === $target) return self::term_choices('download_tag');
+
+        return self::post_choices('download');
+    }
+
+    public function orders_sql($email_expr)
+    {
+        global $wpdb;
+
+        $orders = $wpdb->prefix . 'edd_orders';
+
+        list($in, $params) = self::in_list(self::paid_statuses());
+
+        $email = Sources::as_our_email($email_expr, $orders);
+
+        return [
+            "FROM $orders o WHERE o.email = $email AND o.type = 'sale' AND o.mode = 'live' AND o.status $in",
+            $params,
+            ['id' => 'o.id', 'total' => 'o.total', 'date' => 'o.date_created'],
+            // Spend: EDD refunds are orders of type "refund" with a negative total.
+            [
+                "FROM $orders o WHERE o.email = $email AND o.mode = 'live' AND ((o.type = 'sale' AND o.status $in) OR (o.type = 'refund' AND o.total < 0))",
+                $params,
+                'o.total',
+            ],
+        ];
+    }
+
+    public function items_sql($order_id_column, $target, $ids)
+    {
+        global $wpdb;
+
+        $items = $wpdb->prefix . 'edd_order_items';
+        $ids   = array_values(array_filter(array_map('absint', (array)$ids))) ?: [0];
+
+        if ('category' === $target || 'tag' === $target) {
+            list($terms_sql, $params) = self::in_terms_sql('category' === $target ? 'download_category' : 'download_tag', $ids);
+
+            return ["EXISTS (SELECT 1 FROM $items oi WHERE oi.order_id = $order_id_column AND oi.status <> 'refunded' AND oi.product_id IN ($terms_sql))", $params];
+        }
+
+        // A refunded line of a partly refunded order wasn't bought.
+        return ["EXISTS (SELECT 1 FROM $items oi WHERE oi.order_id = $order_id_column AND oi.status <> 'refunded' AND oi.product_id IN (" . implode(',', array_fill(0, count($ids), '%d')) . '))', $ids];
+    }
+
     public function register_checkbox($checkbox_text)
     {
         add_action('edd_purchase_form_before_submit', function () use ($checkbox_text) {

@@ -266,7 +266,8 @@ class SegmentsTest extends WP_UnitTestCase
         $campaign_id = $this->campaign();
         $controls    = $this->control_names($campaign_id);
 
-        $this->assertSame([Segments::SEGMENT_SETTING], $controls);
+        // Customers, users and members first: registered users are always there.
+        $this->assertSame([\MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING, Segments::SEGMENT_SETTING], $controls);
     }
 
     public function test_customizer_keeps_the_controls_while_a_segment_is_set_so_it_can_be_cleared()
@@ -275,7 +276,7 @@ class SegmentsTest extends WP_UnitTestCase
         $segment     = Segments::create('VIP', ['tag_ids' => [$vip]]);
         $campaign_id = $this->campaign([Segments::SEGMENT_SETTING => (string)$segment]);
 
-        $this->assertSame([Segments::SEGMENT_SETTING, Segments::EXCLUDE_TAGS_SETTING, 'MailOptinConnect_audience_count'], $this->control_names($campaign_id));
+        $this->assertSame([\MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING, Segments::SEGMENT_SETTING, Segments::EXCLUDE_TAGS_SETTING, 'MailOptinConnect_audience_count'], $this->control_names($campaign_id));
     }
 
     public function test_resend_retries_the_original_recipients_only()

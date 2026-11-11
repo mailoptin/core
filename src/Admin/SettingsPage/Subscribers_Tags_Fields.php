@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use MailOptin\Core\Audience\Sources\Sources;
+use MailOptin\Core\Audience\Sources\StoreConditions;
 use MailOptin\Core\Repositories\CustomFieldsRepository as Fields;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
@@ -399,9 +401,11 @@ class Subscribers_Tags_Fields
         $fields     = Fields::all();
         $engagement = \MailOptin\Core\Repositories\CampaignActivityRepository::is_ready();
 
-        if (empty($tags) && empty($fields) && ! $engagement) return '';
+        $store      = \MailOptin\Core\Audience\Sources\Sources::active();
 
-        $base   = remove_query_arg(['tags', 'tag_match', 'f', 'e', 'paged', 'mo_notice', 'mo_add_filter']);
+        if (empty($tags) && empty($fields) && ! $engagement && empty($store)) return '';
+
+        $base   = remove_query_arg(['tags', 'tag_match', 'f', 'e', 'sc', 'paged', 'mo_notice', 'mo_add_filter', 'mo_src', 'mo_target']);
         $adding = sanitize_text_field($_GET['mo_add_filter'] ?? '');
 
         ob_start();
@@ -423,6 +427,7 @@ class Subscribers_Tags_Fields
                                         <?php foreach ($fields as $field) : ?><option value="<?php echo absint($field['id']); ?>"><?php echo esc_html($field['label']); ?></option><?php endforeach; ?>
                                     </optgroup>
                                 <?php endif; ?>
+                                <?php echo self::store_filter_options(); ?>
                                 <?php if ($engagement) : ?>
                                     <optgroup label="<?php esc_attr_e('Engagement', 'mailoptin'); ?>">
                                         <?php if (Subscriber_Filters::has_engagement()) : ?>
@@ -492,6 +497,8 @@ class Subscribers_Tags_Fields
                             <?php submit_button(__('Apply filter', 'mailoptin'), 'primary small', '', false); ?>
                             <a href="<?php echo esc_url(remove_query_arg('mo_add_filter')); ?>"><?php esc_html_e('Cancel', 'mailoptin'); ?></a>
                         </form>
+                    <?php elseif (0 === strpos($adding, 'store_')) : ?>
+                        <?php echo self::store_filter_form(substr($adding, 6), $filters); ?>
                     <?php elseif ($field = Fields::get(absint($adding))) : ?>
                         <form method="get" class="mo-field-filter" data-type="<?php echo esc_attr($field['type']); ?>">
                             <?php echo self::preserved_inputs($filters); ?>
@@ -515,6 +522,129 @@ class Subscribers_Tags_Fields
             </details>
             <?php if (Subscribers_Segments::is_ready()) echo Subscribers_Segments::save_html($filters); ?>
         </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * "Customers and members" in the Filter by menu. Purchase filters are Premium, like segments;
+     * "Is one of" (a customer, a role, a membership level) isn't.
+     */
+    protected static function store_filter_options()
+    {
+        $stores = StoreConditions::store_sources();
+
+        ob_start();
+        ?>
+        <optgroup label="<?php esc_attr_e('Customers and members', 'mailoptin'); ?>">
+            <?php if ( ! empty($stores)) : foreach (StoreConditions::whats() as $what => $label) : if ('member' === $what) continue; ?>
+                <?php if (StoreConditions::can_use($what)) : ?>
+                    <option value="store_<?php echo esc_attr($what); ?>"><?php echo esc_html($label); ?></option>
+                <?php else : ?>
+                    <option value="" disabled><?php echo esc_html(sprintf(__('%s (Premium)', 'mailoptin'), $label)); ?></option>
+                <?php endif; ?>
+            <?php endforeach; endif; ?>
+            <option value="store_member"><?php esc_html_e('Customer, user or member', 'mailoptin'); ?></option>
+        </optgroup>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * The form for one purchase or membership condition. "Has bought" and "Is one of" first ask
+     * which store and what (product, category, role...), then which ones.
+     */
+    protected static function store_filter_form($what, $filters)
+    {
+        if ( ! isset(StoreConditions::whats()[$what]) || ! StoreConditions::can_use($what)) return '';
+
+        $sources = 'member' === $what ? Sources::active() : StoreConditions::store_sources();
+
+        if (empty($sources)) return '';
+
+        $source_id = sanitize_key($_GET['mo_src'] ?? '');
+        $source    = isset($sources[$source_id]) ? $sources[$source_id] : (1 === count($sources) ? reset($sources) : null);
+        $target    = sanitize_key($_GET['mo_target'] ?? '');
+        $two_step  = in_array($what, ['bought', 'not_bought', 'member'], true);
+        $i         = count($filters['store'] ?? []);
+        $name      = 'sc[' . $i . ']';
+        $cancel    = remove_query_arg(['mo_add_filter', 'mo_src', 'mo_target']);
+
+        if ('member' === $what && $source && empty($source->options())) $target = 'any';
+        if (in_array($what, ['bought', 'not_bought'], true) && $source && ! isset($source->purchase_targets()[$target])) $target = '';
+
+        ob_start();
+
+        // Step one: which store or plugin, and what to pick from.
+        if ($two_step && ( ! $source || ('member' !== $what && '' === $target))) : ?>
+            <form method="get">
+                <?php echo self::preserved_inputs($filters); ?>
+                <input type="hidden" name="mo_add_filter" value="store_<?php echo esc_attr($what); ?>">
+                <p><strong><?php echo esc_html(StoreConditions::whats()[$what]); ?></strong></p>
+                <?php if (count($sources) > 1 || ! $source) : ?>
+                    <p><label for="mo-sc-src"><?php esc_html_e('From', 'mailoptin'); ?></label>
+                        <select id="mo-sc-src" name="mo_src" <?php echo 'member' === $what ? 'class="mo-autosubmit"' : ''; ?> required>
+                            <option value=""><?php esc_html_e('Choose…', 'mailoptin'); ?></option>
+                            <?php foreach ($sources as $id => $item) : ?><option value="<?php echo esc_attr($id); ?>" <?php selected($source && $source->id() === $id); ?>><?php echo esc_html($item->label()); ?></option><?php endforeach; ?>
+                        </select></p>
+                <?php else : ?>
+                    <input type="hidden" name="mo_src" value="<?php echo esc_attr($source->id()); ?>">
+                <?php endif; ?>
+                <?php if ('member' !== $what) : $targets = ($source ?: reset($sources))->purchase_targets(); ?>
+                    <p><label for="mo-sc-target"><?php esc_html_e('Pick by', 'mailoptin'); ?></label>
+                        <select id="mo-sc-target" name="mo_target" required>
+                            <?php foreach ($targets as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option><?php endforeach; ?>
+                        </select></p>
+                <?php endif; ?>
+                <?php submit_button(__('Next', 'mailoptin'), 'small', '', false); ?>
+                <a href="<?php echo esc_url($cancel); ?>"><?php esc_html_e('Cancel', 'mailoptin'); ?></a>
+            </form>
+            <?php return ob_get_clean();
+        endif;
+
+        if ( ! $source) return ob_get_clean();
+        ?>
+        <form method="get" class="mo-store-filter">
+            <?php echo self::preserved_inputs($filters); ?>
+            <input type="hidden" name="<?php echo esc_attr($name); ?>[what]" value="<?php echo esc_attr($what); ?>">
+            <input type="hidden" name="<?php echo esc_attr($name); ?>[source]" value="<?php echo esc_attr($source->id()); ?>">
+            <p><strong><?php echo esc_html(StoreConditions::whats()[$what]); ?></strong> <span class="description">(<?php echo esc_html($source->label()); ?>)</span></p>
+            <?php if (in_array($what, ['bought', 'not_bought'], true)) : $choices = $source->purchase_choices($target); ?>
+                <input type="hidden" name="<?php echo esc_attr($name); ?>[target]" value="<?php echo esc_attr($target); ?>">
+                <p><label for="mo-sc-ids"><?php echo esc_html(sprintf(__('Any of these (%s)', 'mailoptin'), strtolower($source->purchase_targets()[$target]))); ?></label><br>
+                    <select id="mo-sc-ids" name="<?php echo esc_attr($name); ?>[ids][]" multiple size="8" required style="min-width:320px">
+                        <?php foreach ($choices as $id => $label) : ?><option value="<?php echo absint($id); ?>"><?php echo esc_html($label); ?></option><?php endforeach; ?>
+                    </select></p>
+                <?php if (empty($choices)) : ?><p class="description"><?php esc_html_e('There\'s nothing to pick yet.', 'mailoptin'); ?></p><?php endif; ?>
+            <?php elseif ('spent' === $what) : ?>
+                <p><label class="screen-reader-text" for="mo-sc-op"><?php esc_html_e('Comparison', 'mailoptin'); ?></label>
+                    <select id="mo-sc-op" name="<?php echo esc_attr($name); ?>[op]"><option value="gt"><?php esc_html_e('more than', 'mailoptin'); ?></option><option value="lt"><?php esc_html_e('less than', 'mailoptin'); ?></option></select>
+                    <label class="screen-reader-text" for="mo-sc-amount"><?php esc_html_e('Amount', 'mailoptin'); ?></label>
+                    <input id="mo-sc-amount" type="number" min="0" step="0.01" class="small-text" name="<?php echo esc_attr($name); ?>[amount]" value="50" required></p>
+            <?php elseif ('orders' === $what) : ?>
+                <p><label class="screen-reader-text" for="mo-sc-op"><?php esc_html_e('Comparison', 'mailoptin'); ?></label>
+                    <select id="mo-sc-op" name="<?php echo esc_attr($name); ?>[op]"><option value="gt"><?php esc_html_e('more than', 'mailoptin'); ?></option><option value="lt"><?php esc_html_e('fewer than', 'mailoptin'); ?></option><option value="eq"><?php esc_html_e('exactly', 'mailoptin'); ?></option></select>
+                    <label class="screen-reader-text" for="mo-sc-count"><?php esc_html_e('Orders', 'mailoptin'); ?></label>
+                    <input id="mo-sc-count" type="number" min="0" class="small-text" name="<?php echo esc_attr($name); ?>[count]" value="1" required> <?php esc_html_e('orders', 'mailoptin'); ?></p>
+            <?php elseif ('last_order' === $what) : ?>
+                <p><label class="screen-reader-text" for="mo-sc-op"><?php esc_html_e('When', 'mailoptin'); ?></label>
+                    <select id="mo-sc-op" name="<?php echo esc_attr($name); ?>[op]"><option value="within"><?php esc_html_e('in the last', 'mailoptin'); ?></option><option value="not_within"><?php esc_html_e('not in the last (but before)', 'mailoptin'); ?></option></select>
+                    <label class="screen-reader-text" for="mo-sc-days"><?php esc_html_e('Days', 'mailoptin'); ?></label>
+                    <input id="mo-sc-days" type="number" min="1" max="3650" class="small-text" name="<?php echo esc_attr($name); ?>[days]" value="90" required> <?php esc_html_e('days', 'mailoptin'); ?></p>
+            <?php elseif ('member' === $what) : $options = $source->options(); ?>
+                <?php if ( ! empty($options)) : ?>
+                    <p><label for="mo-sc-option"><?php echo esc_html($source->option_label()); ?></label>
+                        <select id="mo-sc-option" name="<?php echo esc_attr($name); ?>[option]">
+                            <option value=""><?php echo esc_html($source->any_option_label()); ?></option>
+                            <?php foreach ($options as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option><?php endforeach; ?>
+                        </select></p>
+                <?php else : ?>
+                    <input type="hidden" name="<?php echo esc_attr($name); ?>[option]" value="">
+                <?php endif; ?>
+            <?php endif; ?>
+            <?php submit_button(__('Apply filter', 'mailoptin'), 'primary small', '', false); ?>
+            <a href="<?php echo esc_url($cancel); ?>"><?php esc_html_e('Cancel', 'mailoptin'); ?></a>
+        </form>
         <?php
         return ob_get_clean();
     }

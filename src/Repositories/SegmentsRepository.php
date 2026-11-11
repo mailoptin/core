@@ -57,7 +57,23 @@ class SegmentsRepository extends AbstractRepository
             'tag_match'        => in_array($match, ['any', 'all', 'none'], true) ? $match : 'any',
             'field_conditions' => array_values(array_filter((array)($filters['field_conditions'] ?? []), 'is_array')),
             'engagement'       => array_values(array_filter(array_map([CampaignActivityRepository::class, 'clean_condition'], (array)($filters['engagement'] ?? [])))),
+            'store'            => array_values(array_filter(array_map([\MailOptin\Core\Audience\Sources\StoreConditions::class, 'clean'], (array)($filters['store'] ?? [])))),
         ];
+    }
+
+    /** Whether a filter set has any condition at all. */
+    public static function has_conditions($filters)
+    {
+        return ! empty($filters['tag_ids']) || ! empty($filters['field_conditions']) || ! empty($filters['engagement']) || ! empty($filters['store']);
+    }
+
+    /**
+     * Whether a segment is only about purchases and memberships, so it can apply to customers and
+     * members who aren't subscribers (tags, fields and opens belong to subscribers).
+     */
+    public static function is_store_only($filters)
+    {
+        return ! empty($filters['store']) && empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement']);
     }
 
     protected static function prepare($row)
@@ -112,7 +128,7 @@ class SegmentsRepository extends AbstractRepository
             return new \WP_Error('mo_segment_exists', sprintf(__('There is already a segment called "%s".', 'mailoptin'), $name));
         }
 
-        if (null !== $filters && empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement'])) {
+        if (null !== $filters && ! self::has_conditions($filters)) {
             return new \WP_Error('mo_segment_empty', __('Add at least one filter before saving a segment.', 'mailoptin'));
         }
 
@@ -203,11 +219,20 @@ class SegmentsRepository extends AbstractRepository
         $filters  = $segment['filters'];
 
         // Saved segments always have a filter, so none means the stored filters couldn't be read.
-        if (empty($filters['tag_ids']) && empty($filters['field_conditions']) && empty($filters['engagement'])) {
+        if ( ! self::has_conditions($filters)) {
             return [__('Its filters couldn\'t be read.', 'mailoptin')];
         }
 
         if (self::uses_not_opened($filters)) $problems[] = self::not_opened_message();
+
+        foreach ($filters['store'] ?? [] as $condition) {
+            $problem = \MailOptin\Core\Audience\Sources\StoreConditions::problem($condition);
+
+            if ('' !== $problem) {
+                $problems[] = $problem;
+                break;
+            }
+        }
 
         if ( ! empty($filters['engagement']) && ! CampaignActivityRepository::is_ready()) {
             $problems[] = __('It filters by opens and clicks, which aren\'t set up yet.', 'mailoptin');
@@ -245,7 +270,21 @@ class SegmentsRepository extends AbstractRepository
 
         Subscribers::filter_where($segment['filters'], $where, $params);
 
-        return (int)self::wpdb()->get_var(self::wpdb()->prepare('SELECT COUNT(*) FROM ' . Subscribers::table() . ' s WHERE ' . implode(' AND ', $where), $params));
+        $sql = self::wpdb()->prepare('SELECT COUNT(*) FROM ' . Subscribers::table() . ' s WHERE ' . implode(' AND ', $where), $params);
+
+        // Purchase and membership conditions read the store's tables: the segments page needn't
+        // recount them on every view.
+        if (empty($segment['filters']['store'])) return (int)self::wpdb()->get_var($sql);
+
+        $key   = 'mo_segment_count_' . md5($sql);
+        $count = get_transient($key);
+
+        if (false === $count) {
+            $count = (int)self::wpdb()->get_var($sql);
+            set_transient($key, $count, MINUTE_IN_SECONDS);
+        }
+
+        return (int)$count;
     }
 
     /**

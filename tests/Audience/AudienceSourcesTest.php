@@ -261,28 +261,7 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
 
     public function test_woocommerce_customers_come_from_paid_orders_within_the_window()
     {
-        global $wpdb;
-
-        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_customer_lookup (customer_id bigint(20) NOT NULL, user_id bigint(20) NULL, first_name varchar(255) NOT NULL DEFAULT '', last_name varchar(255) NOT NULL DEFAULT '', email varchar(100) NULL)");
-        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_order_stats (order_id bigint(20) NOT NULL, parent_id bigint(20) NOT NULL DEFAULT 0, date_created datetime NOT NULL, date_created_gmt datetime NOT NULL, total_sales double NOT NULL DEFAULT 0, status varchar(200) NOT NULL, customer_id bigint(20) NOT NULL)");
-
-        $customers = [[1, 5, 'Maya', 'O', 'Maya@Example.com'], [2, null, 'Gus', 'T', 'guest@example.com'], [3, 6, 'Old', 'C', 'old@example.com'], [4, 7, 'Pen', 'D', 'pending@example.com']];
-        foreach ($customers as $c) {
-            $wpdb->insert("{$wpdb->prefix}wc_customer_lookup", ['customer_id' => $c[0], 'user_id' => $c[1], 'first_name' => $c[2], 'last_name' => $c[3], 'email' => $c[4]]);
-        }
-
-        $recent = gmdate('Y-m-d H:i:s', time() - 10 * DAY_IN_SECONDS);
-        $old    = gmdate('Y-m-d H:i:s', strtotime('-30 months'));
-        $orders = [[10, 0, $recent, 'wc-completed', 1, 40], [11, 0, $recent, 'wc-processing', 1, 10], [12, 10, $recent, 'wc-completed', 1, 5], [13, 0, $recent, 'wc-completed', 2, 20], [14, 0, $old, 'wc-completed', 3, 9], [15, 0, $recent, 'wc-pending', 4, 9]];
-        foreach ($orders as $o) {
-            $wpdb->insert("{$wpdb->prefix}wc_order_stats", ['order_id' => $o[0], 'parent_id' => $o[1], 'date_created' => $o[2], 'date_created_gmt' => $o[2], 'status' => $o[3], 'customer_id' => $o[4], 'total_sales' => $o[5]]);
-        }
-
-        // WooCommerce itself isn't loaded in tests; its tables are enough.
-        $woo = new class extends WooCustomers {
-            public function is_active() { return true; }
-        };
-        Sources::add($woo);
+        $woo = $this->woo_store();
         Sources::save_settings(['woo' => ['mode' => 'everyone', 'months' => '24', 'guests' => '1']]);
 
         $got = $this->emails($woo);
@@ -399,5 +378,94 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
 
         $this->assertSame('Nell', Sources::person('users', 'name@example.com')['first_name']);
         $this->assertSame('', Sources::person('users', 'nobody@example.com')['first_name']);
+    }
+
+    protected function subscriber_matches($filters)
+    {
+        $result = Subscribers::query($filters + ['per_page' => 100]);
+
+        return array_values(array_map('strtolower', wp_list_pluck($result['items'] ?? $result, 'email')));
+    }
+
+    public function test_member_condition_filters_subscribers_by_role_for_free()
+    {
+        $this->user('ed@example.com', 'editor');
+        $this->user('au@example.com', 'author');
+        Subscribers::create(['email' => 'ed@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+        Subscribers::create(['email' => 'au@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+        Subscribers::create(['email' => 'nobody@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+
+        $filters = \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request(['sc' => [['what' => 'member', 'source' => 'users', 'option' => 'editor']]]);
+        $this->assertCount(1, $filters['store'], 'Free: no Premium needed for "is one of".');
+
+        $this->assertSame(['ed@example.com'], $this->subscriber_matches($filters));
+
+        // Purchase conditions need Premium. On a free site one in the URL (a bookmark from when it
+        // was Premium) is kept and matches nobody, rather than being dropped and widening the view.
+        $premium = \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request(['sc' => [['what' => 'spent', 'source' => 'users', 'op' => 'gt', 'amount' => '5']]]);
+        $this->assertCount(1, $premium['store']);
+        $this->assertSame([], $this->subscriber_matches($premium));
+
+        // So is one that can't be read.
+        $broken = \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request(['sc' => [['what' => 'bought', 'source' => 'woo', 'target' => 'product']]]);
+        $this->assertSame('invalid', $broken['store'][0]['what']);
+        $this->assertSame([], $this->subscriber_matches($broken));
+        $this->assertNotEmpty(SegmentsRepository::problems(['filters' => SegmentsRepository::clean_filters($broken)]), 'Saved as a segment, it blocks sending.');
+    }
+
+    public function test_a_condition_that_cant_be_applied_matches_nobody_and_blocks_a_segment()
+    {
+        Subscribers::create(['email' => 'ed@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+
+        $filters = ['store' => [['what' => 'member', 'source' => 'pmpro', 'option' => '']]];
+
+        $this->assertSame([], $this->subscriber_matches($filters), 'Paid Memberships Pro isn\'t active: nobody, not everybody.');
+        $this->assertNotEmpty(SegmentsRepository::problems(['filters' => SegmentsRepository::clean_filters($filters)]));
+
+        $this->assertNull(\MailOptin\Core\Audience\Sources\StoreConditions::clean(['what' => 'bought', 'source' => 'woo', 'target' => 'product', 'ids' => []]), 'Bought nothing in particular isn\'t a condition.');
+        $this->assertNull(\MailOptin\Core\Audience\Sources\StoreConditions::clean(['what' => 'nope', 'source' => 'woo']));
+    }
+
+    public function test_filter_chips_and_query_round_trip()
+    {
+        $condition = ['what' => 'member', 'source' => 'users', 'option' => 'editor'];
+        $filters   = \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request(['sc' => [$condition]]);
+        $query     = \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::to_query($filters);
+
+        $this->assertSame($filters['store'], \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request($query)['store']);
+        $this->assertStringContainsString('Registered users: Editor', \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::chips_html($filters, admin_url()));
+    }
+
+    public function test_customizer_picker_is_for_campaigns_not_automation_emails()
+    {
+        require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
+
+        $controls = function ($campaign_id) {
+            $wp_customize = new \WP_Customize_Manager();
+            $customizer   = (object)['campaign_settings_section_id' => 'campaign_settings', 'email_campaign_id' => $campaign_id];
+
+            return array_keys((new \MailOptin\MailOptinConnect\CampaignAudience())->controls([], $wp_customize, 'mo_email_campaigns[' . $campaign_id . ']', $customizer));
+        };
+
+        $post_notification = ER::add_email_campaign('New post ' . uniqid(), ER::NEW_PUBLISH_POST, 'Lucid');
+        $automation_email  = ER::add_email_campaign('Auto ' . uniqid(), \MailOptin\Core\Repositories\AutomationsRepository::EMAIL_CAMPAIGN_TYPE, 'Lucid');
+
+        $this->assertContains(Sources::CAMPAIGN_SETTING, $controls($post_notification));
+        $this->assertNotContains(Sources::CAMPAIGN_SETTING, $controls($automation_email));
+    }
+
+    public function test_customizer_setting_keeps_values_with_quotes()
+    {
+        add_role('o"neill\\crew', 'Odd role');
+
+        $settings = (new \MailOptin\MailOptinConnect\CampaignAudience())->settings([]);
+        $sanitize = $settings[Sources::CAMPAIGN_SETTING]['sanitize_callback'];
+
+        // What the Customizer passes: already unslashed JSON.
+        $value = wp_json_encode([['source' => 'users', 'option' => 'o"neill\\crew']]);
+
+        $this->assertSame([['source' => 'users', 'option' => 'o"neill\\crew']], Sources::campaign_selection($sanitize($value)));
+
+        remove_role('o"neill\\crew');
     }
 }

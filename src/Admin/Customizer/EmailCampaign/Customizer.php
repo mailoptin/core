@@ -202,7 +202,7 @@ class Customizer
     {
         if ( ! ER::is_newsletter($this->email_campaign_id) || ! self::from_broadcast_page()) return;
 
-        $ids = ['email_campaign_title', 'email_campaign_preheader', 'connection_service', 'connection_email_list', 'MailOptinConnect_segment', 'MailOptinConnect_exclude_tags', 'MailOptinConnect_audience_count'];
+        $ids = ['email_campaign_title', 'email_campaign_preheader', 'connection_service', 'connection_email_list', 'MailOptinConnect_segment', 'MailOptinConnect_exclude_tags', 'MailOptinConnect_audience_sources', 'MailOptinConnect_audience_count'];
 
         // CSS rather than script: other customizer scripts show and hide these as settings change.
         $selectors = array_map(function ($id) {

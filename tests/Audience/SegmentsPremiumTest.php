@@ -42,7 +42,7 @@ class SegmentsPremiumTest extends SegmentsTest
     {
         Tags::create('vip');
 
-        $this->assertSame([Segments::SEGMENT_SETTING, Segments::EXCLUDE_TAGS_SETTING, 'MailOptinConnect_audience_count'], $this->control_names($this->campaign()));
+        $this->assertSame([\MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING, Segments::SEGMENT_SETTING, Segments::EXCLUDE_TAGS_SETTING, 'MailOptinConnect_audience_count'], $this->control_names($this->campaign()));
     }
 
     public function test_campaign_sends_to_the_segment_minus_excluded_tags_as_it_is_at_send_time()
