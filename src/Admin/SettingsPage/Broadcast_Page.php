@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use MailOptin\Core\Audience\Sources\AbstractSource;
+use MailOptin\Core\Audience\Sources\Sources;
 use MailOptin\Core\Admin\Customizer\EmailCampaign\NewsletterTemplatePreview;
 use MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts;
 use MailOptin\Core\PluginSettings\Settings;
@@ -63,6 +65,35 @@ class Broadcast_Page
         if ( ! self::is_this_page()) return;
 
         // The design is the email editor's: nothing to load here for it.
+
+        // The "Leave out people tagged" picker, as on the Automations page.
+        wp_enqueue_style('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.min.css');
+        wp_enqueue_script('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', ['jquery'], null, true);
+        wp_add_inline_script('mailoptin-chosen', self::tag_select_script());
+    }
+
+    /**
+     * A searchable multi-select. It saves once the dropdown closes, or straight away when a tag is
+     * removed with its x, so picking several tags doesn't reload the page after each one.
+     */
+    protected static function tag_select_script()
+    {
+        return "jQuery(function ($) {
+    var select = $('#mo-exclude-tags');
+    if (!select.length || !$.fn.chosen) return;
+    var changed = false, open = false;
+    var save = function () {
+        if (!changed) return;
+        changed = false;
+        var form = select.closest('form');
+        $('<input type=\"hidden\" name=\"mo_broadcast_action\" value=\"save\">').appendTo(form);
+        form[0].submit();
+    };
+    select.chosen({width: '100%', search_contains: true, hide_results_on_select: false, no_results_text: " . wp_json_encode(__('No tag matches', 'mailoptin')) . "})
+        .on('chosen:showing_dropdown', function () { open = true; })
+        .on('chosen:hiding_dropdown', function () { open = false; save(); })
+        .on('change', function () { changed = true; if (!open) setTimeout(function () { if (!open) save(); }, 0); });
+});";
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -269,7 +300,7 @@ class Broadcast_Page
                     <label for="mo-list"><?php esc_html_e('List', 'mailoptin'); ?></label>
                     <div>
                         <select id="mo-list" name="connection_email_list" data-autosave>
-                            <option value=""><?php esc_html_e('Choose a list…', 'mailoptin'); ?></option>
+                            <option value=""><?php echo $builtin && ! empty(Sources::active()) ? esc_html__('No list', 'mailoptin') : esc_html__('Choose a list…', 'mailoptin'); ?></option>
                             <?php foreach ($lists as $key => $label) : ?>
                                 <option value="<?php echo esc_attr($key); ?>" <?php selected($list_id, (string)$key); ?>><?php echo esc_html($label); ?></option>
                             <?php endforeach; ?>
@@ -277,6 +308,8 @@ class Broadcast_Page
                     </div>
                 </div>
             <?php endif; ?>
+
+            <?php if ($builtin) echo self::sources_html($email_campaign_id); ?>
 
             <?php if ($builtin && Segments::is_ready() && Tags::is_ready()) : ?>
                 <?php echo self::builtin_audience_html($email_campaign_id); ?>
@@ -286,6 +319,58 @@ class Broadcast_Page
                         esc_html($connections[$connection] ?? $connection)
                     ); ?></p>
             <?php endif; ?>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * Customers, users and members, picked alongside (or instead of) the list. Nothing is copied:
+     * each links to the plugin's own page of them.
+     */
+    protected static function sources_html($email_campaign_id)
+    {
+        $active = Sources::active();
+
+        if (empty($active)) return '';
+
+        $chosen = [];
+        foreach (Sources::campaign_selection(Broadcasts::get($email_campaign_id, Sources::CAMPAIGN_SETTING)) as $item) {
+            $chosen[$item['source']] = $item['option'];
+        }
+
+        ob_start();
+        ?>
+        <div class="mo-row mo-sources">
+            <span class="mo-label"><?php esc_html_e('Customers, users and members', 'mailoptin'); ?></span>
+            <div>
+                <input type="hidden" name="audience_sources_posted" value="1">
+                <?php foreach ($active as $id => $source) :
+                    $settings = Sources::settings($id);
+                    $options  = $source->options();
+                    $field    = 'audience_sources[' . $id . ']';
+                    ?>
+                    <div class="mo-source">
+                        <label><input type="checkbox" name="<?php echo esc_attr($field); ?>[on]" value="1" data-autosave <?php checked(isset($chosen[$id])); ?>> <?php echo esc_html($source->label()); ?></label>
+                        <?php if ( ! empty($options)) : ?>
+                            <label class="screen-reader-text" for="mo-source-<?php echo esc_attr($id); ?>"><?php echo esc_html($source->option_label()); ?></label>
+                            <select id="mo-source-<?php echo esc_attr($id); ?>" name="<?php echo esc_attr($field); ?>[option]" data-autosave>
+                                <option value=""><?php echo esc_html($source->any_option_label()); ?></option>
+                                <?php foreach ($options as $value => $label) : ?>
+                                    <option value="<?php echo esc_attr($value); ?>" <?php selected(isset($chosen[$id]) && (string)$chosen[$id] === (string)$value); ?>><?php echo esc_html($label); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php endif; ?>
+                        <span class="mo-source-meta"><?php echo AbstractSource::MODE_EVERYONE === $settings['mode'] ? esc_html__('Everyone', 'mailoptin') : esc_html__('Only those who agreed', 'mailoptin'); ?> ·
+                            <a href="<?php echo esc_url($source->admin_url()); ?>" target="_blank"><?php echo esc_html($source->admin_link_label()); ?> <span aria-hidden="true">↗</span><span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'mailoptin'); ?></span></a></span>
+                    </div>
+                <?php endforeach; ?>
+                <p class="mo-hint"><span><?php printf(
+                            esc_html__('Who counts as "agreed": %sSettings › Customers and members%s. Someone in two places gets it once.', 'mailoptin'),
+                            '<a href="' . esc_url(AudienceSourcesSettings::url()) . '">',
+                            '</a>'
+                        ); ?></span></p>
+            </div>
         </div>
         <?php
         return ob_get_clean();
@@ -314,12 +399,15 @@ class Broadcast_Page
             </div>
             <?php $tags = Tags::names(); if ( ! empty($tags)) : ?>
                 <div class="mo-row">
-                    <span class="mo-label"><?php esc_html_e('Leave out people tagged', 'mailoptin'); ?></span>
-                    <div class="mo-tag-checks">
+                    <label for="mo-exclude-tags"><?php esc_html_e('Leave out people tagged', 'mailoptin'); ?></label>
+                    <div class="mo-tag-select-wrap">
                         <input type="hidden" name="exclude_tags[]" value="">
-                        <?php foreach ($tags as $id => $name) : ?>
-                            <label><input type="checkbox" name="exclude_tags[]" value="<?php echo absint($id); ?>" data-autosave <?php checked(in_array((int)$id, $excluded, true)); ?>> <?php echo esc_html($name); ?></label>
-                        <?php endforeach; ?>
+                        <?php // Saved when its dropdown closes (see the page script), not on every pick. ?>
+                        <select id="mo-exclude-tags" class="mo-tag-select" name="exclude_tags[]" multiple data-placeholder="<?php esc_attr_e('Choose tags…', 'mailoptin'); ?>">
+                            <?php foreach ($tags as $id => $name) : ?>
+                                <option value="<?php echo absint($id); ?>" <?php selected(in_array((int)$id, $excluded, true)); ?>><?php echo esc_html($name); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
             <?php endif; ?>
@@ -336,7 +424,12 @@ class Broadcast_Page
         <?php if (null !== $count) : ?>
             <p class="mo-count"><?php echo is_wp_error($count)
                     ? esc_html($count->get_error_message())
-                    : wp_kses(sprintf(_n('<b>Goes to %s subscriber</b> if it sends now. Worked out again when it sends.', '<b>Goes to %s subscribers</b> if it sends now. Worked out again when it sends.', $count, 'mailoptin'), number_format_i18n($count)), ['b' => []]); ?></p>
+                    : wp_kses(sprintf(
+                        Broadcasts::has_sources($email_campaign_id)
+                            ? _n('<b>Goes to %s person</b> if it sends now. Worked out again when it sends.', '<b>Goes to %s people</b> if it sends now. Worked out again when it sends.', $count, 'mailoptin')
+                            : _n('<b>Goes to %s subscriber</b> if it sends now. Worked out again when it sends.', '<b>Goes to %s subscribers</b> if it sends now. Worked out again when it sends.', $count, 'mailoptin'),
+                        number_format_i18n($count)
+                    ), ['b' => []]); ?></p>
         <?php endif;
 
         return ob_get_clean();
@@ -402,7 +495,7 @@ class Broadcast_Page
                 <dt><?php esc_html_e('Subject', 'mailoptin'); ?></dt><dd><?php echo esc_html(Broadcasts::subject($email_campaign_id) ?: '—'); ?></dd>
                 <dt><?php esc_html_e('From', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf('%s <%s>', $settings->from_name(), $settings->from_email())); ?></dd>
                 <?php if (is_int($count)) : ?>
-                    <dt><?php esc_html_e('To', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf(_n('%s subscriber', '%s subscribers', $count, 'mailoptin'), number_format_i18n($count))); ?></dd>
+                    <dt><?php esc_html_e('To', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf(Broadcasts::has_sources($email_campaign_id) ? _n('%s person', '%s people', $count, 'mailoptin') : _n('%s subscriber', '%s subscribers', $count, 'mailoptin'), number_format_i18n($count))); ?></dd>
                     <?php if ($hourly && $count > $hourly) : ?>
                         <dt><?php esc_html_e('Sending', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf(__('About %1$s hours at %2$s emails an hour', 'mailoptin'), number_format_i18n(ceil($count / $hourly)), number_format_i18n($hourly))); ?></dd>
                     <?php endif; ?>
@@ -474,6 +567,18 @@ class Broadcast_Page
             } elseif (isset($_POST['connection_email_list'])) {
                 $values['connection_email_list'] = sanitize_text_field(wp_unslash($_POST['connection_email_list']));
             }
+        }
+
+        if (isset($_POST['audience_sources_posted'])) {
+            $selection = [];
+
+            foreach ((array)($_POST['audience_sources'] ?? []) as $id => $fields) {
+                if ( ! is_array($fields) || empty($fields['on'])) continue;
+
+                $selection[] = ['source' => sanitize_key($id), 'option' => sanitize_text_field(wp_unslash((string)($fields['option'] ?? '')))];
+            }
+
+            $values[Sources::CAMPAIGN_SETTING] = Sources::encode_selection($selection);
         }
 
         if (isset($_POST['segment'])) {
@@ -686,11 +791,15 @@ class Broadcast_Page
 .mo-broadcast .mo-row>label,.mo-broadcast .mo-label{font-weight:600;padding-top:6px}
 .mo-broadcast .mo-row input.widefat{max-width:560px}
 .mo-broadcast .mo-static{margin:6px 0 0}
+.mo-broadcast .mo-source{display:flex;gap:4px 10px;align-items:center;flex-wrap:wrap;padding:4px 0 8px}
+.mo-broadcast .mo-source>label{font-weight:600}
+.mo-broadcast .mo-source-meta{flex-basis:100%;padding-left:24px;font-size:12px;color:#646970}
 .mo-hint{display:flex;justify-content:space-between;max-width:560px;font-size:12px;color:#646970;margin:3px 0 0}
 .mo-counter.mo-over{color:#b32d2e;font-weight:600}
 .mo-broadcast .mo-inline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0}
 .mo-js .mo-no-js{display:none}
-.mo-tag-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 12px;padding-top:6px}
+.mo-tag-select-wrap{max-width:560px}
+.mo-tag-select-wrap select{width:100%;min-height:90px}
 .mo-broadcast .mo-count{background:#f0f6fc;border:1px solid #c5d9ed;border-radius:4px;padding:8px 12px;margin:6px 0 0;max-width:560px}
 .mo-broadcast .mo-upsell{border-left:4px solid #7e3bd0}
 .mo-design{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}

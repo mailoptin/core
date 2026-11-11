@@ -13,7 +13,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 24;
+    const DB_VER = 25;
 
     public function init_options()
     {
@@ -445,6 +445,20 @@ class DBUpdates
         if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $log_meta WHERE Key_name = %s", 'key_value'))) {
             $wpdb->query("ALTER TABLE $log_meta ADD KEY key_value (meta_key(64),meta_value(32))");
         }
+    }
+
+    /**
+     * Marketing consent from customers, users and members.
+     */
+    public function update_routine_25()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::audience_consents_table_sql($collate));
     }
 
     public static function get_instance()

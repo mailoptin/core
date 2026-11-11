@@ -98,6 +98,7 @@ class CreateDBTables
         $sqls = array_merge($sqls, self::tracking_tables_sql($collate));
         $sqls[] = self::campaign_settings_table_sql($collate);
         $sqls = array_merge($sqls, self::automations_tables_sql($collate));
+        $sqls[] = self::audience_consents_table_sql($collate);
 
         $sqls = apply_filters('mo_create_database_tables', $sqls, $collate);
 
@@ -109,6 +110,32 @@ class CreateDBTables
 
         // A new site starts on the table; an existing one moves its settings across.
         \MailOptin\Core\Repositories\CampaignSettingsRepository::migrate();
+    }
+
+    /**
+     * Marketing consent from customers, users and members: whether someone who isn't on a list
+     * agreed (or stopped agreeing) to marketing from that source, with what they ticked and where.
+     * One row per source and address; emails are stored lower case.
+     */
+    public static function audience_consents_table_sql($collate)
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . Core::audience_consents_table_name;
+
+        return "CREATE TABLE $table (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  source varchar(40) NOT NULL,
+  email varchar(191) NOT NULL,
+  status varchar(20) NOT NULL,
+  consent_text text NULL,
+  reference varchar(100) NOT NULL DEFAULT '',
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY  (id),
+  UNIQUE KEY source_email (source,email),
+  KEY email (email)
+) $collate;";
     }
 
     /**

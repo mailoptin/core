@@ -257,13 +257,20 @@ class Broadcasts
 
         $list_id = absint(self::get($email_campaign_id, 'connection_email_list'));
 
-        if ( ! $list_id) return 0;
-
         $filters = SegmentsRepository::campaign_filters($email_campaign_id);
 
         if (is_wp_error($filters)) return $filters;
 
-        return SubscribersRepository::count_list_recipients($list_id, $filters);
+        $audience = \MailOptin\Core\Audience\Sources\Sources::campaign_audience($email_campaign_id, $filters);
+
+        if (empty($audience['selection'])) return $list_id ? SubscribersRepository::count_list_recipients($list_id, $filters) : 0;
+
+        // Someone on the list who's also a customer is counted once.
+        return \MailOptin\Core\Audience\Sources\Sources::count_union(
+            $audience['selection'],
+            $audience['narrow'],
+            $list_id ? SubscribersRepository::list_recipients_email_sql($list_id, $filters) : null
+        );
     }
 
     /**
@@ -283,6 +290,13 @@ class Broadcasts
             ['label' => __('Sender address', 'mailoptin'), 'ok' => is_email(Settings::instance()->from_email()), 'blocking' => true],
             ['label' => __('Who it goes to', 'mailoptin'), 'ok' => self::has_recipients_set($email_campaign_id), 'blocking' => true],
         ];
+
+        // A chosen role, level or plugin that's gone: it's left out, so say so rather than send to fewer people.
+        if ('MailOptinConnect' === self::get($email_campaign_id, 'connection_service')) {
+            foreach (\MailOptin\Core\Audience\Sources\Sources::unusable_choices(self::get($email_campaign_id, \MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING)) as $problem) {
+                $checks[] = ['label' => $problem, 'ok' => false, 'blocking' => true];
+            }
+        }
 
         if (null !== $count) {
             $checks[] = [
@@ -309,6 +323,15 @@ class Broadcasts
     }
 
     /**
+     * Whether customers, users or members are chosen, as well as or instead of a list.
+     */
+    public static function has_sources($email_campaign_id)
+    {
+        return 'MailOptinConnect' === self::get($email_campaign_id, 'connection_service')
+            && ! empty(\MailOptin\Core\Audience\Sources\Sources::campaign_selection(self::get($email_campaign_id, \MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING)));
+    }
+
+    /**
      * A connection, and a list unless the connection has none (WordPress users, for one).
      */
     protected static function has_recipients_set($email_campaign_id)
@@ -316,6 +339,9 @@ class Broadcasts
         $connection = (string)self::get($email_campaign_id, 'connection_service');
 
         if ('' === $connection) return false;
+
+        // Customers, users or members instead of (or as well as) a list.
+        if (self::has_sources($email_campaign_id)) return true;
 
         // A list fetch that failed comes back empty too, so only these are known to have no lists.
         return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true);
