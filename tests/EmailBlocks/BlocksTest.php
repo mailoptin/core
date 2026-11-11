@@ -318,4 +318,12 @@ class BlocksTest extends \WP_UnitTestCase
         // No posts chosen: nothing.
         $this->assertSame('', $this->blocks()->render([['id' => 'p', 'type' => 'posts', 'settings' => ['post_list' => []]]], $this->email));
     }
+
+    public function test_a_posts_block_keeps_its_posts_when_saved()
+    {
+        $clean = $this->blocks()->sanitize_content([['id' => 'p', 'type' => 'posts', 'settings' => ['post_list' => ['12', 34, '<b>5</b>'], 'post_column_count' => '2']]]);
+
+        $this->assertSame(['12', '34', '5'], $clean[0]['settings']['post_list'], 'A list with no fixed choices stays a list.');
+        $this->assertSame('2', $clean[0]['settings']['post_column_count']);
+    }
 }
