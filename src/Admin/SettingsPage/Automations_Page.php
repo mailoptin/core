@@ -536,15 +536,32 @@ class Automations_Page
             <script>
                 (function () {
                     var dialog = document.getElementById('mo-auto-new-email');
+                    var builder = document.getElementById('mo-auto-form');
                     document.querySelectorAll('[data-new-email]').forEach(function (button) {
                         button.addEventListener('click', function (e) {
-                            // Without <dialog> support the button adds a Lucid email, as before.
+                            // Without <dialog> support the button adds an email in the first template, as before.
                             if (typeof dialog.showModal !== 'function') return;
                             e.preventDefault();
                             dialog.showModal();
                         });
                     });
                     dialog.querySelector('[data-close]').addEventListener('click', function () { dialog.close(); });
+
+                    // The chosen template goes with the builder's own form, so what was typed on this
+                    // page is saved first, as every other button here does.
+                    dialog.querySelector('form').addEventListener('submit', function (e) {
+                        var chosen = dialog.querySelector('input[name="template"]:checked');
+                        if (!builder || !chosen) return;
+                        e.preventDefault();
+                        [['mo_automation_action', 'add_email'], ['mo_new_email_template', chosen.value]].forEach(function (pair) {
+                            var input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = pair[0];
+                            input.value = pair[1];
+                            builder.appendChild(input);
+                        });
+                        builder.submit();
+                    });
                 })();
             </script>
         <?php endif; ?>
@@ -1084,8 +1101,26 @@ class Automations_Page
 
                 return;
 
-            case 'add_wait':
             case 'add_email':
+                // Chosen in the template dialog: made in that template and opened in the editor.
+                $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['mo_new_email_template'] ?? ''));
+                $context  = \MailOptin\Core\Admin\EmailEditor\EmailEditor::context('automation');
+
+                if ('' !== $template && $context && $context->accepts_template($template)) {
+                    $email_id = self::add_email_step($automation, $template);
+                    if ($email_id) {
+                        self::redirect(\MailOptin\Core\Admin\EmailEditor\EmailEditor::url($email_id));
+
+                        return;
+                    }
+                }
+
+                self::add_step($automation, 'email');
+                self::redirect(self::edit_url($automation_id) . '#mo-auto-steps-end');
+
+                return;
+
+            case 'add_wait':
             case 'add_check':
                 self::add_step($automation, substr($action, 4));
                 self::redirect(self::edit_url($automation_id) . '#mo-auto-steps-end');

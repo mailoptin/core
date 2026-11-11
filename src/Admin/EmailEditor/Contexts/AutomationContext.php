@@ -31,6 +31,8 @@ class AutomationContext extends EmailContext
      */
     public function create($template, $args)
     {
+        if ( ! Engine::is_available()) return new \WP_Error('mo_email_create', __('Automations aren\'t available.', 'mailoptin'));
+
         $automation = Repo::get(absint($args['automation_id'] ?? 0));
 
         if ( ! $automation) return new \WP_Error('mo_email_create', __('That automation doesn\'t exist.', 'mailoptin'));

@@ -372,8 +372,7 @@ HTML;
         $state = is_array($state) ? $state : [];
 
         if ($email_campaign_id && self::is_code($email_campaign_id)) {
-            // The author's HTML, as the Customizer kept it (wp_kses_post without unfiltered_html).
-            $values = ['code_your_own' => Fields::sanitize(['type' => 'textarea'], (string)($state['code'] ?? ''))];
+            $values = ['code_your_own' => self::clean_code((string)($state['code'] ?? ''))];
             $posted = (array)($state['settings'] ?? []);
             foreach (self::settings_fields() as $key => $field) {
                 if (array_key_exists($key, $posted)) $values[$key] = Fields::sanitize($field, $posted[$key]);
@@ -403,6 +402,47 @@ HTML;
         $id = is_array($state) && is_string($state['template'] ?? null) && ! self::is_code($email_campaign_id) ? $state['template'] : '';
 
         return '' !== $id && isset(Templates::get_instance()->for_email($email_campaign_id)[$id]) ? $id : null;
+    }
+
+    /**
+     * An email written by hand, as saved. Those who may post unfiltered HTML keep it as written (as
+     * the Customizer did). Others keep a whole email (doctype, head, style, body, table layout)
+     * with what wp_kses_post allows: no scripts or event attributes.
+     */
+    public static function clean_code($html)
+    {
+        if (current_user_can('unfiltered_html')) return $html;
+
+        $doctype = preg_match('/^\s*<!doctype[^>]*>/i', $html, $m) ? $m[0] . "\n" : '';
+        $common  = ['class' => true, 'id' => true, 'style' => true, 'dir' => true, 'lang' => true];
+        $table   = $common + ['width' => true, 'height' => true, 'align' => true, 'valign' => true, 'bgcolor' => true, 'border' => true, 'cellpadding' => true, 'cellspacing' => true, 'role' => true, 'background' => true];
+        $allowed = array_merge(wp_kses_allowed_html('post'), [
+            'html'   => ['lang' => true, 'dir' => true, 'xmlns' => true, 'xmlns:v' => true, 'xmlns:o' => true],
+            'head'   => [],
+            'meta'   => ['charset' => true, 'name' => true, 'content' => true, 'http-equiv' => true],
+            'title'  => [],
+            'style'  => ['type' => true, 'media' => true],
+            'body'   => $common + ['bgcolor' => true],
+            'center' => $common,
+            'table'  => $table,
+            'tbody'  => $table,
+            'thead'  => $table,
+            'tr'     => $table,
+            'td'     => $table + ['colspan' => true, 'rowspan' => true],
+            'th'     => $table + ['colspan' => true, 'rowspan' => true],
+        ]);
+
+        // Outlook's conditional comments (<!--[if mso]> … <![endif]-->, and the <!--[if !mso]><!-->
+        // form) would be mangled: their markers are set aside and put back, what they hold is cleaned.
+        $markers = [];
+        $html    = preg_replace_callback('/<!--\[if ([a-z0-9 !|&()]+)\]>(<!-->)?|(<!--)?<!\[endif\]-->/i', function ($m) use (&$markers) {
+            $key           = 'MOCOND' . count($markers) . 'X' . wp_generate_password(8, false) . 'X';
+            $markers[$key] = $m[0];
+
+            return $key;
+        }, preg_replace('/^\s*<!doctype[^>]*>/i', '', $html));
+
+        return $doctype . strtr(wp_kses($html, $allowed), $markers);
     }
 
     /**

@@ -139,14 +139,15 @@ class Broadcast_Page
                         <div class="mo-card">
                             <h3><?php esc_html_e('Content', 'mailoptin'); ?></h3>
                             <div class="mo-design">
-                                <a class="mo-thumb" href="<?php echo esc_url(self::design_url($email_campaign_id)); ?>" data-design aria-label="<?php esc_attr_e('Design email', 'mailoptin'); ?>">
+                                <?php // Sent or sending: the email is a record, the preview isn't a link. ?>
+                                <?php if ($editable) : ?><a class="mo-thumb" href="<?php echo esc_url(self::design_url($email_campaign_id)); ?>" data-design aria-label="<?php esc_attr_e('Design email', 'mailoptin'); ?>"><?php else : ?><div class="mo-thumb"><?php endif; ?>
                                     <iframe title="<?php esc_attr_e('Email preview', 'mailoptin'); ?>" sandbox="" tabindex="-1" srcdoc="<?php echo htmlspecialchars((string)(new NewsletterTemplatePreview($email_campaign_id))->forge(), ENT_QUOTES, 'UTF-8', true); ?>"></iframe>
-                                    <span><?php esc_html_e('Design email', 'mailoptin'); ?></span>
-                                </a>
+                                    <?php if ($editable) : ?><span><?php esc_html_e('Design email', 'mailoptin'); ?></span><?php endif; ?>
+                                <?php echo $editable ? '</a>' : '</div>'; ?>
                                 <div>
                                     <?php if ($editable) : ?>
                                         <p><a class="button button-primary button-hero" href="<?php echo esc_url(self::design_url($email_campaign_id)); ?>" data-design><?php esc_html_e('Design email', 'mailoptin'); ?></a></p>
-                                        <p class="description"><?php esc_html_e('Opens the email designer over this page. Your changes here are saved first. Close the designer to come back.', 'mailoptin'); ?></p>
+                                        <p class="description"><?php esc_html_e('Opens the email editor. Your changes here are saved first; "Next: audience & sending" brings you back.', 'mailoptin'); ?></p>
                                     <?php endif; ?>
                                     <h4><?php esc_html_e('Send a test', 'mailoptin'); ?></h4>
                                     <p class="mo-inline">

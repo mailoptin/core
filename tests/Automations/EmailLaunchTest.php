@@ -20,6 +20,11 @@ class EmailLaunchTest extends EngineTest
     {
         parent::set_up();
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        set_current_screen('dashboard');
+        // A broadcast's status is read from the campaign log and meta tables.
+        \MailOptin\Core\RegisterActivation\CreateDBTables::make();
+        \MailOptin\Core\DBUpdates::get_instance()->update_routine_7();
+        \MailOptin\Core\Base::get_instance()->register_metadata_table();
         add_filter('pre_http_request', function () { return ['headers' => [], 'body' => '', 'response' => ['code' => 200, 'message' => 'OK'], 'cookies' => []]; });
     }
 
@@ -74,10 +79,18 @@ class EmailLaunchTest extends EngineTest
         $this->assertSame(['code_your_own', 'email_campaign_title'], array_keys($values), 'HTML and settings only: no blocks.');
         $this->assertStringContainsString('<h1>Hello</h1>', $values['code_your_own']);
 
-        // Cleaned as the Customizer did for those who may not post unfiltered HTML.
-        wp_set_current_user(self::factory()->user->create(['role' => 'editor']));
+        // Those who may not post unfiltered HTML keep a whole email (head, style, body, tables),
+        // without scripts or event attributes.
         add_filter('map_meta_cap', $no_unfiltered = function ($caps, $cap) { return 'unfiltered_html' === $cap ? ['do_not_allow'] : $caps; }, 10, 2);
-        $this->assertStringNotContainsString('<script>', EmailEditor::clean_state(['code' => $html], $id)['code_your_own']);
+        $doc   = '<!doctype html><html><head><meta charset="utf-8"><style>.x{color:red}</style></head><body bgcolor="#fff"><table role="presentation" width="600" cellpadding="0"><tr><td class="x" onclick="bad()">Hi</td></tr></table><!--[if mso]><p>Outlook</p><![endif]--><script>bad()</script></body></html>';
+        $clean = EmailEditor::clean_state(['code' => $doc], $id)['code_your_own'];
+        foreach (['<!doctype html>', '<head>', '<style>.x{color:red}</style>', '<body bgcolor="#fff">', 'width="600"', 'cellpadding="0"', '<td class="x">', '<!--[if mso]>'] as $kept) {
+            $this->assertStringContainsString($kept, $clean);
+        }
+        $this->assertStringNotContainsString('<script>', $clean);
+        $this->assertStringNotContainsString('onclick', $clean);
+        $starter = EmailEditor::clean_state(['code' => EmailEditor::starter_html()], $id)['code_your_own'];
+        foreach (['<head>', '<title>', 'role="presentation"', 'href="[unsubscribe]"'] as $kept) $this->assertStringContainsString($kept, $starter, 'The starter email survives a save.');
         remove_filter('map_meta_cap', $no_unfiltered);
 
         ER::update_settings_by_id($id, ['code_your_own' => $values['code_your_own']]);
@@ -137,5 +150,45 @@ class EmailLaunchTest extends EngineTest
         $this->assertInstanceOf(EmailContext::class, $context);
         $this->assertTrue($context->accepts_template('Lucid'));
         $this->assertFalse($context->accepts_template('nope'));
+    }
+
+    public function test_the_template_dialog_saves_the_automation_page_first()
+    {
+        $automation = Repo::create(['name' => 'Before', 'trigger_id' => 'test_event', 'status' => Repo::STATUS_DRAFT]);
+
+        $_GET     = ['page' => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG, 'view' => Automations_Page::VIEW, 'screen' => 'edit', 'id' => $automation];
+        $_POST    = ['mo_automation_action' => 'add_email', 'mo_new_email_template' => ER::CODE_YOUR_OWN_TEMPLATE, 'id' => $automation, 'name' => 'Renamed on the page', '_wpnonce' => wp_create_nonce('mo_automation_' . $automation)];
+        $_REQUEST = $_GET + $_POST;
+
+        $location = null;
+        add_filter('mailoptin_automations_page_redirect', $stop = function ($url) use (&$location) {
+            $location = $url;
+            throw new \RuntimeException('redirected');
+        });
+        try {
+            Automations_Page::get_instance()->handle_actions();
+        } catch (\RuntimeException $e) {
+        }
+        remove_filter('mailoptin_automations_page_redirect', $stop);
+        $_GET = $_POST = $_REQUEST = [];
+
+        $this->assertSame('Renamed on the page', Repo::get($automation)['name'], 'What was typed on the page is kept.');
+        $steps = Repo::steps($automation);
+        $email = (int)end($steps)['settings']['email_campaign_id'];
+        $this->assertTrue(EmailEditor::is_code($email), 'In the template chosen.');
+        $this->assertSame(EmailEditor::url($email), $location, 'And it opens in the editor.');
+    }
+
+    public function test_a_sent_broadcasts_preview_is_not_a_link_to_the_editor()
+    {
+        $id = EmailEditor::start('broadcast', 'Lucid', ['name' => 'Gone out']);
+        \MailOptin\Core\Repositories\EmailCampaignMeta::update_meta_data($id, 'newsletter_date_sent', '2026-01-01 10:00:00');
+
+        $_GET = $_REQUEST = ['page' => MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG, 'view' => Broadcast_Page::VIEW, 'id' => $id];
+        $html = Broadcast_Page::html();
+        $_GET = $_REQUEST = [];
+
+        $this->assertFalse(EmailEditor::edits($id));
+        $this->assertStringNotContainsString(esc_url(EmailEditor::url($id)), $html);
     }
 }
