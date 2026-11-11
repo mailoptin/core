@@ -57,7 +57,23 @@ $sections = ['body' => __('Body', 'mailoptin'), 'header' => __('Header', 'mailop
                 </div>
             </section>
 
-            <section class="mo-ee-pane" data-pane="design" data-group="design">
+            <section class="mo-ee-pane" data-pane="design">
+                <details class="mo-ee-section" open>
+                    <summary><?php esc_html_e('Template', 'mailoptin'); ?></summary>
+                    <div class="mo-ee-templates" role="radiogroup" aria-label="<?php esc_attr_e('Template', 'mailoptin'); ?>">
+                        <?php foreach ($templates as $template) : ?>
+                            <label class="mo-ee-template">
+                                <input type="radio" name="mo-ee-template" class="mo-ee-template-input" value="<?php echo esc_attr($template['id']); ?>">
+                                <?php if ('' !== $template['screenshot']) : ?>
+                                    <img src="<?php echo esc_url($template['screenshot']); ?>" alt="" loading="lazy">
+                                <?php endif; ?>
+                                <span><?php echo esc_html($template['name']); ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="description"><?php esc_html_e('Your content and colours stay when you switch.', 'mailoptin'); ?></p>
+                </details>
+                <div data-group="design">
                 <?php foreach ($sections as $section => $label) : ?>
                     <details class="mo-ee-section" <?php echo 'body' === $section ? 'open' : ''; ?>>
                         <summary><?php echo esc_html($label); ?></summary>
@@ -66,6 +82,7 @@ $sections = ['body' => __('Body', 'mailoptin'), 'header' => __('Header', 'mailop
                         } ?>
                     </details>
                 <?php endforeach; ?>
+                </div>
             </section>
 
             <section class="mo-ee-pane" data-pane="settings" data-group="settings">

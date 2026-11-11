@@ -7,6 +7,7 @@ use MailOptin\Core\Automations\Triggers;
 use MailOptin\Core\EmailBlocks\AbstractBlock;
 use MailOptin\Core\EmailBlocks\Blocks;
 use MailOptin\Core\EmailBlocks\Fields;
+use MailOptin\Core\EmailBlocks\Templates;
 use MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts;
 use MailOptin\Core\EmailCampaigns\Newsletter\Templatify;
 use MailOptin\Core\Repositories\AutomationsRepository as Repo;
@@ -131,7 +132,7 @@ class EmailEditor
     public static function state($email_campaign_id)
     {
         $content = json_decode((string)ER::get_customizer_value($email_campaign_id, 'email_newsletter_content'), true);
-        $state   = ['content' => is_array($content) ? array_values($content) : [], 'design' => [], 'settings' => []];
+        $state   = ['template' => (string)ER::get_template_class($email_campaign_id), 'content' => is_array($content) ? array_values($content) : [], 'design' => [], 'settings' => []];
 
         foreach (self::design_fields() as $key => $field) $state['design'][$key] = ER::get_merged_customizer_value($email_campaign_id, $key);
         foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)ER::get_merged_customizer_value($email_campaign_id, $key);
@@ -161,6 +162,16 @@ class EmailEditor
     }
 
     /**
+     * The template a posted state asks for, if this email may use it.
+     */
+    public static function posted_template($state, $email_campaign_id)
+    {
+        $id = is_array($state) && is_string($state['template'] ?? null) ? $state['template'] : '';
+
+        return '' !== $id && isset(Templates::get_instance()->for_email($email_campaign_id)[$id]) ? $id : null;
+    }
+
+    /**
      * What the saved email is now, to tell whether it changed since the editor loaded it. Only the
      * settings this editor shows count: a change made elsewhere (say, the broadcast's audience)
      * isn't a conflict.
@@ -170,7 +181,7 @@ class EmailEditor
         $saved = (array)Settings::get_saved(Settings::TYPE_EMAIL, $email_campaign_id);
         $keys  = array_merge(['email_newsletter_content'], array_keys(self::design_fields()), array_keys(self::settings_fields()));
 
-        return md5(wp_json_encode(array_intersect_key($saved, array_flip($keys))));
+        return md5(wp_json_encode([ER::get_template_class($email_campaign_id), array_intersect_key($saved, array_flip($keys))]));
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -238,7 +249,8 @@ class EmailEditor
             return;
         }
 
-        $blocks = Blocks::get_instance()->available_for($email_campaign_id);
+        $blocks    = Blocks::get_instance()->available_for($email_campaign_id);
+        $templates = Templates::get_instance()->for_email($email_campaign_id);
 
         include __DIR__ . '/view.php';
     }
@@ -369,14 +381,21 @@ class EmailEditor
     public function ajax_preview()
     {
         $email_campaign_id = self::authorize();
+        $state             = self::posted_state();
 
-        foreach (self::clean_state(self::posted_state()) as $key => $value) {
+        foreach (self::clean_state($state) as $key => $value) {
             Settings::set_preview(Settings::TYPE_EMAIL, $email_campaign_id, $key, $value);
         }
 
-        $html = (new Templatify($email_campaign_id))->forge();
+        // Another template chosen, not saved yet.
+        if ($template = self::posted_template($state, $email_campaign_id)) Templates::set_preview($email_campaign_id, $template);
 
-        Settings::clear_preview();
+        try {
+            $html = (new Templatify($email_campaign_id))->forge();
+        } finally {
+            Settings::clear_preview();
+            Templates::clear_preview();
+        }
 
         wp_send_json_success(['html' => self::with_samples($email_campaign_id, $html)]);
     }
@@ -410,7 +429,12 @@ class EmailEditor
             wp_send_json_error(['conflict' => true, 'state' => self::state($email_campaign_id), 'version' => self::version($email_campaign_id)], 409);
         }
 
-        ER::update_settings_by_id($email_campaign_id, self::clean_state(self::posted_state()));
+        $state = self::posted_state();
+
+        ER::update_settings_by_id($email_campaign_id, self::clean_state($state));
+
+        $template = self::posted_template($state, $email_campaign_id);
+        if ($template && $template !== ER::get_template_class($email_campaign_id)) Templates::set_for_email($email_campaign_id, $template);
 
         wp_send_json_success(['version' => self::version($email_campaign_id), 'state' => self::state($email_campaign_id)]);
     }

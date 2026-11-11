@@ -260,6 +260,7 @@
     }
 
     function fillAll() {
+        $('.mo-ee-template-input').each(function () { this.checked = this.value === state.template; });
         fill($('[data-group="design"]'), state.design);
         fill($('[data-group="settings"]'), state.settings);
         if (openId) fill($('.mo-ee-block-form'), blockById(openId).settings);
@@ -524,6 +525,14 @@
             });
 
         $('.mo-ee-block-done').on('click', closeBlock);
+
+        // The template: the email's frame, drawn around the same content.
+        $('#mo-ee').on('change', '.mo-ee-template-input', function () {
+            if (!this.checked || this.value === state.template) return;
+            beginEdit(true);
+            state.template = this.value;
+            changed(true);
+        });
 
         $('#mo-ee').on('input change', '.mo-ee-input:not(.mo-ee-color)', function () { onField($(this)); });
 

@@ -124,6 +124,8 @@ class Base
         \MailOptin\MailOptinConnect\Connect::get_instance();
         Api\SubscribersApi::get_instance();
         require_once __DIR__ . '/Api/functions.php';
+        require_once __DIR__ . '/EmailBlocks/functions.php';
+        EmailBlocks\Templates::get_instance();
 
         $this->admin_hooks();
         Admin\Customizer\EmailCampaign\Customizer::instance();

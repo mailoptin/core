@@ -21,6 +21,8 @@ class Style
     {
         $this->email_campaign_id = absint($email_campaign_id);
         $this->template          = $template;
+
+        if ($template && method_exists($template, 'content_width')) $this->width = max(100, (int)$template->content_width());
     }
 
     /**
