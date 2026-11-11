@@ -117,7 +117,7 @@ class Blocks
                 }
             }
 
-            return $block->render_columns($settings, $columns, $id, $style->width);
+            return self::with_id($block->render_columns($settings, $columns, $id, $style->width), $id);
         }
 
         // A template may draw a block its own way.
@@ -126,7 +126,18 @@ class Blocks
             return (string)$style->template->$method($id, $settings);
         }
 
-        return $block ? (string)$block->render($settings, (array)$context, $style, $id) : '';
+        return $block ? self::with_id((string)$block->render($settings, (array)$context, $style, $id), $id) : '';
+    }
+
+    /**
+     * The block's id on its element (the first "mo-email-builder-element"), for the Customizer's
+     * preview: a click there opens the block's settings.
+     */
+    protected static function with_id($html, $id)
+    {
+        if ('' === $id) return $html;
+
+        return preg_replace('/class="([^"]*\bmo-email-builder-element)"/', 'class="$1" data-id="' . esc_attr($id) . '"', $html, 1);
     }
 
     /**

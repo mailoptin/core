@@ -9,9 +9,10 @@
     "pad_l": 20,
     "font_size": 16,
     "font_family": "Arial, sans-serif",
+    "color": "#74787e",
     "content": "<p>Hello there</p>"
    },
-   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-content-text-color mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <div\n         style=\"font-family:Arial, sans-serif;font-size:16px;line-height:1.5;text-align:left;color:inherit;\"\n      ><p>Hello there</p></div>\n    \n                </td>\n              </tr>"
+   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-content-text-color mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <div\n         style=\"font-family:Arial, sans-serif;font-size:16px;line-height:1.5;text-align:left;color:#74787e;\"\n      ><p>Hello there</p></div>\n    \n                </td>\n              </tr>"
   }
  ],
  "image-link": [
