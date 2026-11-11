@@ -77,7 +77,7 @@ class Columns extends AbstractBlock
     public static function pixel_widths($settings, $container = 570)
     {
         $padding = Mjml::padding($settings['block_padding'] ?? []);
-        $inner   = $container - $padding['pad_l'] - $padding['pad_r'];
+        $inner   = max(0, $container - $padding['pad_l'] - $padding['pad_r']);
         $widths  = self::widths($settings['columns_layout'] ?? '');
         $half    = self::half_gap($settings);
         $last    = count($widths) - 1;
@@ -120,7 +120,7 @@ class Columns extends AbstractBlock
         $layout  = isset(self::LAYOUTS[$settings['columns_layout'] ?? '']) ? $settings['columns_layout'] : '50-50';
         $valign  = 'middle' === ($settings['columns_valign'] ?? '') ? 'middle' : 'top';
         $padding = Mjml::padding($settings['block_padding'] ?? []);
-        $inner   = $container - $padding['pad_l'] - $padding['pad_r'];
+        $inner   = max(0, $container - $padding['pad_l'] - $padding['pad_r']);
         $bg      = Fields::color($settings['columns_background'] ?? '');
 
         $values = $padding + [

@@ -24,7 +24,7 @@ class Divider extends ElementBlock
             'style'         => in_array($settings['divider_style'], ['solid', 'dashed', 'dotted', 'double'], true) ? $settings['divider_style'] : 'solid',
             'color'         => esc_attr(Fields::color($settings['divider_color']) ?: '#cccccc'),
             // MJML's Outlook width: the room less the padding, times the width.
-            'outlook_width' => Mjml::number(($style->width - $padding['pad_l'] - $padding['pad_r']) * $width / 100),
+            'outlook_width' => Mjml::number(max(0, $style->width - $padding['pad_l'] - $padding['pad_r']) * $width / 100),
         ]);
     }
 }

@@ -86,6 +86,8 @@ class MjmlTest extends \WP_UnitTestCase
                 // The text block's content goes through wpautop.
                 if ('text' === $type) $expected = str_replace('<p>Hello there</p>', wpautop('Hello there'), $expected);
 
+                if ('text' === $type) ER::update_settings_by_id($this->email, ['content_text_color' => $case['sample']['color']]);
+
                 $this->assertSame($expected, $this->draw($type, $settings, $case['sample']['container']), "$fixture: " . wp_json_encode($case['sample']));
                 $checked++;
             }

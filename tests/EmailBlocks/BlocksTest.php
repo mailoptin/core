@@ -263,4 +263,25 @@ class BlocksTest extends \WP_UnitTestCase
         // Outside columns, as set.
         $this->assertStringContainsString('width="500"', $this->blocks()->render([$image], $this->email));
     }
+
+    public function test_blocks_carry_their_id_for_the_customizer_preview()
+    {
+        $html = $this->blocks()->render([$this->text('t1', 'Hi'), $this->columns('50-50', [[$this->text('t2', 'In')], []])], $this->email);
+
+        $this->assertSame(1, substr_count($html, 'data-id="t1"'));
+        $this->assertSame(1, substr_count($html, 'data-id="t2"'));
+        $this->assertSame(1, substr_count($html, 'data-id="c1"'), "On the columns' element, not its Outlook table.");
+        $this->assertStringNotContainsString('mo-email-builder-element-outlook" data-id', $html);
+    }
+
+    public function test_padding_wider_than_the_email_gives_no_negative_widths()
+    {
+        $pad  = ['top' => 0, 'right' => 400, 'bottom' => 0, 'left' => 400];
+        $html = $this->blocks()->render([
+            ['id' => 'd', 'type' => 'divider', 'settings' => ['block_padding' => $pad]],
+            ['id' => 'c', 'type' => 'columns', 'settings' => ['block_padding' => $pad], 'columns' => [[], []]],
+        ], $this->email);
+
+        $this->assertDoesNotMatchRegularExpression('/width:-|width="-/', $html);
+    }
 }

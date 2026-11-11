@@ -44,9 +44,9 @@ const blocks = {};
 const SAMPLE_PAD = {pad_t: 10, pad_r: 25, pad_b: 12, pad_l: 20};
 
 blocks.text = {
-    samples: [{container: 570, ...SAMPLE_PAD, font_size: 16, font_family: 'Arial, sans-serif', content: '<p>Hello there</p>'}],
+    samples: [{container: 570, ...SAMPLE_PAD, font_size: 16, font_family: 'Arial, sans-serif', color: '#74787e', content: '<p>Hello there</p>'}],
     vars: Object.assign({}, CONTAINER, PADDING, {font_size: [307, 311]}),
-    mjml: leaf((v) => `<mj-text css-class="mo-content-text-color mo-email-builder-element" padding="${pad(v)}" font-family="${slot('font_family')}" font-size="${v.font_size}px" color="inherit" line-height="1.5">${slot('content')}</mj-text>`),
+    mjml: leaf((v) => `<mj-text css-class="mo-content-text-color mo-email-builder-element" padding="${pad(v)}" font-family="${slot('font_family')}" font-size="${v.font_size}px" color="${slot('color')}" line-height="1.5">${slot('content')}</mj-text>`),
 };
 
 for (const linked of [true, false]) {
