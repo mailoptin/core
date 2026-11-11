@@ -269,7 +269,11 @@ class Broadcasts
     /**
      * @return array checks, each label, ok (bool) and blocking (whether it stops sending)
      */
-    public static function checks($email_campaign_id)
+    /**
+     * @param bool $content also the editor's content warnings (alt text, links...): for showing;
+     *                      deciding whether it can be sent needs only the blocking checks
+     */
+    public static function checks($email_campaign_id, $content = true)
     {
         $count = self::recipients_count($email_campaign_id);
         $html  = (string)(new NewsletterTemplatePreview($email_campaign_id))->forge();
@@ -290,7 +294,7 @@ class Broadcasts
 
         $checks[] = ['label' => __('Unsubscribe link in the design', 'mailoptin'), 'ok' => false !== strpos($html, '{{unsubscribe}}'), 'blocking' => false];
         // The editor's checks on the content (alt text, links, placeholders, size): warnings only.
-        if (\MailOptin\Core\Admin\EmailEditor\EmailEditor::edits($email_campaign_id)) {
+        if ($content && \MailOptin\Core\Admin\EmailEditor\EmailEditor::edits($email_campaign_id)) {
             $state = \MailOptin\Core\Admin\EmailEditor\EmailEditor::state($email_campaign_id);
             foreach (\MailOptin\Core\Admin\EmailEditor\EmailEditor::checks($email_campaign_id, $state, $html) as $check) {
                 if ( ! $check['ok'] && in_array($check['kind'], ['element', 'placeholder', 'size'], true)) {
@@ -327,7 +331,7 @@ class Broadcasts
 
     public static function can_send($email_campaign_id)
     {
-        foreach (self::checks($email_campaign_id) as $check) {
+        foreach (self::checks($email_campaign_id, false) as $check) {
             if ($check['blocking'] && ! $check['ok']) return false;
         }
 

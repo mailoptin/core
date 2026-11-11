@@ -700,7 +700,10 @@ HTML;
             Templates::clear_preview();
         }
 
-        wp_send_json_success(['html' => self::with_samples($email_campaign_id, $html), 'checks' => self::checks($email_campaign_id, $state, $html)]);
+        // Checked as drawn for someone (sample cart and products in), so the size is what's sent.
+        $shown = self::with_samples($email_campaign_id, $html);
+
+        wp_send_json_success(['html' => $shown, 'checks' => self::checks($email_campaign_id, $state, $shown)]);
     }
 
     /**

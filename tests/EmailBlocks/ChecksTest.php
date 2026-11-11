@@ -54,4 +54,18 @@ class ChecksTest extends \WP_UnitTestCase
         $this->assertSame(['element', 'element', 'placeholder'], $this->kinds($checks));
         $this->assertNotContains('unsubscribe', $this->kinds($checks), 'The [unsubscribe] shortcode counts.');
     }
+
+    public function test_alt_text_must_say_something()
+    {
+        $warned = function ($img) {
+            return in_array('element', $this->kinds(Checks::run(['code' => $img, 'settings' => ['email_campaign_title' => 'S']], '{{unsubscribe}}', [])), true);
+        };
+
+        $this->assertFalse($warned('<img src="a.png" alt="Tulips">'));
+        $this->assertFalse($warned("<img src='a.png' alt='Tulips'>"));
+        $this->assertFalse($warned('<img src=a.png alt=Tulips>'));
+        $this->assertTrue($warned('<img src="a.png" alt=" ">'), 'A space says nothing.');
+        $this->assertTrue($warned('<img src="a.png" data-alt="Tulips">'), 'data-alt is not alt.');
+        $this->assertTrue($warned('<img src="a.png">'));
+    }
 }

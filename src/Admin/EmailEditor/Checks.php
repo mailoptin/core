@@ -128,7 +128,8 @@ class Checks
     {
         $warn = [];
 
-        if (preg_match('/<img(?![^>]*\balt\s*=\s*["\'][^"\']+["\'])[^>]*>/i', $html)) {
+        // An <img> without alt text that says something (quoted or not; data-alt isn't alt).
+        if (preg_match('/<img(?![^>]*(?<![\w-])alt\s*=\s*(?:(["\'])\s*[^"\'\s][^"\']*\1|[^\s"\'>]+))[^>]*>/i', $html)) {
             $warn[] = __('An image has no alt text. People who don\'t load images see nothing there.', 'mailoptin');
         }
 
