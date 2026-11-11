@@ -133,7 +133,7 @@ class Blocks
      * The block's id on its element (the first "mo-email-builder-element"), for the Customizer's
      * preview: a click there opens the block's settings.
      */
-    protected static function with_id($html, $id)
+    public static function with_id($html, $id)
     {
         if ('' === $id) return $html;
 
