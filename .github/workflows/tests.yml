@@ -90,3 +90,22 @@ jobs:
             echo "::endgroup::"
           done
           exit $status
+
+  # The email blocks' HTML is compiled from MJML (bin/email-blocks/build.js): the committed templates
+  # must be what the build makes, and the build checks each against MJML's own output.
+  email-blocks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: bin/email-blocks/package-lock.json
+
+      - name: Compile the MJML and compare
+        working-directory: bin/email-blocks
+        run: |
+          npm ci --no-audit --no-fund
+          npm run check

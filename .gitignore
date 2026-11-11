@@ -18,3 +18,4 @@ src/BlockEditor/node_modules/*
 !tests/Repositories/
 !tests/Automations/
 !tests/EmailBlocks/
+bin/email-blocks/node_modules/

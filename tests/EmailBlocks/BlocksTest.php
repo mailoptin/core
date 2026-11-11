@@ -152,7 +152,6 @@ class BlocksTest extends \WP_UnitTestCase
 
         $html = (new Templatify($this->email))->builderHtml();
 
-        $this->assertStringContainsString('id="one"', $html);
         $this->assertStringContainsString('<p>First paragraph</p>', $html);
         $this->assertStringContainsString('height:30px', $html);
         $this->assertStringContainsString('First paragraph', (new Templatify($this->email))->forge());
@@ -206,14 +205,14 @@ class BlocksTest extends \WP_UnitTestCase
     {
         $html = $this->blocks()->render([$this->columns('33-67', [[$this->text('a', 'Left side')], [$this->text('b', 'Right side')]])], $this->email);
 
-        $this->assertSame(2, substr_count($html, 'class="mo-col"'));
-        $this->assertStringContainsString('width="33%"', $html);
-        $this->assertStringContainsString('width="67%"', $html);
+        $this->assertStringContainsString('mj-column-per-33 ', $html);
+        $this->assertStringContainsString('mj-column-per-67 ', $html);
         $this->assertLessThan(strpos($html, 'Right side'), strpos($html, 'Left side'));
-        $this->assertStringContainsString('mo-cols-stack', $html, 'Stacking on phones is on by default.');
+        $this->assertStringNotContainsString('mj-column-per-100', $html, 'Stacking on phones is on by default: no group.');
 
+        // Kept side by side on phones: an mj-group.
         $html = $this->blocks()->render([$this->columns('50-50', [[], []], ['columns_stack' => false])], $this->email);
-        $this->assertStringNotContainsString('mo-cols-stack', $html);
+        $this->assertStringContainsString('mj-column-per-100', $html);
     }
 
     public function test_columns_are_one_level_deep_and_follow_their_layout()
@@ -238,15 +237,18 @@ class BlocksTest extends \WP_UnitTestCase
     public function test_emails_with_columns_get_the_phone_styles()
     {
         ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([$this->text('a', 'Plain')])]);
-        $this->assertSame('base', Blocks::template_css('base', $this->email));
+        $this->assertFalse(Blocks::has_columns($this->email));
+        $this->assertStringNotContainsString('mj-column-per', (new Templatify($this->email))->forge());
 
         ER::update_settings_by_id($this->email, ['email_newsletter_content' => wp_json_encode([$this->columns('50-50', [[$this->text('a', 'In a column')], []])])]);
-        $this->assertStringContainsString('mo-cols-stack', Blocks::template_css('base', $this->email));
+        $this->assertTrue(Blocks::has_columns($this->email));
 
         $html = (new Templatify($this->email))->forge();
         $this->assertStringContainsString('In a column', $html);
-        $this->assertStringContainsString('@media only screen and (max-width: 600px)', $html);
-        $this->assertStringContainsString('table.mo-cols-stack td.mo-col{display: block !important', $html, 'The phone rule survives inlining, as written.');
+        // MJML's head rules, as written: added after inlining, which would drop the .moz-text-html ones.
+        $this->assertStringContainsString('.mj-column-per-50 { width:50% !important; max-width: 50%; }', $html);
+        $this->assertStringContainsString('.moz-text-html .mj-column-per-50', $html);
+        $this->assertLessThan(stripos($html, '</head>'), strpos($html, '.mj-column-per-50 {'), 'In the head.');
     }
 
     public function test_an_image_is_no_wider_than_its_column()

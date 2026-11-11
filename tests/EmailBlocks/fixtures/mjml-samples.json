@@ -1,0 +1,660 @@
+{
+ "text": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 16,
+    "font_family": "Arial, sans-serif",
+    "content": "<p>Hello there</p>"
+   },
+   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-content-text-color mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <div\n         style=\"font-family:Arial, sans-serif;font-size:16px;line-height:1.5;text-align:left;color:inherit;\"\n      ><p>Hello there</p></div>\n    \n                </td>\n              </tr>"
+  }
+ ],
+ "image-link": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "width": 300,
+    "align": "left",
+    "src": "https://example.com/a.png",
+    "alt": "A",
+    "href": "https://example.com/"
+   },
+   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:collapse;border-spacing:0px;\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"width:300px;\">\n              \n        <a\n           href=\"https://example.com/\" target=\"_blank\"\n        >\n          \n      <img\n         alt=\"A\" src=\"https://example.com/a.png\" style=\"border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;\" width=\"300\" height=\"auto\"\n      />\n    \n        </a>\n      \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "width": 300,
+    "align": "center",
+    "src": "https://example.com/a.png",
+    "alt": "A",
+    "href": "https://example.com/"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:collapse;border-spacing:0px;\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"width:300px;\">\n              \n        <a\n           href=\"https://example.com/\" target=\"_blank\"\n        >\n          \n      <img\n         alt=\"A\" src=\"https://example.com/a.png\" style=\"border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;\" width=\"300\" height=\"auto\"\n      />\n    \n        </a>\n      \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "width": 300,
+    "align": "right",
+    "src": "https://example.com/a.png",
+    "alt": "A",
+    "href": "https://example.com/"
+   },
+   "html": "<tr>\n                <td\n                   align=\"right\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:collapse;border-spacing:0px;\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"width:300px;\">\n              \n        <a\n           href=\"https://example.com/\" target=\"_blank\"\n        >\n          \n      <img\n         alt=\"A\" src=\"https://example.com/a.png\" style=\"border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;\" width=\"300\" height=\"auto\"\n      />\n    \n        </a>\n      \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  }
+ ],
+ "image": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "width": 300,
+    "align": "left",
+    "src": "https://example.com/a.png",
+    "alt": "A",
+    "href": "https://example.com/"
+   },
+   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:collapse;border-spacing:0px;\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"width:300px;\">\n              \n      <img\n         alt=\"A\" src=\"https://example.com/a.png\" style=\"border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;\" width=\"300\" height=\"auto\"\n      />\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "width": 300,
+    "align": "center",
+    "src": "https://example.com/a.png",
+    "alt": "A",
+    "href": "https://example.com/"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:collapse;border-spacing:0px;\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"width:300px;\">\n              \n      <img\n         alt=\"A\" src=\"https://example.com/a.png\" style=\"border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;\" width=\"300\" height=\"auto\"\n      />\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "width": 300,
+    "align": "right",
+    "src": "https://example.com/a.png",
+    "alt": "A",
+    "href": "https://example.com/"
+   },
+   "html": "<tr>\n                <td\n                   align=\"right\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:collapse;border-spacing:0px;\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"width:300px;\">\n              \n      <img\n         alt=\"A\" src=\"https://example.com/a.png\" style=\"border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;\" width=\"300\" height=\"auto\"\n      />\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  }
+ ],
+ "button": [
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "left",
+    "font_weight": "normal",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "left",
+    "font_weight": "bold",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "left",
+    "font_weight": "600",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"left\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:600;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "center",
+    "font_weight": "normal",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "center",
+    "font_weight": "bold",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "center",
+    "font_weight": "600",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:600;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "right",
+    "font_weight": "normal",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"right\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "right",
+    "font_weight": "bold",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"right\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 275,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "font_size": 18,
+    "radius": 4,
+    "width": 100,
+    "in_t": 12,
+    "in_r": 24,
+    "in_b": 12,
+    "in_l": 24,
+    "align": "right",
+    "font_weight": "600",
+    "href": "https://example.com/",
+    "background": "#dc4d2f",
+    "color": "#ffffff",
+    "font_family": "Arial, sans-serif",
+    "text": "Shop now"
+   },
+   "html": "<tr>\n                <td\n                   align=\"right\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"border-collapse:separate;width:100%;line-height:100%;\"\n      >\n        <tbody>\n          <tr>\n            <td\n               align=\"center\" bgcolor=\"#dc4d2f\" role=\"presentation\" style=\"border:none;border-radius:4px;cursor:auto;mso-padding-alt:12px 24px 12px 24px;background:#dc4d2f;\" valign=\"middle\"\n            >\n              <a\n                 href=\"https://example.com/\" style=\"display:inline-block;background:#dc4d2f;color:#ffffff;font-family:Arial, sans-serif;font-size:18px;font-weight:600;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px 12px 24px;mso-padding-alt:0px;border-radius:4px;\" target=\"_blank\"\n              >\n                Shop now\n              </a>\n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n                </td>\n              </tr>"
+  }
+ ],
+ "divider": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "thickness": 2,
+    "width": 100,
+    "style": "solid",
+    "color": "#cccccc"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <p\n         style=\"border-top:solid 2px #cccccc;font-size:1px;margin:0px auto;width:100%;\"\n      >\n      </p>\n      \n      <!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-top:solid 2px #cccccc;font-size:1px;margin:0px auto;width:525px;\" role=\"presentation\" width=\"525px\" ><tr><td style=\"height:0;line-height:0;\"> &nbsp;\n</td></tr></table><![endif]-->\n    \n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "thickness": 2,
+    "width": 100,
+    "style": "dashed",
+    "color": "#cccccc"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <p\n         style=\"border-top:dashed 2px #cccccc;font-size:1px;margin:0px auto;width:100%;\"\n      >\n      </p>\n      \n      <!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-top:dashed 2px #cccccc;font-size:1px;margin:0px auto;width:525px;\" role=\"presentation\" width=\"525px\" ><tr><td style=\"height:0;line-height:0;\"> &nbsp;\n</td></tr></table><![endif]-->\n    \n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "thickness": 2,
+    "width": 100,
+    "style": "dotted",
+    "color": "#cccccc"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <p\n         style=\"border-top:dotted 2px #cccccc;font-size:1px;margin:0px auto;width:100%;\"\n      >\n      </p>\n      \n      <!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-top:dotted 2px #cccccc;font-size:1px;margin:0px auto;width:525px;\" role=\"presentation\" width=\"525px\" ><tr><td style=\"height:0;line-height:0;\"> &nbsp;\n</td></tr></table><![endif]-->\n    \n    \n                </td>\n              </tr>"
+  },
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "thickness": 2,
+    "width": 100,
+    "style": "double",
+    "color": "#cccccc"
+   },
+   "html": "<tr>\n                <td\n                   align=\"center\" class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <p\n         style=\"border-top:double 2px #cccccc;font-size:1px;margin:0px auto;width:100%;\"\n      >\n      </p>\n      \n      <!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"border-top:double 2px #cccccc;font-size:1px;margin:0px auto;width:525px;\" role=\"presentation\" width=\"525px\" ><tr><td style=\"height:0;line-height:0;\"> &nbsp;\n</td></tr></table><![endif]-->\n    \n    \n                </td>\n              </tr>"
+  }
+ ],
+ "spacer": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "height": 30
+   },
+   "html": "<tr>\n                <td\n                   class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <div\n         style=\"height:30px;line-height:30px;\"\n      >&#8202;</div>\n    \n                </td>\n              </tr>"
+  }
+ ],
+ "columns-50-50-top": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:top;width:262.5px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:top;width:262.5px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-50-50-top-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:top;width:262px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:50%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:top;width:262px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:50%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-50-50-middle": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:middle;width:262.5px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:middle;width:262.5px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-50-50-middle-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:middle;width:262px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:50%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:middle;width:262px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-50 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:50%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-67-top": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:top;width:173.25px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:top;width:351.75px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-67-top-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:top;width:173px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:top;width:351px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:67%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-67-middle": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:middle;width:173.25px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:middle;width:351.75px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-67-middle-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:middle;width:173px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:middle;width:351px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:67%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-67-33-top": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:top;width:351.75px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:top;width:173.25px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-67-33-top-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:top;width:351px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:67%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:top;width:173px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-67-33-middle": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:middle;width:351.75px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:middle;width:173.25px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-67-33-middle-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:middle;width:351px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-67 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:67%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:middle;width:173px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-33-33-top": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>",
+    "col2": "<tr><td>Column 2</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:top;width:174.9825px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:top;width:174.9825px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:top;width:174.9825px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 2</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-33-33-top-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>",
+    "col2": "<tr><td>Column 2</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:top;width:174px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33.33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:top;width:174px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33.33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 10px 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:top;width:174px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33.33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:top;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 2</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-33-33-middle": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>",
+    "col2": "<tr><td>Column 2</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:middle;width:174.9825px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:middle;width:174.9825px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td><td class=\"\" style=\"vertical-align:middle;width:174.9825px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 2</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
+ "columns-33-33-33-middle-nostack": [
+  {
+   "sample": {
+    "container": 570,
+    "pad_t": 10,
+    "pad_r": 25,
+    "pad_b": 12,
+    "pad_l": 20,
+    "half_gap": 10,
+    "background": "#f5f5f5",
+    "col0": "<tr><td>Column 0</td></tr>",
+    "col1": "<tr><td>Column 1</td></tr>",
+    "col2": "<tr><td>Column 2</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-builder-element-outlook\" role=\"presentation\" style=\"width:570px;\" width=\"570\" bgcolor=\"#f5f5f5\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-builder-element\" style=\"background:#f5f5f5;background-color:#f5f5f5;margin:0px auto;max-width:570px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#f5f5f5;background-color:#f5f5f5;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:10px 25px 12px 20px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"width:525px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;\"\n      >\n        <!--[if mso | IE]><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" ><tr><td style=\"vertical-align:middle;width:174px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:33.33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 0;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 0</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:middle;width:174px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:33.33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 10px 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 1</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td><td style=\"vertical-align:middle;width:174px;\" ><![endif]-->\n                \n      <div\n         class=\"mj-column-per-33-33 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:middle;width:33.33%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" width=\"100%\"\n      >\n        <tbody>\n          <tr>\n            <td  style=\"vertical-align:middle;padding:0 0 0 10px;\">\n              \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Column 2</td></tr>\n        </tbody>\n      </table>\n    \n            </td>\n          </tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n              <!--[if mso | IE]></td></tr></table><![endif]-->\n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ]
+}
