@@ -85,6 +85,15 @@ HTML;
 
     abstract function email_content_builder_element_defaults($defaults);
 
+    /**
+     * The width, in pixels, of the table the blocks go in ({{newsletter.content}}): blocks and
+     * columns are drawn to fit it.
+     */
+    public function content_width()
+    {
+        return 570;
+    }
+
     // Blocks are drawn by the block API (src/EmailBlocks), from MJML. A template can still draw one its
     // own way by defining {block id}_block($id, $settings).
 }

@@ -66,6 +66,13 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-ee-dimension input { width: 100%; }
 .mo-ee-image { display: flex; gap: 6px; }
 .mo-ee-section { border-bottom: 1px solid #f0f0f1; padding: 8px 0; }
+.mo-ee-templates { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.mo-ee-template { position: relative; display: block; border: 2px solid #dcdcde; border-radius: 4px; padding: 6px; cursor: pointer; text-align: center; background: #fff; }
+.mo-ee-template input { position: absolute; opacity: 0; }
+.mo-ee-template img { display: block; width: 100%; height: 110px; object-fit: cover; object-position: top; border-radius: 2px; background: #f6f7f7; }
+.mo-ee-template span { display: block; margin-top: 4px; font-weight: 600; }
+.mo-ee-template:has(input:checked) { border-color: #2271b1; }
+.mo-ee-template:has(input:focus-visible) { box-shadow: 0 0 0 2px #2271b1; }
 .mo-ee-section summary { font-weight: 600; cursor: pointer; padding: 4px 0 10px; }
 
 .mo-ee-preview { flex: 1; position: relative; overflow: auto; display: flex; justify-content: center; padding: 20px; min-width: 0; }
