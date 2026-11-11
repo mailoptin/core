@@ -38,9 +38,12 @@ class Broadcast_Page
         return add_query_arg(['view' => self::VIEW, 'id' => absint($email_campaign_id)] + $args, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
     }
 
+    /**
+     * The email editor, for every broadcast (blocks or HTML written by hand).
+     */
     public static function design_url($email_campaign_id)
     {
-        return add_query_arg([self::FROM_PAGE_ARG => 1, 'return' => rawurlencode(self::url($email_campaign_id, ['designed' => 1]))], Email_Campaign_List::_campaign_customize_url($email_campaign_id));
+        return \MailOptin\Core\Admin\EmailEditor\EmailEditor::url($email_campaign_id);
     }
 
     protected static function is_this_page()
@@ -59,8 +62,7 @@ class Broadcast_Page
     {
         if ( ! self::is_this_page()) return;
 
-        // Opens the customizer over the page, as the Themes screen does.
-        wp_enqueue_script('customize-loader');
+        // The design is the email editor's: nothing to load here for it.
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -548,7 +550,7 @@ class Broadcast_Page
                 break;
 
             case 'design':
-                self::redirect(self::url($email_campaign_id, ['design' => 1]));
+                self::redirect(self::design_url($email_campaign_id));
                 break;
 
             case 'send_test':
@@ -652,23 +654,14 @@ class Broadcast_Page
                     });
                 });
 
-                var loader = window.wp && wp.customize && wp.customize.Loader;
-
-                // Save the page first, then open the designer over it once it reloads.
+                // Save the page first, then open the email editor.
                 form.querySelectorAll('[data-design]').forEach(function (link) {
                     link.addEventListener('click', function (e) {
-                        if ( ! loader || form.querySelector('fieldset').disabled) return;
+                        if (form.querySelector('fieldset').disabled) return;
                         e.preventDefault();
                         submit('design');
                     });
                 });
-
-                if (loader && /[?&]design=1/.test(location.search)) {
-                    loader.open(<?php echo wp_json_encode(self::design_url($email_campaign_id)); ?>);
-                    loader.bind('close', function () {
-                        location.replace(<?php echo wp_json_encode(self::url($email_campaign_id, ['designed' => 1])); ?>);
-                    });
-                }
             }, 0); });
         </script>
         <?php

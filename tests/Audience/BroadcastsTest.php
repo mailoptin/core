@@ -248,7 +248,8 @@ class BroadcastsTest extends WP_UnitTestCase
         $html = Broadcast_Page::html();
 
         $this->assertStringContainsString('value="Hi {{subscriber.first_name|friend}}"', $html);
-        $this->assertStringContainsString(Broadcast_Page::FROM_PAGE_ARG . '=1', $html);
+        // "Design email" opens the email editor.
+        $this->assertStringContainsString(esc_url(\MailOptin\Core\Admin\EmailEditor\EmailEditor::url($this->campaign_id)), $html);
         $this->assertStringContainsString('Before it goes', $html);
 
         $_GET = $_REQUEST = [];

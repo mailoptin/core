@@ -94,6 +94,19 @@ HTML;
         return 570;
     }
 
+    /**
+     * What a new email in this template starts with, to edit or delete: blocks as saved
+     * ([['id', 'type', 'settings'], ...]). Settings left out take the block's defaults.
+     */
+    public function starter_content()
+    {
+        return [
+            ['id' => 'start-hello', 'type' => 'text', 'settings' => ['text_content' => '<p>' . esc_html__('Hi {{subscriber.first_name|there}},', 'mailoptin') . '</p><p>' . esc_html__('Write your message here.', 'mailoptin') . '</p>']],
+            ['id' => 'start-button', 'type' => 'button', 'settings' => ['button_text' => __('Read more', 'mailoptin'), 'button_link' => home_url('/')]],
+            ['id' => 'start-bye', 'type' => 'text', 'settings' => ['text_content' => '<p>' . esc_html__('Thanks for reading,', 'mailoptin') . '<br>' . esc_html(get_bloginfo('name')) . '</p>']],
+        ];
+    }
+
     // Blocks are drawn by the block API (src/EmailBlocks), from MJML. A template can still draw one its
     // own way by defining {block id}_block($id, $settings).
 }

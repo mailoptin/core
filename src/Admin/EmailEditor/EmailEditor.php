@@ -2,15 +2,11 @@
 
 namespace MailOptin\Core\Admin\EmailEditor;
 
-use MailOptin\Core\Automations\Engine;
-use MailOptin\Core\Automations\Triggers;
 use MailOptin\Core\EmailBlocks\AbstractBlock;
 use MailOptin\Core\EmailBlocks\Blocks;
 use MailOptin\Core\EmailBlocks\Fields;
 use MailOptin\Core\EmailBlocks\Templates;
-use MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts;
 use MailOptin\Core\EmailCampaigns\Newsletter\Templatify;
-use MailOptin\Core\Repositories\AutomationsRepository as Repo;
 use MailOptin\Core\Repositories\CampaignSettingsRepository as Settings;
 use MailOptin\Core\Repositories\EmailCampaignRepository as ER;
 
@@ -36,6 +32,226 @@ class EmailEditor
         foreach (['preview', 'save', 'test'] as $action) {
             add_action('wp_ajax_mo_email_editor_' . $action, [$this, 'ajax_' . $action]);
         }
+
+        add_action('admin_post_mo_email_new', [$this, 'handle_new']);
+    }
+
+    /* ---------------------------------------------------------------------------------------------
+     * Kinds of email
+     * ------------------------------------------------------------------------------------------ */
+
+    /**
+     * @return EmailContext[] id => context
+     */
+    public static function contexts()
+    {
+        static $contexts = null;
+
+        if (null === $contexts) {
+            $contexts = [];
+            $list     = apply_filters('mailoptin_email_editor_contexts', [new Contexts\BroadcastContext(), new Contexts\AutomationContext()]);
+            foreach ((array)$list as $context) {
+                if ($context instanceof EmailContext) $contexts[$context->id()] = $context;
+            }
+        }
+
+        return $contexts;
+    }
+
+    public static function context($id)
+    {
+        return self::contexts()[$id] ?? null;
+    }
+
+    /**
+     * The context that owns an email.
+     *
+     * @return EmailContext|null
+     */
+    public static function context_for($email_campaign_id)
+    {
+        foreach (self::contexts() as $context) {
+            if ($context->handles($email_campaign_id)) return $context;
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether an email is written as HTML by hand ("Code your own") rather than in blocks.
+     */
+    public static function is_code($email_campaign_id)
+    {
+        return ER::is_code_your_own_template($email_campaign_id);
+    }
+
+    /* ---------------------------------------------------------------------------------------------
+     * Starting an email: one launcher for every kind
+     * ------------------------------------------------------------------------------------------ */
+
+    /**
+     * Make an email of a kind, in a template, with the template's starter content, ready to open.
+     *
+     * @return int|\WP_Error the email's id
+     */
+    public static function start($context_id, $template, $args = [])
+    {
+        $context = self::context($context_id);
+
+        if ( ! $context) return new \WP_Error('mo_email_context', __('Unknown kind of email.', 'mailoptin'));
+        if ( ! $context->accepts_template($template)) return new \WP_Error('mo_email_template', __('Choose a template.', 'mailoptin'));
+
+        $id = $context->create($template, $args);
+
+        if (is_wp_error($id)) return $id;
+
+        self::add_starter_content($id);
+
+        return $id;
+    }
+
+    /**
+     * The template's starter content, for an email that has none yet.
+     */
+    public static function add_starter_content($email_campaign_id)
+    {
+        // Written by hand: a short, plain email to start from, not the Customizer's long sample.
+        if (self::is_code($email_campaign_id)) {
+            if ('' === (string)ER::get_customizer_value_without_default($email_campaign_id, 'code_your_own')) {
+                ER::update_settings_by_id($email_campaign_id, ['code_your_own' => self::starter_html()]);
+            }
+
+            return;
+        }
+
+        // Only what was saved: unsaved, the Customizer's default (paragraphs of Lorem Ipsum) shows.
+        $saved = json_decode((string)ER::get_customizer_value_without_default($email_campaign_id, 'email_newsletter_content'), true);
+        if ( ! empty($saved)) return;
+
+        $template = \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($email_campaign_id);
+        $content  = $template && method_exists($template, 'starter_content') ? (array)$template->starter_content() : [];
+
+        // Each block saved with its defaults, as a block added in the editor is.
+        foreach ($content as $i => $element) {
+            $block = is_array($element) ? Blocks::get_instance()->get($element['type'] ?? '') : null;
+            if ($block) $content[$i]['settings'] = array_replace($block->defaults($email_campaign_id), (array)($element['settings'] ?? []));
+        }
+
+        if ($content) ER::update_settings_by_id($email_campaign_id, ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($content))]);
+    }
+
+    /**
+     * The template picker for a kind of email: a form that makes the email and opens the editor.
+     *
+     * @param array $args hidden values the context's create() takes
+     * @param string $fields extra form HTML before the templates (escaped by the caller)
+     */
+    public static function picker_html($context_id, $args = [], $fields = '', $submit = '', $compact = false)
+    {
+        $context = self::context($context_id);
+        if ( ! $context) return '';
+
+        $submit = '' !== $submit ? $submit : __('Continue to the editor', 'mailoptin');
+
+        ob_start();
+        include __DIR__ . '/picker.php';
+
+        return ob_get_clean();
+    }
+
+    /**
+     * Whether a new email of this kind has more than one way to start (else the picker is skipped).
+     */
+    public static function has_choice($context_id)
+    {
+        $context = self::context($context_id);
+
+        return $context && count($context->templates()) + ($context->allows_code() ? 1 : 0) > 1;
+    }
+
+    /**
+     * The "New broadcast" page: a name and a template, then the editor.
+     */
+    public static function new_broadcast_page()
+    {
+        wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
+
+        $error  = isset($_GET['mo_error']) ? sanitize_text_field(wp_unslash($_GET['mo_error'])) : '';
+        $fields = '<p class="mo-ee-picker-field"><label for="mo-ee-new-name"><b>' . esc_html__('Broadcast name', 'mailoptin') . '</b></label>'
+                  . '<input type="text" id="mo-ee-new-name" name="args[name]" class="regular-text" required maxlength="50">'
+                  . '<span class="description">' . esc_html__('Only you see this. The subject is set in the editor.', 'mailoptin') . '</span></p>';
+
+        echo '<div class="wrap mo-ee-new">';
+        echo '<p><a href="' . esc_url(MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE) . '">&larr; ' . esc_html__('Broadcasts', 'mailoptin') . '</a></p>';
+        echo '<h1>' . esc_html__('New broadcast', 'mailoptin') . '</h1>';
+        echo '<p class="mo-ee-new-lede">' . esc_html__('Name it and pick a template. The editor opens next; you choose who gets it and when after that.', 'mailoptin') . '</p>';
+        if ('' !== $error) echo '<div class="notice notice-error"><p>' . esc_html($error) . '</p></div>';
+        echo self::picker_html('broadcast', [], $fields);
+        echo '</div>';
+    }
+
+    /**
+     * What an email written as HTML starts with: one centred column, a greeting, a button and the
+     * unsubscribe link. Filter: mailoptin_email_editor_starter_html.
+     */
+    public static function starter_html()
+    {
+        $site  = esc_html(get_bloginfo('name'));
+        $hello = esc_html__('Hi {{subscriber.first_name|there}},', 'mailoptin');
+        $body  = esc_html__('Write your message here.', 'mailoptin');
+        $more  = esc_html__('Read more', 'mailoptin');
+        $url   = esc_url(home_url('/'));
+        $unsub = esc_html__('Unsubscribe', 'mailoptin');
+
+        $html = <<<HTML
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{$site}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#333333;">
+        <tr><td style="padding:28px 32px 8px;font-size:20px;font-weight:bold;">{$site}</td></tr>
+        <tr><td style="padding:8px 32px;"><p style="margin:0 0 12px;">{$hello}</p><p style="margin:0;">{$body}</p></td></tr>
+        <tr><td style="padding:16px 32px 28px;"><a href="{$url}" style="display:inline-block;background:#2271b1;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:4px;">{$more}</a></td></tr>
+      </table>
+      <p style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#71717a;margin:16px 0 0;"><a href="[unsubscribe]" style="color:#71717a;">{$unsub}</a></p>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+HTML;
+
+        return (string)apply_filters('mailoptin_email_editor_starter_html', $html);
+    }
+
+    /**
+     * admin-post.php?action=mo_email_new: the template picker's form. Makes the email and opens it.
+     */
+    public function handle_new()
+    {
+        $context_id = sanitize_key($_POST['context'] ?? '');
+
+        if ( ! current_user_has_privilege() || ! check_admin_referer('mo_email_new_' . $context_id)) wp_die(esc_html__('You are not allowed to do this.', 'mailoptin'), 403);
+
+        $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['template'] ?? ''));
+        $args     = array_map('sanitize_text_field', (array)wp_unslash($_POST['args'] ?? []));
+        $result   = self::start($context_id, $template, $args);
+
+        if (is_wp_error($result)) {
+            $back = wp_get_referer() ?: admin_url();
+            wp_safe_redirect(add_query_arg(['mo_error' => rawurlencode($result->get_error_message())], $back));
+            exit;
+        }
+
+        wp_safe_redirect(self::url($result));
+        exit;
     }
 
     public static function url($email_campaign_id)
@@ -49,8 +265,9 @@ class EmailEditor
      */
     public static function edits($email_campaign_id)
     {
-        return $email_campaign_id && ER::is_built_email($email_campaign_id) && ! ER::is_code_your_own_template($email_campaign_id)
-               && ! \MailOptin\Core\EmailCampaigns\Newsletter\Broadcasts::is_done($email_campaign_id);
+        $context = $email_campaign_id && ER::is_built_email($email_campaign_id) ? self::context_for($email_campaign_id) : null;
+
+        return $context && $context->editable($email_campaign_id);
     }
 
     protected static function is_this_page()
@@ -68,13 +285,9 @@ class EmailEditor
      */
     public static function back_url($email_campaign_id)
     {
-        if (ER::is_automation_email($email_campaign_id)) {
-            $owner = Repo::email_owner($email_campaign_id);
+        $context = self::context_for($email_campaign_id);
 
-            return $owner ? \MailOptin\Core\Admin\SettingsPage\Automations_Page::edit_url($owner[0]['id']) : \MailOptin\Core\Admin\SettingsPage\Automations_Page::url();
-        }
-
-        return \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($email_campaign_id);
+        return $context ? $context->back_url($email_campaign_id) : MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
     }
 
     public function body_class($classes)
@@ -134,6 +347,15 @@ class EmailEditor
         $content = json_decode((string)ER::get_customizer_value($email_campaign_id, 'email_newsletter_content'), true);
         $state   = ['template' => (string)ER::get_template_class($email_campaign_id), 'content' => is_array($content) ? array_values($content) : [], 'design' => [], 'settings' => []];
 
+        // Written by hand: the HTML is the email, no blocks or design settings.
+        if (self::is_code($email_campaign_id)) {
+            $state['content'] = [];
+            $state['code']    = (string)ER::get_customizer_value($email_campaign_id, 'code_your_own');
+            foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)ER::get_merged_customizer_value($email_campaign_id, $key);
+
+            return $state;
+        }
+
         foreach (self::design_fields() as $key => $field) $state['design'][$key] = ER::get_merged_customizer_value($email_campaign_id, $key);
         foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)ER::get_merged_customizer_value($email_campaign_id, $key);
 
@@ -145,9 +367,21 @@ class EmailEditor
      *
      * @return array setting => value, ready to save
      */
-    public static function clean_state($state)
+    public static function clean_state($state, $email_campaign_id = 0)
     {
-        $state  = is_array($state) ? $state : [];
+        $state = is_array($state) ? $state : [];
+
+        if ($email_campaign_id && self::is_code($email_campaign_id)) {
+            // The author's HTML, as the Customizer kept it (wp_kses_post without unfiltered_html).
+            $values = ['code_your_own' => Fields::sanitize(['type' => 'textarea'], (string)($state['code'] ?? ''))];
+            $posted = (array)($state['settings'] ?? []);
+            foreach (self::settings_fields() as $key => $field) {
+                if (array_key_exists($key, $posted)) $values[$key] = Fields::sanitize($field, $posted[$key]);
+            }
+
+            return $values;
+        }
+
         $values = ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($state['content'] ?? []))];
 
         foreach (['design' => self::design_fields(), 'settings' => self::settings_fields()] as $group => $fields) {
@@ -166,7 +400,7 @@ class EmailEditor
      */
     public static function posted_template($state, $email_campaign_id)
     {
-        $id = is_array($state) && is_string($state['template'] ?? null) ? $state['template'] : '';
+        $id = is_array($state) && is_string($state['template'] ?? null) && ! self::is_code($email_campaign_id) ? $state['template'] : '';
 
         return '' !== $id && isset(Templates::get_instance()->for_email($email_campaign_id)[$id]) ? $id : null;
     }
@@ -179,7 +413,7 @@ class EmailEditor
     public static function version($email_campaign_id)
     {
         $saved = (array)Settings::get_saved(Settings::TYPE_EMAIL, $email_campaign_id);
-        $keys  = array_merge(['email_newsletter_content'], array_keys(self::design_fields()), array_keys(self::settings_fields()));
+        $keys  = array_merge(['email_newsletter_content', 'code_your_own'], array_keys(self::design_fields()), array_keys(self::settings_fields()));
 
         return md5(wp_json_encode([ER::get_template_class($email_campaign_id), array_intersect_key($saved, array_flip($keys))]));
     }
@@ -198,6 +432,8 @@ class EmailEditor
 
         wp_enqueue_media();
         wp_enqueue_editor();
+        // WordPress's own CodeMirror, for emails written as HTML.
+        $code_editor = self::is_code($email_campaign_id) ? wp_enqueue_code_editor(['type' => 'text/html']) : false;
         wp_enqueue_style('wp-color-picker');
         wp_enqueue_script('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'js/admin/email-editor.js', ['jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wp-util'], MAILOPTIN_VERSION_NUMBER, true);
         wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', ['wp-color-picker'], MAILOPTIN_VERSION_NUMBER);
@@ -214,6 +450,8 @@ class EmailEditor
             'state'   => self::state($email_campaign_id),
             'version' => self::version($email_campaign_id),
             'blocks'  => $blocks,
+            'code'    => self::is_code($email_campaign_id),
+            'codeEditor' => $code_editor ?: null,
             'i18n'    => [
                 'saved'      => __('Saved', 'mailoptin'),
                 'saving'     => __('Saving…', 'mailoptin'),
@@ -383,7 +621,7 @@ class EmailEditor
         $email_campaign_id = self::authorize();
         $state             = self::posted_state();
 
-        foreach (self::clean_state($state) as $key => $value) {
+        foreach (self::clean_state($state, $email_campaign_id) as $key => $value) {
             Settings::set_preview(Settings::TYPE_EMAIL, $email_campaign_id, $key, $value);
         }
 
@@ -405,19 +643,9 @@ class EmailEditor
      */
     protected static function with_samples($email_campaign_id, $html)
     {
-        if ( ! ER::is_automation_email($email_campaign_id) || ! class_exists(Engine::class)) return $html;
+        $context = self::context_for($email_campaign_id);
 
-        $owner   = Repo::email_owner($email_campaign_id);
-        $trigger = $owner ? Triggers::get_instance()->get($owner[0]['trigger_id']) : null;
-
-        if ( ! $trigger) return $html;
-
-        $run = ['id' => 0, 'automation_id' => $owner[0]['id'], 'email' => '', 'subscriber_id' => 0, 'context' => [], 'started_at' => Repo::now()];
-
-        $html = Engine::replace_placeholders($html, $trigger, $run, true, true);
-
-        // Subscriber fields show their fallback ("Hi {{subscriber.first_name|there}}" reads "Hi there").
-        return \MailOptin\Core\Audience\CampaignRenderer::replace_fallback_tags($html, ['id' => 0, 'email' => '', 'first_name' => '', 'last_name' => ''], true, []);
+        return $context ? $context->preview_html($email_campaign_id, $html) : $html;
     }
 
     public function ajax_save()
@@ -431,7 +659,7 @@ class EmailEditor
 
         $state = self::posted_state();
 
-        ER::update_settings_by_id($email_campaign_id, self::clean_state($state));
+        ER::update_settings_by_id($email_campaign_id, self::clean_state($state, $email_campaign_id));
 
         $template = self::posted_template($state, $email_campaign_id);
         if ($template && $template !== ER::get_template_class($email_campaign_id)) Templates::set_for_email($email_campaign_id, $template);
@@ -447,14 +675,9 @@ class EmailEditor
         $email_campaign_id = self::authorize();
         $to                = sanitize_email(wp_unslash($_POST['email'] ?? '')) ?: wp_get_current_user()->user_email;
 
-        if (ER::is_automation_email($email_campaign_id)) {
-            $owner = Repo::email_owner($email_campaign_id);
-            $sent  = $owner && Engine::send_test($owner[0], $owner[1], $to);
-        } else {
-            $sent = Broadcasts::send_test($email_campaign_id, $to);
-        }
+        $context = self::context_for($email_campaign_id);
 
-        $sent ? wp_send_json_success() : wp_send_json_error();
+        $context && $context->send_test($email_campaign_id, $to) ? wp_send_json_success() : wp_send_json_error();
     }
 
     public static function get_instance()

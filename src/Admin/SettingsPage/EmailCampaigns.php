@@ -170,8 +170,9 @@ class EmailCampaigns extends AbstractSettingsPage
                 return AddEmailCampaign::get_instance()->settings_admin_page();
             }
 
+            // A name and a template, then the email editor.
             if (moVarGET('view') == 'create-broadcast') {
-                return AddNewsletter::get_instance()->settings_admin_page();
+                return \MailOptin\Core\Admin\EmailEditor\EmailEditor::new_broadcast_page();
             }
         }
 
