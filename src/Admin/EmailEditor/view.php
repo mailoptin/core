@@ -8,12 +8,15 @@ use MailOptin\Core\Admin\EmailEditor\EmailEditor;
 if ( ! defined('ABSPATH')) exit;
 
 $sections = ['body' => __('Body', 'mailoptin'), 'header' => __('Header', 'mailoptin'), 'footer' => __('Footer', 'mailoptin')];
+$context  = EmailEditor::context_for($email_campaign_id);
+$next     = $context ? $context->next_step($email_campaign_id) : null;
+$is_code  = EmailEditor::is_code($email_campaign_id);
 ?>
 <div id="mo-ee" class="mo-ee">
     <header class="mo-ee-top">
         <a class="mo-ee-back" href="<?php echo esc_url(EmailEditor::back_url($email_campaign_id)); ?>"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span><?php esc_html_e('Back', 'mailoptin'); ?></a>
         <div class="mo-ee-where">
-            <span class="mo-ee-kicker"><?php esc_html_e('Editing email', 'mailoptin'); ?></span>
+            <span class="mo-ee-kicker"><?php echo esc_html($context ? $context->label($email_campaign_id) : __('Editing email', 'mailoptin')); ?></span>
             <strong id="mo-ee-subject"></strong>
         </div>
         <div class="mo-ee-devices" role="group" aria-label="<?php esc_attr_e('Preview size', 'mailoptin'); ?>">
@@ -31,18 +34,28 @@ $sections = ['body' => __('Body', 'mailoptin'), 'header' => __('Header', 'mailop
                 <button type="button" class="button button-primary" id="mo-ee-test-send"><?php esc_html_e('Save and send', 'mailoptin'); ?></button>
             </div>
         </details>
-        <button type="button" class="button button-primary" id="mo-ee-save"><?php esc_html_e('Save', 'mailoptin'); ?></button>
+        <button type="button" class="button<?php echo $next ? '' : ' button-primary'; ?>" id="mo-ee-save"><?php esc_html_e('Save', 'mailoptin'); ?></button>
+        <?php if ($next) : ?>
+            <a class="button button-primary" id="mo-ee-next" href="<?php echo esc_url($next['url']); ?>"><?php echo esc_html($next['label']); ?> <span aria-hidden="true">&rarr;</span></a>
+        <?php endif; ?>
     </header>
 
     <div class="mo-ee-body">
         <aside class="mo-ee-panel">
             <div class="mo-ee-tabs" role="tablist">
                 <button type="button" role="tab" class="mo-ee-tab is-on" data-panel="content" aria-selected="true"><?php esc_html_e('Content', 'mailoptin'); ?></button>
-                <button type="button" role="tab" class="mo-ee-tab" data-panel="design" aria-selected="false"><?php esc_html_e('Design', 'mailoptin'); ?></button>
+                <?php if ( ! $is_code) : ?>
+                    <button type="button" role="tab" class="mo-ee-tab" data-panel="design" aria-selected="false"><?php esc_html_e('Design', 'mailoptin'); ?></button>
+                <?php endif; ?>
                 <button type="button" role="tab" class="mo-ee-tab" data-panel="settings" aria-selected="false"><?php esc_html_e('Settings', 'mailoptin'); ?></button>
             </div>
 
             <section class="mo-ee-pane is-on" data-pane="content">
+                <?php if ($is_code) : ?>
+                    <label for="mo-ee-code" class="mo-ee-label"><?php esc_html_e('The email\'s HTML', 'mailoptin'); ?></label>
+                    <p class="description"><?php esc_html_e('A whole email, written by hand. Keep an unsubscribe link:', 'mailoptin'); ?> <code>&lt;a href="[unsubscribe]"&gt;Unsubscribe&lt;/a&gt;</code></p>
+                    <textarea id="mo-ee-code" class="mo-ee-code" rows="30" spellcheck="false"></textarea>
+                <?php else : ?>
                 <ol id="mo-ee-blocks" class="mo-ee-blocks"></ol>
                 <p class="mo-ee-empty" id="mo-ee-empty"><?php esc_html_e('No elements yet. Add one below.', 'mailoptin'); ?></p>
                 <h3 class="mo-ee-h"><?php esc_html_e('Add an element', 'mailoptin'); ?></h3>
@@ -55,6 +68,7 @@ $sections = ['body' => __('Body', 'mailoptin'), 'header' => __('Header', 'mailop
                         <button type="button" class="mo-ee-add-btn" data-preset="text-image" title="<?php esc_attr_e('Text on the left, an image on the right. Stacks on phones.', 'mailoptin'); ?>"><?php esc_html_e('Text + image', 'mailoptin'); ?></button>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
             </section>
 
             <section class="mo-ee-pane" data-pane="design">

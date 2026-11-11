@@ -38,9 +38,12 @@ class Broadcast_Page
         return add_query_arg(['view' => self::VIEW, 'id' => absint($email_campaign_id)] + $args, MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
     }
 
+    /**
+     * The email editor, for every broadcast (blocks or HTML written by hand).
+     */
     public static function design_url($email_campaign_id)
     {
-        return add_query_arg([self::FROM_PAGE_ARG => 1, 'return' => rawurlencode(self::url($email_campaign_id, ['designed' => 1]))], Email_Campaign_List::_campaign_customize_url($email_campaign_id));
+        return \MailOptin\Core\Admin\EmailEditor\EmailEditor::url($email_campaign_id);
     }
 
     protected static function is_this_page()
@@ -59,8 +62,7 @@ class Broadcast_Page
     {
         if ( ! self::is_this_page()) return;
 
-        // Opens the customizer over the page, as the Themes screen does.
-        wp_enqueue_script('customize-loader');
+        // The design is the email editor's: nothing to load here for it.
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -137,14 +139,15 @@ class Broadcast_Page
                         <div class="mo-card">
                             <h3><?php esc_html_e('Content', 'mailoptin'); ?></h3>
                             <div class="mo-design">
-                                <a class="mo-thumb" href="<?php echo esc_url(self::design_url($email_campaign_id)); ?>" data-design aria-label="<?php esc_attr_e('Design email', 'mailoptin'); ?>">
+                                <?php // Sent or sending: the email is a record, the preview isn't a link. ?>
+                                <?php if ($editable) : ?><a class="mo-thumb" href="<?php echo esc_url(self::design_url($email_campaign_id)); ?>" data-design aria-label="<?php esc_attr_e('Design email', 'mailoptin'); ?>"><?php else : ?><div class="mo-thumb"><?php endif; ?>
                                     <iframe title="<?php esc_attr_e('Email preview', 'mailoptin'); ?>" sandbox="" tabindex="-1" srcdoc="<?php echo htmlspecialchars((string)(new NewsletterTemplatePreview($email_campaign_id))->forge(), ENT_QUOTES, 'UTF-8', true); ?>"></iframe>
-                                    <span><?php esc_html_e('Design email', 'mailoptin'); ?></span>
-                                </a>
+                                    <?php if ($editable) : ?><span><?php esc_html_e('Design email', 'mailoptin'); ?></span><?php endif; ?>
+                                <?php echo $editable ? '</a>' : '</div>'; ?>
                                 <div>
                                     <?php if ($editable) : ?>
                                         <p><a class="button button-primary button-hero" href="<?php echo esc_url(self::design_url($email_campaign_id)); ?>" data-design><?php esc_html_e('Design email', 'mailoptin'); ?></a></p>
-                                        <p class="description"><?php esc_html_e('Opens the email designer over this page. Your changes here are saved first. Close the designer to come back.', 'mailoptin'); ?></p>
+                                        <p class="description"><?php esc_html_e('Opens the email editor. Your changes here are saved first; "Next: audience & sending" brings you back.', 'mailoptin'); ?></p>
                                     <?php endif; ?>
                                     <h4><?php esc_html_e('Send a test', 'mailoptin'); ?></h4>
                                     <p class="mo-inline">
@@ -548,7 +551,7 @@ class Broadcast_Page
                 break;
 
             case 'design':
-                self::redirect(self::url($email_campaign_id, ['design' => 1]));
+                self::redirect(self::design_url($email_campaign_id));
                 break;
 
             case 'send_test':
@@ -652,23 +655,14 @@ class Broadcast_Page
                     });
                 });
 
-                var loader = window.wp && wp.customize && wp.customize.Loader;
-
-                // Save the page first, then open the designer over it once it reloads.
+                // Save the page first, then open the email editor.
                 form.querySelectorAll('[data-design]').forEach(function (link) {
                     link.addEventListener('click', function (e) {
-                        if ( ! loader || form.querySelector('fieldset').disabled) return;
+                        if (form.querySelector('fieldset').disabled) return;
                         e.preventDefault();
                         submit('design');
                     });
                 });
-
-                if (loader && /[?&]design=1/.test(location.search)) {
-                    loader.open(<?php echo wp_json_encode(self::design_url($email_campaign_id)); ?>);
-                    loader.bind('close', function () {
-                        location.replace(<?php echo wp_json_encode(self::url($email_campaign_id, ['designed' => 1])); ?>);
-                    });
-                }
             }, 0); });
         </script>
         <?php

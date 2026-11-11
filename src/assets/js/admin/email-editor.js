@@ -259,7 +259,14 @@
         });
     }
 
+    var codeMirror = null;
+
     function fillAll() {
+        if (cfg.code) {
+            var html = state.code || '';
+            if (codeMirror && codeMirror.getValue() !== html) { filling = true; codeMirror.setValue(html); filling = false; }
+            else if (!codeMirror) $('#mo-ee-code').val(html);
+        }
         $('.mo-ee-template-input').each(function () { this.checked = this.value === state.template; });
         fill($('[data-group="design"]'), state.design);
         fill($('[data-group="settings"]'), state.settings);
@@ -483,6 +490,23 @@
         if (!cfg.id) return;
 
         bind($('[data-group]'));
+
+        // An email written by hand: WordPress's code editor (CodeMirror), or the plain textarea.
+        if (cfg.code) {
+            var $code = $('#mo-ee-code').val(state.code || '');
+            var onCode = function (value) {
+                if (filling || value === state.code) return;
+                beginEdit();
+                state.code = value;
+                changed(false);
+            };
+            if (cfg.codeEditor && window.wp && wp.codeEditor) {
+                codeMirror = wp.codeEditor.initialize($code[0], cfg.codeEditor).codemirror;
+                codeMirror.on('change', function () { onCode(codeMirror.getValue()); });
+            } else {
+                $code.on('input', function () { onCode(this.value); });
+            }
+        }
         offerDraft();
         fillAll();
         changed(true);
@@ -553,6 +577,14 @@
         });
 
         $('#mo-ee-save').on('click', function () { save(false); });
+
+        // The next step (a broadcast's audience and sending): saved first.
+        $('#mo-ee-next').on('click', function (e) {
+            if (!dirty()) return;
+            e.preventDefault();
+            var href = this.href;
+            save(false).done(function () { window.location.href = href; });
+        });
         $('#mo-ee-undo').on('click', undo);
         $('#mo-ee-redo').on('click', redo);
 

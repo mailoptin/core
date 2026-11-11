@@ -89,6 +89,8 @@ class Automations_Page
         if ( ! self::is_this_page()) return;
 
         wp_enqueue_style('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.min.css');
+        // The template picker's dialog (shared with the "New broadcast" page).
+        wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
         wp_enqueue_script('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', ['jquery'], null, true);
         wp_add_inline_script('mailoptin-chosen', self::script());
     }
@@ -523,6 +525,46 @@ class Automations_Page
                 </div>
             </div>
         </form>
+        <?php if (\MailOptin\Core\Admin\EmailEditor\EmailEditor::has_choice('automation')) : ?>
+            <dialog id="mo-auto-new-email" class="mo-auto-dialog" aria-labelledby="mo-auto-new-email-title">
+                <div class="mo-auto-dialog-head">
+                    <h2 id="mo-auto-new-email-title"><?php esc_html_e('New email: pick a template', 'mailoptin'); ?></h2>
+                    <button type="button" class="button-link" data-close aria-label="<?php esc_attr_e('Close', 'mailoptin'); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+                </div>
+                <?php echo \MailOptin\Core\Admin\EmailEditor\EmailEditor::picker_html('automation', ['automation_id' => $automation_id], '', __('Create and edit', 'mailoptin'), true); ?>
+            </dialog>
+            <script>
+                (function () {
+                    var dialog = document.getElementById('mo-auto-new-email');
+                    var builder = document.getElementById('mo-auto-form');
+                    document.querySelectorAll('[data-new-email]').forEach(function (button) {
+                        button.addEventListener('click', function (e) {
+                            // Without <dialog> support the button adds an email in the first template, as before.
+                            if (typeof dialog.showModal !== 'function') return;
+                            e.preventDefault();
+                            dialog.showModal();
+                        });
+                    });
+                    dialog.querySelector('[data-close]').addEventListener('click', function () { dialog.close(); });
+
+                    // The chosen template goes with the builder's own form, so what was typed on this
+                    // page is saved first, as every other button here does.
+                    dialog.querySelector('form').addEventListener('submit', function (e) {
+                        var chosen = dialog.querySelector('input[name="template"]:checked');
+                        if (!builder || !chosen) return;
+                        e.preventDefault();
+                        [['mo_automation_action', 'add_email'], ['mo_new_email_template', chosen.value]].forEach(function (pair) {
+                            var input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = pair[0];
+                            input.value = pair[1];
+                            builder.appendChild(input);
+                        });
+                        builder.submit();
+                    });
+                })();
+            </script>
+        <?php endif; ?>
         <?php
         return ob_get_clean();
     }
@@ -720,7 +762,8 @@ class Automations_Page
         echo '</ol>';
         echo '<div class="mo-auto-adds">';
         echo '<button class="button" name="mo_automation_action" value="add_wait">' . esc_html__('+ Wait', 'mailoptin') . '</button> ';
-        echo '<button class="button" name="mo_automation_action" value="add_email">' . esc_html__('+ Email', 'mailoptin') . '</button> ';
+        // With more than one template, it asks which first (a dialog below the form).
+        echo '<button class="button" name="mo_automation_action" value="add_email" data-new-email>' . esc_html__('+ Email', 'mailoptin') . '</button> ';
         if ( ! empty($checks)) echo '<button class="button" name="mo_automation_action" value="add_check">' . esc_html__('+ Only if…', 'mailoptin') . '</button>';
         echo '</div>';
 
@@ -1058,8 +1101,26 @@ class Automations_Page
 
                 return;
 
-            case 'add_wait':
             case 'add_email':
+                // Chosen in the template dialog: made in that template and opened in the editor.
+                $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['mo_new_email_template'] ?? ''));
+                $context  = \MailOptin\Core\Admin\EmailEditor\EmailEditor::context('automation');
+
+                if ('' !== $template && $context && $context->accepts_template($template)) {
+                    $email_id = self::add_email_step($automation, $template);
+                    if ($email_id) {
+                        self::redirect(\MailOptin\Core\Admin\EmailEditor\EmailEditor::url($email_id));
+
+                        return;
+                    }
+                }
+
+                self::add_step($automation, 'email');
+                self::redirect(self::edit_url($automation_id) . '#mo-auto-steps-end');
+
+                return;
+
+            case 'add_wait':
             case 'add_check':
                 self::add_step($automation, substr($action, 4));
                 self::redirect(self::edit_url($automation_id) . '#mo-auto-steps-end');
@@ -1342,15 +1403,37 @@ class Automations_Page
                 $steps[] = ['type' => Repo::STEP_CHECK, 'settings' => ['check' => $checks[0]]];
                 break;
             case 'email':
-                $email_id = Recipes::create_email($automation['id'], __('New email', 'mailoptin'));
-                if ( ! $email_id) return;
-                $steps[] = ['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => $email_id] + self::paused_if_live($automation)];
-                break;
+                // The one template there is (else the dialog asked): the first the editor offers.
+                $context   = \MailOptin\Core\Admin\EmailEditor\EmailEditor::context('automation');
+                $templates = $context ? array_keys($context->templates()) : [];
+                self::add_email_step($automation, $templates[0] ?? 'Lucid');
+
+                return;
             default:
                 return;
         }
 
         Repo::save_steps($automation['id'], $steps);
+    }
+
+    /**
+     * A new email, in a template with its starter content, sent as the automation's last step. The
+     * email editor's automation context makes emails this way.
+     *
+     * @return int the email's id, 0 when it couldn't be made
+     */
+    public static function add_email_step($automation, $template)
+    {
+        $email_id = Recipes::create_email($automation['id'], __('New email', 'mailoptin'), '', $template);
+        if ( ! $email_id) return 0;
+
+        \MailOptin\Core\Admin\EmailEditor\EmailEditor::add_starter_content($email_id);
+
+        $steps   = Repo::steps($automation['id']);
+        $steps[] = ['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => $email_id] + self::paused_if_live($automation)];
+        Repo::save_steps($automation['id'], $steps);
+
+        return $email_id;
     }
 
     /**
