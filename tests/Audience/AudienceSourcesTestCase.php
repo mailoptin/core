@@ -114,13 +114,36 @@ abstract class AudienceSourcesTestCase extends WP_UnitTestCase
      * Customers: maya (2 paid orders, 40 + 10, recent; bought product 47), guest (one 20 order,
      * recent, product 49), old (one 9 order 30 months ago, product 47), pending (unpaid only).
      */
-    protected function woo_store()
+    /**
+     * Real tables, made before WordPress starts each test's transaction (in set_up it would turn
+     * them into temporary tables, which MySQL 8 can't open twice in one query, as the purchase
+     * conditions do). Each test's rows are still rolled back.
+     */
+    public static function set_up_before_class()
+    {
+        parent::set_up_before_class();
+
+        global $wpdb;
+
+        $wpdb->query("CREATE TABLE IF NOT EXISTS {$wpdb->prefix}wc_customer_lookup (customer_id bigint(20) NOT NULL, user_id bigint(20) NULL, first_name varchar(255) NOT NULL DEFAULT '', last_name varchar(255) NOT NULL DEFAULT '', email varchar(100) NULL)");
+        $wpdb->query("CREATE TABLE IF NOT EXISTS {$wpdb->prefix}wc_order_stats (order_id bigint(20) NOT NULL, parent_id bigint(20) NOT NULL DEFAULT 0, date_created datetime NOT NULL, date_created_gmt datetime NOT NULL, total_sales double NOT NULL DEFAULT 0, status varchar(200) NOT NULL, customer_id bigint(20) NOT NULL)");
+        $wpdb->query("CREATE TABLE IF NOT EXISTS {$wpdb->prefix}wc_order_product_lookup (order_item_id bigint(20) NOT NULL, order_id bigint(20) NOT NULL, product_id bigint(20) NOT NULL, variation_id bigint(20) NOT NULL DEFAULT 0)");
+    }
+
+    public static function tear_down_after_class()
     {
         global $wpdb;
 
-        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_customer_lookup (customer_id bigint(20) NOT NULL, user_id bigint(20) NULL, first_name varchar(255) NOT NULL DEFAULT '', last_name varchar(255) NOT NULL DEFAULT '', email varchar(100) NULL)");
-        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_order_stats (order_id bigint(20) NOT NULL, parent_id bigint(20) NOT NULL DEFAULT 0, date_created datetime NOT NULL, date_created_gmt datetime NOT NULL, total_sales double NOT NULL DEFAULT 0, status varchar(200) NOT NULL, customer_id bigint(20) NOT NULL)");
-        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_order_product_lookup (order_item_id bigint(20) NOT NULL, order_id bigint(20) NOT NULL, product_id bigint(20) NOT NULL, variation_id bigint(20) NOT NULL DEFAULT 0)");
+        foreach (['wc_customer_lookup', 'wc_order_stats', 'wc_order_product_lookup'] as $table) {
+            $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}$table");
+        }
+
+        parent::tear_down_after_class();
+    }
+
+    protected function woo_store()
+    {
+        global $wpdb;
 
         $customers = [[1, 5, 'Maya', 'O', 'Maya@Example.com'], [2, null, 'Gus', 'T', 'guest@example.com'], [3, 6, 'Old', 'C', 'old@example.com'], [4, 7, 'Pen', 'D', 'pending@example.com']];
         foreach ($customers as $c) {
