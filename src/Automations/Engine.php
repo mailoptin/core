@@ -61,6 +61,11 @@ class Engine
             add_action('init', [Triggers::get_instance(), 'load'], 20);
         }
         add_action(self::TICK_HOOK, [$this, 'tick']);
+
+        // Automation emails are personal and have no web version: no "View this email in your browser".
+        add_filter('mo_email_template_view_web_version', function ($html, $template = null) {
+            return is_object($template) && ! empty($template->email_campaign_id) && ER::is_automation_email($template->email_campaign_id) ? '' : $html;
+        }, 10, 2);
         add_action('mo_hourly_recurring_job', [$this, 'scan']);
 
         add_filter('mo_send_queue_email_content', [$this, 'email_content'], 10, 3);

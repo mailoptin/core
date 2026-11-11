@@ -265,4 +265,25 @@ class ShopBlocksTest extends EngineTest
 
         $this->assertCount(2, FakeStore::$coupons, 'Same block id, same person, two emails: two codes.');
     }
+
+    public function test_automation_emails_have_no_web_version_link_and_no_empty_address_tags()
+    {
+        $email = $this->cart_email([['id' => 't', 'type' => 'text', 'settings' => ['text_content' => 'Hello']]]);
+        $this->cart_automation($email);
+
+        // Through the settings object: it reads the option once per request.
+        foreach (['company_name' => 'Acme', 'company_address' => '412 Orchard Lane', 'company_address_2' => '', 'company_city' => 'Portland'] as $key => $value) {
+            \MailOptin\Core\PluginSettings\Settings::instance()->update($key, $value);
+        }
+        $html = (new Templatify($email))->forge();
+
+        $this->assertStringNotContainsString('{{webversion}}', $html, 'No web version link in an automation email.');
+        $this->assertStringNotContainsString('{{company_address_2}}', $html, 'An empty address line goes.');
+        $this->assertDoesNotMatchRegularExpression('/412 Orchard Lane,<br[^>]*>\\s*<br/', $html, 'With its line.');
+        $this->assertStringContainsString('412 Orchard Lane', $html);
+
+        // A broadcast keeps its web version link.
+        $broadcast = ER::add_email_campaign('B ' . uniqid(), ER::NEWSLETTER, 'Lucid');
+        $this->assertStringContainsString('{{webversion}}', (new Templatify($broadcast))->forge());
+    }
 }

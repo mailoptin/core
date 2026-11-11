@@ -289,13 +289,20 @@ trait TemplateTrait
             \MailOptin\Core\country_code_to_name(Settings::instance()->company_country()),
         ];
 
+        $content = apply_filters('mailoptin_settings_replace_footer_placeholder_tags', $content);
+
         foreach ($replace as $key => $item) {
             if (empty($item)) {
-                unset($search[$key]);
-                unset($replace[$key]);
+                // Not filled in: the tag goes, with its line when it is alone on one (an empty
+                // "address line 2" left "{{company_address_2}}" in sent emails).
+                $tag     = preg_quote($search[$key], '/');
+                // (<br> may carry inline styles by now.)
+                $content = preg_replace('/(^|<br\b[^>]*>|\R)[ \t]*' . $tag . '[ \t]*(<br\b[^>]*>)?\s*(?=\R|<|$)/i', '$1', $content);
+                $content = str_replace($search[$key], '', $content);
+                unset($search[$key], $replace[$key]);
             }
         }
 
-        return str_replace($search, $replace, apply_filters('mailoptin_settings_replace_footer_placeholder_tags', $content));
+        return str_replace($search, $replace, $content);
     }
 }
