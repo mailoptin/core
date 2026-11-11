@@ -257,13 +257,20 @@ class Broadcasts
 
         $list_id = absint(self::get($email_campaign_id, 'connection_email_list'));
 
-        if ( ! $list_id) return 0;
-
         $filters = SegmentsRepository::campaign_filters($email_campaign_id);
 
         if (is_wp_error($filters)) return $filters;
 
-        return SubscribersRepository::count_list_recipients($list_id, $filters);
+        $audience = \MailOptin\Core\Audience\Sources\Sources::campaign_audience($email_campaign_id, $filters);
+
+        if (empty($audience['selection'])) return $list_id ? SubscribersRepository::count_list_recipients($list_id, $filters) : 0;
+
+        // Someone on the list who's also a customer is counted once.
+        return \MailOptin\Core\Audience\Sources\Sources::count_union(
+            $audience['selection'],
+            $audience['narrow'],
+            $list_id ? SubscribersRepository::list_recipients_email_sql($list_id, $filters) : null
+        );
     }
 
     /**
@@ -316,6 +323,11 @@ class Broadcasts
         $connection = (string)self::get($email_campaign_id, 'connection_service');
 
         if ('' === $connection) return false;
+
+        // Customers, users or members instead of (or as well as) a list.
+        if ('MailOptinConnect' === $connection && ! empty(\MailOptin\Core\Audience\Sources\Sources::campaign_selection(self::get($email_campaign_id, \MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING)))) {
+            return true;
+        }
 
         // A list fetch that failed comes back empty too, so only these are known to have no lists.
         return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true);

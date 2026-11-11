@@ -5,6 +5,8 @@ namespace MailOptin\MailOptinConnect;
 use MailOptin\Core\Audience\CampaignRenderer;
 use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
+use MailOptin\Core\Audience\Sources\ContactRenderer;
+use MailOptin\Core\Audience\Sources\Sources;
 use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionInterface;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
@@ -302,17 +304,24 @@ class Connect extends AbstractConnect implements ConnectionInterface
 
         $list_id = absint($this->get_email_campaign_list_id($email_campaign_id));
 
-        if ( ! $list_id || ! ListsRepository::get($list_id)) {
-            self::save_campaign_error_log(__('The selected list no longer exists.', 'mailoptin'), $campaign_log_id, $email_campaign_id);
-
-            return ['success' => false];
-        }
-
         // The segment is applied now, not when it was chosen, so recent matches are included.
         $filters = SegmentsRepository::campaign_filters($email_campaign_id);
 
         if (is_wp_error($filters)) {
             self::save_campaign_error_log($filters->get_error_message(), $campaign_log_id, $email_campaign_id);
+
+            return ['success' => false];
+        }
+
+        // Customers, users and members chosen as well as, or instead of, a list.
+        $audience = Sources::campaign_audience($email_campaign_id, $filters);
+
+        if (($list_id && ! ListsRepository::get($list_id)) || ( ! $list_id && empty($audience['selection']))) {
+            self::save_campaign_error_log(
+                $list_id ? __('The selected list no longer exists.', 'mailoptin') : __('Choose a list, or customers, users or members, to send to.', 'mailoptin'),
+                $campaign_log_id,
+                $email_campaign_id
+            );
 
             return ['success' => false];
         }
@@ -325,7 +334,7 @@ class Connect extends AbstractConnect implements ConnectionInterface
         // A send interrupted while queueing picks up the rest; the queue skips anyone already in it.
         $after_id = 0;
 
-        do {
+        if ($list_id) do {
             $recipients = SubscribersRepository::get_list_recipients($list_id, $after_id, self::ENQUEUE_BATCH_SIZE, $filters);
 
             if (empty($recipients)) break;
@@ -341,6 +350,33 @@ class Connect extends AbstractConnect implements ConnectionInterface
             $after_id = (int)end($recipients)['id'];
 
         } while (count($recipients) === self::ENQUEUE_BATCH_SIZE);
+
+        // List subscribers first: someone who's also a customer is queued once, as a subscriber
+        // of the list (the queue ignores the same address and subscriber again).
+        foreach ($audience['selection'] as $item) {
+            $source = Sources::get($item['source']);
+
+            if ( ! $source) continue;
+
+            $after_email = '';
+
+            do {
+                $recipients = Sources::recipients($source, $item['option'], $audience['narrow'], $after_email, self::ENQUEUE_BATCH_SIZE);
+
+                if (empty($recipients)) break;
+
+                SendQueueRepository::enqueue($campaign_log_id, $email_campaign_id, array_map(function ($recipient) use ($source) {
+                    return [
+                        'email'          => $recipient['email'],
+                        'recipient_type' => ContactRenderer::type($source->id()),
+                        'recipient_id'   => (int)$recipient['subscriber_id'],
+                    ];
+                }, $recipients));
+
+                $after_email = (string)end($recipients)['email'];
+
+            } while (count($recipients) === self::ENQUEUE_BATCH_SIZE);
+        }
 
         AbstractCampaignLogMeta::update_campaignlog_meta($campaign_log_id, self::ENQUEUED_META, 1);
 

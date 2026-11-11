@@ -436,6 +436,18 @@ class SubscribersRepository extends AbstractRepository
     }
 
     /**
+     * get_list_recipients() as SQL selecting s.email, for counting it together with other audiences.
+     *
+     * @return array [sql, params]
+     */
+    public static function list_recipients_email_sql($list_id, $filters = [])
+    {
+        list($where, $params) = self::list_recipients_where($list_id, $filters);
+
+        return ["SELECT s.email FROM " . self::table() . " s WHERE $where", $params];
+    }
+
+    /**
      * Confirmed subscribers of a list, optionally narrowed by tag and custom field filters.
      *
      * @return array [WHERE sql with placeholders, params]

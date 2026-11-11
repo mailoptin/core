@@ -114,6 +114,8 @@ class Base
         Submissions\SubmissionSync::get_instance();
         Audience\PublicEndpoints::get_instance();
         Audience\CampaignRenderer::get_instance();
+        Audience\Sources\Sources::get_instance();
+        Audience\Sources\ContactRenderer::get_instance();
         Audience\Tracking::get_instance();
         Audience\WelcomeEmail::get_instance();
         Automations\Engine::get_instance();
@@ -178,6 +180,7 @@ class Base
 
         Admin\SettingsPage\Settings::get_instance();
         Admin\SettingsPage\ApiSettings::get_instance();
+        Admin\SettingsPage\AudienceSourcesSettings::get_instance();
         Admin\SettingsPage\Connections::get_instance();
         Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();

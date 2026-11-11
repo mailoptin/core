@@ -38,3 +38,21 @@ if ( ! function_exists('mailoptin_register_email_block')) {
         return \MailOptin\Core\EmailBlocks\Blocks::get_instance()->add($block);
     }
 }
+
+if ( ! function_exists('mailoptin_register_audience_source')) {
+    /**
+     * Add a place broadcasts can find people besides lists, like a membership plugin's members.
+     * Extend MailOptin\Core\Audience\Sources\AbstractSource; MailOptin asks it who its people are
+     * when an email is counted or sent, and copies nothing.
+     *
+     *     add_action('init', function () {
+     *         mailoptin_register_audience_source(new Acme_Members_Source());
+     *     });
+     *
+     * @param \MailOptin\Core\Audience\Sources\AbstractSource $source
+     */
+    function mailoptin_register_audience_source($source)
+    {
+        \MailOptin\Core\Audience\Sources\Sources::add($source);
+    }
+}

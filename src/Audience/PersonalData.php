@@ -41,8 +41,9 @@ class PersonalData
     public static function export($email, $page = 1)
     {
         $subscriber = Subscribers::get_by_email($email);
+        $consents   = self::consent_export($email);
 
-        if ( ! $subscriber) return ['data' => [], 'done' => true];
+        if ( ! $subscriber) return ['data' => $consents, 'done' => true];
 
         $lists = [];
         foreach (Subscribers::get_memberships($subscriber['id']) as $membership) {
@@ -89,14 +90,43 @@ class PersonalData
         }));
 
         return [
-            'data' => [[
+            'data' => array_merge([[
                 'group_id'    => 'mailoptin-subscribers',
                 'group_label' => __('MailOptin Subscribers', 'mailoptin'),
                 'item_id'     => 'mailoptin-subscriber-' . $subscriber['id'],
                 'data'        => $data,
-            ]],
+            ]], $consents),
             'done' => true,
         ];
+    }
+
+    /**
+     * Marketing consent given as a customer, user or member, kept whether or not they're a subscriber.
+     */
+    protected static function consent_export($email)
+    {
+        $items = [];
+
+        foreach (\MailOptin\Core\Repositories\AudienceConsentsRepository::for_email($email) as $row) {
+            $source = \MailOptin\Core\Audience\Sources\Sources::get($row['source']);
+
+            $items[] = [
+                'group_id'    => 'mailoptin-marketing-consent',
+                'group_label' => __('MailOptin marketing consent', 'mailoptin'),
+                'item_id'     => 'mailoptin-consent-' . $row['id'],
+                'data'        => array_values(array_filter([
+                    ['name' => __('From', 'mailoptin'), 'value' => $source ? $source->label() : $row['source']],
+                    ['name' => __('Status', 'mailoptin'), 'value' => $row['status']],
+                    ['name' => __('What they agreed to', 'mailoptin'), 'value' => (string)$row['consent_text']],
+                    ['name' => __('Where', 'mailoptin'), 'value' => (string)$row['reference']],
+                    ['name' => __('Updated', 'mailoptin'), 'value' => $row['updated_at']],
+                ], function ($item) {
+                    return '' !== trim((string)$item['value']);
+                })),
+            ];
+        }
+
+        return $items;
     }
 
     /**
@@ -128,6 +158,8 @@ class PersonalData
         if ( ! empty($conversions)) {
             $removed = \MailOptin\Core\Repositories\ConversionSyncRepository::forget_retry_data(wp_list_pluck($conversions, 'id')) > 0 || $removed;
         }
+
+        $removed = \MailOptin\Core\Repositories\AudienceConsentsRepository::delete_email($email) > 0 || $removed;
 
         $subscriber = Subscribers::get_by_email($email);
 
