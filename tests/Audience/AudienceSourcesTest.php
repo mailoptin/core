@@ -57,11 +57,11 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
         $this->assertNotContains('au@example.com', $this->emails($source, 'editor'), 'The role narrows it.');
         $this->assertContains('au@example.com', $this->emails($source, ''));
 
-        // An unknown role in a saved selection means any role, not none: it's dropped on read.
-        $this->assertSame([['source' => 'users', 'option' => '']], Sources::campaign_selection([['source' => 'users', 'option' => 'no-such-role'], ['source' => 'nope', 'option' => '']]));
+        // An unknown role or source in a saved selection is dropped, never read as "any role".
+        $this->assertSame([], Sources::campaign_selection([['source' => 'users', 'option' => 'no-such-role'], ['source' => 'nope', 'option' => '']]));
     }
 
-    public function test_someone_who_unsubscribed_from_everything_is_left_out_until_they_tick_the_box_again()
+    public function test_someone_who_unsubscribed_from_everything_stays_out_even_after_ticking_a_box()
     {
         $this->user('una@example.com', 'editor');
         $this->mode('users', AbstractSource::MODE_EVERYONE);
@@ -69,11 +69,10 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
         $id = Subscribers::create(['email' => 'una@example.com', 'status' => Subscribers::STATUS_UNSUBSCRIBED]);
         $this->assertNotContains('una@example.com', $this->emails(Sources::get('users'), 'editor'));
 
-        global $wpdb;
-        $wpdb->update(Subscribers::table(), ['updated_at' => gmdate('Y-m-d H:i:s', time() - HOUR_IN_SECONDS)], ['id' => $id]);
+        // A box ticked somewhere (perhaps by someone else, at a guest checkout) doesn't undo it.
         Sources::agree('users', 'una@example.com', 'Email me news');
-
-        $this->assertContains('una@example.com', $this->emails(Sources::get('users'), 'editor'));
+        $this->assertNotContains('una@example.com', $this->emails(Sources::get('users'), 'editor'));
+        unset($id);
     }
 
     public function test_a_broadcast_to_users_only_sends_with_names_and_their_own_unsubscribe()
@@ -139,7 +138,7 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
         $this->assertCount(3, tests_retrieve_phpmailer_instance()->mock_sent);
     }
 
-    public function test_unsubscribe_link_suppresses_and_ticking_again_lifts_it()
+    public function test_unsubscribe_link_suppresses_and_a_bad_token_does_nothing()
     {
         $this->user('ana@example.com', 'editor');
         $this->mode('users', AbstractSource::MODE_EVERYONE);
@@ -165,7 +164,8 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
         $this->assertNotContains('ana@example.com', $this->emails(Sources::get('users'), 'editor'));
 
         Sources::agree('users', 'ana@example.com', 'Email me news', 'Registration');
-        $this->assertFalse(SuppressionRepository::is_suppressed('ana@example.com'), 'They asked again.');
+        $this->assertTrue(SuppressionRepository::is_suppressed('ana@example.com'), 'Ticking a box elsewhere doesn\'t undo an unsubscribe.');
+        SuppressionRepository::remove('ana@example.com');
 
         // A bad token does nothing.
         $_GET = ['mo_src_unsub' => 'ana@example.com', 'mo_token' => 'nope'];
@@ -216,32 +216,46 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
         $this->assertNull(Consents::get('users', 'admin-made@example.com'));
     }
 
-    public function test_woocommerce_checkbox_records_consent_from_classic_and_block_checkout()
+    public function test_woocommerce_consent_is_recorded_once_the_order_is_paid()
     {
-        $order = function ($email, $consent) {
-            return new class($email, $consent) {
+        $order = function ($email, $block_box = '') {
+            return new class($email, $block_box) {
                 public $email;
-                public $consent;
-                public function __construct($email, $consent) { $this->email = $email; $this->consent = $consent; }
+                public $meta = [];
+                public function __construct($email, $block_box) { $this->email = $email; if ($block_box) $this->meta['_wc_other/' . WooCustomers::FIELD_ID] = $block_box; }
                 public function get_billing_email() { return $this->email; }
                 public function get_order_number() { return '1042'; }
-                public function get_meta($key) { return '_wc_other/' . WooCustomers::FIELD_ID === $key ? $this->consent : ''; }
+                public function get_meta($key) { return $this->meta[$key] ?? ''; }
+                public function update_meta_data($key, $value) { $this->meta[$key] = $value; }
+                public function save_meta_data() { }
             };
         };
 
         (new WooCustomers())->register_checkbox('News and offers');
 
-        do_action('woocommerce_store_api_checkout_order_processed', $order('block@example.com', '1'));
-        do_action('woocommerce_store_api_checkout_order_processed', $order('noblock@example.com', ''));
-
-        $_POST = [WooCustomers::CLASSIC_FIELD => '1'];
-        do_action('woocommerce_checkout_order_processed', 7, [], $order('classic@example.com', ''));
-        $_POST = [];
-        do_action('woocommerce_checkout_order_processed', 8, [], $order('noclassic@example.com', ''));
-
+        // Block checkout: the box is on the order; nothing is recorded until it's paid.
+        $block = $order('block@example.com', '1');
+        do_action('woocommerce_order_status_changed', 1, 'pending', 'failed', $block);
+        $this->assertNull(Consents::get('woo', 'block@example.com'), 'An unpaid order records nothing: anyone can type any address.');
+        do_action('woocommerce_order_status_changed', 1, 'pending', 'processing', $block);
         $this->assertSame('Order #1042', Consents::get('woo', 'block@example.com')['reference']);
-        $this->assertSame('agreed', Consents::get('woo', 'classic@example.com')['status']);
-        $this->assertNull(Consents::get('woo', 'noblock@example.com'));
+
+        // Classic checkout: the ticked box is kept on the order, then recorded on payment, once.
+        $classic = $order('classic@example.com');
+        $_POST   = [WooCustomers::CLASSIC_FIELD => '1'];
+        do_action('woocommerce_checkout_order_processed', 7, [], $classic);
+        $_POST = [];
+        $this->assertNull(Consents::get('woo', 'classic@example.com'));
+        do_action('woocommerce_order_status_changed', 7, 'pending', 'on-hold', $classic);
+        $this->assertSame('News and offers', Consents::get('woo', 'classic@example.com')['consent_text']);
+
+        Consents::withdraw('woo', 'classic@example.com');
+        do_action('woocommerce_order_status_changed', 7, 'on-hold', 'completed', $classic);
+        $this->assertSame('withdrawn', Consents::get('woo', 'classic@example.com')['status'], 'Recorded once per order, so a later status change doesn\'t undo a withdrawal.');
+
+        $unticked = $order('noclassic@example.com');
+        do_action('woocommerce_checkout_order_processed', 8, [], $unticked);
+        do_action('woocommerce_order_status_changed', 8, 'pending', 'completed', $unticked);
         $this->assertNull(Consents::get('woo', 'noclassic@example.com'));
     }
 
@@ -285,7 +299,7 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
     public function test_settings_are_sanitized_and_defaults_apply()
     {
         $this->assertSame(AbstractSource::MODE_AGREED, Sources::settings('users')['mode']);
-        $this->assertSame(AbstractSource::MODE_EVERYONE, Sources::settings('pmpro')['mode'], 'Members default to everyone.');
+        $this->assertSame(AbstractSource::MODE_AGREED, Sources::settings('pmpro')['mode'], 'Members too: nobody gets marketing without agreeing until the owner says otherwise.');
 
         Sources::save_settings(['users' => ['mode' => 'bogus', 'checkbox_text' => '<b>Yes</b> please']]);
         $this->assertSame(AbstractSource::MODE_AGREED, Sources::settings('users')['mode']);
@@ -340,5 +354,50 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
 
         PersonalData::erase('ana@example.com');
         $this->assertNull(Consents::get('users', 'ana@example.com'));
+        $this->assertFalse(SuppressionRepository::is_suppressed('ana@example.com'));
+
+        // A withdrawal outlives erasure as a suppression hash, or "everyone" would email them again.
+        Sources::agree('users', 'ben@example.com', 'Email me news');
+        Consents::withdraw('users', 'ben@example.com');
+        PersonalData::erase('ben@example.com');
+        $this->assertNull(Consents::get('users', 'ben@example.com'));
+        $this->assertTrue(SuppressionRepository::is_suppressed('ben@example.com'));
+    }
+
+    public function test_a_choice_that_no_longer_exists_never_widens_to_everyone()
+    {
+        $this->user('ed@example.com', 'editor');
+        $this->user('au@example.com', 'author');
+        $this->mode('users', AbstractSource::MODE_EVERYONE);
+
+        add_role('gardeners', 'Gardeners');
+        $this->choose([['source' => 'users', 'option' => 'gardeners']]);
+        $this->assertTrue(Broadcasts::has_sources($this->campaign_id));
+
+        remove_role('gardeners');
+
+        $this->assertSame([], Sources::campaign_selection(Broadcasts::get($this->campaign_id, Sources::CAMPAIGN_SETTING)));
+        $this->assertSame(0, Broadcasts::recipients_count($this->campaign_id));
+        $this->assertFalse(Broadcasts::can_send($this->campaign_id));
+        $this->assertContains('The role chosen for Registered users no longer exists.', wp_list_pluck(Broadcasts::checks($this->campaign_id, false), 'label'));
+    }
+
+    public function test_source_ids_fit_the_send_queue()
+    {
+        $long = new class extends RegisteredUsers {
+            public function id() { return str_repeat('a', 24); }
+        };
+        Sources::add($long);
+        $this->assertNull(Sources::get(str_repeat('a', 24)));
+
+        $this->assertLessThanOrEqual(30, strlen(ContactRenderer::type(str_repeat('a', 23))));
+    }
+
+    public function test_a_persons_name_is_looked_up_by_address()
+    {
+        $this->user('Name@Example.com', 'editor', 'Nell');
+
+        $this->assertSame('Nell', Sources::person('users', 'name@example.com')['first_name']);
+        $this->assertSame('', Sources::person('users', 'nobody@example.com')['first_name']);
     }
 }

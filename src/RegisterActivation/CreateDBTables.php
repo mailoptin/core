@@ -113,14 +113,6 @@ class CreateDBTables
     }
 
     /**
-     * Automations: each automation and its steps, one run per person per starting event, and the
-     * steps each run has done. Settings are JSON. Datetimes are UTC.
-     *
-     * A run is unique per automation, email and trigger_ref (the order, cart, year or list that
-     * started it), so an event seen twice never starts a second run. A run step is unique per run
-     * and step, so an email step is never queued twice for the same run.
-     */
-    /**
      * Marketing consent from customers, users and members: whether someone who isn't on a list
      * agreed (or stopped agreeing) to marketing from that source, with what they ticked and where.
      * One row per source and address; emails are stored lower case.
@@ -146,6 +138,14 @@ class CreateDBTables
 ) $collate;";
     }
 
+    /**
+     * Automations: each automation and its steps, one run per person per starting event, and the
+     * steps each run has done. Settings are JSON. Datetimes are UTC.
+     *
+     * A run is unique per automation, email and trigger_ref (the order, cart, year or list that
+     * started it), so an event seen twice never starts a second run. A run step is unique per run
+     * and step, so an email step is never queued twice for the same run.
+     */
     public static function automations_tables_sql($collate)
     {
         global $wpdb;

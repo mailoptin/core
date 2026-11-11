@@ -57,18 +57,12 @@ class PmproMembers extends AbstractSource
         return __('Any active membership', 'mailoptin');
     }
 
-    /** Members usually expect news about their membership. */
-    public function default_mode()
-    {
-        return self::MODE_EVERYONE;
-    }
-
     public function checkbox_place()
     {
         return __('at membership checkout', 'mailoptin');
     }
 
-    public function people_sql($option, $settings)
+    public function people_sql($option, $settings, $email = null)
     {
         global $wpdb;
 
@@ -80,6 +74,11 @@ class PmproMembers extends AbstractSource
         if (absint($option)) {
             $where[]  = 'm.membership_id = %d';
             $params[] = absint($option);
+        }
+
+        if (null !== $email) {
+            $where[]  = 'u.user_email = %s';
+            $params[] = $email;
         }
 
         return [

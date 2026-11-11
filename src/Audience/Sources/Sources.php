@@ -23,6 +23,9 @@ class Sources
     /** A broadcast's chosen sources: JSON [{"source": "woo", "option": ""}, ...]. */
     const CAMPAIGN_SETTING = 'MailOptinConnect_audience_sources';
 
+    /** Short enough that "source:<id>" fits the send queue's recipient_type column. */
+    const ID_PATTERN = '/^[a-z0-9_-]{1,23}$/';
+
     /** The suppression list's source for unsubscribes from these emails. */
     const SUPPRESSION_SOURCE = 'customers';
 
@@ -54,7 +57,7 @@ class Sources
             self::$sources = [];
 
             foreach ((array)$sources as $source) {
-                if ($source instanceof AbstractSource && preg_match('/^[a-z0-9_-]{1,40}$/', $source->id())) {
+                if ($source instanceof AbstractSource && preg_match(self::ID_PATTERN, $source->id())) {
                     self::$sources[$source->id()] = $source;
                 }
             }
@@ -68,7 +71,7 @@ class Sources
     {
         self::all();
 
-        if (preg_match('/^[a-z0-9_-]{1,40}$/', $source->id())) self::$sources[$source->id()] = $source;
+        if (preg_match(self::ID_PATTERN, $source->id())) self::$sources[$source->id()] = $source;
     }
 
     public static function reset()
@@ -166,14 +169,13 @@ class Sources
      * ------------------------------------------------------------------------------------------ */
 
     /**
-     * They ticked a source's consent box. That also lifts an earlier unsubscribe from these
-     * emails: they've just asked again.
+     * They ticked a source's consent box. It doesn't undo an unsubscribe: a box ticked at one
+     * plugin isn't consent for the others, and a guest checkout can be made with anyone's address.
+     * Someone who unsubscribed comes back by signing up again through a form.
      */
     public static function agree($source_id, $email, $consent_text, $reference = '')
     {
         if ( ! Consents::agree($source_id, $email, $consent_text, $reference)) return false;
-
-        SuppressionRepository::remove_unsubscribe_from($email, [self::SUPPRESSION_SOURCE]);
 
         do_action('mailoptin_audience_consent_agreed', $source_id, strtolower(trim($email)));
 
@@ -203,12 +205,39 @@ class Sources
 
             $option = (string)($item['option'] ?? '');
 
-            if ('' !== $option && ! array_key_exists($option, $source->options())) $option = '';
+            // A role, level or course that's gone leaves the choice out; it never widens to everyone.
+            if ( ! $source->is_valid_option($option)) continue;
 
             $clean[$source->id()] = ['source' => $source->id(), 'option' => $option];
         }
 
         return array_values($clean);
+    }
+
+    /**
+     * Chosen sources that can't be used any more: their plugin was deactivated, or the role,
+     * level or course chosen is gone.
+     *
+     * @return string[] labels, for a blocking check before sending
+     */
+    public static function unusable_choices($raw)
+    {
+        $selection = is_array($raw) ? $raw : json_decode((string)$raw, true);
+        $problems  = [];
+
+        foreach ((array)$selection as $item) {
+            if ( ! is_array($item)) continue;
+
+            $source = self::get((string)($item['source'] ?? ''));
+
+            if ( ! $source || ! $source->is_active()) {
+                $problems[] = sprintf(__('%s can\'t be used: its plugin isn\'t active.', 'mailoptin'), $source ? $source->label() : (string)($item['source'] ?? ''));
+            } elseif ( ! $source->is_valid_option((string)($item['option'] ?? ''))) {
+                $problems[] = sprintf(__('The %1$s chosen for %2$s no longer exists.', 'mailoptin'), strtolower($source->option_label()), $source->label());
+            }
+        }
+
+        return $problems;
     }
 
     public static function encode_selection($selection)
@@ -261,9 +290,8 @@ class Sources
 
         $where = [
             "(c.status IS NULL OR c.status <> 'withdrawn')",
-            // Someone who unsubscribed from every list doesn't want marketing, unless they've
-            // ticked this source's box since.
-            "(s.id IS NULL OR s.status IN ('subscribed', 'pending') OR (s.status = 'unsubscribed' AND c.status = 'agreed' AND c.updated_at > s.updated_at))",
+            // Someone who unsubscribed from every list, bounced or complained doesn't get marketing.
+            "(s.id IS NULL OR s.status IN ('subscribed', 'pending'))",
             "NOT EXISTS (SELECT 1 FROM $suppressions x WHERE x.email_hash = SHA2(p.email, 256))",
         ];
 
@@ -331,6 +359,29 @@ class Sources
     }
 
     /**
+     * Queue a source's recipients for a campaign in one statement, so a large store is read once
+     * rather than in batches that each re-read it. The queue ignores anyone already in it.
+     *
+     * @return int how many were added
+     */
+    public static function enqueue($campaign_log_id, $email_campaign_id, AbstractSource $source, $option, $narrow)
+    {
+        global $wpdb;
+
+        list($sql, $params) = self::recipients_sql($source, $option, $narrow);
+
+        $queue = \MailOptin\Core\Repositories\SendQueueRepository::table();
+
+        array_unshift($params, absint($campaign_log_id), absint($email_campaign_id), ContactRenderer::type($source->id()), 'pending', gmdate('Y-m-d H:i:s'));
+
+        return (int)$wpdb->query($wpdb->prepare(
+            "INSERT IGNORE INTO $queue (campaign_log_id, email_campaign_id, email, recipient_type, recipient_id, status, next_attempt_at)
+            SELECT %d, %d, r.email, %s, r.subscriber_id, %s, %s FROM ($sql) r WHERE r.email LIKE %s",
+            array_merge($params, ['%_@_%'])
+        ));
+    }
+
+    /**
      * How many different people a campaign's list and sources reach together.
      *
      * @param array $selection campaign_selection()
@@ -364,8 +415,18 @@ class Sources
         if (empty($parts)) return 0;
 
         $sql = 'SELECT COUNT(DISTINCT u.email) FROM (' . implode(' UNION ALL ', $parts) . ') u';
+        $sql = empty($params) ? $sql : $wpdb->prepare($sql, $params);
 
-        return (int)$wpdb->get_var(empty($params) ? $sql : $wpdb->prepare($sql, $params));
+        // Shown on every view of the broadcast page; a large store needn't be counted each time.
+        $key   = 'mo_audience_count_' . md5($sql);
+        $count = get_transient($key);
+
+        if (false === $count) {
+            $count = (int)$wpdb->get_var($sql);
+            set_transient($key, $count, MINUTE_IN_SECONDS);
+        }
+
+        return (int)$count;
     }
 
     /**
@@ -382,11 +443,9 @@ class Sources
 
         if ( ! $source || ! $source->is_active()) return ['first_name' => '', 'last_name' => ''];
 
-        list($people, $params) = $source->people_sql('', self::settings($source_id));
+        list($people, $params) = $source->people_sql('', self::settings($source_id), strtolower(trim($email)));
 
-        $params[] = strtolower(trim($email));
-
-        $row = $wpdb->get_row($wpdb->prepare("SELECT first_name, last_name FROM ($people) p WHERE p.email = %s", $params), 'ARRAY_A');
+        $row = $wpdb->get_row($wpdb->prepare("SELECT first_name, last_name FROM ($people) p LIMIT 1", $params), 'ARRAY_A');
 
         return [
             'first_name' => (string)($row['first_name'] ?? ''),

@@ -57,12 +57,17 @@ class LifterMembers extends AbstractSource
         return __('Enrolled in anything', 'mailoptin');
     }
 
-    public function default_mode()
+    /** Any published membership or course, including ones past the first 200 the picker lists. */
+    public function is_valid_option($option)
     {
-        return self::MODE_EVERYONE;
+        if ('' === (string)$option) return true;
+
+        $post = get_post(absint($option));
+
+        return $post && 'publish' === $post->post_status && in_array($post->post_type, ['llms_membership', 'llms_course'], true);
     }
 
-    public function people_sql($option, $settings)
+    public function people_sql($option, $settings, $email = null)
     {
         global $wpdb;
 
@@ -86,8 +91,8 @@ class LifterMembers extends AbstractSource
             INNER JOIN $wpdb->users u ON u.ID = l.user_id
             LEFT JOIN $wpdb->usermeta fn ON fn.user_id = u.ID AND fn.meta_key = 'first_name'
             LEFT JOIN $wpdb->usermeta ln ON ln.user_id = u.ID AND ln.meta_key = 'last_name'
-            WHERE u.user_email <> '' GROUP BY LOWER(u.user_email)",
-            $params,
+            WHERE u.user_email <> ''" . (null !== $email ? ' AND u.user_email = %s' : '') . ' GROUP BY LOWER(u.user_email)',
+            null !== $email ? array_merge($params, [$email]) : $params,
         ];
     }
 }

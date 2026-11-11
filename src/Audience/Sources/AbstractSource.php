@@ -16,7 +16,7 @@ abstract class AbstractSource
     const MODE_AGREED = 'agreed';
     const MODE_EVERYONE = 'everyone';
 
-    /** Short and stable: it's saved with broadcasts and consent records. Letters, digits, _ and -. */
+    /** Short and stable: it's saved with broadcasts and consent records. Up to 23 lower-case letters, digits, _ and -. */
     abstract public function id();
 
     abstract public function label();
@@ -35,10 +35,12 @@ abstract class AbstractSource
      *
      * @param string $option one of options()'s keys; '' for everyone
      * @param array $settings this source's saved settings (see settings())
+     * @param string|null $email only this (lower-case) address: filter on it before grouping, so
+     *                           looking up one person doesn't read everyone
      *
      * @return array [sql, params]
      */
-    abstract public function people_sql($option, $settings);
+    abstract public function people_sql($option, $settings, $email = null);
 
     /**
      * Narrowing choices for the audience picker, like roles or membership levels.
@@ -48,6 +50,15 @@ abstract class AbstractSource
     public function options()
     {
         return [];
+    }
+
+    /**
+     * Whether a saved option still exists. One that doesn't (a deleted role or level) must never
+     * be read as "any": the broadcast would go to everyone.
+     */
+    public function is_valid_option($option)
+    {
+        return '' === (string)$option || array_key_exists((string)$option, $this->options());
     }
 
     /** What options() narrows by, like "Role". */
@@ -137,6 +148,16 @@ abstract class AbstractSource
         $months = absint($months);
 
         return $months ? gmdate('Y-m-d H:i:s', strtotime("-$months months")) : '';
+    }
+
+    /** "IN (...)" placeholders and params for a list that may be empty. */
+    protected static function in_list($values)
+    {
+        $values = array_values((array)$values);
+
+        if (empty($values)) $values = ['__mailoptin_none__'];
+
+        return ['IN (' . implode(',', array_fill(0, count($values), '%s')) . ')', $values];
     }
 
     protected static function table_exists($table)

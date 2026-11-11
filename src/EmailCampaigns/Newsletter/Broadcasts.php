@@ -291,6 +291,13 @@ class Broadcasts
             ['label' => __('Who it goes to', 'mailoptin'), 'ok' => self::has_recipients_set($email_campaign_id), 'blocking' => true],
         ];
 
+        // A chosen role, level or plugin that's gone: it's left out, so say so rather than send to fewer people.
+        if ('MailOptinConnect' === self::get($email_campaign_id, 'connection_service')) {
+            foreach (\MailOptin\Core\Audience\Sources\Sources::unusable_choices(self::get($email_campaign_id, \MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING)) as $problem) {
+                $checks[] = ['label' => $problem, 'ok' => false, 'blocking' => true];
+            }
+        }
+
         if (null !== $count) {
             $checks[] = [
                 'label'    => is_wp_error($count) ? $count->get_error_message() : sprintf(_n('Audience: %s person', 'Audience: %s people', $count, 'mailoptin'), number_format_i18n($count)),

@@ -80,11 +80,7 @@ class ContactRenderer
 
             // A subscriber deleted since is still a customer: they just aren't a subscriber any more.
             if ($subscriber && in_array($subscriber['status'], [Subscribers::STATUS_UNSUBSCRIBED, Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)) {
-                $agreed_since = $consent && Consents::STATUS_AGREED === $consent['status'] && $consent['updated_at'] > $subscriber['updated_at'];
-
-                if (Subscribers::STATUS_UNSUBSCRIBED !== $subscriber['status'] || ! $agreed_since) {
-                    return __('The subscriber is no longer subscribed.', 'mailoptin');
-                }
+                return __('The subscriber is no longer subscribed.', 'mailoptin');
             }
         }
 

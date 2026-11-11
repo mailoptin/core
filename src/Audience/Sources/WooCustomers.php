@@ -13,6 +13,9 @@ class WooCustomers extends AbstractSource
 
     const CLASSIC_FIELD = 'mo_marketing_consent';
 
+    /** Set on the order at checkout when the box was ticked; consent is recorded once it's paid. */
+    const ORDER_META = '_mo_marketing_consent';
+
     public function id()
     {
         return 'woo';
@@ -27,7 +30,20 @@ class WooCustomers extends AbstractSource
     {
         global $wpdb;
 
-        return class_exists('WooCommerce') && self::table_exists($wpdb->prefix . 'wc_customer_lookup');
+        return class_exists('WooCommerce') && self::analytics_enabled() && self::table_exists($wpdb->prefix . 'wc_customer_lookup');
+    }
+
+    /**
+     * Customers are read from WooCommerce Analytics' tables, which are only kept up to date while
+     * Analytics is on.
+     */
+    public static function analytics_enabled()
+    {
+        if (class_exists('\\Automattic\\WooCommerce\\Admin\\Features\\Features')) {
+            return \Automattic\WooCommerce\Admin\Features\Features::is_enabled('analytics');
+        }
+
+        return 'no' !== get_option('woocommerce_analytics_enabled', 'yes');
     }
 
     public function admin_url()
@@ -62,6 +78,7 @@ class WooCustomers extends AbstractSource
             <span class="description"><?php esc_html_e('0 for any time.', 'mailoptin'); ?></span>
         </p>
         <p><label><input type="checkbox" name="<?php echo esc_attr($name_prefix); ?>[guests]" value="1" <?php checked( ! empty($settings['guests'])); ?>> <?php esc_html_e('Guest orders too (customers without an account)', 'mailoptin'); ?></label></p>
+        <p class="description"><?php esc_html_e('Customers come from WooCommerce Analytics, which must stay on. New orders show up there within a few minutes; orders from before Analytics was set up appear once they\'re imported under Analytics › Settings.', 'mailoptin'); ?></p>
         <?php
         return ob_get_clean();
     }
@@ -80,16 +97,21 @@ class WooCustomers extends AbstractSource
         return apply_filters('mailoptin_audience_woo_paid_statuses', ['wc-completed', 'wc-processing', 'wc-on-hold']);
     }
 
-    public function people_sql($option, $settings)
+    public function people_sql($option, $settings, $email = null)
     {
         global $wpdb;
 
         $customers = $wpdb->prefix . 'wc_customer_lookup';
         $orders    = $wpdb->prefix . 'wc_order_stats';
-        $statuses  = self::paid_statuses();
 
-        $where  = ["c.email <> ''", 'o.parent_id = 0', 'o.status IN (' . implode(',', array_fill(0, count($statuses), '%s')) . ')'];
-        $params = $statuses;
+        list($in, $params) = self::in_list(self::paid_statuses());
+
+        $where = ["c.email <> ''", 'o.parent_id = 0', "o.status $in"];
+
+        if (null !== $email) {
+            $where[]  = 'c.email = %s';
+            $params[] = $email;
+        }
 
         $cutoff = self::cutoff($settings['months'] ?? 24);
 
@@ -112,7 +134,8 @@ class WooCustomers extends AbstractSource
     {
         // Block checkout (WooCommerce 8.9+): an additional checkout field, saved on the order.
         $register = function () use ($checkbox_text) {
-            if ( ! function_exists('woocommerce_register_additional_checkout_field')) return;
+            // Earlier versions have the function but not the "order" location.
+            if ( ! function_exists('woocommerce_register_additional_checkout_field') || ! defined('WC_VERSION') || version_compare(WC_VERSION, '8.9', '<')) return;
 
             try {
                 woocommerce_register_additional_checkout_field([
@@ -128,11 +151,7 @@ class WooCustomers extends AbstractSource
 
         did_action('woocommerce_init') ? $register() : add_action('woocommerce_init', $register);
 
-        add_action('woocommerce_store_api_checkout_order_processed', function ($order) use ($checkbox_text) {
-            if ( ! is_object($order) || ! method_exists($order, 'get_meta')) return;
-
-            if ($order->get_meta('_wc_other/' . self::FIELD_ID)) $this->agree_from_order($order, $checkbox_text);
-        });
+        // Block checkout saves the box on the order itself; consent is recorded once it's paid.
 
         // Classic checkout.
         add_action('woocommerce_review_order_before_submit', function () use ($checkbox_text) {
@@ -149,13 +168,41 @@ class WooCustomers extends AbstractSource
 
             $order = is_object($order) ? $order : wc_get_order($order_id);
 
-            if ($order) $this->agree_from_order($order, $checkbox_text);
+            if ($order && method_exists($order, 'update_meta_data')) {
+                $order->update_meta_data(self::ORDER_META, $checkbox_text);
+                $order->save_meta_data();
+            }
         }, 10, 3);
+
+        // Anyone can type any address at a guest checkout, so an unpaid order records nothing.
+        add_action('woocommerce_order_status_changed', function ($order_id, $from, $to, $order = null) use ($checkbox_text) {
+            if ( ! in_array('wc-' . $to, self::paid_statuses(), true)) return;
+
+            $order = is_object($order) ? $order : wc_get_order($order_id);
+
+            if ($order) $this->agree_from_paid_order($order, $checkbox_text);
+        }, 10, 4);
     }
 
-    protected function agree_from_order($order, $checkbox_text)
+    /**
+     * Record consent from an order that has been paid, if the box was ticked on it.
+     */
+    public function agree_from_paid_order($order, $checkbox_text)
     {
-        Sources::agree($this->id(), $order->get_billing_email(), $checkbox_text, sprintf(__('Order #%s', 'mailoptin'), $order->get_order_number()));
+        if ( ! is_object($order) || ! method_exists($order, 'get_meta')) return;
+
+        $text = $order->get_meta(self::ORDER_META);
+
+        if ('' === (string)$text && $order->get_meta('_wc_other/' . self::FIELD_ID)) $text = $checkbox_text;
+
+        if ('' === (string)$text || $order->get_meta('_mo_marketing_consent_recorded')) return;
+
+        Sources::agree($this->id(), $order->get_billing_email(), $text, sprintf(__('Order #%s', 'mailoptin'), $order->get_order_number()));
+
+        if (method_exists($order, 'update_meta_data')) {
+            $order->update_meta_data('_mo_marketing_consent_recorded', 1);
+            $order->save_meta_data();
+        }
     }
 
     public function profile_summary($email)
@@ -166,12 +213,13 @@ class WooCustomers extends AbstractSource
 
         $customers = $wpdb->prefix . 'wc_customer_lookup';
         $orders    = $wpdb->prefix . 'wc_order_stats';
-        $statuses  = self::paid_statuses();
+
+        list($in, $statuses) = self::in_list(self::paid_statuses());
 
         $row = $wpdb->get_row($wpdb->prepare(
             "SELECT COUNT(o.order_id) AS orders, SUM(o.total_sales) AS spent, MIN(o.date_created) AS first_order, MAX(o.date_created) AS last_order
             FROM $customers c INNER JOIN $orders o ON o.customer_id = c.customer_id
-            WHERE c.email = %s AND o.parent_id = 0 AND o.status IN (" . implode(',', array_fill(0, count($statuses), '%s')) . ')',
+            WHERE c.email = %s AND o.parent_id = 0 AND o.status $in",
             array_merge([strtolower(trim($email))], $statuses)
         ), 'ARRAY_A');
 

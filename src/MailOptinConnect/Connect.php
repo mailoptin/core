@@ -5,7 +5,6 @@ namespace MailOptin\MailOptinConnect;
 use MailOptin\Core\Audience\CampaignRenderer;
 use MailOptin\Core\Audience\Consent;
 use MailOptin\Core\Audience\Subscription;
-use MailOptin\Core\Audience\Sources\ContactRenderer;
 use MailOptin\Core\Audience\Sources\Sources;
 use MailOptin\Core\Connections\AbstractConnect;
 use MailOptin\Core\Connections\ConnectionInterface;
@@ -358,24 +357,7 @@ class Connect extends AbstractConnect implements ConnectionInterface
 
             if ( ! $source) continue;
 
-            $after_email = '';
-
-            do {
-                $recipients = Sources::recipients($source, $item['option'], $audience['narrow'], $after_email, self::ENQUEUE_BATCH_SIZE);
-
-                if (empty($recipients)) break;
-
-                SendQueueRepository::enqueue($campaign_log_id, $email_campaign_id, array_map(function ($recipient) use ($source) {
-                    return [
-                        'email'          => $recipient['email'],
-                        'recipient_type' => ContactRenderer::type($source->id()),
-                        'recipient_id'   => (int)$recipient['subscriber_id'],
-                    ];
-                }, $recipients));
-
-                $after_email = (string)end($recipients)['email'];
-
-            } while (count($recipients) === self::ENQUEUE_BATCH_SIZE);
+            Sources::enqueue($campaign_log_id, $email_campaign_id, $source, $item['option'], $audience['narrow']);
         }
 
         AbstractCampaignLogMeta::update_campaignlog_meta($campaign_log_id, self::ENQUEUED_META, 1);

@@ -54,7 +54,7 @@ class RegisteredUsers extends AbstractSource
         return __('on the registration form', 'mailoptin');
     }
 
-    public function people_sql($option, $settings)
+    public function people_sql($option, $settings, $email = null)
     {
         global $wpdb;
 
@@ -67,6 +67,11 @@ class RegisteredUsers extends AbstractSource
         if ('' !== (string)$option && array_key_exists($option, $this->options())) {
             $where[]  = 'cap.meta_value LIKE %s';
             $params[] = '%' . $wpdb->esc_like('"' . $option . '"') . '%';
+        }
+
+        if (null !== $email) {
+            $where[]  = 'u.user_email = %s';
+            $params[] = $email;
         }
 
         return [

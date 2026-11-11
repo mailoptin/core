@@ -61,19 +61,26 @@ class EddCustomers extends AbstractSource
 
     public static function paid_statuses()
     {
-        return apply_filters('mailoptin_audience_edd_paid_statuses', ['complete', 'partially_refunded']);
+        // edd_subscription: EDD Recurring's renewal payments.
+        return apply_filters('mailoptin_audience_edd_paid_statuses', ['complete', 'partially_refunded', 'edd_subscription']);
     }
 
-    public function people_sql($option, $settings)
+    public function people_sql($option, $settings, $email = null)
     {
         global $wpdb;
 
         $customers = $wpdb->prefix . 'edd_customers';
         $orders    = $wpdb->prefix . 'edd_orders';
-        $statuses  = self::paid_statuses();
 
-        $where  = ["o.email <> ''", "o.type = 'sale'", 'o.status IN (' . implode(',', array_fill(0, count($statuses), '%s')) . ')'];
-        $params = $statuses;
+        list($in, $params) = self::in_list(self::paid_statuses());
+
+        // Test-mode purchases aren't customers.
+        $where = ["o.email <> ''", "o.type = 'sale'", "o.mode = 'live'", "o.status $in"];
+
+        if (null !== $email) {
+            $where[]  = 'o.email = %s';
+            $params[] = $email;
+        }
 
         $cutoff = self::cutoff($settings['months'] ?? 24);
 
@@ -102,13 +109,20 @@ class EddCustomers extends AbstractSource
         }, 5);
 
         add_action('edd_built_order', function ($order_id) use ($checkbox_text) {
-            // Nonce checked by EDD's checkout.
-            if (empty($_POST[self::FIELD]) || ! function_exists('edd_get_order')) return;
+            // Nonce checked by EDD's checkout. Recorded once paid: anyone can type any address.
+            if (empty($_POST[self::FIELD]) || ! function_exists('edd_add_order_meta')) return;
 
-            $order = edd_get_order($order_id);
+            edd_add_order_meta($order_id, '_mo_marketing_consent', $checkbox_text, true);
+        });
+
+        add_action('edd_complete_purchase', function ($order_id) {
+            if ( ! function_exists('edd_get_order') || ! function_exists('edd_get_order_meta')) return;
+
+            $text  = (string)edd_get_order_meta($order_id, '_mo_marketing_consent', true);
+            $order = '' !== $text ? edd_get_order($order_id) : null;
 
             if ($order && ! empty($order->email)) {
-                Sources::agree($this->id(), $order->email, $checkbox_text, sprintf(__('Order #%s', 'mailoptin'), $order->get_number()));
+                Sources::agree($this->id(), $order->email, $text, sprintf(__('Order #%s', 'mailoptin'), $order->get_number()));
             }
         });
     }

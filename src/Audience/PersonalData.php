@@ -159,6 +159,14 @@ class PersonalData
             $removed = \MailOptin\Core\Repositories\ConversionSyncRepository::forget_retry_data(wp_list_pluck($conversions, 'id')) > 0 || $removed;
         }
 
+        // Withdrawn consent is a "don't email me": it survives as a suppression hash, as unsubscribes do.
+        foreach (\MailOptin\Core\Repositories\AudienceConsentsRepository::for_email($email) as $row) {
+            if (\MailOptin\Core\Repositories\AudienceConsentsRepository::STATUS_WITHDRAWN === $row['status']) {
+                \MailOptin\Core\Repositories\SuppressionRepository::add($email, \MailOptin\Core\Repositories\SuppressionRepository::REASON_UNSUBSCRIBED, \MailOptin\Core\Audience\Sources\Sources::SUPPRESSION_SOURCE);
+                break;
+            }
+        }
+
         $removed = \MailOptin\Core\Repositories\AudienceConsentsRepository::delete_email($email) > 0 || $removed;
 
         $subscriber = Subscribers::get_by_email($email);
