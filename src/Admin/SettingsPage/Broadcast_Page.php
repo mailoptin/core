@@ -332,8 +332,8 @@ class Broadcast_Page
                                 <?php endforeach; ?>
                             </select>
                         <?php endif; ?>
-                        <span class="mo-muted"><?php echo AbstractSource::MODE_EVERYONE === $settings['mode'] ? esc_html__('everyone', 'mailoptin') : esc_html__('only those who agreed', 'mailoptin'); ?></span>
-                        <a href="<?php echo esc_url($source->admin_url()); ?>" target="_blank"><?php echo esc_html($source->admin_link_label()); ?> <span aria-hidden="true">↗</span><span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'mailoptin'); ?></span></a>
+                        <span class="mo-source-meta"><?php echo AbstractSource::MODE_EVERYONE === $settings['mode'] ? esc_html__('Everyone', 'mailoptin') : esc_html__('Only those who agreed', 'mailoptin'); ?> ·
+                            <a href="<?php echo esc_url($source->admin_url()); ?>" target="_blank"><?php echo esc_html($source->admin_link_label()); ?> <span aria-hidden="true">↗</span><span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'mailoptin'); ?></span></a></span>
                     </div>
                 <?php endforeach; ?>
                 <p class="mo-hint"><span><?php printf(
@@ -392,7 +392,12 @@ class Broadcast_Page
         <?php if (null !== $count) : ?>
             <p class="mo-count"><?php echo is_wp_error($count)
                     ? esc_html($count->get_error_message())
-                    : wp_kses(sprintf(_n('<b>Goes to %s subscriber</b> if it sends now. Worked out again when it sends.', '<b>Goes to %s subscribers</b> if it sends now. Worked out again when it sends.', $count, 'mailoptin'), number_format_i18n($count)), ['b' => []]); ?></p>
+                    : wp_kses(sprintf(
+                        Broadcasts::has_sources($email_campaign_id)
+                            ? _n('<b>Goes to %s person</b> if it sends now. Worked out again when it sends.', '<b>Goes to %s people</b> if it sends now. Worked out again when it sends.', $count, 'mailoptin')
+                            : _n('<b>Goes to %s subscriber</b> if it sends now. Worked out again when it sends.', '<b>Goes to %s subscribers</b> if it sends now. Worked out again when it sends.', $count, 'mailoptin'),
+                        number_format_i18n($count)
+                    ), ['b' => []]); ?></p>
         <?php endif;
 
         return ob_get_clean();
@@ -458,7 +463,7 @@ class Broadcast_Page
                 <dt><?php esc_html_e('Subject', 'mailoptin'); ?></dt><dd><?php echo esc_html(Broadcasts::subject($email_campaign_id) ?: '—'); ?></dd>
                 <dt><?php esc_html_e('From', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf('%s <%s>', $settings->from_name(), $settings->from_email())); ?></dd>
                 <?php if (is_int($count)) : ?>
-                    <dt><?php esc_html_e('To', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf(_n('%s subscriber', '%s subscribers', $count, 'mailoptin'), number_format_i18n($count))); ?></dd>
+                    <dt><?php esc_html_e('To', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf(Broadcasts::has_sources($email_campaign_id) ? _n('%s person', '%s people', $count, 'mailoptin') : _n('%s subscriber', '%s subscribers', $count, 'mailoptin'), number_format_i18n($count))); ?></dd>
                     <?php if ($hourly && $count > $hourly) : ?>
                         <dt><?php esc_html_e('Sending', 'mailoptin'); ?></dt><dd><?php echo esc_html(sprintf(__('About %1$s hours at %2$s emails an hour', 'mailoptin'), number_format_i18n(ceil($count / $hourly)), number_format_i18n($hourly))); ?></dd>
                     <?php endif; ?>
@@ -754,9 +759,9 @@ class Broadcast_Page
 .mo-broadcast .mo-row>label,.mo-broadcast .mo-label{font-weight:600;padding-top:6px}
 .mo-broadcast .mo-row input.widefat{max-width:560px}
 .mo-broadcast .mo-static{margin:6px 0 0}
-.mo-broadcast .mo-source{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:4px 0}
-.mo-broadcast .mo-source>label{min-width:220px}
-.mo-broadcast .mo-source .mo-muted{color:#646970}
+.mo-broadcast .mo-source{display:flex;gap:4px 10px;align-items:center;flex-wrap:wrap;padding:4px 0 8px}
+.mo-broadcast .mo-source>label{font-weight:600}
+.mo-broadcast .mo-source-meta{flex-basis:100%;padding-left:24px;font-size:12px;color:#646970}
 .mo-hint{display:flex;justify-content:space-between;max-width:560px;font-size:12px;color:#646970;margin:3px 0 0}
 .mo-counter.mo-over{color:#b32d2e;font-weight:600}
 .mo-broadcast .mo-inline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0}

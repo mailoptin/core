@@ -316,6 +316,15 @@ class Broadcasts
     }
 
     /**
+     * Whether customers, users or members are chosen, as well as or instead of a list.
+     */
+    public static function has_sources($email_campaign_id)
+    {
+        return 'MailOptinConnect' === self::get($email_campaign_id, 'connection_service')
+            && ! empty(\MailOptin\Core\Audience\Sources\Sources::campaign_selection(self::get($email_campaign_id, \MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING)));
+    }
+
+    /**
      * A connection, and a list unless the connection has none (WordPress users, for one).
      */
     protected static function has_recipients_set($email_campaign_id)
@@ -325,9 +334,7 @@ class Broadcasts
         if ('' === $connection) return false;
 
         // Customers, users or members instead of (or as well as) a list.
-        if ('MailOptinConnect' === $connection && ! empty(\MailOptin\Core\Audience\Sources\Sources::campaign_selection(self::get($email_campaign_id, \MailOptin\Core\Audience\Sources\Sources::CAMPAIGN_SETTING)))) {
-            return true;
-        }
+        if (self::has_sources($email_campaign_id)) return true;
 
         // A list fetch that failed comes back empty too, so only these are known to have no lists.
         return '' !== (string)self::get($email_campaign_id, 'connection_email_list') || in_array($connection, self::CONNECTIONS_WITHOUT_LISTS, true);
