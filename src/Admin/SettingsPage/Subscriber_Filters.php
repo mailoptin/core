@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use MailOptin\Core\Audience\Sources\StoreConditions;
 use MailOptin\Core\Repositories\CampaignActivityRepository as Activity;
 use MailOptin\Core\Repositories\CustomFieldsRepository as Fields;
 use MailOptin\Core\Repositories\SegmentsRepository;
@@ -11,6 +12,7 @@ use MailOptin\Core\Repositories\TagsRepository as Tags;
  * Tag and custom field filters of the subscribers screen, kept in the URL so filtered views can be
  * bookmarked and paginated: tags[]=1&tag_match=any&f[0][field]=3&f[0][op]=gt&f[0][value]=5
  * Engagement filters (premium): e[0][what]=clicked&e[0][campaign]=12&e[0][days]=90
+ * Purchases and memberships: sc[0][what]=bought&sc[0][source]=woo&sc[0][target]=product&sc[0][ids][]=47
  */
 class Subscriber_Filters
 {
@@ -22,7 +24,13 @@ class Subscriber_Filters
      */
     public static function from_request($request)
     {
-        $filters = ['tag_ids' => [], 'tag_match' => 'any', 'field_conditions' => [], 'engagement' => []];
+        $filters = ['tag_ids' => [], 'tag_match' => 'any', 'field_conditions' => [], 'engagement' => [], 'store' => []];
+
+        foreach ((array)($request['sc'] ?? []) as $condition) {
+            $condition = StoreConditions::clean(is_array($condition) ? wp_unslash($condition) : null);
+
+            if ($condition && StoreConditions::can_use($condition['what'])) $filters['store'][] = $condition;
+        }
 
         if ( ! Tags::is_ready()) return $filters;
 
@@ -79,7 +87,7 @@ class Subscriber_Filters
 
     public static function is_active($filters)
     {
-        return ! empty($filters['tag_ids']) || ! empty($filters['field_conditions']) || ! empty($filters['engagement']);
+        return SegmentsRepository::has_conditions($filters);
     }
 
     /**
@@ -107,6 +115,10 @@ class Subscriber_Filters
 
         foreach (array_values($filters['engagement'] ?? []) as $i => $condition) {
             $query['e'][$i] = $condition;
+        }
+
+        foreach (array_values($filters['store'] ?? []) as $i => $condition) {
+            $query['sc'][$i] = $condition;
         }
 
         return $query;
@@ -176,6 +188,19 @@ class Subscriber_Filters
                 $field['label'] . ' ' . Fields::operators($field['type'])[$condition['op']],
                 self::value_label($field, $condition),
                 $remove_url
+            );
+        }
+
+        foreach ($filters['store'] ?? [] as $i => $condition) {
+            $without = $filters;
+            unset($without['store'][$i]);
+
+            $problem = StoreConditions::problem($condition);
+
+            $chips[] = self::chip(
+                StoreConditions::label($condition) . ('' !== $problem ? ' — ' . $problem : ''),
+                '',
+                null === $base_url ? null : add_query_arg(self::to_query($without), $base_url)
             );
         }
 

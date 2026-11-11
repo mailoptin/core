@@ -301,9 +301,15 @@ class Sources
             $where[] = "(c.status = 'agreed' OR s.status = 'subscribed')";
         }
 
-        if ( ! empty($narrow['segment'])) $where[] = 's.id IS NOT NULL';
+        $filters = (array)($narrow['filters'] ?? []);
 
-        if ( ! empty($narrow['filters'])) Subscribers::filter_where((array)$narrow['filters'], $where, $params);
+        // A segment of purchases and memberships only applies to everyone the source has, by their
+        // address. Any other segment (tags, fields, opens) can only match subscribers.
+        $store_only = \MailOptin\Core\Repositories\SegmentsRepository::is_store_only($filters);
+
+        if ( ! empty($narrow['segment']) && ! $store_only) $where[] = 's.id IS NOT NULL';
+
+        if ( ! empty($filters)) Subscribers::filter_where($filters, $where, $params, $store_only ? 'p.email' : 's.email');
 
         return [
             "SELECT p.email, p.first_name, p.last_name, COALESCE(s.id, 0) AS subscriber_id

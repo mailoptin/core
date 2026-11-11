@@ -229,8 +229,26 @@ class SubscribersRepository extends AbstractRepository
      * @param array $where conditions are added to it
      * @param array $params placeholders values are added to it
      */
-    public static function filter_where($args, &$where, &$params)
+    /**
+     * @param string $email_expr the address column purchase and member conditions apply to: the
+     *                           subscriber's, or a customer's when they aren't one
+     */
+    public static function filter_where($args, &$where, &$params, $email_expr = 's.email')
     {
+        // Purchases and memberships, asked of the store or membership plugin. One that can't be
+        // applied (its plugin is gone) matches nobody rather than being skipped, which would widen.
+        foreach ((array)($args['store'] ?? []) as $condition) {
+            $sql = \MailOptin\Core\Audience\Sources\StoreConditions::sql($condition, $email_expr);
+
+            if ( ! $sql) {
+                $where[] = '1 = 0';
+                continue;
+            }
+
+            $where[] = $sql[0];
+            $params  = array_merge($params, $sql[1]);
+        }
+
         if ( ! TagsRepository::is_ready()) return;
 
         $links   = TagsRepository::links_table();

@@ -205,6 +205,54 @@ class WooCustomers extends AbstractSource
         }
     }
 
+    public function purchase_targets()
+    {
+        return ['product' => __('Product', 'mailoptin'), 'category' => __('Product category', 'mailoptin'), 'tag' => __('Product tag', 'mailoptin')];
+    }
+
+    public function purchase_choices($target)
+    {
+        if ('category' === $target) return self::term_choices('product_cat');
+        if ('tag' === $target) return self::term_choices('product_tag');
+
+        return self::post_choices('product');
+    }
+
+    public function orders_sql($email_expr)
+    {
+        global $wpdb;
+
+        $customers = $wpdb->prefix . 'wc_customer_lookup';
+        $orders    = $wpdb->prefix . 'wc_order_stats';
+
+        list($in, $params) = self::in_list(self::paid_statuses());
+
+        return [
+            "FROM $orders o INNER JOIN $customers c ON c.customer_id = o.customer_id
+            WHERE c.email = " . Sources::as_our_email($email_expr, $customers) . " AND o.parent_id = 0 AND o.status $in",
+            $params,
+            ['id' => 'o.order_id', 'total' => 'o.total_sales', 'date' => 'o.date_created_gmt'],
+        ];
+    }
+
+    public function items_sql($order_id_column, $target, $ids)
+    {
+        global $wpdb;
+
+        $items = $wpdb->prefix . 'wc_order_product_lookup';
+        $ids   = array_values(array_filter(array_map('absint', (array)$ids))) ?: [0];
+        $in    = implode(',', array_fill(0, count($ids), '%d'));
+
+        if ('category' === $target || 'tag' === $target) {
+            list($terms_sql, $params) = self::in_terms_sql('category' === $target ? 'product_cat' : 'product_tag', $ids);
+
+            return ["EXISTS (SELECT 1 FROM $items pl WHERE pl.order_id = $order_id_column AND pl.product_id IN ($terms_sql))", $params];
+        }
+
+        // A variable product's variations count as the product.
+        return ["EXISTS (SELECT 1 FROM $items pl WHERE pl.order_id = $order_id_column AND (pl.product_id IN ($in) OR pl.variation_id IN ($in)))", array_merge($ids, $ids)];
+    }
+
     public function profile_summary($email)
     {
         global $wpdb;

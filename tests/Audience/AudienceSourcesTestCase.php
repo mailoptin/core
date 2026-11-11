@@ -106,4 +106,44 @@ abstract class AudienceSourcesTestCase extends WP_UnitTestCase
 
         return $log_id;
     }
+
+    /**
+     * WooCommerce's analytics tables with a few customers and orders, and an active Woo source
+     * (WooCommerce itself isn't loaded in tests).
+     *
+     * Customers: maya (2 paid orders, 40 + 10, recent; bought product 47), guest (one 20 order,
+     * recent, product 49), old (one 9 order 30 months ago, product 47), pending (unpaid only).
+     */
+    protected function woo_store()
+    {
+        global $wpdb;
+
+        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_customer_lookup (customer_id bigint(20) NOT NULL, user_id bigint(20) NULL, first_name varchar(255) NOT NULL DEFAULT '', last_name varchar(255) NOT NULL DEFAULT '', email varchar(100) NULL)");
+        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_order_stats (order_id bigint(20) NOT NULL, parent_id bigint(20) NOT NULL DEFAULT 0, date_created datetime NOT NULL, date_created_gmt datetime NOT NULL, total_sales double NOT NULL DEFAULT 0, status varchar(200) NOT NULL, customer_id bigint(20) NOT NULL)");
+        $wpdb->query("CREATE TABLE {$wpdb->prefix}wc_order_product_lookup (order_item_id bigint(20) NOT NULL, order_id bigint(20) NOT NULL, product_id bigint(20) NOT NULL, variation_id bigint(20) NOT NULL DEFAULT 0)");
+
+        $customers = [[1, 5, 'Maya', 'O', 'Maya@Example.com'], [2, null, 'Gus', 'T', 'guest@example.com'], [3, 6, 'Old', 'C', 'old@example.com'], [4, 7, 'Pen', 'D', 'pending@example.com']];
+        foreach ($customers as $c) {
+            $wpdb->insert("{$wpdb->prefix}wc_customer_lookup", ['customer_id' => $c[0], 'user_id' => $c[1], 'first_name' => $c[2], 'last_name' => $c[3], 'email' => $c[4]]);
+        }
+
+        $recent = gmdate('Y-m-d H:i:s', time() - 10 * DAY_IN_SECONDS);
+        $old    = gmdate('Y-m-d H:i:s', strtotime('-30 months'));
+        $orders = [[10, 0, $recent, 'wc-completed', 1, 40], [11, 0, $recent, 'wc-processing', 1, 10], [12, 10, $recent, 'wc-completed', 1, 5], [13, 0, $recent, 'wc-completed', 2, 20], [14, 0, $old, 'wc-completed', 3, 9], [15, 0, $recent, 'wc-pending', 4, 9]];
+        foreach ($orders as $o) {
+            $wpdb->insert("{$wpdb->prefix}wc_order_stats", ['order_id' => $o[0], 'parent_id' => $o[1], 'date_created' => $o[2], 'date_created_gmt' => $o[2], 'status' => $o[3], 'customer_id' => $o[4], 'total_sales' => $o[5]]);
+        }
+
+        foreach ([[1, 10, 47, 0], [2, 11, 50, 51], [3, 13, 49, 0], [4, 14, 47, 0], [5, 15, 47, 0]] as $i) {
+            $wpdb->insert("{$wpdb->prefix}wc_order_product_lookup", ['order_item_id' => $i[0], 'order_id' => $i[1], 'product_id' => $i[2], 'variation_id' => $i[3]]);
+        }
+
+        $woo = new class extends \MailOptin\Core\Audience\Sources\WooCustomers {
+            public function is_active() { return true; }
+        };
+        Sources::add($woo);
+        Sources::save_settings(['woo' => ['mode' => 'everyone', 'months' => '0', 'guests' => '1']]);
+
+        return $woo;
+    }
 }

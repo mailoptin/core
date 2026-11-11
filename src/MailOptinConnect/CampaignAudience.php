@@ -2,6 +2,7 @@
 
 namespace MailOptin\MailOptinConnect;
 
+use MailOptin\Core\Audience\Sources\Sources;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Content;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Multiple_Checkbox;
 use MailOptin\Core\Admin\SettingsPage\Subscribers_Page;
@@ -45,6 +46,15 @@ class CampaignAudience
             },
         ];
 
+        $settings[Sources::CAMPAIGN_SETTING] = [
+            'default'           => '',
+            'type'              => 'option',
+            'transport'         => 'postMessage',
+            'sanitize_callback' => function ($value) {
+                return Sources::encode_selection(json_decode(wp_unslash((string)$value), true));
+            },
+        ];
+
         $settings[Segments::EXCLUDE_TAGS_SETTING] = [
             'default'           => '',
             'type'              => 'option',
@@ -59,9 +69,25 @@ class CampaignAudience
 
     public function controls($controls, $wp_customize, $option_prefix, $customizer)
     {
-        if ( ! TagsRepository::is_ready() || ! Segments::is_ready()) return $controls;
-
         $section = $customizer->campaign_settings_section_id;
+
+        // Customers, users and members, as on the broadcast page. Not for the email editor's own
+        // overlay of a broadcast: the broadcast page has these.
+        if ( ! empty(Sources::active())) {
+            $controls[Sources::CAMPAIGN_SETTING] = new \MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Audience_Sources_Control($wp_customize, $option_prefix . '[' . Sources::CAMPAIGN_SETTING . ']', [
+                'label'       => __('Customers, users and members', 'mailoptin'),
+                'description' => sprintf(
+                    esc_html__('As well as, or instead of, the list. Someone in two places gets it once. Who counts as agreeing: %sSettings › Customers and members%s.', 'mailoptin'),
+                    '<a target="_blank" href="' . esc_url(\MailOptin\Core\Admin\SettingsPage\AudienceSourcesSettings::url()) . '">',
+                    '</a>'
+                ),
+                'section'     => $section,
+                'settings'    => $option_prefix . '[' . Sources::CAMPAIGN_SETTING . ']',
+                'priority'    => 60,
+            ]);
+        }
+
+        if ( ! TagsRepository::is_ready() || ! Segments::is_ready()) return $controls;
 
         $campaign_id = $customizer->email_campaign_id;
         $saved       = absint(EmailCampaignRepository::get_customizer_value($campaign_id, Segments::SEGMENT_SETTING)) || [] !== Segments::excluded_tag_ids($campaign_id);
@@ -131,7 +157,7 @@ class CampaignAudience
      */
     public function script()
     {
-        if (empty($_GET['mailoptin_email_campaign_id']) || ! TagsRepository::is_ready() || ! Segments::is_ready()) return;
+        if (empty($_GET['mailoptin_email_campaign_id'])) return;
 
         $campaign_id = absint($_GET['mailoptin_email_campaign_id']);
         $prefix      = MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME . '[' . $campaign_id . ']';
@@ -139,7 +165,7 @@ class CampaignAudience
         <script type="text/javascript">
             (function (api, $) {
                 var prefix = <?php echo wp_json_encode($prefix); ?>,
-                    ids = ['<?php echo Segments::SEGMENT_SETTING; ?>', '<?php echo Segments::EXCLUDE_TAGS_SETTING; ?>', 'MailOptinConnect_audience_count'],
+                    ids = ['<?php echo Sources::CAMPAIGN_SETTING; ?>', '<?php echo Segments::SEGMENT_SETTING; ?>', '<?php echo Segments::EXCLUDE_TAGS_SETTING; ?>', 'MailOptinConnect_audience_count'],
                     request = null;
 
                 var value = function (name) {
@@ -159,7 +185,7 @@ class CampaignAudience
                     var output = $('.mo-audience-count');
                     if ( ! builtin || ! output.length) return;
 
-                    if ( ! value('connection_email_list')) {
+                    if ( ! value('connection_email_list') && ! JSON.parse(value('<?php echo Sources::CAMPAIGN_SETTING; ?>') || '[]').length) {
                         output.text('');
                         return;
                     }
@@ -173,11 +199,22 @@ class CampaignAudience
                         security: <?php echo wp_json_encode(wp_create_nonce(self::NONCE)); ?>,
                         list_id: value('connection_email_list'),
                         segment: value('<?php echo Segments::SEGMENT_SETTING; ?>'),
-                        exclude: value('<?php echo Segments::EXCLUDE_TAGS_SETTING; ?>')
+                        exclude: value('<?php echo Segments::EXCLUDE_TAGS_SETTING; ?>'),
+                        sources: value('<?php echo Sources::CAMPAIGN_SETTING; ?>')
                     }).done(function (response) {
                         output.text(response && response.data ? response.data : '');
                     });
                 };
+
+                // The customers, users and members picker writes its choices to its setting as JSON.
+                $(document).on('change', '.mo-sources-picker input, .mo-sources-picker select', function () {
+                    var root = $(this).closest('.customize-control'), value = [];
+                    root.find('.mo-source-on:checked').each(function () {
+                        var select = root.find('.mo-source-option[data-source="' + $(this).data('source') + '"]');
+                        value.push({source: String($(this).data('source')), option: select.length ? select.val() : ''});
+                    });
+                    root.find('.mo-sources-value').val(JSON.stringify(value)).trigger('change');
+                });
 
                 api.bind('ready', function () {
                     ['connection_service', 'connection_email_list'].concat(ids).forEach(function (name) {
@@ -198,15 +235,26 @@ class CampaignAudience
 
         if ( ! current_user_has_privilege()) wp_send_json_error('', 403);
 
-        $list_id = absint($_POST['list_id'] ?? 0);
-        $filters = Segments::filters_for(absint($_POST['segment'] ?? 0), Segments::parse_tag_ids(wp_unslash($_POST['exclude'] ?? '')));
+        $list_id   = absint($_POST['list_id'] ?? 0);
+        $segment   = absint($_POST['segment'] ?? 0);
+        $filters   = Segments::filters_for($segment, Segments::parse_tag_ids(wp_unslash($_POST['exclude'] ?? '')));
+        $selection = Sources::campaign_selection(json_decode(wp_unslash((string)($_POST['sources'] ?? '')), true));
 
         if (is_wp_error($filters)) wp_send_json_success($filters->get_error_message());
 
-        $count = SubscribersRepository::count_list_recipients($list_id, $filters);
+        if (empty($selection)) {
+            $count = SubscribersRepository::count_list_recipients($list_id, $filters);
+
+            wp_send_json_success(sprintf(
+                _n('Goes to %s subscriber if it sends now.', 'Goes to %s subscribers if it sends now.', $count, 'mailoptin'),
+                number_format_i18n($count)
+            ));
+        }
+
+        $count = Sources::count_union($selection, ['filters' => $filters, 'segment' => $segment > 0], $list_id ? SubscribersRepository::list_recipients_email_sql($list_id, $filters) : null);
 
         wp_send_json_success(sprintf(
-            _n('Goes to %s subscriber if it sends now.', 'Goes to %s subscribers if it sends now.', $count, 'mailoptin'),
+            _n('Goes to %s person if it sends now.', 'Goes to %s people if it sends now.', $count, 'mailoptin'),
             number_format_i18n($count)
         ));
     }
