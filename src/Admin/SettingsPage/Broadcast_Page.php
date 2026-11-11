@@ -65,6 +65,35 @@ class Broadcast_Page
         if ( ! self::is_this_page()) return;
 
         // The design is the email editor's: nothing to load here for it.
+
+        // The "Leave out people tagged" picker, as on the Automations page.
+        wp_enqueue_style('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.min.css');
+        wp_enqueue_script('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', ['jquery'], null, true);
+        wp_add_inline_script('mailoptin-chosen', self::tag_select_script());
+    }
+
+    /**
+     * A searchable multi-select. It saves once the dropdown closes, or straight away when a tag is
+     * removed with its x, so picking several tags doesn't reload the page after each one.
+     */
+    protected static function tag_select_script()
+    {
+        return "jQuery(function ($) {
+    var select = $('#mo-exclude-tags');
+    if (!select.length || !$.fn.chosen) return;
+    var changed = false, open = false;
+    var save = function () {
+        if (!changed) return;
+        changed = false;
+        var form = select.closest('form');
+        $('<input type=\"hidden\" name=\"mo_broadcast_action\" value=\"save\">').appendTo(form);
+        form[0].submit();
+    };
+    select.chosen({width: '100%', search_contains: true, hide_results_on_select: false, no_results_text: " . wp_json_encode(__('No tag matches', 'mailoptin')) . "})
+        .on('chosen:showing_dropdown', function () { open = true; })
+        .on('chosen:hiding_dropdown', function () { open = false; save(); })
+        .on('change', function () { changed = true; if (!open) setTimeout(function () { if (!open) save(); }, 0); });
+});";
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -370,12 +399,15 @@ class Broadcast_Page
             </div>
             <?php $tags = Tags::names(); if ( ! empty($tags)) : ?>
                 <div class="mo-row">
-                    <span class="mo-label"><?php esc_html_e('Leave out people tagged', 'mailoptin'); ?></span>
-                    <div class="mo-tag-checks">
+                    <label for="mo-exclude-tags"><?php esc_html_e('Leave out people tagged', 'mailoptin'); ?></label>
+                    <div class="mo-tag-select-wrap">
                         <input type="hidden" name="exclude_tags[]" value="">
-                        <?php foreach ($tags as $id => $name) : ?>
-                            <label><input type="checkbox" name="exclude_tags[]" value="<?php echo absint($id); ?>" data-autosave <?php checked(in_array((int)$id, $excluded, true)); ?>> <?php echo esc_html($name); ?></label>
-                        <?php endforeach; ?>
+                        <?php // Saved when its dropdown closes (see the page script), not on every pick. ?>
+                        <select id="mo-exclude-tags" class="mo-tag-select" name="exclude_tags[]" multiple data-placeholder="<?php esc_attr_e('Choose tags…', 'mailoptin'); ?>">
+                            <?php foreach ($tags as $id => $name) : ?>
+                                <option value="<?php echo absint($id); ?>" <?php selected(in_array((int)$id, $excluded, true)); ?>><?php echo esc_html($name); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
             <?php endif; ?>
@@ -766,7 +798,8 @@ class Broadcast_Page
 .mo-counter.mo-over{color:#b32d2e;font-weight:600}
 .mo-broadcast .mo-inline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0}
 .mo-js .mo-no-js{display:none}
-.mo-tag-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 12px;padding-top:6px}
+.mo-tag-select-wrap{max-width:560px}
+.mo-tag-select-wrap select{width:100%;min-height:90px}
 .mo-broadcast .mo-count{background:#f0f6fc;border:1px solid #c5d9ed;border-radius:4px;padding:8px 12px;margin:6px 0 0;max-width:560px}
 .mo-broadcast .mo-upsell{border-left:4px solid #7e3bd0}
 .mo-design{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
