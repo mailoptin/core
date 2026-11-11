@@ -12,7 +12,17 @@ use MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory;
  */
 class Dynamic
 {
-    const PATTERN = '/<!--mo-dynamic:([A-Za-z0-9_-]+)-->/';
+    const PATTERN = '/<!--mo-dynamic:([A-Za-z0-9_-]+)(?:\.([a-f0-9]{64}))?-->/';
+
+    protected static function encode($json)
+    {
+        return rtrim(strtr(base64_encode($json), '+/', '-_'), '=');
+    }
+
+    protected static function sign($json)
+    {
+        return hash_hmac('sha256', 'mo-dynamic|' . $json, wp_salt('auth'));
+    }
 
     /**
      * The marker a block leaves in the email.
@@ -24,8 +34,9 @@ class Dynamic
     {
         $json = wp_json_encode(['type' => $type] + (array)$data);
 
-        // Base64url: nothing in it can end the comment.
-        return '<!--mo-dynamic:' . rtrim(strtr(base64_encode($json), '+/', '-_'), '=') . '-->';
+        // Base64url (nothing in it can end the comment), then a signature: only MailOptin's own
+        // blocks draw markers, not text that happens to look like one (a post's content, say).
+        return '<!--mo-dynamic:' . self::encode($json) . '.' . self::sign($json) . '-->';
     }
 
     public static function has_markers($html)
@@ -44,10 +55,18 @@ class Dynamic
         if ( ! self::has_markers($html)) return $html;
 
         return preg_replace_callback(self::PATTERN, function ($m) use ($args) {
-            $data  = json_decode((string)base64_decode(strtr($m[1], '-_', '+/')), true);
+            $json = (string)base64_decode(strtr($m[1], '-_', '+/'));
+
+            // Unsigned, or signed for other content: not ours, drawn as nothing.
+            if (empty($m[2]) || ! hash_equals(self::sign($json), $m[2])) return '';
+
+            $data  = json_decode($json, true);
             $block = is_array($data) ? Blocks::get_instance()->get((string)($data['type'] ?? '')) : null;
 
             if ( ! $block instanceof DynamicBlock) return '';
+
+            // Its settings as the block would save them.
+            $data['settings'] = $block->sanitize((array)($data['settings'] ?? []));
 
             try {
                 return (string)$block->render_for($data, $args, self::style((int)($args['email_campaign_id'] ?? 0), (int)($data['width'] ?? 570)));

@@ -117,8 +117,9 @@ class DiscountCode extends ShopBlock
                 'prefix'         => (string)($settings['prefix'] ?? ''),
                 'email'          => $store->supports_coupon(Store::COUPON_PER_PERSON) ? (string)($run['email'] ?? '') : '',
                 'automation_id'  => absint($run['automation_id'] ?? 0),
-                // One code per person per block: a retried send gives the same one.
-                'key'            => 'run' . absint($run['id'] ?? 0) . '-' . preg_replace('/[^A-Za-z0-9_-]/', '', (string)($data['id'] ?? '')),
+                // One code per person per email and block: a retried send gives the same one; a
+                // copied email (same block ids) makes its own.
+                'key'            => 'run' . absint($run['id'] ?? 0) . '-e' . absint($args['email_campaign_id'] ?? 0) . '-' . preg_replace('/[^A-Za-z0-9_-]/', '', (string)($data['id'] ?? '')),
             ]);
 
             if (is_wp_error($result)) {

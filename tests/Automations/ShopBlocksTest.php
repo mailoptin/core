@@ -230,4 +230,39 @@ class ShopBlocksTest extends EngineTest
         $broadcast = ER::add_email_campaign('B ' . uniqid(), ER::NEWSLETTER, 'Lucid');
         $this->assertSame(['Subscriber'], wp_list_pluck(EmailEditor::context('broadcast')->placeholders($broadcast), 'label'));
     }
+
+    public function test_only_markers_mailoptin_drew_are_drawn()
+    {
+        $email = $this->cart_email([]);
+        $this->cart_automation($email);
+        $run   = ['id' => 9, 'automation_id' => 1, 'email' => 'author@example.org', 'context' => []];
+        $args  = ['trigger' => self::$cart_trigger, 'run' => $run, 'mode' => 'send', 'email_campaign_id' => $email];
+
+        // Text that looks like a marker (in a post an Author wrote, say): unsigned, so nothing, and no coupon.
+        $json   = wp_json_encode(['type' => 'discount_code', 'id' => 'x', 'width' => 570, 'settings' => ['amount' => '100', 'expiry_days' => '0']]);
+        $forged = '<!--mo-dynamic:' . rtrim(strtr(base64_encode($json), '+/', '-_'), '=') . '-->';
+        $this->assertSame('', Dynamic::expand($forged, $args));
+        $this->assertSame('', Dynamic::expand(str_replace('-->', '.' . str_repeat('a', 64) . '-->', $forged), $args), 'A wrong signature: nothing either.');
+        $this->assertSame([], FakeStore::$coupons);
+
+        // One MailOptin drew: drawn, its settings cleaned again (an unknown discount type becomes the default).
+        $marker = Dynamic::marker('discount_code', ['id' => 'x', 'width' => 570, 'settings' => ['discount_type' => 'everything_free', 'amount' => '20']]);
+        $this->assertStringContainsString('SAVE-', Dynamic::expand($marker, $args));
+        $this->assertSame('percent', reset(FakeStore::$coupons)['args']['type']);
+    }
+
+    public function test_a_copied_email_makes_its_own_code()
+    {
+        $block  = [['id' => 'd1', 'type' => 'discount_code', 'settings' => ['amount' => '10']]];
+        $first  = $this->cart_email($block);
+        $second = $this->cart_email($block);
+        $this->cart_automation($first);
+
+        $run = ['id' => 3, 'automation_id' => 1, 'email' => 'p@example.org', 'context' => []];
+        foreach ([$first, $second] as $email) {
+            Dynamic::expand((new Templatify($email))->forge(), ['trigger' => self::$cart_trigger, 'run' => $run, 'mode' => 'send', 'email_campaign_id' => $email]);
+        }
+
+        $this->assertCount(2, FakeStore::$coupons, 'Same block id, same person, two emails: two codes.');
+    }
 }

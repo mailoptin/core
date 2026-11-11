@@ -33,9 +33,13 @@ class WooStore extends Store
         return Woo::active();
     }
 
+    /** A code from a link, kept until there's something in the cart to apply it to. */
+    const SESSION_PENDING = 'mo_pending_coupon';
+
     public function init()
     {
         add_action('template_redirect', [$this, 'apply_from_link']);
+        add_action('woocommerce_add_to_cart', [$this, 'apply_pending'], 20);
     }
 
     public function money($amount, $currency = '')
@@ -201,35 +205,70 @@ class WooStore extends Store
 
         $code = wc_format_coupon_code(sanitize_text_field(wp_unslash($_GET[self::APPLY_ARG])));
 
-        if ('' !== $code && wc_get_coupon_id_by_code($code) && ! WC()->cart->has_discount($code)) WC()->cart->apply_coupon($code);
+        if ('' !== $code && wc_get_coupon_id_by_code($code) && WC()->session) {
+            // A visitor with nothing in the cart has no session yet: start one, so the code is kept.
+            if ( ! WC()->session->has_session()) WC()->session->set_customer_session_cookie(true);
+
+            if (WC()->cart->is_empty()) {
+                // Applied when they add something (or restore their cart).
+                WC()->session->set(self::SESSION_PENDING, $code);
+            } elseif ( ! WC()->cart->has_discount($code)) {
+                WC()->cart->apply_coupon($code);
+            }
+        }
 
         wp_safe_redirect(remove_query_arg(self::APPLY_ARG));
         exit;
     }
 
     /**
-     * Codes made here, never used, that expired more than 30 days ago. A batch a day.
+     * On woocommerce_add_to_cart: a code from a link that came while the cart was empty.
+     */
+    public function apply_pending()
+    {
+        if ( ! function_exists('WC') || ! WC()->session || ! WC()->cart) return;
+
+        $code = (string)WC()->session->get(self::SESSION_PENDING);
+        if ('' === $code) return;
+
+        WC()->session->set(self::SESSION_PENDING, null);
+        if ( ! WC()->cart->has_discount($code)) WC()->cart->apply_coupon($code);
+    }
+
+    /**
+     * Codes made here, never used, that expired more than 30 days ago: oldest first, in batches,
+     * for up to 20 seconds a day. Used codes stay (they're on orders) and aren't looked at again.
+     *
+     * @return int how many were deleted
      */
     public function purge_coupons()
     {
-        $ids = get_posts([
-            'post_type'     => 'shop_coupon',
-            'post_status'   => 'any',
-            'fields'        => 'ids',
-            'numberposts'   => 200,
-            'no_found_rows' => true,
-            'meta_query'    => [
-                ['key' => self::META_KEY, 'compare' => 'EXISTS'],
-                ['key' => 'date_expires', 'value' => time() - self::PURGE_AFTER_DAYS * DAY_IN_SECONDS, 'compare' => '<', 'type' => 'NUMERIC'],
-                ['key' => 'date_expires', 'value' => '', 'compare' => '!='],
-            ],
-        ]);
+        $deleted = 0;
+        $until   = microtime(true) + 20;
 
-        foreach ($ids as $id) {
-            $coupon = new \WC_Coupon($id);
-            if ($coupon->get_usage_count() < 1) wp_delete_post($id, true);
-        }
+        do {
+            $ids = get_posts([
+                'post_type'     => 'shop_coupon',
+                'post_status'   => 'any',
+                'fields'        => 'ids',
+                'numberposts'   => 200,
+                'orderby'       => 'ID',
+                'order'         => 'ASC',
+                'no_found_rows' => true,
+                'meta_query'    => [
+                    ['key' => self::META_KEY, 'compare' => 'EXISTS'],
+                    ['key' => 'date_expires', 'value' => time() - self::PURGE_AFTER_DAYS * DAY_IN_SECONDS, 'compare' => '<', 'type' => 'NUMERIC'],
+                    ['key' => 'date_expires', 'value' => '', 'compare' => '!='],
+                    ['key' => 'usage_count', 'value' => 0, 'compare' => '=', 'type' => 'NUMERIC'],
+                ],
+            ]);
 
-        return count($ids);
+            foreach ($ids as $id) {
+                wp_delete_post($id, true);
+                $deleted++;
+            }
+        } while (count($ids) === 200 && microtime(true) < $until);
+
+        return $deleted;
     }
 }

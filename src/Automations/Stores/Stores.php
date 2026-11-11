@@ -57,13 +57,14 @@ class Stores
             }
         });
 
+        // On init, not now: stores other plugins add (on mailoptin_automation_stores) are known by then.
         add_action('init', function () {
             if ( ! wp_next_scheduled(self::PURGE_HOOK)) wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', self::PURGE_HOOK);
-        });
 
-        foreach (self::all() as $store) {
-            if (method_exists($store, 'init')) $store->init();
-        }
+            foreach (self::all() as $store) {
+                if (method_exists($store, 'init')) $store->init();
+            }
+        }, 5);
     }
 
     /** For tests. */
