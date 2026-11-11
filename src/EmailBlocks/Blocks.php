@@ -214,20 +214,6 @@ class Blocks
     }
 
     /**
-     * Whether an email's content has columns (and so needs their styles in its head).
-     */
-    public static function has_columns($email_campaign_id)
-    {
-        $content = json_decode((string)\MailOptin\Core\Repositories\EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_newsletter_content'), true);
-
-        foreach (self::flatten(is_array($content) ? $content : []) as $element) {
-            if ('columns' === ($element['type'] ?? '')) return true;
-        }
-
-        return false;
-    }
-
-    /**
      * @return Blocks
      */
     public static function get_instance()

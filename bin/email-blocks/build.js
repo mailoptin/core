@@ -49,6 +49,14 @@ blocks.text = {
     mjml: leaf((v) => `<mj-text css-class="mo-content-text-color mo-email-builder-element" padding="${pad(v)}" font-family="${slot('font_family')}" font-size="${v.font_size}px" color="${slot('color')}" line-height="1.5">${slot('content')}</mj-text>`),
 };
 
+// A post's title, meta, excerpt and "read more" line in the Posts block (its image and spacing use
+// the image and spacer templates; posts side by side use the columns ones).
+blocks['post-text'] = {
+    vars: Object.assign({}, CONTAINER, PADDING, {font_size: [443, 449], line_height: [457, 461]}),
+    samples: [{container: 570, ...SAMPLE_PAD, font_size: 14, line_height: 24, font_family: 'Arial, sans-serif', color: '#74787e', content: '<a href="https://example.com/">A post</a>'}],
+    mjml: leaf((v) => `<mj-text css-class="mo-content-text-color mo-email-builder-element" padding="${pad(v)}" font-family="${slot('font_family')}" font-size="${v.font_size}px" line-height="${v.line_height}px" color="${slot('color')}">${slot('content')}</mj-text>`),
+};
+
 for (const linked of [true, false]) {
     blocks[linked ? 'image-link' : 'image'] = {
         vars: Object.assign({}, CONTAINER, PADDING, {width: [313, 317]}),
@@ -88,11 +96,8 @@ const LAYOUTS = {'50-50': [50, 50], '33-67': [33, 67], '67-33': [67, 33], '33-33
 for (const [layout, widths] of Object.entries(LAYOUTS)) {
     for (const valign of ['top', 'middle']) {
         for (const stack of [true, false]) {
-            const columns = (v) => widths.map((w, i) => {
-                const left = 0 === i ? 0 : v.half_gap, right = widths.length - 1 === i ? 0 : v.half_gap;
-                return `<mj-column width="${w}%" vertical-align="${valign}" padding="0 ${right ? 'R' : 0} 0 ${left ? 'L' : 0}"><mj-raw>${slot('col' + i)}</mj-raw></mj-column>`
-                    .replace('R', px(v.half_gap)).replace('L', px(v.half_gap));
-            }).join('');
+            // The same padding on both sides of every column, so they line up when stacked on phones.
+            const columns = (v) => widths.map((w, i) => `<mj-column width="${w}%" vertical-align="${valign}" padding="0 ${v.half_gap}px"><mj-raw>${slot('col' + i)}</mj-raw></mj-column>`).join('');
 
             blocks[`columns-${layout}-${valign}${stack ? '' : '-nostack'}`] = {
                 vars: Object.assign({}, CONTAINER, PADDING, {half_gap: [431, 433]}),

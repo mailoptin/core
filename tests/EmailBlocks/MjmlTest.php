@@ -78,6 +78,12 @@ class MjmlTest extends \WP_UnitTestCase
         foreach (self::$fixtures as $fixture => $cases) {
             if (0 === strpos($fixture, 'columns-')) continue;
 
+            // The Posts block fills this one itself, with values it has escaped.
+            if ('post-text' === $fixture) {
+                foreach ($cases as $case) $this->assertSame($case['html'], \MailOptin\Core\EmailBlocks\Mjml::fill('post-text', $case['sample']));
+                continue;
+            }
+
             foreach ($cases as $case) {
                 [$type, $settings] = $this->settings($fixture, $case['sample']);
                 $this->assertNotNull($type, $fixture);

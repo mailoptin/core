@@ -74,7 +74,8 @@ class Templatify implements TemplatifyInterface
 
         // Columns' widths on wider screens, as MJML writes them: after inlining, which would drop
         // rules for classes it can't find.
-        if ( ! ER::is_code_your_own_template($this->email_campaign_id) && \MailOptin\Core\EmailBlocks\Blocks::has_columns($this->email_campaign_id)) {
+        // Whenever the email has MJML columns (a Columns block, or posts side by side).
+        if ( ! ER::is_code_your_own_template($this->email_campaign_id) && false !== strpos($content, 'mj-column-per-')) {
             $head    = \MailOptin\Core\EmailBlocks\Mjml::columns_head();
             $content = false !== stripos($content, '</head>') ? preg_replace('#</head>#i', $head . '</head>', $content, 1) : $head . $content;
         }
