@@ -117,6 +117,7 @@ class Base
         Audience\Tracking::get_instance();
         Audience\WelcomeEmail::get_instance();
         Automations\Engine::get_instance();
+        Automations\Stores\Stores::init();
         Audience\PersonalData::get_instance();
         Audience\ImportConfirmations::get_instance();
         Audience\PreferenceCentre::get_instance();

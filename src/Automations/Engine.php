@@ -791,6 +791,8 @@ class Engine
         };
 
         $content  = self::render_email($email_campaign_id);
+        // The latest person's cart or order; a sample code, as no coupon is made for a test.
+        $content['html'] = \MailOptin\Core\EmailBlocks\Dynamic::expand($content['html'], ['trigger' => $trigger, 'run' => $run, 'mode' => $sample ? 'sample' : 'test', 'email_campaign_id' => $email_campaign_id]);
         $settings = new \MailOptin\Core\PluginSettings\Settings();
         $headers  = ['Content-Type: text/html; charset=UTF-8', sprintf('From: %s <%s>', $settings->from_name(), $settings->from_email())];
 
@@ -949,7 +951,15 @@ class Engine
             return CampaignRenderer::replace_tags($text, $links, $escape);
         };
 
-        $html = $content['html'];
+        // This person's cart, order or discount code (blocks drawn per person).
+        $text = $content['text'];
+        $html = \MailOptin\Core\EmailBlocks\Dynamic::expand($content['html'], [
+            'trigger'           => $context['trigger'],
+            'run'               => $run,
+            'mode'              => 'send',
+            'email_campaign_id' => absint(AbstractCampaignLogMeta::get_campaignlog_meta($campaign_log_id, self::LOG_META_KEY)),
+        ]);
+        if ($html !== $content['html']) $text = \MailOptin\Core\html_to_text($html);
 
         if ($subscriber) {
             $html = Tracking::prepare_html(PreferenceCentre::add_link($html, true), $row, $campaign_log_id);
@@ -958,7 +968,7 @@ class Engine
         return [
             'subject' => $fill($content['subject'], false),
             'html'    => $fill($html, true),
-            'text'    => $fill($content['text'], false),
+            'text'    => $fill($text, false),
         ];
     }
 

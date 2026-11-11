@@ -101,6 +101,25 @@ abstract class AbstractTrigger
     }
 
     /**
+     * The shop this trigger's runs come from (a Stores\Store id), for blocks that show products or
+     * make discount codes. null: not a shop's trigger.
+     */
+    public function store()
+    {
+        return null;
+    }
+
+    /**
+     * What a run's context holds that blocks can show: "cart" (a cart_id), "order" (an order_id).
+     *
+     * @return string[]
+     */
+    public function provides()
+    {
+        return [];
+    }
+
+    /**
      * Placeholders the emails can use, as {{key}} or {{key|fallback}}.
      *
      * @return array key => ['label' => string, 'value' => callable($context, $run): string, 'sample' => string]

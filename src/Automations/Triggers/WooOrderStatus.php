@@ -144,6 +144,16 @@ class WooOrderStatus extends AbstractTrigger
         ];
     }
 
+    public function store()
+    {
+        return 'woocommerce';
+    }
+
+    public function provides()
+    {
+        return ['order'];
+    }
+
     public function placeholders()
     {
         $order = function ($context) {
