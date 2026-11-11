@@ -80,13 +80,11 @@ class Columns extends AbstractBlock
         $inner   = max(0, $container - $padding['pad_l'] - $padding['pad_r']);
         $widths  = self::widths($settings['columns_layout'] ?? '');
         $half    = self::half_gap($settings);
-        $last    = count($widths) - 1;
 
-        return array_map(function ($width, $i) use ($inner, $half, $last) {
-            $gaps = (0 === $i ? 0 : $half) + ($last === $i ? 0 : $half);
-
-            return max(20, (int)floor($inner * $width / 100 - $gaps));
-        }, $widths, array_keys($widths));
+        // Every column has half the gap on each side.
+        return array_map(function ($width) use ($inner, $half) {
+            return max(20, (int)floor($inner * $width / 100 - 2 * $half));
+        }, $widths);
     }
 
     protected static function half_gap($settings)

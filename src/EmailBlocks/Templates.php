@@ -60,8 +60,9 @@ class Templates
 
         $id = preg_replace('/[^A-Za-z0-9_-]/', '', (string)$args['id']);
 
-        if ('' === $id || strlen($id) > 50 || ER::CODE_YOUR_OWN_TEMPLATE === $id) {
-            return new \WP_Error('mo_email_template_id', __('An email template needs an id: letters, numbers, - and _.', 'mailoptin'));
+        // Not all digits: ids are array keys, and PHP would renumber them.
+        if ('' === $id || ctype_digit($id) || strlen($id) > 50 || ER::CODE_YOUR_OWN_TEMPLATE === $id) {
+            return new \WP_Error('mo_email_template_id', __('An email template needs an id: letters, numbers, - and _, not only numbers.', 'mailoptin'));
         }
 
         if ( ! is_string($args['class']) || ! class_exists($args['class']) || ! is_subclass_of($args['class'], AbstractTemplate::class)) {
@@ -78,7 +79,9 @@ class Templates
             'class'          => $args['class'],
             'screenshot'     => (string)$args['screenshot'],
             'description'    => (string)$args['description'],
-            'campaign_types' => array_values(array_filter((array)$args['campaign_types'], 'is_string')),
+            // Only broadcasts and automation emails: post notifications and digests have their own
+            // template classes, and stored "Lucid" must stay theirs.
+            'campaign_types' => array_values(array_intersect((array)$args['campaign_types'], [ER::NEWSLETTER, AutomationsRepository::EMAIL_CAMPAIGN_TYPE])),
         ];
 
         return true;
@@ -129,7 +132,8 @@ class Templates
             'screenshot' => MAILOPTIN_ASSETS_URL . 'images/email-templates/lucid.png',
         ]);
 
-        $this->templates = array_merge($this->templates, $early);
+        // Early ones win (they may replace Lucid on purpose); + keeps every key as it is.
+        $this->templates = $early + $this->templates;
 
         do_action('mailoptin_email_templates', $this);
     }
@@ -141,12 +145,18 @@ class Templates
     {
         $template_id = self::$preview[(int)$email_campaign_id] ?? $template_id;
         $template    = is_string($template_id) ? $this->get($template_id) : null;
+        $type        = ER::get_email_campaign_type($email_campaign_id);
+        $ours        = in_array($type, [ER::NEWSLETTER, AutomationsRepository::EMAIL_CAMPAIGN_TYPE], true);
 
-        if ( ! $template) return $class;
+        if ($template && in_array($type, $template['campaign_types'], true)) return $template['class'];
 
-        $type = ER::get_email_campaign_type($email_campaign_id);
+        // A broadcast or automation email whose template is gone (its plugin turned off): drawn in
+        // Lucid rather than not at all.
+        if ($ours && ! class_exists($class) && ER::CODE_YOUR_OWN_TEMPLATE !== $template_id && ($lucid = $this->get('Lucid'))) {
+            return $lucid['class'];
+        }
 
-        return in_array($type, $template['campaign_types'], true) ? $template['class'] : $class;
+        return $class;
     }
 
     /**

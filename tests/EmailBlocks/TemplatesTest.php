@@ -123,4 +123,26 @@ class TemplatesTest extends \WP_Ajax_UnitTestCase
         $this->assertSame('wide', $res['data']['state']['template']);
         $this->assertNotSame($version, EmailEditor::version($this->email), 'Another template is another version: a stale editor gets a conflict.');
     }
+
+    public function test_a_template_that_is_gone_falls_back_to_lucid()
+    {
+        Templates::set_for_email($this->email, 'turned-off-plugin');
+
+        $this->assertInstanceOf(Lucid::class, EmailCampaignFactory::make($this->email));
+        $this->assertStringContainsString('<table', (new Templatify($this->email))->forge(), 'The email still builds.');
+    }
+
+    public function test_registrations_are_kept_whole_and_only_for_broadcasts_and_automations()
+    {
+        $templates = Templates::get_instance();
+
+        $this->assertSame('mo_email_template_id', $templates->register(['id' => '2024', 'class' => WideTemplate::class])->get_error_code(), 'All digits would be renumbered as an array key.');
+
+        $templates->register(['id' => 'greedy', 'class' => WideTemplate::class, 'campaign_types' => [ER::NEWSLETTER, ER::NEW_PUBLISH_POST, ER::POSTS_EMAIL_DIGEST]]);
+        $this->assertSame([ER::NEWSLETTER], $templates->get('greedy')['campaign_types']);
+
+        // A post notification stored as "greedy" isn't drawn in it.
+        $post_email = ER::add_email_campaign('Post ' . uniqid(), ER::NEW_PUBLISH_POST, 'greedy');
+        $this->assertNotInstanceOf(WideTemplate::class, EmailCampaignFactory::make($post_email) ?: null);
+    }
 }

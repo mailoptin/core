@@ -94,6 +94,6 @@ HTML;
         return 570;
     }
 
-    // Blocks are drawn by the block API (src/EmailBlocks). A template can still draw one its own way
-    // by defining {block id}_block($id, $settings), as this one does for posts.
+    // Blocks are drawn by the block API (src/EmailBlocks), from MJML. A template can still draw one its
+    // own way by defining {block id}_block($id, $settings).
 }
