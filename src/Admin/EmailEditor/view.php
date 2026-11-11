@@ -26,6 +26,14 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
         <span id="mo-ee-status" class="mo-ee-status" role="status" aria-live="polite"></span>
         <button type="button" class="button" id="mo-ee-undo" title="<?php esc_attr_e('Undo (Ctrl+Z)', 'mailoptin'); ?>"><span class="dashicons dashicons-undo" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e('Undo', 'mailoptin'); ?></span></button>
         <button type="button" class="button" id="mo-ee-redo" title="<?php esc_attr_e('Redo (Ctrl+Shift+Z)', 'mailoptin'); ?>"><span class="dashicons dashicons-redo" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e('Redo', 'mailoptin'); ?></span></button>
+        <details class="mo-ee-checks" id="mo-ee-checks" hidden>
+            <summary class="button"></summary>
+            <div class="mo-ee-checks-pop">
+                <strong><?php esc_html_e('Before it goes', 'mailoptin'); ?></strong>
+                <ul class="mo-ee-checks-list"></ul>
+                <p class="description"><?php esc_html_e('Warnings only: nothing here stops you saving or sending.', 'mailoptin'); ?></p>
+            </div>
+        </details>
         <details class="mo-ee-test">
             <summary class="button"><?php esc_html_e('Send a test', 'mailoptin'); ?></summary>
             <div class="mo-ee-test-pop">

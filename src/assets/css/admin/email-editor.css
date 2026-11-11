@@ -127,3 +127,24 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-ee-ph-item code { color: #646970; background: none; font-size: 11px; }
 .mo-ee-ph-fb { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #f0f0f1; margin-top: 4px; padding-top: 6px; }
 .mo-ee-ph-fb small { color: #646970; }
+
+/* Checks before sending. */
+.mo-ee-checks { position: relative; }
+.mo-ee-checks summary { list-style: none; }
+.mo-ee-checks summary::-webkit-details-marker { display: none; }
+.mo-ee-checks.has-warnings summary { border-color: #996800; color: #6e4b00; background: #fcf9e8; font-weight: 600; }
+.mo-ee-checks-pop { position: absolute; right: 0; top: 36px; z-index: 6; width: 380px; background: #fff; border: 1px solid #c3c4c7; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.15); padding: 12px; }
+.mo-ee-checks-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.mo-ee-checks-list li { display: flex; gap: 8px; align-items: flex-start; }
+.mo-ee-checks-list .mo-ee-check-text { flex: 1; }
+.mo-ee-checks-list .is-warn .mo-ee-check-mark { color: #996800; font-weight: 700; }
+.mo-ee-checks-list .is-ok { color: #1a7f37; }
+.mo-ee-item.is-warn { border-color: #996800; }
+.mo-ee-item.is-warn .mo-ee-item-open strong::after { content: " !"; color: #996800; }
+
+/* "+" between elements: shown on hover and focus. */
+.mo-ee-insert { list-style: none; display: flex; justify-content: center; height: 10px; margin: -2px 0 4px; }
+.mo-ee-insert-add { opacity: 0; width: 34px; min-height: 22px; height: 22px; padding: 0 4px; font-weight: 700; color: #2271b1; border: 1px dashed #2271b1; border-radius: 99px; background: #fff; transform: translateY(-6px); cursor: pointer; }
+.mo-ee-insert:hover .mo-ee-insert-add, .mo-ee-insert-add:focus { opacity: 1; }
+#mo-ee-blocks:hover .mo-ee-insert-add { opacity: .35; }
+#mo-ee-blocks .mo-ee-insert:hover .mo-ee-insert-add { opacity: 1; }

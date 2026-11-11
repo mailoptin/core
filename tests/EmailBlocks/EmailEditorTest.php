@@ -123,6 +123,8 @@ class EmailEditorTest extends \WP_Ajax_UnitTestCase
 
         $this->assertTrue($res['success']);
         $this->assertStringContainsString('Not saved yet', $res['data']['html']);
+        // With the checks for what's on screen.
+        $this->assertContains('subject', wp_list_pluck($res['data']['checks'], 'kind'));
         $this->assertStringContainsString('First', (new \MailOptin\Core\EmailCampaigns\Newsletter\Templatify($this->email))->builderHtml());
     }
 

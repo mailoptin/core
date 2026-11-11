@@ -446,6 +446,21 @@ HTML;
     }
 
     /**
+     * The checks before sending, for an email as the editor holds it and as it's drawn.
+     */
+    public static function checks($email_campaign_id, $state, $html)
+    {
+        $context = self::context_for($email_campaign_id);
+        $known   = [];
+
+        foreach ($context ? $context->placeholders($email_campaign_id) : [] as $group) {
+            foreach ($group['items'] as $item) $known[] = $item['key'];
+        }
+
+        return Checks::run($state, $html, $known);
+    }
+
+    /**
      * What the saved email is now, to tell whether it changed since the editor loaded it. Only the
      * settings this editor shows count: a change made elsewhere (say, the broadcast's audience)
      * isn't a conflict.
@@ -512,6 +527,11 @@ HTML;
                 'column'         => __('Column %s', 'mailoptin'),
                 'addToColumn'    => __('+ Add to this column', 'mailoptin'),
                 'insertPlaceholder' => __('Insert placeholder', 'mailoptin'),
+                /* translators: %d: number of warnings */
+                'toCheck'           => __('%d to check', 'mailoptin'),
+                'allGood'           => __('Ready to send', 'mailoptin'),
+                'show'              => __('Show', 'mailoptin'),
+                'addHere'           => __('+ Add an element here', 'mailoptin'),
                 'search'            => __('Search…', 'mailoptin'),
                 'fallback'          => __('If empty, show', 'mailoptin'),
                 'fallbackHint'      => __('Optional, e.g. "there" in "Hi {{…|there}}".', 'mailoptin'),
@@ -680,7 +700,7 @@ HTML;
             Templates::clear_preview();
         }
 
-        wp_send_json_success(['html' => self::with_samples($email_campaign_id, $html)]);
+        wp_send_json_success(['html' => self::with_samples($email_campaign_id, $html), 'checks' => self::checks($email_campaign_id, $state, $html)]);
     }
 
     /**

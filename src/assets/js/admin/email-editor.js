@@ -99,7 +99,8 @@
 
     function itemHtml(block) {
         var meta = cfg.blocks[block.type] || {title: block.type};
-        var $li = $('<li class="mo-ee-item">').attr('data-id', block.id).toggleClass('is-open', block.id === openId);
+        var $li = $('<li class="mo-ee-item">').attr('data-id', block.id).toggleClass('is-open', block.id === openId).toggleClass('is-warn', !!warnings[block.id]);
+        if (warnings[block.id]) $li.attr('title', warnings[block.id]);
         var $row = $('<div class="mo-ee-item-row">').appendTo($li);
         $row.append('<span class="mo-ee-handle dashicons dashicons-move" aria-hidden="true"></span>');
         $('<button type="button" class="mo-ee-item-open">').append($('<strong>').text(meta.title), $('<span>').text(summary(block))).appendTo($row);
@@ -125,9 +126,19 @@
         return $li;
     }
 
+    // "+" between elements: adds one at that place (a menu of the elements this email offers).
+    function insertHtml(index) {
+        var $li = $('<li class="mo-ee-insert">').attr('data-index', index);
+        var $sel = $('<select class="mo-ee-insert-add">').attr('aria-label', i18n.addHere);
+        $sel.append($('<option value="">').text('+'));
+        Object.keys(cfg.blocks).forEach(function (type) { $sel.append($('<option>').val(type).text(cfg.blocks[type].title)); });
+        return $li.append($sel);
+    }
+
     function renderList() {
         var $list = $('#mo-ee-blocks').empty();
-        state.content.forEach(function (block) { $list.append(itemHtml(block)); });
+        state.content.forEach(function (block, i) { $list.append(insertHtml(i)).append(itemHtml(block)); });
+        if (state.content.length) $list.append(insertHtml(state.content.length));
         $('#mo-ee-empty').toggle(!state.content.length);
         makeSortable();
     }
@@ -139,6 +150,7 @@
             if ($l.data('ui-sortable')) $l.sortable('destroy');
             $l.sortable({
                 handle: '.mo-ee-handle',
+                items: '> li.mo-ee-item',
                 connectWith: '#mo-ee-blocks, #mo-ee-blocks .mo-ee-col',
                 placeholder: 'mo-ee-drop',
                 tolerance: 'pointer',
@@ -182,8 +194,8 @@
         return block;
     }
 
-    // $column: [columns block id, column index] to add inside a column.
-    function addBlock(type, column) {
+    // $column: [columns block id, column index] to add inside a column. $index: where in the email.
+    function addBlock(type, column, index) {
         if (column && 'columns' === type) return;
         var block = newBlock(type);
         if (!block) return;
@@ -192,6 +204,8 @@
             var parent = blockById(column[0]);
             if (!parent) return;
             parent.columns[column[1]].push(block);
+        } else if (typeof index === 'number' && index >= 0 && index <= state.content.length) {
+            state.content.splice(index, 0, block);
         } else {
             state.content.push(block);
         }
@@ -462,12 +476,62 @@
             doc.write(res.data.html);
             doc.close();
             if (doc.defaultView) doc.defaultView.scrollTo(0, y);
+
+            frameClicks(doc);
+            showChecks(res.data.checks || []);
         }).always(function () {
             if (seq === previewSeq) {
                 previewXhr = null;
                 $('#mo-ee-updating').prop('hidden', true);
             }
         });
+    }
+
+    // A click on an element in the preview opens its settings; links there go nowhere.
+    function frameClicks(doc) {
+        var style = doc.createElement('style');
+        style.textContent = '[data-id]{cursor:pointer}[data-id]:hover{outline:2px dashed #2271b1;outline-offset:2px}[data-id].mo-ee-on{outline:2px solid #2271b1;outline-offset:2px}';
+        (doc.head || doc.documentElement).appendChild(style);
+
+        if (openId) {
+            var on = doc.querySelector('[data-id="' + openId + '"]');
+            if (on) on.classList.add('mo-ee-on');
+        }
+
+        doc.addEventListener('click', function (e) {
+            e.preventDefault();
+            var el = e.target.closest ? e.target.closest('[data-id]') : null;
+            var id = el ? el.getAttribute('data-id') : '';
+            if (id && blockById(id)) openBlock(id);
+        });
+    }
+
+    /* ---------------------------------------------------------------- checks before sending */
+
+    var warnings = {};
+
+    function showChecks(checks) {
+        var $box = $('#mo-ee-checks'), $list = $box.find('.mo-ee-checks-list').empty();
+        var count = 0;
+        warnings = {};
+
+        checks.forEach(function (check) {
+            var $li = $('<li>').toggleClass('is-ok', !!check.ok).toggleClass('is-warn', !check.ok);
+            $('<span class="mo-ee-check-mark" aria-hidden="true">').text(check.ok ? '✓' : '!').appendTo($li);
+            $('<span class="mo-ee-check-text">').text(check.text).appendTo($li);
+            if (!check.ok) {
+                count++;
+                if (check.block && blockById(check.block)) {
+                    warnings[check.block] = check.text;
+                    $('<button type="button" class="button-link mo-ee-check-show">').text(i18n.show).attr('data-id', check.block).appendTo($li);
+                }
+            }
+            $list.append($li);
+        });
+
+        $box.prop('hidden', !checks.length).toggleClass('has-warnings', count > 0);
+        $box.find('summary').text(count ? i18n.toCheck.replace('%d', count) : '✓ ' + i18n.allGood);
+        renderList();
     }
 
     /* ---------------------------------------------------------------- saving */
@@ -611,6 +675,17 @@
             });
 
         $('.mo-ee-block-done').on('click', closeBlock);
+
+        $('#mo-ee-blocks').on('change', '.mo-ee-insert-add', function () {
+            var type = $(this).val(), index = parseInt($(this).closest('.mo-ee-insert').data('index'), 10);
+            if (type) addBlock(type, null, index);
+        });
+
+        $('#mo-ee-checks').on('click', '.mo-ee-check-show', function () {
+            $('#mo-ee-checks').prop('open', false);
+            showPane('content');
+            openBlock($(this).data('id'));
+        });
 
         // The template: the email's frame, drawn around the same content.
         $('#mo-ee').on('change', '.mo-ee-template-input', function () {

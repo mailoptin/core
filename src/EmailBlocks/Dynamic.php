@@ -69,7 +69,10 @@ class Dynamic
             $data['settings'] = $block->sanitize((array)($data['settings'] ?? []));
 
             try {
-                return (string)$block->render_for($data, $args, self::style((int)($args['email_campaign_id'] ?? 0), (int)($data['width'] ?? 570)));
+                $html = (string)$block->render_for($data, $args, self::style((int)($args['email_campaign_id'] ?? 0), (int)($data['width'] ?? 570)));
+
+                // Its id, for the editor's preview: a click there opens it.
+                return Blocks::with_id($html, preg_replace('/[^A-Za-z0-9_-]/', '', (string)($data['id'] ?? '')));
             } catch (\Throwable $e) {
                 // One person's cart mustn't stop the queue.
                 error_log('MailOptin email block ' . ($data['type'] ?? '') . ': ' . $e->getMessage());

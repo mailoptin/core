@@ -289,6 +289,16 @@ class Broadcasts
         }
 
         $checks[] = ['label' => __('Unsubscribe link in the design', 'mailoptin'), 'ok' => false !== strpos($html, '{{unsubscribe}}'), 'blocking' => false];
+        // The editor's checks on the content (alt text, links, placeholders, size): warnings only.
+        if (\MailOptin\Core\Admin\EmailEditor\EmailEditor::edits($email_campaign_id)) {
+            $state = \MailOptin\Core\Admin\EmailEditor\EmailEditor::state($email_campaign_id);
+            foreach (\MailOptin\Core\Admin\EmailEditor\EmailEditor::checks($email_campaign_id, $state, $html) as $check) {
+                if ( ! $check['ok'] && in_array($check['kind'], ['element', 'placeholder', 'size'], true)) {
+                    $checks[] = ['label' => $check['text'], 'ok' => false, 'blocking' => false];
+                }
+            }
+        }
+
         $checks[] = ['label' => __('Test email sent', 'mailoptin'), 'ok' => (bool)EmailCampaignMeta::get_meta_data($email_campaign_id, self::TEST_META), 'blocking' => false];
 
         return $checks;
