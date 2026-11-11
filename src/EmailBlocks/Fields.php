@@ -51,9 +51,11 @@ class Fields
                 // No fixed choices (a list searched for, such as the Posts block's posts): kept as
                 // given, one value or several.
                 if (empty($choices)) {
-                    return is_array($value) || ! empty($field['multiple'])
-                        ? array_values(array_map('sanitize_text_field', array_filter((array)$value, 'is_scalar')))
-                        : sanitize_text_field((string)$value);
+                    if ( ! empty($field['multiple'])) {
+                        return array_values(array_map('sanitize_text_field', array_filter((array)$value, 'is_scalar')));
+                    }
+
+                    return is_scalar($value) ? sanitize_text_field((string)$value) : '';
                 }
 
                 if ( ! empty($field['multiple']) || is_array($value)) {

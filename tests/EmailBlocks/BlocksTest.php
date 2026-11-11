@@ -325,5 +325,7 @@ class BlocksTest extends \WP_UnitTestCase
 
         $this->assertSame(['12', '34', '5'], $clean[0]['settings']['post_list'], 'A list with no fixed choices stays a list.');
         $this->assertSame('2', $clean[0]['settings']['post_column_count']);
+
+        $this->assertSame('', \MailOptin\Core\EmailBlocks\Fields::sanitize(['type' => 'select', 'choices' => []], ['x']), 'A one-value field takes no list.');
     }
 }
