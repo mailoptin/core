@@ -73,7 +73,8 @@ class CampaignAudience
 
         // Customers, users and members, as on the broadcast page. Not for the email editor's own
         // overlay of a broadcast: the broadcast page has these.
-        if ( ! empty(Sources::active())) {
+        // Automations send to the people they start for: no audience to pick.
+        if ( ! empty(Sources::active()) && ! EmailCampaignRepository::is_automation_email($customizer->email_campaign_id)) {
             $controls[Sources::CAMPAIGN_SETTING] = new \MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Audience_Sources_Control($wp_customize, $option_prefix . '[' . Sources::CAMPAIGN_SETTING . ']', [
                 'label'       => __('Customers, users and members', 'mailoptin'),
                 'description' => sprintf(
@@ -83,7 +84,8 @@ class CampaignAudience
                 ),
                 'section'     => $section,
                 'settings'    => $option_prefix . '[' . Sources::CAMPAIGN_SETTING . ']',
-                'priority'    => 60,
+                // After the list (60), before "Send to" (61, added after this).
+                'priority'    => 61,
             ]);
         }
 

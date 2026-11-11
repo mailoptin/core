@@ -426,4 +426,22 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
         $this->assertSame($filters['store'], \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request($query)['store']);
         $this->assertStringContainsString('Registered users: Editor', \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::chips_html($filters, admin_url()));
     }
+
+    public function test_customizer_picker_is_for_campaigns_not_automation_emails()
+    {
+        require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
+
+        $controls = function ($campaign_id) {
+            $wp_customize = new \WP_Customize_Manager();
+            $customizer   = (object)['campaign_settings_section_id' => 'campaign_settings', 'email_campaign_id' => $campaign_id];
+
+            return array_keys((new \MailOptin\MailOptinConnect\CampaignAudience())->controls([], $wp_customize, 'mo_email_campaigns[' . $campaign_id . ']', $customizer));
+        };
+
+        $post_notification = ER::add_email_campaign('New post ' . uniqid(), ER::NEW_PUBLISH_POST, 'Lucid');
+        $automation_email  = ER::add_email_campaign('Auto ' . uniqid(), \MailOptin\Core\Repositories\AutomationsRepository::EMAIL_CAMPAIGN_TYPE, 'Lucid');
+
+        $this->assertContains(Sources::CAMPAIGN_SETTING, $controls($post_notification));
+        $this->assertNotContains(Sources::CAMPAIGN_SETTING, $controls($automation_email));
+    }
 }
