@@ -261,6 +261,64 @@
 
     var codeMirror = null;
 
+    /* ---------------------------------------------------------------- insert placeholder */
+
+    // A menu of the placeholders this email fills in, put next to a field: it inserts {{key}} (or
+    // {{key|fallback}}) where the cursor is, in a plain field or the classic editor.
+    function placeholderMenu($field) {
+        if (!(cfg.placeholders || []).length || $field.data('moPh')) return;
+        $field.data('moPh', true);
+
+        var $menu = $('<details class="mo-ee-ph"><summary class="button button-small"></summary><div class="mo-ee-ph-pop"></div></details>');
+        $menu.find('summary').text('{ } ' + i18n.insertPlaceholder);
+        var $pop = $menu.find('.mo-ee-ph-pop');
+        var $search = $('<input type="search" class="mo-ee-ph-search">').attr('placeholder', i18n.search).attr('aria-label', i18n.search).appendTo($pop);
+        var $list = $('<div class="mo-ee-ph-list">').appendTo($pop);
+        var $fallback = $('<input type="text" class="mo-ee-ph-fallback">').attr('aria-label', i18n.fallback);
+        $('<label class="mo-ee-ph-fb">').append($('<span>').text(i18n.fallback), $fallback, $('<small>').text(i18n.fallbackHint)).appendTo($pop);
+
+        cfg.placeholders.forEach(function (group) {
+            $('<div class="mo-ee-ph-group">').text(group.label).appendTo($list);
+            group.items.forEach(function (item) {
+                $('<button type="button" class="mo-ee-ph-item">').attr('data-key', item.key)
+                    .append($('<span>').text(item.label), $('<code>').text(item.key)).appendTo($list);
+            });
+        });
+
+        $search.on('input', function () {
+            var q = this.value.toLowerCase();
+            $list.find('.mo-ee-ph-item').each(function () { $(this).toggle(!q || $(this).text().toLowerCase().indexOf(q) !== -1); });
+        });
+
+        $list.on('click', '.mo-ee-ph-item', function () {
+            var fb = $fallback.val().replace(/[{}|]/g, '').trim();
+            insertAt($field, '{{' + $(this).data('key') + (fb ? '|' + fb : '') + '}}');
+            $menu.prop('open', false);
+            $fallback.val('');
+        });
+
+        // Above the classic editor as a whole, when the field is one.
+        var $wrap = $field.closest('.wp-editor-wrap');
+        ($wrap.length ? $wrap : $field).before($menu);
+    }
+
+    function insertAt($field, text) {
+        var ed = $field[0].id && window.tinymce ? tinymce.get($field[0].id) : null;
+
+        if (ed && !ed.isHidden()) {
+            ed.insertContent(text);
+            ed.save();
+            $field.trigger('change');
+            return;
+        }
+
+        var el = $field[0], start = el.selectionStart || 0, end = el.selectionEnd || 0;
+        el.value = el.value.slice(0, start) + text + el.value.slice(end);
+        el.selectionStart = el.selectionEnd = start + text.length;
+        $field.trigger('input').trigger('change');
+        el.focus();
+    }
+
     function fillAll() {
         if (cfg.code) {
             var html = state.code || '';
@@ -340,6 +398,9 @@
                 quicktags: true, mediaButtons: true
             });
         });
+
+        // Text and links can hold placeholders.
+        $form.find('.mo-ee-richtext, [data-name$="_link"]').each(function () { placeholderMenu($(this)); });
 
         renderList();
     }
@@ -490,6 +551,7 @@
         if (!cfg.id) return;
 
         bind($('[data-group]'));
+        $('[data-group="settings"] [data-name="email_campaign_title"], [data-group="settings"] [data-name="email_campaign_preheader"]').each(function () { placeholderMenu($(this)); });
 
         // An email written by hand: WordPress's code editor (CodeMirror), or the plain textarea.
         if (cfg.code) {

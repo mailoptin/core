@@ -62,6 +62,28 @@ abstract class EmailContext
     abstract public function send_test($email_campaign_id, $to);
 
     /**
+     * Placeholders this kind of email fills in, for the editor's "Insert placeholder" menu.
+     *
+     * @return array [['label' => group, 'items' => [['key' => 'subscriber.first_name', 'label' => ...], ...]], ...]
+     */
+    public function placeholders($email_campaign_id)
+    {
+        $items = [
+            ['key' => 'subscriber.first_name', 'label' => __('First name', 'mailoptin')],
+            ['key' => 'subscriber.last_name', 'label' => __('Last name', 'mailoptin')],
+            ['key' => 'subscriber.email', 'label' => __('Email address', 'mailoptin')],
+        ];
+
+        if (\MailOptin\Core\Repositories\TagsRepository::is_ready()) {
+            foreach (\MailOptin\Core\Repositories\CustomFieldsRepository::all() as $field) {
+                $items[] = ['key' => 'subscriber.' . $field['merge_key'], 'label' => $field['label']];
+            }
+        }
+
+        return [['label' => __('Subscriber', 'mailoptin'), 'items' => $items]];
+    }
+
+    /**
      * The templates a new email of this kind can start from: id => template. "Code your own" is
      * offered as well when this returns true from allows_code().
      */

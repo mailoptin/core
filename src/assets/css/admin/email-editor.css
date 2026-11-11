@@ -114,3 +114,16 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-auto-dialog::backdrop { background: rgba(0,0,0,.45); }
 .mo-auto-dialog-head { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #dcdcde; margin: 0 -18px; padding: 12px 18px; }
 .mo-auto-dialog-head h2 { margin: 0; font-size: 15px; }
+
+/* Insert placeholder. */
+.mo-ee-ph { position: relative; display: inline-block; margin: 0 0 6px; }
+.mo-ee-ph summary { list-style: none; cursor: pointer; }
+.mo-ee-ph summary::-webkit-details-marker { display: none; }
+.mo-ee-ph-pop { position: absolute; z-index: 20; top: 30px; left: 0; width: 320px; max-height: 360px; overflow: auto; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 6px 20px rgba(0,0,0,.15); padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.mo-ee-ph-search { width: 100%; }
+.mo-ee-ph-group { font-size: 11px; color: #646970; text-transform: uppercase; letter-spacing: .03em; padding: 6px 4px 2px; }
+.mo-ee-ph-item { display: flex; justify-content: space-between; gap: 8px; width: 100%; text-align: left; background: none; border: 0; border-radius: 3px; padding: 5px 6px; cursor: pointer; }
+.mo-ee-ph-item:hover, .mo-ee-ph-item:focus { background: #f0f6fc; }
+.mo-ee-ph-item code { color: #646970; background: none; font-size: 11px; }
+.mo-ee-ph-fb { display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #f0f0f1; margin-top: 4px; padding-top: 6px; }
+.mo-ee-ph-fb small { color: #646970; }

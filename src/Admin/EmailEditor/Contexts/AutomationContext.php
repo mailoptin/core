@@ -74,9 +74,29 @@ class AutomationContext extends EmailContext
         if ( ! $trigger) return $html;
 
         $run  = ['id' => 0, 'automation_id' => $owner[0]['id'], 'email' => '', 'subscriber_id' => 0, 'context' => [], 'started_at' => Repo::now()];
+        $html = \MailOptin\Core\EmailBlocks\Dynamic::expand($html, ['trigger' => $trigger, 'run' => $run, 'mode' => 'sample', 'email_campaign_id' => $email_campaign_id]);
         $html = Engine::replace_placeholders($html, $trigger, $run, true, true);
 
         return \MailOptin\Core\Audience\CampaignRenderer::replace_fallback_tags($html, ['id' => 0, 'email' => '', 'first_name' => '', 'last_name' => ''], true, []);
+    }
+
+    /**
+     * The trigger's placeholders, by kind (Cart, Order, Customer, Store...), then the subscriber's.
+     */
+    public function placeholders($email_campaign_id)
+    {
+        $owner   = $this->owner($email_campaign_id);
+        $trigger = $owner && class_exists(Engine::class) ? Triggers::get_instance()->get($owner[0]['trigger_id']) : null;
+        $names   = ['cart' => __('Cart', 'mailoptin'), 'order' => __('Order', 'mailoptin'), 'customer' => __('Customer', 'mailoptin'), 'store' => __('Store', 'mailoptin')];
+        $groups  = [];
+
+        foreach ($trigger ? Engine::placeholders($trigger) : [] as $key => $placeholder) {
+            $kind = strstr($key, '.', true) ?: $key;
+            $groups[$kind]['label']   = $names[$kind] ?? ucfirst($kind);
+            $groups[$kind]['items'][] = ['key' => $key, 'label' => (string)($placeholder['label'] ?? $key)];
+        }
+
+        return array_merge(array_values($groups), parent::placeholders($email_campaign_id));
     }
 
     public function send_test($email_campaign_id, $to)

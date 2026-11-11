@@ -186,6 +186,16 @@ class WooCartAbandoned extends AbstractTrigger
         ];
     }
 
+    public function store()
+    {
+        return 'woocommerce';
+    }
+
+    public function provides()
+    {
+        return ['cart'];
+    }
+
     public function placeholders()
     {
         $cart = function ($context) {

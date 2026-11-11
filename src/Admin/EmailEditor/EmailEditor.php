@@ -491,6 +491,7 @@ HTML;
             'version' => self::version($email_campaign_id),
             'blocks'  => $blocks,
             'code'    => self::is_code($email_campaign_id),
+            'placeholders' => ($context = self::context_for($email_campaign_id)) ? $context->placeholders($email_campaign_id) : [],
             'codeEditor' => $code_editor ?: null,
             'i18n'    => [
                 'saved'      => __('Saved', 'mailoptin'),
@@ -510,6 +511,10 @@ HTML;
                 /* translators: %s: column number */
                 'column'         => __('Column %s', 'mailoptin'),
                 'addToColumn'    => __('+ Add to this column', 'mailoptin'),
+                'insertPlaceholder' => __('Insert placeholder', 'mailoptin'),
+                'search'            => __('Search…', 'mailoptin'),
+                'fallback'          => __('If empty, show', 'mailoptin'),
+                'fallbackHint'      => __('Optional, e.g. "there" in "Hi {{…|there}}".', 'mailoptin'),
                 'testSent'   => __('Test sent.', 'mailoptin'),
                 'testFailed' => __('The test couldn\'t be sent.', 'mailoptin'),
                 'untitled'   => __('(no subject)', 'mailoptin'),

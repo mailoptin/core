@@ -136,6 +136,16 @@ class WooNoOrder extends AbstractTrigger
         ];
     }
 
+    public function store()
+    {
+        return 'woocommerce';
+    }
+
+    public function provides()
+    {
+        return [];
+    }
+
     public function placeholders()
     {
         $order = function ($context) {
