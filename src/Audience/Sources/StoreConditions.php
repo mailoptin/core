@@ -61,6 +61,9 @@ class StoreConditions
     {
         if ( ! is_array($condition)) return null;
 
+        // A condition that couldn't be read is kept as one that matches nobody, never dropped.
+        if ('invalid' === ($condition['what'] ?? '')) return ['what' => 'invalid', 'source' => ''];
+
         $what   = is_scalar($condition['what'] ?? '') ? sanitize_key($condition['what'] ?? '') : '';
         $source = is_scalar($condition['source'] ?? '') ? sanitize_key($condition['source'] ?? '') : '';
 
@@ -108,6 +111,8 @@ class StoreConditions
      */
     public static function problem($condition)
     {
+        if ('invalid' === ($condition['what'] ?? '')) return __('It couldn\'t be read.', 'mailoptin');
+
         $source = Sources::get($condition['source']);
 
         if ( ! $source || ! $source->is_active()) {
@@ -138,14 +143,21 @@ class StoreConditions
     {
         $condition = self::clean($condition);
 
-        if ( ! $condition || '' !== self::problem($condition)) return null;
+        // problem() reads the plugin's options (roles, levels); once per condition per request is enough.
+        static $problems = [];
+        $key = md5(wp_json_encode($condition));
+
+        if ( ! isset($problems[$key])) $problems[$key] = $condition ? self::problem($condition) : 'invalid';
+
+        if ( ! $condition || 'invalid' === $condition['what'] || '' !== $problems[$key]) return null;
 
         $source = Sources::get($condition['source']);
 
         if ('member' === $condition['what']) {
             list($people, $params) = $source->people_sql($condition['option'], Sources::settings($source->id()));
 
-            return ['EXISTS (SELECT 1 FROM (' . $people . ') m WHERE ' . Sources::as_our_email('m.email') . ' = ' . $email_expr . ')', $params];
+            // IN, not a correlated EXISTS: the plugin's list is read once rather than per subscriber.
+            return [$email_expr . ' IN (SELECT ' . Sources::as_our_email('m.email') . ' FROM (' . $people . ') m)', $params];
         }
 
         $orders = $source->orders_sql($email_expr);
@@ -167,7 +179,10 @@ class StoreConditions
                 ];
 
             case 'spent':
-                return ["(SELECT COALESCE(SUM({$columns['total']}), 0) $from) " . ('lt' === $condition['op'] ? '<' : '>') . ' %f', array_merge($params, [$condition['amount']])];
+                // Net of refunds where the store records them as their own rows.
+                list($net_from, $net_params, $net_total) = $orders[3] ?? [$from, $params, $columns['total']];
+
+                return ["(SELECT COALESCE(SUM($net_total), 0) $net_from) " . ('lt' === $condition['op'] ? '<' : '>') . ' %f', array_merge($net_params, [$condition['amount']])];
 
             case 'orders':
                 return ["(SELECT COUNT(*) $from) " . ['gt' => '>', 'lt' => '<', 'eq' => '='][$condition['op']] . ' %d', array_merge($params, [$condition['count']])];
@@ -190,6 +205,8 @@ class StoreConditions
      */
     public static function label($condition)
     {
+        if ('invalid' === ($condition['what'] ?? '')) return __('A filter that couldn\'t be read (it matches nobody)', 'mailoptin');
+
         $source = Sources::get($condition['source']);
         $name   = $source ? $source->label() : $condition['source'];
 

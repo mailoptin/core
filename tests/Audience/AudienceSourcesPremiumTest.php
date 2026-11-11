@@ -97,4 +97,31 @@ class AudienceSourcesPremiumTest extends AudienceSourcesTestCase
         $emails = wp_list_pluck($this->queue_rows(), 'email');
         $this->assertSame(['maya@example.com', 'old@example.com'], $emails);
     }
+
+    public function test_spend_is_net_of_refunds_and_categories_include_children()
+    {
+        $this->premium();
+        $this->woo_store();
+
+        global $wpdb;
+
+        // maya spent 50; a 25 refund on order 10 (its own row, negative) brings her to 25.
+        $wpdb->insert("{$wpdb->prefix}wc_order_stats", ['order_id' => 16, 'parent_id' => 10, 'date_created' => gmdate('Y-m-d H:i:s'), 'date_created_gmt' => gmdate('Y-m-d H:i:s'), 'status' => 'wc-completed', 'customer_id' => 1, 'total_sales' => -25]);
+
+        Subscribers::create(['email' => 'maya@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+        Subscribers::create(['email' => 'guest@example.com', 'status' => Subscribers::STATUS_SUBSCRIBED]);
+
+        $this->assertSame([], $this->matching([['what' => 'spent', 'source' => 'woo', 'op' => 'gt', 'amount' => 30]]));
+        $this->assertSame(['maya@example.com'], $this->matching([['what' => 'spent', 'source' => 'woo', 'op' => 'gt', 'amount' => 20]]));
+
+        // Product 47 is only in Bulbs › Tulips; "bought Bulbs" includes it.
+        register_taxonomy('product_cat', 'product', ['hierarchical' => true]);
+        $bulbs  = self::factory()->term->create(['taxonomy' => 'product_cat', 'name' => 'Bulbs']);
+        $tulips = self::factory()->term->create(['taxonomy' => 'product_cat', 'name' => 'Tulips', 'parent' => $bulbs]);
+        wp_set_object_terms(47, [$tulips], 'product_cat');
+        clean_taxonomy_cache('product_cat');
+
+        $this->assertSame(['maya@example.com'], $this->matching([['what' => 'bought', 'source' => 'woo', 'target' => 'category', 'ids' => [$bulbs]]]));
+        $this->assertSame(['guest@example.com'], $this->matching([['what' => 'not_bought', 'source' => 'woo', 'target' => 'category', 'ids' => [$bulbs]]]));
+    }
 }

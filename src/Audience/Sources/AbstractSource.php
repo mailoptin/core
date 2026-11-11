@@ -214,7 +214,15 @@ abstract class AbstractSource
     {
         global $wpdb;
 
-        $term_ids = array_values(array_filter(array_map('absint', (array)$term_ids))) ?: [0];
+        $term_ids = array_values(array_filter(array_map('absint', (array)$term_ids)));
+
+        // A product in "Clothing › Shirts" was bought in "Clothing" too.
+        foreach ($term_ids as $term_id) {
+            $children = get_term_children($term_id, $taxonomy);
+            if ( ! is_wp_error($children)) $term_ids = array_merge($term_ids, array_map('absint', $children));
+        }
+
+        $term_ids = array_values(array_unique($term_ids)) ?: [0];
 
         return [
             "SELECT tr.object_id FROM $wpdb->term_relationships tr INNER JOIN $wpdb->term_taxonomy tt ON tt.term_taxonomy_id = tr.term_taxonomy_id

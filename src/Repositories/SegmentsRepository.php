@@ -270,7 +270,21 @@ class SegmentsRepository extends AbstractRepository
 
         Subscribers::filter_where($segment['filters'], $where, $params);
 
-        return (int)self::wpdb()->get_var(self::wpdb()->prepare('SELECT COUNT(*) FROM ' . Subscribers::table() . ' s WHERE ' . implode(' AND ', $where), $params));
+        $sql = self::wpdb()->prepare('SELECT COUNT(*) FROM ' . Subscribers::table() . ' s WHERE ' . implode(' AND ', $where), $params);
+
+        // Purchase and membership conditions read the store's tables: the segments page needn't
+        // recount them on every view.
+        if (empty($segment['filters']['store'])) return (int)self::wpdb()->get_var($sql);
+
+        $key   = 'mo_segment_count_' . md5($sql);
+        $count = get_transient($key);
+
+        if (false === $count) {
+            $count = (int)self::wpdb()->get_var($sql);
+            set_transient($key, $count, MINUTE_IN_SECONDS);
+        }
+
+        return (int)$count;
     }
 
     /**

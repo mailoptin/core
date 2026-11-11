@@ -227,11 +227,20 @@ class WooCustomers extends AbstractSource
 
         list($in, $params) = self::in_list(self::paid_statuses());
 
+        $email = Sources::as_our_email($email_expr, $customers);
+
         return [
             "FROM $orders o INNER JOIN $customers c ON c.customer_id = o.customer_id
-            WHERE c.email = " . Sources::as_our_email($email_expr, $customers) . " AND o.parent_id = 0 AND o.status $in",
+            WHERE c.email = $email AND o.parent_id = 0 AND o.status $in",
             $params,
             ['id' => 'o.order_id', 'total' => 'o.total_sales', 'date' => 'o.date_created_gmt'],
+            // Spend: refunds are rows of their own with a negative total, under the paid order.
+            [
+                "FROM $orders o INNER JOIN $customers c ON c.customer_id = o.customer_id
+                WHERE c.email = $email AND ((o.parent_id = 0 AND o.status $in) OR (o.parent_id > 0 AND o.total_sales < 0))",
+                $params,
+                'o.total_sales',
+            ],
         ];
     }
 

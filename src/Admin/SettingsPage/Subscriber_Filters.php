@@ -26,10 +26,12 @@ class Subscriber_Filters
     {
         $filters = ['tag_ids' => [], 'tag_match' => 'any', 'field_conditions' => [], 'engagement' => [], 'store' => []];
 
+        // Kept even when this site can't use them (Premium lapsed): they then match nobody and
+        // their chip says why. Dropping them would widen a bookmarked view or export.
         foreach ((array)($request['sc'] ?? []) as $condition) {
-            $condition = StoreConditions::clean(is_array($condition) ? wp_unslash($condition) : null);
+            $clean = StoreConditions::clean(is_array($condition) ? wp_unslash($condition) : null);
 
-            if ($condition && StoreConditions::can_use($condition['what'])) $filters['store'][] = $condition;
+            $filters['store'][] = $clean ?: ['what' => 'invalid', 'source' => ''];
         }
 
         if ( ! Tags::is_ready()) return $filters;

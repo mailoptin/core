@@ -51,7 +51,8 @@ class CampaignAudience
             'type'              => 'option',
             'transport'         => 'postMessage',
             'sanitize_callback' => function ($value) {
-                return Sources::encode_selection(json_decode(wp_unslash((string)$value), true));
+                // The Customizer has already unslashed it.
+                return Sources::encode_selection(json_decode((string)$value, true));
             },
         ];
 

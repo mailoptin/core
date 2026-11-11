@@ -400,8 +400,17 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
 
         $this->assertSame(['ed@example.com'], $this->subscriber_matches($filters));
 
-        // Purchase conditions need Premium: dropped from the URL on a free site.
-        $this->assertSame([], \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request(['sc' => [['what' => 'spent', 'source' => 'woo', 'op' => 'gt', 'amount' => '5']]])['store']);
+        // Purchase conditions need Premium. On a free site one in the URL (a bookmark from when it
+        // was Premium) is kept and matches nobody, rather than being dropped and widening the view.
+        $premium = \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request(['sc' => [['what' => 'spent', 'source' => 'users', 'op' => 'gt', 'amount' => '5']]]);
+        $this->assertCount(1, $premium['store']);
+        $this->assertSame([], $this->subscriber_matches($premium));
+
+        // So is one that can't be read.
+        $broken = \MailOptin\Core\Admin\SettingsPage\Subscriber_Filters::from_request(['sc' => [['what' => 'bought', 'source' => 'woo', 'target' => 'product']]]);
+        $this->assertSame('invalid', $broken['store'][0]['what']);
+        $this->assertSame([], $this->subscriber_matches($broken));
+        $this->assertNotEmpty(SegmentsRepository::problems(['filters' => SegmentsRepository::clean_filters($broken)]), 'Saved as a segment, it blocks sending.');
     }
 
     public function test_a_condition_that_cant_be_applied_matches_nobody_and_blocks_a_segment()
@@ -443,5 +452,20 @@ class AudienceSourcesTest extends AudienceSourcesTestCase
 
         $this->assertContains(Sources::CAMPAIGN_SETTING, $controls($post_notification));
         $this->assertNotContains(Sources::CAMPAIGN_SETTING, $controls($automation_email));
+    }
+
+    public function test_customizer_setting_keeps_values_with_quotes()
+    {
+        add_role('o"neill\\crew', 'Odd role');
+
+        $settings = (new \MailOptin\MailOptinConnect\CampaignAudience())->settings([]);
+        $sanitize = $settings[Sources::CAMPAIGN_SETTING]['sanitize_callback'];
+
+        // What the Customizer passes: already unslashed JSON.
+        $value = wp_json_encode([['source' => 'users', 'option' => 'o"neill\\crew']]);
+
+        $this->assertSame([['source' => 'users', 'option' => 'o"neill\\crew']], Sources::campaign_selection($sanitize($value)));
+
+        remove_role('o"neill\\crew');
     }
 }
