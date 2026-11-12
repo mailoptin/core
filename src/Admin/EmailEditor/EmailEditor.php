@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\EmailEditor;
 use MailOptin\Core\EmailBlocks\AbstractBlock;
 use MailOptin\Core\EmailBlocks\Blocks;
 use MailOptin\Core\EmailBlocks\Fields;
+use MailOptin\Core\EmailBlocks\Starters;
 use MailOptin\Core\EmailBlocks\Templates;
 use MailOptin\Core\EmailCampaigns\Newsletter\Templatify;
 use MailOptin\Core\Repositories\CampaignSettingsRepository as Settings;
@@ -34,6 +35,65 @@ class EmailEditor
         }
 
         add_action('admin_post_mo_email_new', [$this, 'handle_new']);
+        add_action('wp_ajax_mo_email_starter_previews', [$this, 'ajax_starter_previews']);
+    }
+
+    /**
+     * The template picker's styles and its starter thumbnails' script.
+     */
+    public static function enqueue_picker()
+    {
+        wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
+        wp_enqueue_script('mailoptin-email-picker', MAILOPTIN_ASSETS_URL . 'js/admin/email-picker.js', ['jquery'], MAILOPTIN_VERSION_NUMBER, true);
+    }
+
+    /**
+     * admin-ajax.php?action=mo_email_starter_previews: each starter layout drawn in a template, for
+     * the picker's thumbnails. Drawn by the code that sends the email, in a throwaway email, and kept
+     * for a day per template and kind of email.
+     */
+    public function ajax_starter_previews()
+    {
+        if ( ! current_user_has_privilege() || ! check_ajax_referer('mo_email_starter_previews', 'nonce', false)) wp_send_json_error(null, 403);
+
+        $context  = self::context(sanitize_key((string)wp_unslash($_POST['context'] ?? '')));
+        $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['template'] ?? ''));
+
+        if ( ! $context || ! $context->accepts_template($template) || ER::CODE_YOUR_OWN_TEMPLATE === $template) wp_send_json_error(null, 400);
+
+        wp_send_json_success(self::starter_previews($context->id(), $template));
+    }
+
+    /**
+     * @return array starter id ('' for the template's own default) => the email's HTML
+     */
+    public static function starter_previews($context_id, $template)
+    {
+        $key    = 'mo_starter_previews_' . md5(wp_json_encode([$context_id, $template, get_locale(), get_bloginfo('name'), defined('MAILOPTIN_VERSION_NUMBER') ? MAILOPTIN_VERSION_NUMBER : '']));
+        $cached = get_transient($key);
+        if (is_array($cached)) return $cached;
+
+        $html = [];
+        $ids  = array_merge([''], array_keys(Starters::get_instance()->for_context($context_id)));
+
+        foreach ($ids as $starter) {
+            // A broadcast, never sent or listed: made, drawn and deleted.
+            $id = ER::add_email_campaign('mo-starter-preview-' . wp_generate_password(12, false), ER::NEWSLETTER, $template);
+            if ( ! $id) continue;
+
+            try {
+                self::add_starter_content($id, $starter);
+                $html[$starter] = (new Templatify($id))->forge();
+            } finally {
+                ER::delete_settings_by_id($id);
+                ER::delete_campaign_by_id($id);
+                \MailOptin\Core\EmailBlocks\Builtin\ElementBlock::flush_defaults();
+            }
+        }
+
+        set_transient($key, $html, DAY_IN_SECONDS);
+
+        return $html;
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -94,7 +154,7 @@ class EmailEditor
      *
      * @return int|\WP_Error the email's id
      */
-    public static function start($context_id, $template, $args = [])
+    public static function start($context_id, $template, $args = [], $starter = '')
     {
         $context = self::context($context_id);
 
@@ -105,7 +165,11 @@ class EmailEditor
 
         if (is_wp_error($id)) return $id;
 
-        self::add_starter_content($id);
+        // A starter layout chosen in the picker: the email starts with it, not the template's default.
+        $starter = (string)$starter;
+        $chosen  = '' !== $starter && isset(Starters::get_instance()->for_context($context_id)[$starter]) ? $starter : '';
+
+        self::add_starter_content($id, $chosen);
 
         return $id;
     }
@@ -113,13 +177,22 @@ class EmailEditor
     /**
      * The template's starter content, for an email that has none yet.
      */
-    public static function add_starter_content($email_campaign_id)
+    public static function add_starter_content($email_campaign_id, $starter = '')
     {
         // Written by hand: a short, plain email to start from, not the Customizer's long sample.
         if (self::is_code($email_campaign_id)) {
             if ('' === (string)ER::get_customizer_value_without_default($email_campaign_id, 'code_your_own')) {
                 ER::update_settings_by_id($email_campaign_id, ['code_your_own' => self::starter_html()]);
             }
+
+            return;
+        }
+
+        // A starter layout replaces what the email was just made with (an automation's new email
+        // already has the template's default).
+        if ('' !== (string)$starter) {
+            $content = Starters::get_instance()->content($starter, $email_campaign_id);
+            ER::update_settings_by_id($email_campaign_id, ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($content))]);
 
             return;
         }
@@ -174,7 +247,7 @@ class EmailEditor
      */
     public static function new_broadcast_page()
     {
-        wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
+        self::enqueue_picker();
 
         $error  = isset($_GET['mo_error']) ? sanitize_text_field(wp_unslash($_GET['mo_error'])) : '';
         $fields = '<p class="mo-ee-picker-field"><label for="mo-ee-new-name"><b>' . esc_html__('Broadcast name', 'mailoptin') . '</b></label>'
@@ -242,7 +315,8 @@ HTML;
 
         $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['template'] ?? ''));
         $args     = array_map('sanitize_text_field', (array)wp_unslash($_POST['args'] ?? []));
-        $result   = self::start($context_id, $template, $args);
+        $starter  = sanitize_key((string)wp_unslash($_POST['starter'] ?? ''));
+        $result   = self::start($context_id, $template, $args, $starter);
 
         if (is_wp_error($result)) {
             $back = wp_get_referer() ?: admin_url();

@@ -96,6 +96,14 @@ class Checks
         $s    = (array)($block['settings'] ?? []);
         $warn = [];
 
+        // A starter layout's prompt not replaced yet: "[Your headline]" (not a shortcode: no "=").
+        $prompt = null;
+        array_walk_recursive($s, function ($value) use (&$prompt) {
+            if (null === $prompt && is_string($value) && preg_match('/\[(?:[A-Z]|e\.g\.)[^\[\]=]{1,120}\]/u', wp_strip_all_tags($value), $m)) $prompt = $m[0];
+        });
+        /* translators: %s: the text in brackets, e.g. "[Your headline]" */
+        if (null !== $prompt) $warn[] = sprintf(__('Replace "%s": it\'s a prompt from the starter layout.', 'mailoptin'), $prompt);
+
         switch ($block['type'] ?? '') {
             case 'image':
                 if ('' !== trim((string)($s['image_url'] ?? '')) && '' === trim((string)($s['image_alt_text'] ?? ''))) {
@@ -111,7 +119,7 @@ class Checks
                 }
                 break;
             case 'text':
-                $warn = self::html_warnings((string)($s['text_content'] ?? ''));
+                $warn = array_merge($warn, self::html_warnings((string)($s['text_content'] ?? '')));
                 break;
             case 'discount_code':
                 if ('existing' === ($s['code_mode'] ?? '') && '' === trim((string)($s['existing_code'] ?? ''))) {

@@ -90,7 +90,7 @@ class Automations_Page
 
         wp_enqueue_style('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.min.css');
         // The template picker's dialog (shared with the "New broadcast" page).
-        wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
+        \MailOptin\Core\Admin\EmailEditor\EmailEditor::enqueue_picker();
         wp_enqueue_script('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', ['jquery'], null, true);
         wp_add_inline_script('mailoptin-chosen', self::script());
     }
