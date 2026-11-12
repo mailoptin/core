@@ -39,6 +39,26 @@ class EmailEditor
     }
 
     /**
+     * The picker's thumbnails show the site's posts and settings: drawn again when they change. On
+     * every request (Base).
+     */
+    public static function register_cache_hooks()
+    {
+        add_action('update_option_mailoptin_settings', [__CLASS__, 'flush_starter_previews']);
+        add_action('transition_post_status', [__CLASS__, 'flush_on_publish'], 10, 2);
+    }
+
+    public static function flush_on_publish($new, $old)
+    {
+        if ('publish' === $new || 'publish' === $old) self::flush_starter_previews();
+    }
+
+    public static function flush_starter_previews()
+    {
+        update_option('mo_starter_previews_version', (int)get_option('mo_starter_previews_version', 0) + 1, false);
+    }
+
+    /**
      * The template picker's styles and its starter thumbnails' script.
      */
     public static function enqueue_picker()
@@ -58,23 +78,31 @@ class EmailEditor
 
         $context  = self::context(sanitize_key((string)wp_unslash($_POST['context'] ?? '')));
         $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['template'] ?? ''));
+        // An automation's email: the starters its trigger can fill.
+        $args     = ['automation_id' => absint($_POST['automation_id'] ?? 0)];
 
         if ( ! $context || ! $context->accepts_template($template) || ER::CODE_YOUR_OWN_TEMPLATE === $template) wp_send_json_error(null, 400);
 
-        wp_send_json_success(self::starter_previews($context->id(), $template));
+        wp_send_json_success(self::starter_previews($context->id(), $template, $args));
     }
 
     /**
      * @return array starter id ('' for the template's own default) => the email's HTML
      */
-    public static function starter_previews($context_id, $template)
+    public static function starter_previews($context_id, $template, $args = [])
     {
-        $key    = 'mo_starter_previews_' . md5(wp_json_encode([$context_id, $template, get_locale(), get_bloginfo('name'), defined('MAILOPTIN_VERSION_NUMBER') ? MAILOPTIN_VERSION_NUMBER : '']));
+        $ids = array_merge([''], array_keys(Starters::get_instance()->for_context($context_id, $args)));
+
+        // The person's language (admins may differ), the starters offered, and a version bumped when
+        // posts or settings change.
+        $key    = 'mo_starter_previews_' . md5(wp_json_encode([
+                $context_id, $template, $ids, determine_locale(), get_bloginfo('name'), (int)get_option('mo_starter_previews_version', 0),
+                defined('MAILOPTIN_VERSION_NUMBER') ? MAILOPTIN_VERSION_NUMBER : '',
+            ]));
         $cached = get_transient($key);
         if (is_array($cached)) return $cached;
 
         $html = [];
-        $ids  = array_merge([''], array_keys(Starters::get_instance()->for_context($context_id)));
 
         foreach ($ids as $starter) {
             // A broadcast, never sent or listed: made, drawn and deleted.
@@ -82,8 +110,17 @@ class EmailEditor
             if ( ! $id) continue;
 
             try {
-                self::add_starter_content($id, $starter);
+                // Blocks this throwaway email can't have (Cart contents) shown as labelled boxes.
+                $content = '' === $starter ? null : Starters::get_instance()->content($starter, $id, true);
+                if (null === $content) {
+                    self::add_starter_content($id);
+                } else {
+                    ER::update_settings_by_id($id, ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($content))]);
+                }
                 $html[$starter] = (new Templatify($id))->forge();
+            } catch (\Throwable $e) {
+                // One starter that fails (a plugin's) has no thumbnail; the others still do.
+                $html[$starter] = '';
             } finally {
                 ER::delete_settings_by_id($id);
                 ER::delete_campaign_by_id($id);
@@ -167,7 +204,7 @@ class EmailEditor
 
         // A starter layout chosen in the picker: the email starts with it, not the template's default.
         $starter = (string)$starter;
-        $chosen  = '' !== $starter && isset(Starters::get_instance()->for_context($context_id)[$starter]) ? $starter : '';
+        $chosen  = '' !== $starter && isset(Starters::get_instance()->for_context($context_id, $args)[$starter]) ? $starter : '';
 
         self::add_starter_content($id, $chosen);
 

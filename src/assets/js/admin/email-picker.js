@@ -35,7 +35,8 @@
                     action: 'mo_email_starter_previews',
                     nonce: $starters.data('nonce'),
                     context: $starters.data('context'),
-                    template: template
+                    template: template,
+                    automation_id: $starters.data('automation') || 0
                 }).done(function (res) {
                     if (!res || !res.success) return;
                     cache[template] = res.data;

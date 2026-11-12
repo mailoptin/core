@@ -551,9 +551,10 @@ class Automations_Page
                     // page is saved first, as every other button here does.
                     dialog.querySelector('form').addEventListener('submit', function (e) {
                         var chosen = dialog.querySelector('input[name="template"]:checked');
+                        var starter = dialog.querySelector('input[name="starter"]:checked');
                         if (!builder || !chosen) return;
                         e.preventDefault();
-                        [['mo_automation_action', 'add_email'], ['mo_new_email_template', chosen.value]].forEach(function (pair) {
+                        [['mo_automation_action', 'add_email'], ['mo_new_email_template', chosen.value], ['mo_new_email_starter', starter ? starter.value : '']].forEach(function (pair) {
                             var input = document.createElement('input');
                             input.type = 'hidden';
                             input.name = pair[0];
@@ -1107,7 +1108,10 @@ class Automations_Page
                 $context  = \MailOptin\Core\Admin\EmailEditor\EmailEditor::context('automation');
 
                 if ('' !== $template && $context && $context->accepts_template($template)) {
-                    $email_id = self::add_email_step($automation, $template);
+                    // The layout chosen under "Start from", if this automation can fill it.
+                    $starter  = sanitize_key((string)wp_unslash($_POST['mo_new_email_starter'] ?? ''));
+                    $offered  = \MailOptin\Core\EmailBlocks\Starters::get_instance()->for_context('automation', ['automation_id' => $automation_id]);
+                    $email_id = self::add_email_step($automation, $template, isset($offered[$starter]) ? $starter : '');
                     if ($email_id) {
                         self::redirect(\MailOptin\Core\Admin\EmailEditor\EmailEditor::url($email_id));
 
@@ -1422,16 +1426,18 @@ class Automations_Page
      *
      * @return int the email's id, 0 when it couldn't be made
      */
-    public static function add_email_step($automation, $template)
+    public static function add_email_step($automation, $template, $starter = '')
     {
         $email_id = Recipes::create_email($automation['id'], __('New email', 'mailoptin'), '', $template);
         if ( ! $email_id) return 0;
 
-        \MailOptin\Core\Admin\EmailEditor\EmailEditor::add_starter_content($email_id);
-
         $steps   = Repo::steps($automation['id']);
         $steps[] = ['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => $email_id] + self::paused_if_live($automation)];
         Repo::save_steps($automation['id'], $steps);
+
+        // After the step is saved: the email belongs to the automation, so its shop blocks (Cart
+        // contents, from the trigger) are allowed in it.
+        \MailOptin\Core\Admin\EmailEditor\EmailEditor::add_starter_content($email_id, $starter);
 
         return $email_id;
     }

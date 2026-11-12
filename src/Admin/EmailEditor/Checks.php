@@ -96,10 +96,15 @@ class Checks
         $s    = (array)($block['settings'] ?? []);
         $warn = [];
 
-        // A starter layout's prompt not replaced yet: "[Your headline]" (not a shortcode: no "=").
-        $prompt = null;
-        array_walk_recursive($s, function ($value) use (&$prompt) {
-            if (null === $prompt && is_string($value) && preg_match('/\[(?:[A-Z]|e\.g\.)[^\[\]=]{1,120}\]/u', wp_strip_all_tags($value), $m)) $prompt = $m[0];
+        // A starter layout's prompt not replaced yet: "[Your headline]", exactly as a starter wrote it.
+        $prompt  = null;
+        $prompts = \MailOptin\Core\EmailBlocks\Starters::get_instance()->prompts();
+        array_walk_recursive($s, function ($value) use (&$prompt, $prompts) {
+            if (null !== $prompt || ! is_string($value) || false === strpos($value, '[')) return;
+            $plain = html_entity_decode(wp_strip_all_tags($value), ENT_QUOTES, 'UTF-8');
+            foreach ($prompts as $text) {
+                if (false !== strpos($plain, $text)) { $prompt = $text; break; }
+            }
         });
         /* translators: %s: the text in brackets, e.g. "[Your headline]" */
         if (null !== $prompt) $warn[] = sprintf(__('Replace "%s": it\'s a prompt from the starter layout.', 'mailoptin'), $prompt);

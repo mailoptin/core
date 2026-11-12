@@ -47,7 +47,9 @@ class StartersTest extends \WP_UnitTestCase
         $automation = array_keys(Starters::get_instance()->for_context('automation'));
 
         $this->assertSame(['blank', 'newsletter', 'announcement', 'welcome', 'event', 'note'], $broadcast);
-        $this->assertSame(['blank', 'welcome', 'thank-you', 'abandoned-cart', 'we-miss-you'], $automation);
+        // The shop's layouts only for an automation whose trigger has a cart or an order (none here).
+        $this->assertSame(['blank', 'welcome', 'we-miss-you'], $automation);
+        $this->assertSame(['blank', 'welcome', 'we-miss-you'], array_keys(Starters::get_instance()->for_context('automation', ['automation_id' => 999])));
     }
 
     public function test_newsletter_starter()
@@ -89,6 +91,42 @@ class StartersTest extends \WP_UnitTestCase
         $content = Starters::get_instance()->content('abandoned-cart', $id);
 
         $this->assertSame(['text'], array_column($content, 'type'));
+
+        // In the picker's thumbnail, a labelled box where each shop block goes.
+        $preview = Starters::get_instance()->content('abandoned-cart', $id, true);
+        $this->assertSame(['text', 'text', 'text'], array_column($preview, 'type'));
+        $this->assertStringContainsString('dashed', $preview[1]['settings']['text_content']);
+    }
+
+    public function test_a_failing_starter_doesnt_break_the_thumbnails()
+    {
+        // A plugin's starter that fails, through the shared instance the picker uses.
+        $shared = Starters::get_instance();
+        $shared->register(['id' => 'broken', 'name' => 'Broken', 'content' => function ($id) { if ($id) throw new \RuntimeException('no'); return []; }]);
+
+        try {
+            $html = EmailEditor::starter_previews('broadcast', 'Folio');
+
+            $this->assertSame('', $html['broken']);
+            $this->assertStringContainsString('[Your headline for this issue]', $html['newsletter']);
+        } finally {
+            $property = new \ReflectionProperty(Starters::class, 'starters');
+            $property->setAccessible(true);
+            $list = $property->getValue($shared);
+            unset($list['broken']);
+            $property->setValue($shared, $list);
+        }
+    }
+
+    public function test_thumbnails_are_drawn_again_after_a_new_post()
+    {
+        // Hooks are reset between tests: the plugin's, as Base adds them on every request.
+        EmailEditor::register_cache_hooks();
+        $before = EmailEditor::starter_previews('broadcast', 'Folio');
+        self::factory()->post->create(['post_title' => 'Brand new post']);
+
+        $this->assertStringContainsString('Brand new post', EmailEditor::starter_previews('broadcast', 'Folio')['newsletter']);
+        $this->assertStringNotContainsString('Brand new post', $before['newsletter']);
     }
 
     public function test_a_plugin_can_add_a_starter()
@@ -128,8 +166,11 @@ class StartersTest extends \WP_UnitTestCase
 
         $this->assertNotEmpty($prompts);
 
-        // Shortcodes and replaced text aren't prompts.
-        $state['content'] = [['id' => 't', 'type' => 'text', 'settings' => ['text_content' => '<p>[gallery ids="1,2"] Our news [sic]</p>']]];
+        // Shortcodes, ordinary brackets and links aren't prompts.
+        $state['content'] = [
+            ['id' => 't', 'type' => 'text', 'settings' => ['text_content' => '<p>[gallery ids="1,2"] Our news [sic] [Note] [PDF]</p>']],
+            ['id' => 'b', 'type' => 'button', 'settings' => ['button_text' => 'Shop', 'button_link' => 'https://example.com/?f[Size]=L']],
+        ];
         $this->assertEmpty(array_filter(Checks::run($state, '', []), function ($c) { return ! $c['ok'] && false !== strpos($c['text'], 'prompt'); }));
     }
 }

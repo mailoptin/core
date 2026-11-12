@@ -28,13 +28,15 @@ class Starters
 
     /**
      * @param array $args id, name, description, blocks (a short list for the picker), contexts (email
-     *                    editor context ids; default broadcast), content (callable: email id => blocks)
+     *                    editor context ids; default broadcast), needs (what an automation's trigger must
+     *                    provide: "cart", "order"), content (callable: email id => blocks; text to
+     *                    replace written with Starters::prompt())
      *
      * @return true|\WP_Error
      */
     public function register($args)
     {
-        $args = wp_parse_args($args, ['id' => '', 'name' => '', 'description' => '', 'blocks' => '', 'contexts' => ['broadcast'], 'content' => null]);
+        $args = wp_parse_args($args, ['id' => '', 'name' => '', 'description' => '', 'blocks' => '', 'contexts' => ['broadcast'], 'needs' => '', 'content' => null]);
         $id   = sanitize_key((string)$args['id']);
 
         if ('' === $id || ! is_callable($args['content'])) {
@@ -47,6 +49,8 @@ class Starters
             'description' => (string)$args['description'],
             'blocks'      => (string)$args['blocks'],
             'contexts'    => array_values(array_map('strval', (array)$args['contexts'])),
+            // What an automation's trigger must provide ("cart", "order"): offered only then.
+            'needs'       => (string)$args['needs'],
             'content'     => $args['content'],
         ];
 
@@ -60,14 +64,37 @@ class Starters
         return $this->starters[(string)$id] ?? null;
     }
 
-    /** Starters offered for a kind of email (an email editor context id), in order. */
-    public function for_context($context_id)
+    /**
+     * Starters offered for a kind of email (an email editor context id), in order.
+     *
+     * @param array $args the context's (an automation's email: automation_id, to keep to starters
+     *                    its trigger can fill)
+     */
+    public function for_context($context_id, $args = [])
     {
         $this->load();
 
-        return array_filter($this->starters, function ($starter) use ($context_id) {
-            return in_array((string)$context_id, $starter['contexts'], true);
+        $provides = null;
+
+        return array_filter($this->starters, function ($starter) use ($context_id, $args, &$provides) {
+            if ( ! in_array((string)$context_id, $starter['contexts'], true)) return false;
+            if ('' === $starter['needs']) return true;
+
+            if (null === $provides) $provides = self::trigger_provides($args);
+
+            return in_array($starter['needs'], $provides, true);
         });
+    }
+
+    /** What the automation's trigger provides, when it comes from a running shop. */
+    protected static function trigger_provides($args)
+    {
+        $automation = absint($args['automation_id'] ?? 0) ? \MailOptin\Core\Repositories\AutomationsRepository::get(absint($args['automation_id'])) : null;
+        $trigger    = $automation ? \MailOptin\Core\Automations\Triggers::get_instance()->get($automation['trigger_id'] ?? '') : null;
+
+        if ( ! $trigger || ! \MailOptin\Core\Automations\Stores\Stores::for_trigger($trigger)) return [];
+
+        return (array)$trigger->provides();
     }
 
     /**
@@ -76,27 +103,38 @@ class Starters
      *
      * @return array blocks as saved
      */
-    public function content($id, $email_campaign_id)
+    public function content($id, $email_campaign_id, $preview = false)
     {
         $starter = $this->get($id);
         if ( ! $starter) return [];
 
-        return $this->with_defaults((array)call_user_func($starter['content'], $email_campaign_id), $email_campaign_id);
+        return $this->with_defaults((array)call_user_func($starter['content'], $email_campaign_id), $email_campaign_id, $preview);
     }
 
-    protected function with_defaults($elements, $email_campaign_id)
+    /**
+     * @param bool $preview for the picker's thumbnail (drawn in a broadcast): a block the email can't
+     *                      have there (Cart contents) is shown as a labelled box
+     */
+    protected function with_defaults($elements, $email_campaign_id, $preview = false)
     {
         $out = [];
 
         foreach ($elements as $element) {
             $block = is_array($element) ? Blocks::get_instance()->get($element['type'] ?? '') : null;
-            if ( ! $block || ! $block->available_for($email_campaign_id)) continue;
+            if ( ! $block) continue;
+
+            if ( ! $block->available_for($email_campaign_id)) {
+                if ($preview) {
+                    $out[] = $this->with_defaults([self::text('<p style="border:1px dashed #a7aaad;padding:18px;text-align:center;color:#646970;">' . esc_html($block->title()) . '</p>')], $email_campaign_id)[0];
+                }
+                continue;
+            }
 
             $element['settings'] = array_replace($block->defaults($email_campaign_id), (array)($element['settings'] ?? []));
 
             if ('columns' === $element['type']) {
-                $element['columns'] = array_map(function ($children) use ($email_campaign_id) {
-                    return $this->with_defaults((array)$children, $email_campaign_id);
+                $element['columns'] = array_map(function ($children) use ($email_campaign_id, $preview) {
+                    return $this->with_defaults((array)$children, $email_campaign_id, $preview);
                 }, (array)($element['columns'] ?? []));
             }
 
@@ -124,6 +162,53 @@ class Starters
     /* ---------------------------------------------------------------------------------------------
      * Blocks, for starter content
      * ------------------------------------------------------------------------------------------ */
+
+    /** @var string[] text to replace, as written by prompt() */
+    protected static $prompts = [];
+
+    /**
+     * Text for the person to replace, "[Your headline]": the editor's checks flag it while it's left.
+     * Escaped for HTML.
+     */
+    public static function prompt($text)
+    {
+        $prompt                   = '[' . (string)$text . ']';
+        self::$prompts[$prompt] = true;
+
+        return esc_html($prompt);
+    }
+
+    /**
+     * Every starter's prompts (each starter's content made once to collect them).
+     *
+     * @return string[]
+     */
+    public function prompts()
+    {
+        static $done = false;
+
+        if ( ! $done) {
+            $done = true;
+            $this->load();
+            foreach ($this->starters as $starter) {
+                try {
+                    call_user_func($starter['content'], 0);
+                } catch (\Throwable $e) {
+                }
+            }
+        }
+
+        return array_keys(self::$prompts);
+    }
+
+    /** A prompt not yet escaped (for a setting the block escapes: a button's text, an image's alt). */
+    public static function prompt_text($text)
+    {
+        $prompt                   = '[' . (string)$text . ']';
+        self::$prompts[$prompt] = true;
+
+        return $prompt;
+    }
 
     protected static function id($prefix)
     {
@@ -197,7 +282,7 @@ class Starters
                 'blocks'      => __('Text, Posts (2 columns), Button, Text', 'mailoptin'),
                 'content'     => function () use ($hi, $site) {
                     return [
-                        self::text('<h2>' . esc_html__('[Your headline for this issue]', 'mailoptin') . '</h2>' . self::p($hi, esc_html__('[A few lines to open the issue: what\'s new and why it matters to your readers.]', 'mailoptin'))),
+                        self::text('<h2>' . self::prompt(__('Your headline for this issue', 'mailoptin')) . '</h2>' . self::p($hi, self::prompt(__('A few lines to open the issue: what\'s new and why it matters to your readers.', 'mailoptin')))),
                         self::latest_posts(4, 2),
                         self::button(__('Visit the blog', 'mailoptin')),
                         self::text(self::p(esc_html__('Thanks for reading,', 'mailoptin') . '<br>' . $site)),
@@ -211,9 +296,9 @@ class Starters
                 'blocks'      => __('Image, Text, Button', 'mailoptin'),
                 'content'     => function () {
                     return [
-                        self::image(__('[Describe your image]', 'mailoptin')),
-                        self::text('<h1 style="text-align:center;">' . esc_html__('[The news in one line]', 'mailoptin') . '</h1><p style="text-align:center;">' . esc_html__('[Two or three sentences: what\'s happening, when, and what it means for the reader.]', 'mailoptin') . '</p>'),
-                        self::button(__('[Button text]', 'mailoptin'), '', ['button_alignment' => 'center', 'button_width' => '50']),
+                        self::image(self::prompt_text(__('Describe your image', 'mailoptin'))),
+                        self::text('<h1 style="text-align:center;">' . self::prompt(__('The news in one line', 'mailoptin')) . '</h1><p style="text-align:center;">' . self::prompt(__('Two or three sentences: what\'s happening, when, and what it means for the reader.', 'mailoptin')) . '</p>'),
+                        self::button(self::prompt_text(__('Button text', 'mailoptin')), '', ['button_alignment' => 'center', 'button_width' => '50']),
                     ];
                 },
             ],
@@ -227,11 +312,11 @@ class Starters
                     $point = function ($title, $text) { return [self::text('<h3>' . esc_html($title) . '</h3><p>' . esc_html($text) . '</p>')]; };
 
                     return [
-                        self::text('<h2>' . esc_html__('Welcome, {{subscriber.first_name|there}}', 'mailoptin') . '</h2>' . self::p(esc_html__('[Thanks for joining. Say who you are and why you write, in two sentences.]', 'mailoptin'))),
+                        self::text('<h2>' . esc_html__('Welcome, {{subscriber.first_name|there}}', 'mailoptin') . '</h2>' . self::p(self::prompt(__('Thanks for joining. Say who you are and why you write, in two sentences.', 'mailoptin')))),
                         self::columns('33-33-33', [
-                            $point(__('[What you send]', 'mailoptin'), __('[e.g. one email a week with new posts]', 'mailoptin')),
-                            $point(__('[What they get]', 'mailoptin'), __('[e.g. early access to sales]', 'mailoptin')),
-                            $point(__('[How to reply]', 'mailoptin'), __('[e.g. just hit reply, I read everything]', 'mailoptin')),
+                            $point(self::prompt_text(__('What you send', 'mailoptin')), self::prompt_text(__('e.g. one email a week with new posts', 'mailoptin'))),
+                            $point(self::prompt_text(__('What they get', 'mailoptin')), self::prompt_text(__('e.g. early access to sales', 'mailoptin'))),
+                            $point(self::prompt_text(__('How to reply', 'mailoptin')), self::prompt_text(__('e.g. just hit reply, I read everything', 'mailoptin'))),
                         ]),
                         self::text('<h3>' . esc_html__('Start with these', 'mailoptin') . '</h3>'),
                         self::latest_posts(3, 1),
@@ -245,14 +330,14 @@ class Starters
                 'blocks'      => __('Image, Text, Columns (when, where), Text, Button', 'mailoptin'),
                 'content'     => function () {
                     return [
-                        self::image(__('[Describe your event image]', 'mailoptin')),
-                        self::text('<h1>' . esc_html__('[Event name]', 'mailoptin') . '</h1>'),
+                        self::image(self::prompt_text(__('Describe your event image', 'mailoptin'))),
+                        self::text('<h1>' . self::prompt(__('Event name', 'mailoptin')) . '</h1>'),
                         self::columns('50-50', [
-                            [self::text('<p><strong>' . esc_html__('When', 'mailoptin') . '</strong><br>' . esc_html__('[Saturday 6 December, 10am–2pm]', 'mailoptin') . '</p>')],
-                            [self::text('<p><strong>' . esc_html__('Where', 'mailoptin') . '</strong><br>' . esc_html__('[Address, or "Online"]', 'mailoptin') . '</p>')],
+                            [self::text('<p><strong>' . esc_html__('When', 'mailoptin') . '</strong><br>' . self::prompt(__('Saturday 6 December, 10am–2pm', 'mailoptin')) . '</p>')],
+                            [self::text('<p><strong>' . esc_html__('Where', 'mailoptin') . '</strong><br>' . self::prompt(__('Address, or "Online"', 'mailoptin')) . '</p>')],
                         ]),
-                        self::text(self::p(esc_html__('[What to expect, who it\'s for, anything to bring.]', 'mailoptin'))),
-                        self::button(__('[RSVP]', 'mailoptin')),
+                        self::text(self::p(self::prompt(__('What to expect, who it\'s for, anything to bring.', 'mailoptin')))),
+                        self::button(self::prompt_text(__('RSVP', 'mailoptin'))),
                     ];
                 },
             ],
@@ -263,33 +348,35 @@ class Starters
                 'blocks'      => __('Text', 'mailoptin'),
                 'content'     => function () use ($hi) {
                     return [
-                        self::text(self::p($hi, esc_html__('[Write as you would to one reader. A short note works best: one idea, one link.]', 'mailoptin'), '<a href="' . esc_url(home_url('/')) . '">' . esc_html__('[The one link]', 'mailoptin') . ' &rarr;</a>', esc_html__('[Sign-off],', 'mailoptin') . '<br>' . esc_html__('[Your name]', 'mailoptin'))),
+                        self::text(self::p($hi, self::prompt(__('Write as you would to one reader. A short note works best: one idea, one link.', 'mailoptin')), '<a href="' . esc_url(home_url('/')) . '">' . self::prompt(__('The one link', 'mailoptin')) . ' &rarr;</a>', esc_html__('[Sign-off],', 'mailoptin') . '<br>' . self::prompt(__('Your name', 'mailoptin')))),
                     ];
                 },
             ],
             [
                 'id'          => 'thank-you',
+                'needs'       => 'order',
                 'name'        => __('Thank you for your order', 'mailoptin'),
                 'description' => __('Thanks, what they bought, and what happens next.', 'mailoptin'),
                 'blocks'      => __('Text, Products bought, Text', 'mailoptin'),
                 'contexts'    => ['automation'],
                 'content'     => function () use ($hi) {
                     return [
-                        self::text(self::p($hi, esc_html__('[Thank you for your order. Say what happens next: when it ships, how to reach you.]', 'mailoptin'))),
+                        self::text(self::p($hi, self::prompt(__('Thank you for your order. Say what happens next: when it ships, how to reach you.', 'mailoptin')))),
                         ['id' => self::id('products'), 'type' => 'products_bought', 'settings' => []],
-                        self::text(self::p(esc_html__('[A tip for using what they bought, or a link to your guide.]', 'mailoptin'))),
+                        self::text(self::p(self::prompt(__('A tip for using what they bought, or a link to your guide.', 'mailoptin')))),
                     ];
                 },
             ],
             [
                 'id'          => 'abandoned-cart',
+                'needs'       => 'cart',
                 'name'        => __('Abandoned cart', 'mailoptin'),
                 'description' => __('A reminder of what\'s in the cart, with a button back to it.', 'mailoptin'),
                 'blocks'      => __('Text, Cart contents, Discount code', 'mailoptin'),
                 'contexts'    => ['automation'],
                 'content'     => function () use ($hi) {
                     return [
-                        self::text(self::p($hi, esc_html__('[You left something in your cart. It\'s saved for you below.]', 'mailoptin'))),
+                        self::text(self::p($hi, self::prompt(__('You left something in your cart. It\'s saved for you below.', 'mailoptin')))),
                         ['id' => self::id('cart'), 'type' => 'cart_contents', 'settings' => []],
                         ['id' => self::id('discount'), 'type' => 'discount_code', 'settings' => []],
                     ];
@@ -303,9 +390,9 @@ class Starters
                 'contexts'    => ['automation'],
                 'content'     => function () use ($hi) {
                     return [
-                        self::text(self::p($hi, esc_html__('[It\'s been a while. Here\'s what you missed, in case it\'s useful.]', 'mailoptin'))),
+                        self::text(self::p($hi, self::prompt(__('It\'s been a while. Here\'s what you missed, in case it\'s useful.', 'mailoptin')))),
                         self::latest_posts(3, 1),
-                        self::text(self::p(esc_html__('[Not for you any more? No hard feelings: the unsubscribe link is below.]', 'mailoptin'))),
+                        self::text(self::p(self::prompt(__('Not for you any more? No hard feelings: the unsubscribe link is below.', 'mailoptin')))),
                     ];
                 },
             ],

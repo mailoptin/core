@@ -11,7 +11,7 @@ if ( ! defined('ABSPATH')) exit;
 
 $templates = $context->templates();
 $first     = $templates ? array_key_first($templates) : ER::CODE_YOUR_OWN_TEMPLATE;
-$starters  = \MailOptin\Core\EmailBlocks\Starters::get_instance()->for_context($context->id());
+$starters  = \MailOptin\Core\EmailBlocks\Starters::get_instance()->for_context($context->id(), $args);
 // Broadcasts start from the newsletter layout; other emails from the template's short default.
 $start     = isset($starters['newsletter']) && 'broadcast' === $context->id() ? 'newsletter' : '';
 ?>
@@ -51,7 +51,7 @@ $start     = isset($starters['newsletter']) && 'broadcast' === $context->id() ? 
     </fieldset>
 
     <?php if ($starters) : ?>
-    <fieldset class="mo-ee-picker-grid mo-ee-starters" data-context="<?php echo esc_attr($context->id()); ?>" data-nonce="<?php echo esc_attr(wp_create_nonce('mo_email_starter_previews')); ?>">
+    <fieldset class="mo-ee-picker-grid mo-ee-starters" data-context="<?php echo esc_attr($context->id()); ?>" data-nonce="<?php echo esc_attr(wp_create_nonce('mo_email_starter_previews')); ?>" data-automation="<?php echo esc_attr(absint($args['automation_id'] ?? 0)); ?>">
         <legend class="mo-ee-picker-legend"><?php esc_html_e('Start from', 'mailoptin'); ?></legend>
         <p class="description mo-ee-starters-note"><?php esc_html_e('Ready-made content in the template you chose. Edit or delete any part; text in [brackets] is for you to replace.', 'mailoptin'); ?></p>
         <label class="mo-ee-picker-card">
