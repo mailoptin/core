@@ -303,8 +303,17 @@ HTML;
      * Design settings (the old Customizer's Body, Header, Content and Footer sections), with their
      * field types: shown on the Design tab and checked on save.
      */
-    public static function design_fields()
+    public static function design_fields($email_campaign_id = 0)
     {
+        // Settings only the email's template has (Market's offer strip).
+        $extra = [];
+        if ($email_campaign_id) {
+            $template = Templates::get_instance()->get((string)ER::get_template_class($email_campaign_id));
+            if ($template && is_callable([$template['class'], 'extra_design_fields'])) {
+                $extra = (array)call_user_func([$template['class'], 'extra_design_fields']);
+            }
+        }
+
         $color = function ($label, $section) {
             return ['type' => 'color_picker', 'label' => $label, 'section' => $section];
         };
@@ -328,7 +337,7 @@ HTML;
             'footer_background_color'       => $color(__('Footer background', 'mailoptin'), 'footer'),
             'footer_text_color'             => $color(__('Footer text colour', 'mailoptin'), 'footer'),
             'footer_font_size'              => ['type' => 'range', 'label' => __('Footer text size (px)', 'mailoptin'), 'min' => 8, 'max' => 30, 'step' => 1, 'section' => 'footer'],
-        ]);
+        ] + $extra, $email_campaign_id);
     }
 
     public static function settings_fields()
@@ -356,7 +365,10 @@ HTML;
             return $state;
         }
 
-        foreach (self::design_fields() as $key => $field) $state['design'][$key] = ER::get_merged_customizer_value($email_campaign_id, $key);
+        // The template first: it adds its defaults (colours, Market's offer strip) to the email's.
+        \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($email_campaign_id);
+
+        foreach (self::design_fields($email_campaign_id) as $key => $field) $state['design'][$key] = ER::get_merged_customizer_value($email_campaign_id, $key);
         foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)ER::get_merged_customizer_value($email_campaign_id, $key);
 
         return $state;
@@ -383,7 +395,7 @@ HTML;
 
         $values = ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($state['content'] ?? []))];
 
-        foreach (['design' => self::design_fields(), 'settings' => self::settings_fields()] as $group => $fields) {
+        foreach (['design' => self::design_fields($email_campaign_id), 'settings' => self::settings_fields()] as $group => $fields) {
             $posted = (array)($state[$group] ?? []);
 
             foreach ($fields as $key => $field) {
@@ -468,7 +480,7 @@ HTML;
     public static function version($email_campaign_id)
     {
         $saved = (array)Settings::get_saved(Settings::TYPE_EMAIL, $email_campaign_id);
-        $keys  = array_merge(['email_newsletter_content', 'code_your_own'], array_keys(self::design_fields()), array_keys(self::settings_fields()));
+        $keys  = array_merge(['email_newsletter_content', 'code_your_own'], array_keys(self::design_fields($email_campaign_id)), array_keys(self::settings_fields()));
 
         return md5(wp_json_encode([ER::get_template_class($email_campaign_id), array_intersect_key($saved, array_flip($keys))]));
     }

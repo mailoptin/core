@@ -58,6 +58,14 @@ trait MjmlPostTemplate
     {
         $defaults = (array)$this->design_value('defaults', []);
 
+        if ($this->is_newsletter()) {
+            // A post's settings mean nothing in a broadcast (Letter's opening line, its images off).
+            return array_diff_key($defaults, array_flip([
+                'content_before_main_content', 'content_after_main_content', 'content_remove_feature_image',
+                'content_ellipsis_button_label', 'content_title_font_size',
+            ]));
+        }
+
         return $this->is_digest() ? array_merge($defaults, (array)$this->design_value('digest_defaults', [])) : $defaults;
     }
 
@@ -69,7 +77,9 @@ trait MjmlPostTemplate
      */
     public function handles_default_customizer_values()
     {
-        $type  = $this->is_digest() ? \MailOptin\Core\Repositories\EmailCampaignRepository::POSTS_EMAIL_DIGEST : \MailOptin\Core\Repositories\EmailCampaignRepository::NEW_PUBLISH_POST;
+        // Automation emails are drawn as broadcasts: the Customizer gives them the broadcast type.
+        $type  = $this->is_digest() ? \MailOptin\Core\Repositories\EmailCampaignRepository::POSTS_EMAIL_DIGEST
+            : ($this->is_newsletter() ? \MailOptin\Core\Repositories\EmailCampaignRepository::NEWSLETTER : \MailOptin\Core\Repositories\EmailCampaignRepository::NEW_PUBLISH_POST);
         $class = (new \ReflectionClass($this))->getShortName();
 
         // Shelf and Market draw the price themselves: no second one in the excerpt (this email only).
@@ -91,11 +101,28 @@ trait MjmlPostTemplate
             }, 10, 2);
         }
 
+        // Market's offer strip: a setting of its own, so its default is added to the email's defaults
+        // (the editor and the Customizer then show it, and save it like any other).
+        if ($this->design_value('offer_strip')) {
+            $strip = (string)$this->design_value('offer_strip_default', '');
+            add_filter('mailoptin_template_customizer_defaults', function ($defaults, $old = null, $campaign_type = null, $template_class = null) use ($type, $class, $strip) {
+                if ($campaign_type === $type && $template_class === $class) $defaults['offer_strip_text'] = $strip;
+
+                return $defaults;
+            }, 20, 4);
+        }
+
         foreach ($this->default_customizer_values() as $tag => $value) {
             add_filter("mailoptin_{$tag}_default", function ($default, $defaults = null, $campaign_type = null, $template_class = null) use ($value, $type, $class) {
                 return $campaign_type === $type && $template_class === $class ? $value : $default;
             }, 20, 4);
         }
+    }
+
+    /** Broadcasts and automation emails: the blocks go where a post's rows go. */
+    protected function is_newsletter()
+    {
+        return $this instanceof \MailOptin\Core\EmailCampaigns\Newsletter\AbstractTemplate;
     }
 
     protected function is_digest()
@@ -496,6 +523,8 @@ trait MjmlPostTemplate
     /** Text an author added before or after the posts in the Customizer. */
     protected function extra_content($key)
     {
+        if ($this->is_newsletter()) return '';
+
         $html = (string)$this->setting($key);
 
         if ('' === trim($html)) return '';
@@ -689,7 +718,7 @@ CSS;
     {
         if ( ! $this->design_value('offer_strip')) return '';
 
-        $text = trim((string)ER::get_customizer_value($this->email_campaign_id, 'offer_strip_text', $this->design_value('offer_strip_default', '')));
+        $text = trim((string)$this->setting('offer_strip_text'));
 
         if ('' === $text) return '';
 
@@ -734,7 +763,7 @@ CSS;
 
     protected function lead_html()
     {
-        if ( ! $this->design_value('lead')) return '';
+        if ( ! $this->design_value('lead') || $this->is_newsletter()) return '';
 
         if ( ! $this->is_digest()) {
             return $this->lead_bands([
@@ -951,5 +980,60 @@ CSS;
         }
 
         return implode($this->divider('#e6e9ec', 0, 24), $rows);
+    }
+
+    /* ---------------------------------------------------------------------------------------------
+     * Broadcasts and automation emails: the blocks' defaults in this look
+     * ------------------------------------------------------------------------------------------ */
+
+    /** The email builder's name for a font stack: Georgia for the serif looks, Helvetica otherwise. */
+    protected function builder_font($stack)
+    {
+        return false !== stripos($stack, 'Georgia') ? 'Georgia' : 'Helvetica';
+    }
+
+    /**
+     * New blocks start in this look's fonts and colours (the email builder's
+     * mo_ecb_elements_default_values filter). The bands are padded, so blocks have no side padding.
+     */
+    public function email_content_builder_element_defaults($defaults)
+    {
+        $look    = (array)$this->design_value('defaults', []);
+        $accent  = $look['content_ellipsis_button_background_color'] ?? '#333333';
+        $on      = $look['content_ellipsis_button_text_color'] ?? '#ffffff';
+        $heading = $look['content_headline_color'] ?? '#222222';
+        $body    = $this->builder_font($this->body_font());
+        $head    = $this->builder_font($this->heading_font());
+        $pad     = function ($top, $bottom) { return ['top' => (string)$top, 'bottom' => (string)$bottom, 'right' => '0', 'left' => '0']; };
+
+        $defaults['text']['text_font_family'] = $body;
+        $defaults['text']['text_font_size']   = (string)($look['content_body_font_size'] ?? '16');
+        $defaults['text']['block_padding']    = $pad(0, 12);
+
+        $defaults['button']['button_font_family']      = $body;
+        $defaults['button']['button_background_color'] = $accent;
+        $defaults['button']['button_color']            = $on;
+        $defaults['button']['button_font_size']        = '16';
+        $defaults['button']['button_font_weight']      = '700';
+        $defaults['button']['button_border_radius']    = (string)(int)$this->design_value('button_radius', 4);
+        $defaults['button']['button_width']            = (string)(int)$this->design_value('button_width', 100);
+        $defaults['button']['button_alignment']        = 'center' === ($look['content_alignment'] ?? 'left') ? 'center' : 'left';
+        $defaults['button']['block_padding']           = $pad(8, 16);
+        $defaults['button']['button_padding']          = ['top' => '13', 'bottom' => '13', 'right' => '26', 'left' => '26'];
+
+        foreach (['divider', 'image', 'spacer'] as $type) $defaults[$type]['block_padding'] = $pad(8, 16);
+
+        $defaults['posts']['post_title_color'] = $heading;
+        $defaults['posts']['read_more_color']  = $accent;
+        $defaults['posts']['post_font_family'] = $head;
+        $defaults['posts']['block_padding']    = $pad(8, 16);
+
+        return $defaults;
+    }
+
+    /** Settings only this look has, for the email editor's Design tab (Market's offer strip). */
+    public static function extra_design_fields()
+    {
+        return [];
     }
 }

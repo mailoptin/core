@@ -125,6 +125,25 @@ class Templates
         // Registered with the function before this ran: kept, built-ins don't replace them.
         $early = $this->templates;
 
+        // The MJML looks first (Folio is a new email's default), the same as for post notifications.
+        $looks = [
+            'Folio'     => __('Calm and clean, Georgia titles', 'mailoptin'),
+            'Ledger'    => __('Newspaper: serif, rules, text first', 'mailoptin'),
+            'Letter'    => __('Reads like a personal note', 'mailoptin'),
+            'Spotlight' => __('Magazine: a dark bar, bold type', 'mailoptin'),
+            'Shelf'     => __('Shop: clean and centred', 'mailoptin'),
+            'Market'    => __('Shop: bold, an offer strip', 'mailoptin'),
+        ];
+        foreach ($looks as $id => $description) {
+            $this->register([
+                'id'          => $id,
+                'name'        => $id,
+                'description' => $description,
+                'class'       => 'MailOptin\\Core\\EmailCampaigns\\Newsletter\\Templates\\' . $id,
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/email-templates/' . strtolower($id) . '.png',
+            ]);
+        }
+
         $this->register([
             'id'         => 'Lucid',
             'name'       => 'Lucid',
