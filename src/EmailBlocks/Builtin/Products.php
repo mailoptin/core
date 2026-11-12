@@ -57,6 +57,20 @@ class Products extends ShopBlock
             ] + $this->button_fields(__('Shop now', 'mailoptin'));
     }
 
+    /**
+     * The chosen products as saved, whatever the list in the settings shows (it lists 300): ids the
+     * shop no longer has are dropped when the products are fetched.
+     */
+    public function sanitize($settings)
+    {
+        $clean                = parent::sanitize($settings);
+        $clean['product_ids'] = array_values(array_unique(array_filter(array_map(function ($id) {
+            return (string)absint($id);
+        }, (array)($settings['product_ids'] ?? [])), function ($id) { return '0' !== $id; })));
+
+        return $clean;
+    }
+
     public function render_for($data, $args, Style $style)
     {
         $store    = $this->store($args);
@@ -73,7 +87,8 @@ class Products extends ShopBlock
 
         if ( ! $products) return '';
 
-        $count  = min(3, max(1, absint($settings['product_columns']) ?: 2));
+        // Each product needs room (about 160px): fewer side by side in a narrow column.
+        $count  = min(3, max(1, absint($settings['product_columns']) ?: 2), max(1, intdiv($style->width + 20, 160)));
         $layout = [1 => '33-67', 2 => '50-50', 3 => '33-33-33'][$count];
         $pad    = Mjml::padding($settings['block_padding'] ?? []);
         $grid   = ['columns_layout' => $layout, 'columns_gap' => 20, 'columns_stack' => true, 'block_padding' => ['top' => $pad['pad_t'], 'right' => $pad['pad_r'], 'bottom' => $pad['pad_b'], 'left' => $pad['pad_l']]];
@@ -109,7 +124,7 @@ class Products extends ShopBlock
 
         return Mjml::fill('image-link', [
             'pad_t' => 0, 'pad_r' => 0, 'pad_b' => 10, 'pad_l' => 0,
-            'width' => max(40, (int)$width),
+            'width' => max(1, (int)$width),
             'align' => 'center',
             'src'   => esc_url($product['image']),
             'alt'   => esc_attr($product['name']),

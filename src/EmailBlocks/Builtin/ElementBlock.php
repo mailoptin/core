@@ -66,7 +66,7 @@ abstract class ElementBlock extends AbstractBlock
             self::$defaults[$email_campaign_id] = Misc::elements_default_fields_values($email_campaign_id);
         }
 
-        return (array)(self::$defaults[$email_campaign_id][$this->id()] ?? []);
+        return (array)apply_filters('mailoptin_email_block_defaults', (array)(self::$defaults[$email_campaign_id][$this->id()] ?? []), $this->id(), $email_campaign_id);
     }
 
     public static function flush_defaults()

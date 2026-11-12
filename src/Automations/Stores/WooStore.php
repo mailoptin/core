@@ -55,6 +55,8 @@ class WooStore extends Store
 
         $count = max(1, min(12, absint($args['count'] ?? 4)));
         $query = ['status' => 'publish', 'visibility' => 'catalog', 'limit' => $count, 'orderby' => 'date', 'order' => 'DESC', 'return' => 'ids'];
+        // As the shop shows them: out-of-stock products hidden when the shop hides them.
+        if ('yes' === get_option('woocommerce_hide_out_of_stock_items')) $query['stock_status'] = 'instock';
 
         switch ((string)($args['source'] ?? 'newest')) {
             case 'chosen':
@@ -93,7 +95,7 @@ class WooStore extends Store
                 'id'      => (int)$id,
                 'name'    => $product->get_name(),
                 'url'     => $bits['url'],
-                'image'   => $product->get_image_id() ? (string)wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_single') : $bits['image'],
+                'image'   => ($product->get_image_id() ? (string)wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_single') : '') ?: $bits['image'],
                 'price'   => (string)($data['price'] ?? ''),
                 'regular' => (string)($data['regular'] ?? ''),
                 'percent' => (int)($data['percent'] ?? 0),
@@ -108,9 +110,14 @@ class WooStore extends Store
     {
         if ( ! $this->active()) return [];
 
-        $choices = [];
-        foreach ((array)wc_get_products(['status' => 'publish', 'limit' => 300, 'orderby' => 'title', 'order' => 'ASC']) as $product) {
-            $choices[(string)$product->get_id()] = $product->get_name();
+        // Ids and titles only, once per request: the block's settings ask for them often.
+        static $choices = null;
+
+        if (null === $choices) {
+            $choices = [];
+            foreach ((array)wc_get_products(['status' => 'publish', 'limit' => 300, 'orderby' => 'title', 'order' => 'ASC', 'return' => 'ids']) as $id) {
+                $choices[(string)$id] = (string)get_the_title($id);
+            }
         }
 
         return $choices;

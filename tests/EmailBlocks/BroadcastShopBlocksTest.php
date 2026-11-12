@@ -160,4 +160,52 @@ class BroadcastShopBlocksTest extends \WP_UnitTestCase
         remove_all_filters('mailoptin_broadcast_shop_blocks_available');
         $this->assertArrayNotHasKey('sale', Starters::get_instance()->for_context('broadcast'));
     }
+
+    /* Review fixes ------------------------------------------------------------------------------- */
+
+    public function test_chosen_products_are_kept_beyond_the_list()
+    {
+        // 999 isn't in the settings' list (it shows 300): kept, and asked of the shop.
+        $clean = Blocks::get_instance()->get('products')->sanitize(['product_source' => 'chosen', 'product_ids' => ['12', '999', 'abc', '12']]);
+        $this->assertSame(['12', '999'], $clean['product_ids']);
+
+        (new Templatify($this->broadcast([['id' => 'p', 'type' => 'products', 'settings' => ['product_source' => 'chosen', 'product_ids' => ['999', '12']]]])))->forge();
+        $this->assertSame(['999', '12'], array_values(BroadcastFakeShop::$asked[0]['ids']));
+    }
+
+    public function test_fewer_products_side_by_side_in_a_narrow_column()
+    {
+        $html = (new Templatify($this->broadcast([
+            ['id' => 'c', 'type' => 'columns', 'settings' => ['columns_layout' => '33-33-33'], 'columns' => [
+                [['id' => 'p', 'type' => 'products', 'settings' => ['product_source' => 'newest', 'product_count' => '3', 'product_columns' => '3']]], [], [],
+            ]],
+        ])))->forge();
+
+        // About 160px for each product: one per row in a third of the email.
+        $this->assertSame(3, substr_count($html, 'class="mj-column-per-33-33 '), 'Only the outer block\'s three columns.');
+        $this->assertSame(3, substr_count($html, 'class="mj-column-per-67 '), 'Each product on its own row, image on the left.');
+        $this->assertStringContainsString('Daffodil mix', $html);
+    }
+
+    public function test_editor_warns_when_shop_blocks_cant_be_sent()
+    {
+        $id    = $this->broadcast([['id' => 'p', 'type' => 'products', 'settings' => []]]);
+        $texts = function () use ($id) { return implode("\n", array_column(EmailEditor::checks($id, EmailEditor::state($id), ''), 'text')); };
+
+        $this->assertStringNotContainsString('won\'t be sent', $texts());
+
+        // Premium lapsed.
+        remove_all_filters('mailoptin_broadcast_shop_blocks_available');
+        $this->assertStringContainsString('The Products element won\'t be sent', $texts());
+    }
+
+    public function test_automation_starter_thumbnails_keep_the_shop_boxes()
+    {
+        $id      = $this->broadcast([]);
+        $preview = Starters::get_instance()->content('abandoned-cart', $id, 'automation');
+
+        // Discount code goes in broadcasts now, but this is an automation's layout: a labelled box.
+        $boxes = array_filter(array_column(array_column($preview, 'settings'), 'text_content'), function ($t) { return false !== strpos($t, 'dashed'); });
+        $this->assertCount(2, $boxes);
+    }
 }

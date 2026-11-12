@@ -137,6 +137,31 @@ class Checks
     }
 
     /**
+     * Blocks this email can't have any more (Products when Premium has lapsed or the shop is off):
+     * they would be left out of what's sent.
+     *
+     * @return array warnings, as run() gives them
+     */
+    public static function unavailable_block_warnings($state, $email_campaign_id)
+    {
+        $warn = [];
+
+        foreach (self::blocks($state['content'] ?? []) as $block) {
+            $type     = (string)($block['type'] ?? '');
+            $instance = \MailOptin\Core\EmailBlocks\Blocks::get_instance()->get($type);
+            if ( ! $instance || $instance->available_for($email_campaign_id)) continue;
+
+            $warn[] = ['ok' => false, 'kind' => 'element', 'text' => sprintf(
+                /* translators: %s: a block's name, e.g. "Products" */
+                __('The %s element won\'t be sent: it needs MailOptin Premium and a shop that\'s running.', 'mailoptin'),
+                $instance->title()
+            ), 'block' => (string)($block['id'] ?? '')];
+        }
+
+        return $warn;
+    }
+
+    /**
      * Discount codes in a broadcast: everyone gets the same code, so it must be a coupon the shop has.
      *
      * @return array warnings, as run() gives them

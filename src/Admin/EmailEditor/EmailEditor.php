@@ -111,7 +111,7 @@ class EmailEditor
 
             try {
                 // Blocks this throwaway email can't have (Cart contents) shown as labelled boxes.
-                $content = '' === $starter ? null : Starters::get_instance()->content($starter, $id, true);
+                $content = '' === $starter ? null : Starters::get_instance()->content($starter, $id, $context_id);
                 if (null === $content) {
                     self::add_starter_content($id);
                 } else {
@@ -648,7 +648,7 @@ HTML;
 
         // A broadcast's discount code: the same for everyone, so a coupon the shop must have.
         if (ER::NEWSLETTER === ER::get_email_campaign_type($email_campaign_id)) {
-            $warn = Checks::broadcast_discount_warnings($state);
+            $warn = array_merge(Checks::unavailable_block_warnings($state, $email_campaign_id), Checks::broadcast_discount_warnings($state));
             if ($warn) $checks = array_merge($warn, $checks);
         }
 

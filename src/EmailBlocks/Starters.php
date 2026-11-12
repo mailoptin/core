@@ -115,8 +115,9 @@ class Starters
     }
 
     /**
-     * @param bool $preview for the picker's thumbnail (drawn in a broadcast): a block the email can't
-     *                      have there (Cart contents) is shown as a labelled box
+     * @param bool|string $preview for the picker's thumbnail (drawn in a broadcast): the kind of email
+     *                             it's for; a block the email can't have there (Cart contents), or any
+     *                             shop block in an automation's layout, is shown as a labelled box
      */
     protected function with_defaults($elements, $email_campaign_id, $preview = false)
     {
@@ -126,7 +127,9 @@ class Starters
             $block = is_array($element) ? Blocks::get_instance()->get($element['type'] ?? '') : null;
             if ( ! $block) continue;
 
-            if ( ! $block->available_for($email_campaign_id)) {
+            $boxed = $preview && 'broadcast' !== $preview && $block instanceof Builtin\ShopBlock;
+
+            if ($boxed || ! $block->available_for($email_campaign_id)) {
                 if ($preview) {
                     $out[] = $this->with_defaults([self::text('<p style="border:1px dashed #a7aaad;padding:18px;text-align:center;color:#646970;">' . esc_html($block->title()) . '</p>')], $email_campaign_id)[0];
                 }
