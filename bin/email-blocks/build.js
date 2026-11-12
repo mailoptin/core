@@ -91,6 +91,19 @@ blocks.spacer = {
     mjml: leaf((v) => `<mj-spacer css-class="mo-email-builder-element" padding="${pad(v)}" height="${v.height}px"/>`),
 };
 
+// A full-width band of the email with its own background and padding, holding rows of blocks: the
+// header, body and footer of the post-notification and digest templates. Its Outlook cell is the
+// band less its padding.
+blocks.section = {
+    vars: Object.assign({}, CONTAINER, PADDING),
+    derived: (v) => ({inner_width: v.container - v.pad_l - v.pad_r}),
+    css: true,
+    samples: [{container: 600, pad_t: 24, pad_r: 32, pad_b: 24, pad_l: 32, background: '#ffffff', rows: '<tr><td>Row</td></tr>'}],
+    mjml: (v) => `<mjml><mj-body width="${v.container}px"><mj-raw>${START}</mj-raw>
+        <mj-section css-class="mo-email-section" padding="${pad(v)}" background-color="${slot('background')}"><mj-column><mj-raw>${slot('rows')}</mj-raw></mj-column></mj-section>
+    <mj-raw>${END}</mj-raw></mj-body></mjml>`,
+};
+
 const LAYOUTS = {'50-50': [50, 50], '33-67': [33, 67], '67-33': [67, 33], '33-33-33': [33.33, 33.33, 33.33]};
 
 for (const [layout, widths] of Object.entries(LAYOUTS)) {

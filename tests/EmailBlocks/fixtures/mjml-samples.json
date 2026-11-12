@@ -415,6 +415,20 @@
    "html": "<tr>\n                <td\n                   class=\"mo-email-builder-element\" style=\"font-size:0px;padding:10px 25px 12px 20px;word-break:break-word;\"\n                >\n                  \n      <div\n         style=\"height:30px;line-height:30px;\"\n      >&#8202;</div>\n    \n                </td>\n              </tr>"
   }
  ],
+ "section": [
+  {
+   "sample": {
+    "container": 600,
+    "pad_t": 24,
+    "pad_r": 32,
+    "pad_b": 24,
+    "pad_l": 32,
+    "background": "#ffffff",
+    "rows": "<tr><td>Row</td></tr>"
+   },
+   "html": "<!--[if mso | IE]><table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"mo-email-section-outlook\" role=\"presentation\" style=\"width:600px;\" width=\"600\" bgcolor=\"#ffffff\" ><tr><td style=\"line-height:0px;font-size:0px;mso-line-height-rule:exactly;\"><![endif]-->\n    \n      \n      <div  class=\"mo-email-section\" style=\"background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;\">\n        \n        <table\n           align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"background:#ffffff;background-color:#ffffff;width:100%;\"\n        >\n          <tbody>\n            <tr>\n              <td\n                 style=\"direction:ltr;font-size:0px;padding:24px 32px 24px 32px;text-align:center;\"\n              >\n                <!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><tr><td class=\"\" style=\"vertical-align:top;width:536px;\" ><![endif]-->\n            \n      <div\n         class=\"mj-column-per-100 mj-outlook-group-fix\" style=\"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;\"\n      >\n        \n      <table\n         border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\" style=\"vertical-align:top;\" width=\"100%\"\n      >\n        <tbody>\n          <tr><td>Row</td></tr>\n        </tbody>\n      </table>\n    \n      </div>\n    \n          <!--[if mso | IE]></td></tr></table><![endif]-->\n              </td>\n            </tr>\n          </tbody>\n        </table>\n        \n      </div>\n    \n      \n      <!--[if mso | IE]></td></tr></table><![endif]-->"
+  }
+ ],
  "columns-50-50-top": [
   {
    "sample": {
