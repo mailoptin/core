@@ -72,7 +72,15 @@ abstract class AbstractBlock
             if (array_key_exists('default', $field)) $defaults[$name] = $field['default'];
         }
 
-        return $defaults;
+        // The email's template first (once per email): it adds its own defaults (its colours).
+        static $made = [];
+        $email_campaign_id = absint($email_campaign_id);
+        if ($email_campaign_id && ! isset($made[$email_campaign_id])) {
+            $made[$email_campaign_id] = true;
+            \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($email_campaign_id);
+        }
+
+        return (array)apply_filters('mailoptin_email_block_defaults', $defaults, $this->id(), $email_campaign_id);
     }
 
     /**

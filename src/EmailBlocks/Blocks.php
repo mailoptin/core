@@ -59,7 +59,7 @@ class Blocks
 
         $this->loaded = true;
 
-        foreach ([new Builtin\Text(), new Builtin\Image(), new Builtin\Button(), new Builtin\Divider(), new Builtin\Spacer(), new Builtin\Posts(), new Builtin\Columns(), new Builtin\CartContents(), new Builtin\ProductsBought(), new Builtin\DiscountCode()] as $block) {
+        foreach ([new Builtin\Text(), new Builtin\Image(), new Builtin\Button(), new Builtin\Divider(), new Builtin\Spacer(), new Builtin\Posts(), new Builtin\Columns(), new Builtin\CartContents(), new Builtin\ProductsBought(), new Builtin\DiscountCode(), new Builtin\Products()] as $block) {
             $this->add($block);
         }
 

@@ -34,8 +34,39 @@ abstract class ShopBlock extends AbstractBlock implements DynamicBlock
         return $owner ? Triggers::get_instance()->get($owner[0]['trigger_id']) : null;
     }
 
+    /** Whether the block can go in a broadcast too (one email for everyone: no person's cart). */
+    protected function for_broadcasts()
+    {
+        return false;
+    }
+
+    /**
+     * Shop blocks in broadcasts: Premium, with a shop running.
+     */
+    public static function broadcasts_available()
+    {
+        return (bool)apply_filters('mailoptin_broadcast_shop_blocks_available', defined('MAILOPTIN_DETACH_LIBSODIUM')) && null !== self::broadcast_store();
+    }
+
+    /** The shop a broadcast's shop blocks show: the first one running. */
+    protected static function broadcast_store()
+    {
+        foreach (Stores::all() as $store) {
+            if ($store->active()) return $store;
+        }
+
+        return null;
+    }
+
+    protected static function is_broadcast($email_campaign_id)
+    {
+        return $email_campaign_id && ER::NEWSLETTER === ER::get_email_campaign_type($email_campaign_id);
+    }
+
     public function available_for($email_campaign_id)
     {
+        if (self::is_broadcast($email_campaign_id)) return $this->for_broadcasts() && self::broadcasts_available();
+
         $trigger = self::trigger($email_campaign_id);
 
         if ( ! $trigger || ! Stores::for_trigger($trigger)) return false;
@@ -48,12 +79,21 @@ abstract class ShopBlock extends AbstractBlock implements DynamicBlock
      */
     public function render($settings, $context, Style $style, $id)
     {
+        // A broadcast is one email for everyone: drawn now, from the shop.
+        if (self::is_broadcast($style->email_campaign_id)) {
+            if ( ! $this->for_broadcasts() || ! self::broadcasts_available()) return '';
+
+            return (string)$this->render_for(['id' => $id, 'settings' => $this->sanitize($settings)], ['mode' => 'broadcast', 'email_campaign_id' => $style->email_campaign_id], $style);
+        }
+
         return Dynamic::marker($this->id(), ['id' => $id, 'width' => $style->width, 'settings' => $this->sanitize($settings)]);
     }
 
     /** @return Store|null */
     protected function store($args)
     {
+        if ('broadcast' === ($args['mode'] ?? '')) return self::broadcast_store();
+
         return Stores::for_trigger($args['trigger'] ?? null);
     }
 

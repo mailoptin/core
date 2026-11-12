@@ -644,7 +644,15 @@ HTML;
             foreach ($group['items'] as $item) $known[] = $item['key'];
         }
 
-        return Checks::run($state, $html, $known);
+        $checks = Checks::run($state, $html, $known);
+
+        // A broadcast's discount code: the same for everyone, so a coupon the shop must have.
+        if (ER::NEWSLETTER === ER::get_email_campaign_type($email_campaign_id)) {
+            $warn = Checks::broadcast_discount_warnings($state);
+            if ($warn) $checks = array_merge($warn, $checks);
+        }
+
+        return $checks;
     }
 
     /**

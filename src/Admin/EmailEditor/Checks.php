@@ -136,6 +136,39 @@ class Checks
         return $warn;
     }
 
+    /**
+     * Discount codes in a broadcast: everyone gets the same code, so it must be a coupon the shop has.
+     *
+     * @return array warnings, as run() gives them
+     */
+    public static function broadcast_discount_warnings($state)
+    {
+        $warn  = [];
+        $store = null;
+        foreach (\MailOptin\Core\Automations\Stores\Stores::all() as $candidate) {
+            if ($candidate->active()) { $store = $candidate; break; }
+        }
+
+        foreach (self::blocks($state['content'] ?? []) as $block) {
+            if ('discount_code' !== ($block['type'] ?? '')) continue;
+
+            $code = strtoupper(trim((string)($block['settings']['existing_code'] ?? '')));
+
+            if ('' === $code) {
+                $text = __('A broadcast\'s discount code is the same for everyone: enter a coupon your shop has.', 'mailoptin');
+            } elseif ($store && ! $store->coupon_exists($code)) {
+                /* translators: %s: a coupon code */
+                $text = sprintf(__('There\'s no coupon "%s" in your shop.', 'mailoptin'), $code);
+            } else {
+                continue;
+            }
+
+            $warn[] = ['ok' => false, 'kind' => 'element', 'text' => $text, 'block' => (string)($block['id'] ?? '')];
+        }
+
+        return $warn;
+    }
+
     /** Images without alt text and links to nowhere, in HTML written by hand. */
     protected static function html_warnings($html)
     {
