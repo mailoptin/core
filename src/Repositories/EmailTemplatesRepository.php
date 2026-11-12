@@ -11,6 +11,19 @@ class EmailTemplatesRepository extends AbstractRepository
     {
         if (is_null(self::$email_templates)) {
             self::$email_templates = apply_filters('mailoptin_registered_email_templates', array(
+                // The MJML templates come first (Folio leads); Lucid is unchanged for the emails using it.
+                array(
+                    'name'           => 'Folio',
+                    'template_class' => 'Folio',
+                    'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/folio.png'
+                ),
+                array(
+                    'name'           => 'Folio',
+                    'template_class' => 'Folio',
+                    'campaign_type'  => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/folio-digest.png'
+                ),
                 array(
                     'name'           => 'Lucid',
                     'template_class' => 'Lucid',
