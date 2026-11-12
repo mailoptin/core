@@ -39,6 +39,11 @@ trait MjmlPostTemplate
      *   lead             bool: the newest post leads, its image across the email and its title on a band
      *                    of the header's colour (new-post emails: the post)
      *   footer_rule      a colour: a rule above the footer
+     *   product          bool: a WooCommerce product's price (the regular price crossed out when on sale)
+     *   sale_badge       bool: "-18%" above a product's title when on sale
+     *   title_upper      bool: titles in capitals
+     *   image_width      the new-post email's image width (default: the content's)
+     *   offer_strip      bool: a strip of text above the header (its own Customizer setting)
      */
     abstract protected function design();
 
@@ -66,6 +71,25 @@ trait MjmlPostTemplate
     {
         $type  = $this->is_digest() ? \MailOptin\Core\Repositories\EmailCampaignRepository::POSTS_EMAIL_DIGEST : \MailOptin\Core\Repositories\EmailCampaignRepository::NEW_PUBLISH_POST;
         $class = (new \ReflectionClass($this))->getShortName();
+
+        // Shelf and Market draw the price themselves: no second one in the excerpt (this email only).
+        if ($this->design_value('product')) {
+            // The Customizer's preview draws a sample post, not a product: show a sample price and sale.
+            add_filter('mailoptin_email_product_data_pre', function ($data, $post) {
+                if (null !== $data || ! empty($post->ID) || ! is_customize_preview()) return $data;
+
+                $money = function ($amount) {
+                    return function_exists('wc_price') ? trim(wp_strip_all_tags(wc_price($amount))) : number_format_i18n($amount, 2);
+                };
+
+                return ['price' => $money(11.5), 'regular' => $money(14), 'percent' => 17];
+            }, 20, 2);
+
+            $id = (int)$this->email_campaign_id;
+            add_filter('mo_email_automation_display_woocommerce_price', function ($show, $email_campaign_id = null) use ($id) {
+                return (int)$email_campaign_id === $id ? false : $show;
+            }, 10, 2);
+        }
 
         foreach ($this->default_customizer_values() as $tag => $value) {
             add_filter("mailoptin_{$tag}_default", function ($default, $defaults = null, $campaign_type = null, $template_class = null) use ($value, $type, $class) {
@@ -110,6 +134,10 @@ trait MjmlPostTemplate
 
     public function customizer_header_settings($settings)
     {
+        if ($this->design_value('offer_strip')) {
+            $settings['offer_strip_text'] = ['default' => (string)$this->design_value('offer_strip_default', ''), 'type' => 'option', 'sanitize_callback' => 'sanitize_text_field'];
+        }
+
         return self::refreshed($settings);
     }
 
@@ -132,6 +160,17 @@ trait MjmlPostTemplate
 
     public function customizer_header_controls($controls, $wp_customize, $option_prefix, $customizerClassInstance)
     {
+        if ($this->design_value('offer_strip')) {
+            $controls['offer_strip_text'] = [
+                'label'       => __('Offer strip', 'mailoptin'),
+                'description' => __('A line across the top of the email, such as a delivery offer. Leave empty for none.', 'mailoptin'),
+                'section'     => $customizerClassInstance->campaign_header_section_id,
+                'settings'    => $option_prefix . '[offer_strip_text]',
+                'type'        => 'text',
+                'priority'    => 5,
+            ];
+        }
+
         return $controls;
     }
 
@@ -394,7 +433,15 @@ trait MjmlPostTemplate
             );
         }
 
+        if ('left' === $style) {
+            return $this->text(
+                '<div class="mo-header-text mo-header-text-color" style="font-size:20px;font-weight:700;color:' . esc_attr($color) . ';">[mo_header_logo_text]</div>',
+                ['font' => $this->heading_font(), 'size' => 20, 'color' => $color, 'pad_b' => 0]
+            );
+        }
+
         $name_style = 'masthead' === $style ? 'font-size:34px;font-weight:700;letter-spacing:0.02em;' : 'font-size:26px;font-weight:700;';
+        if ($this->design_value('name_upper')) $name_style = 'font-size:26px;font-weight:900;letter-spacing:0.03em;text-transform:uppercase;';
 
         return $this->web_version_rows() . $this->text(
                 '<div class="mo-header-text mo-header-text-color" style="text-align:center;' . $name_style . 'color:' . esc_attr($color) . ';">[mo_header_logo_text]</div>',
@@ -413,6 +460,10 @@ trait MjmlPostTemplate
                 // The web version link sits above the bar, on the page.
                 return $this->band($this->web_version_rows(), $page, 0, 0, null, 'mo-header-container')
                     . $this->band($this->header_rows(), $header, 16, 16, 28, 'mo-header-container');
+            case 'left':
+                return $this->band($this->web_version_rows(), $page, 0, 0, null, 'mo-header-container')
+                    . $this->band($this->header_rows(), $header, 18, 18, null, 'mo-header-container')
+                    . $this->band($this->divider('#e6e8eb'), $header, 0, 0, 0, 'mo-header-container');
             case 'sender':
                 // The web version link sits above the letter, on the page.
                 return $this->band($this->web_version_rows('center'), $page, 0, 0, null, 'mo-header-container')
@@ -465,7 +516,8 @@ trait MjmlPostTemplate
         $content = $this->color('content_background_color', '#ffffff');
         $footer  = $this->color('footer_background_color', $page);
 
-        $html = $this->setting('header_removal') ? '' : $this->header_html($page, $content);
+        // The offer strip has its own setting: it stays when the header is removed.
+        $html = $this->offer_strip_html() . ($this->setting('header_removal') ? '' : $this->header_html($page, $content));
 
         $html .= $this->lead_html();
 
@@ -523,13 +575,14 @@ CSS;
     {
         $color = $this->color('content_headline_color', '#222222');
         // The size is set here, not through the Customizer's size class: digests draw smaller titles in columns.
-        $inner = '<span class="mo-content-headline-color" style="color:' . esc_attr($color) . ';font-size:' . (int)$size . 'px;">' . $title . '</span>';
+        $upper = $this->design_value('title_upper') ? 'text-transform:uppercase;' : '';
+        $inner = '<span class="mo-content-headline-color" style="color:' . esc_attr($color) . ';font-size:' . (int)$size . 'px;' . $upper . '">' . $title . '</span>';
 
         if ($this->show('content_remove_post_link')) {
             $inner = '<a href="' . $url . '" style="color:' . esc_attr($color) . ';text-decoration:none;">' . $inner . '</a>';
         }
 
-        return $this->text('<div style="font-weight:700;line-height:1.25;text-align:' . $this->alignment() . ';">' . $inner . '</div>', ['font' => $this->heading_font(), 'size' => $size, 'color' => $color, 'pad_b' => 10]);
+        return $this->text('<div style="font-weight:' . ($this->design_value('title_upper') ? 900 : 700) . ';line-height:1.2;text-align:' . $this->alignment() . ';">' . $inner . '</div>', ['font' => $this->heading_font(), 'size' => $size, 'color' => $color, 'pad_b' => 10]);
     }
 
     protected function meta($meta)
@@ -583,6 +636,67 @@ CSS;
             '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;text-align:' . $this->alignment() . ';">' . $name . '</div>',
             ['font' => 'Helvetica, Arial, sans-serif', 'size' => 11, 'color' => $color ?: $this->accent(), 'pad_b' => 8]
         );
+    }
+
+    /* ---------------------------------------------------------------------------------------------
+     * Products (Shelf, Market)
+     * ------------------------------------------------------------------------------------------ */
+
+    /**
+     * The price row: $price, and $regular crossed out when it isn't ''. Values are HTML-safe text or
+     * placeholders.
+     */
+    protected function price_row($price, $regular, $size, $marked = false)
+    {
+        $color = $this->color('content_headline_color', '#222222');
+        $was   = '<span style="font-size:' . max(12, (int)round($size * 0.62)) . 'px;font-weight:400;color:#7a8088;text-decoration:line-through;">' . $regular . '</span>';
+
+        if ($marked) $was = '<!--mo-product-sale-->&nbsp; ' . $was . '<!--/mo-product-sale-->';
+        elseif ('' !== $regular) $was = '&nbsp; ' . $was;
+        else $was = '';
+
+        return $this->text('<div class="mo-wc-price" style="font-weight:800;text-align:' . $this->alignment() . ';">' . $price . $was . '</div>', ['size' => $size, 'color' => $color, 'pad_b' => 10]);
+    }
+
+    /** "-18%" in a dark chip. */
+    protected function sale_badge($percent, $size = 14)
+    {
+        if ( ! $this->design_value('sale_badge')) return '';
+
+        return $this->text(
+            '<div style="text-align:' . $this->alignment() . ';"><span style="display:inline-block;background-color:#111111;color:#ffffff;font-weight:900;padding:5px 9px;font-size:' . (int)$size . 'px;">&minus;' . $percent . '%</span></div>',
+            ['font' => 'Helvetica, Arial, sans-serif', 'size' => $size, 'color' => '#ffffff', 'pad_b' => 10]
+        );
+    }
+
+    /** The product's rows for a new-post email, marked so posts and full-price products lose them. */
+    protected function marked_badge()
+    {
+        $badge = $this->sale_badge('{{product.percent_off}}');
+
+        return '' === $badge ? '' : '<!--mo-product--><!--mo-product-sale-->' . $badge . '<!--/mo-product-sale--><!--/mo-product-->';
+    }
+
+    protected function marked_price($size)
+    {
+        if ( ! $this->design_value('product')) return '';
+
+        return '<!--mo-product-->' . $this->price_row('{{product.price}}', '{{product.regular_price}}', $size, true) . '<!--/mo-product-->';
+    }
+
+    /** The strip of text above Market's header. */
+    protected function offer_strip_html()
+    {
+        if ( ! $this->design_value('offer_strip')) return '';
+
+        $text = trim((string)ER::get_customizer_value($this->email_campaign_id, 'offer_strip_text', $this->design_value('offer_strip_default', '')));
+
+        if ('' === $text) return '';
+
+        return $this->band($this->text(
+            '<div style="text-align:center;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">' . esc_html($text) . '</div>',
+            ['font' => 'Helvetica, Arial, sans-serif', 'size' => 13, 'color' => '#ffffff', 'pad_b' => 0]
+        ), '#111111', 10, 10);
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -684,10 +798,12 @@ CSS;
             if ($this->has_post_meta()) $rows .= $this->meta('{{post.meta}}');
             $rows .= $this->marked_image('{{post.feature.image}}', '{{post.feature.image.alt}}', $this->post_href('{{post.url}}'), $this->content_width(), 20);
         } elseif ( ! $lead) {
-            $rows .= $this->marked_image('{{post.feature.image}}', '{{post.feature.image.alt}}', $this->post_href('{{post.url}}'), $this->content_width(), 22);
+            $rows .= $this->marked_image('{{post.feature.image}}', '{{post.feature.image.alt}}', $this->post_href('{{post.url}}'), min($this->content_width(), (int)$this->design_value('image_width', $this->content_width())), 22);
             $rows .= ('' !== $kicker ? '<!--mo-post-category-->' . $kicker . '<!--/mo-post-category-->' : '');
             if ($this->has_post_meta()) $rows .= $this->meta('{{post.meta}}');
+            $rows .= $this->marked_badge();
             $rows .= $this->headline('{{post.title}}', '{{post.url}}', $this->size('content_title_font_size', 26));
+            $rows .= $this->marked_price($this->design_value('title_upper') ? 30 : 22);
         } elseif ($this->has_post_meta()) {
             // The lead band has the image and title.
             $rows .= $this->meta('{{post.meta}}');
@@ -736,6 +852,7 @@ CSS;
             'url' => apply_filters('mo_posts_email_digest_post_url', $this->post_url($post), $post, $id),
             'meta' => (string)apply_filters('mo_posts_email_digest_post_meta', $this->post_meta($post), $post, $id),
             'category' => esc_html($this->post_category($post)),
+            'product' => $this->design_value('product') ? $this->product_data($post) : null,
             'post' => $post,
         ];
     }
@@ -768,7 +885,11 @@ CSS;
 
         if ($columns < 3) $rows .= $this->meta($p['meta']);
 
+        if ( ! empty($p['product']['percent'])) $rows .= $this->sale_badge((int)$p['product']['percent'], 3 === $columns ? 11 : 13);
+
         $rows .= $this->headline($p['title'], esc_url($p['url']), 3 === $columns ? 16 : $this->size('content_title_font_size', 20));
+
+        if ( ! empty($p['product'])) $rows .= $this->price_row($p['product']['price'], $p['product']['regular'], 3 === $columns ? 15 : 18);
 
         if ($columns < 3) $rows .= $this->excerpt($p['content'], 1 === $columns ? null : 15);
 
@@ -788,7 +909,9 @@ CSS;
         $image = $this->image(esc_url($p['image']), esc_attr($p['alt']), $this->post_href(esc_url($p['url'])), $this->column_room('33-67', 0), 0);
         $text  = $this->kicker($p['category'])
             . $this->meta($p['meta'])
+            . ( ! empty($p['product']['percent']) ? $this->sale_badge((int)$p['product']['percent'], 13) : '')
             . $this->headline($p['title'], esc_url($p['url']), $this->size('content_title_font_size', 20))
+            . ( ! empty($p['product']) ? $this->price_row($p['product']['price'], $p['product']['regular'], 18) : '')
             . $this->excerpt($p['content'], 15)
             . ($this->show('content_remove_ellipsis_button') ? $this->read_more(esc_url($p['url']), true) : '')
             . $this->spacer(16);

@@ -61,6 +61,30 @@ class EmailTemplatesRepository extends AbstractRepository
                     'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/spotlight-digest.png'
                 ),
                 array(
+                    'name'           => 'Shelf',
+                    'template_class' => 'Shelf',
+                    'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/shelf.png'
+                ),
+                array(
+                    'name'           => 'Shelf',
+                    'template_class' => 'Shelf',
+                    'campaign_type'  => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/shelf-digest.png'
+                ),
+                array(
+                    'name'           => 'Market',
+                    'template_class' => 'Market',
+                    'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/market.png'
+                ),
+                array(
+                    'name'           => 'Market',
+                    'template_class' => 'Market',
+                    'campaign_type'  => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/market-digest.png'
+                ),
+                array(
                     'name'           => 'Lucid',
                     'template_class' => 'Lucid',
                     'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,

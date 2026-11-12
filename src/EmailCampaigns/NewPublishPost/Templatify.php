@@ -57,6 +57,23 @@ class Templatify implements TemplatifyInterface
             $preview_structure = preg_replace('#<!--mo-post-category-->.*?<!--/mo-post-category-->#s', '', $preview_structure);
         }
         $preview_structure = str_replace('{{post.category}}', $category, $preview_structure);
+
+        // A product's price and sale (Shelf, Market): left out for posts, and the sale when not on sale.
+        $product = $this->product_data($this->post);
+        if ( ! $product) {
+            $preview_structure = preg_replace('#<!--mo-product-->.*?<!--/mo-product-->#s', '', $preview_structure);
+        }
+        if (empty($product['regular'])) {
+            $preview_structure = preg_replace('#<!--mo-product-sale-->.*?<!--/mo-product-sale-->#s', '', $preview_structure);
+        }
+        $preview_structure = str_replace(
+            ['{{product.price}}', '{{product.regular_price}}', '{{product.percent_off}}'],
+            [$product['price'] ?? '', $product['regular'] ?? '', (int)($product['percent'] ?? 0)],
+            $preview_structure
+        );
+
+        // The markers have done their job.
+        $preview_structure = preg_replace('#<!--/?mo-(?:feature-image|post-category|product|product-sale)-->#', '', $preview_structure);
         $preview_structure = str_replace('{{post.feature.image.alt}}', $this->feature_image_alt($this->post), $preview_structure);
 
         $search = array(
