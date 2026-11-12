@@ -462,6 +462,13 @@
             // A newer change already asked for a newer preview.
             if (seq !== previewSeq || !res || !res.success) return;
 
+            // Another template: its colours where the old template's defaults were.
+            if (res.data.design) {
+                state.design = res.data.design;
+                state.design_template = res.data.design_template;
+                fill($('[data-group="design"]'), state.design);
+            }
+
             var frame = document.getElementById('mo-ee-frame');
             var doc = frame.contentDocument;
 
@@ -564,6 +571,8 @@
                 saving = false;
                 if (!res || !res.success) { status(i18n.failed); return result.reject(); }
                 version = res.data.version;
+                // A new template saved: its own Design fields (Market's offer strip) need the page again.
+                if (res.data.reload) { try { localStorage.removeItem(draftKey); } catch (e) {} window.location.reload(); return result.resolve(res); }
                 savedJson = JSON.stringify(res.data.state);
                 try { localStorage.removeItem(draftKey); } catch (e) {}
                 // Take the server's cleaned copy only if nothing was typed while saving.

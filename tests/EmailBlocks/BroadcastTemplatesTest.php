@@ -114,4 +114,90 @@ class BroadcastTemplatesTest extends \WP_UnitTestCase
         // And another look's defaults don't leak into it in the same request.
         $this->assertSame('#eef1f4', EmailEditor::state($this->broadcast('Folio'))['design']['page_background_color']);
     }
+
+    /* Review fixes ------------------------------------------------------------------------------- */
+
+    public function test_switching_template_takes_the_new_look_s_colours()
+    {
+        $id    = $this->broadcast('Lucid');
+        $state = EmailEditor::state($id);
+        $this->assertSame('#f2f4f6', $state['design']['page_background_color']);
+
+        // A colour the person chose stays; the ones still at Lucid's defaults take Folio's.
+        $state['design']['content_text_color'] = '#123456';
+        $switched = EmailEditor::switch_design($state, $id, 'Folio');
+
+        $this->assertSame('#eef1f4', $switched['design']['page_background_color']);
+        $this->assertSame('#2e6b4f', $switched['design']['header_text_color']);
+        $this->assertSame('#123456', $switched['design']['content_text_color']);
+
+        // To Market: its offer strip field comes in at its default; back to Folio, it goes.
+        $market = EmailEditor::switch_design($switched, $id, 'Market');
+        $this->assertSame('New in the shop', $market['design']['offer_strip_text']);
+        $this->assertSame('#fff6e8', $market['design']['page_background_color']);
+    }
+
+    public function test_saved_switch_draws_the_new_look()
+    {
+        $id    = $this->broadcast('Lucid');
+        $state = EmailEditor::switch_design(EmailEditor::state($id), $id, 'Folio');
+
+        Templates::set_for_email($id, 'Folio');
+        ER::update_settings_by_id($id, EmailEditor::clean_state($state, $id));
+
+        $html = (new Templatify($id))->forge();
+        $this->assertStringContainsString('#eef1f4', $html);
+        $this->assertStringNotContainsString('#f2f4f6', $html);
+    }
+
+    public function test_preview_template_gives_its_defaults()
+    {
+        $id = $this->broadcast('Folio');
+
+        Templates::set_preview($id, 'Market');
+        try {
+            \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($id);
+            $this->assertArrayHasKey('offer_strip_text', EmailEditor::design_fields($id));
+            $this->assertStringContainsString('New in the shop', (new Templatify($id))->forge());
+        } finally {
+            Templates::clear_preview();
+        }
+    }
+
+    public function test_block_defaults_stay_with_their_email()
+    {
+        // A look drawn first, then a Lucid email in the same request (a cron run).
+        $folio = $this->broadcast('Folio');
+        (new Templatify($folio))->forge();
+
+        $lucid = $this->broadcast('Lucid');
+        \MailOptin\Core\EmailBlocks\Builtin\ElementBlock::flush_defaults();
+        $defaults = \MailOptin\Core\EmailBlocks\Blocks::get_instance()->get('button')->defaults($lucid);
+
+        $this->assertSame('#dc4d2f', $defaults['button_background_color']);
+        $this->assertNotSame('700', $defaults['button_font_weight'] ?? '');
+    }
+
+    public function test_shop_looks_keep_the_woocommerce_price_in_broadcast_posts()
+    {
+        foreach (['Shelf', 'Market'] as $look) {
+            $id = $this->broadcast($look);
+            (new Templatify($id))->forge();
+
+            $this->assertTrue(apply_filters('mo_email_automation_display_woocommerce_price', true, $id), $look);
+        }
+    }
+
+    public function test_switching_back_restores_the_saved_look()
+    {
+        $id = $this->broadcast('Lucid');
+
+        // Tried Folio on screen (not saved), then back to Lucid.
+        $folio           = EmailEditor::switch_design(EmailEditor::state($id), $id, 'Folio');
+        $folio['design_template'] = 'Folio';
+        $back            = EmailEditor::switch_design($folio, $id, 'Lucid');
+
+        $this->assertSame('#f2f4f6', $back['design']['page_background_color']);
+        $this->assertArrayNotHasKey('offer_strip_text', $back['design']);
+    }
 }

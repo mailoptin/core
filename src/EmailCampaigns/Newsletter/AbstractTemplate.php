@@ -12,7 +12,8 @@ abstract class AbstractTemplate extends \MailOptin\Core\EmailCampaigns\AbstractT
     {
         parent::__construct($email_campaign_id);
 
-        add_filter('mo_ecb_elements_default_values', [$this, 'email_content_builder_element_defaults']);
+        // The email the defaults are for is passed too: a template can keep to its own emails.
+        add_filter('mo_ecb_elements_default_values', [$this, 'email_content_builder_element_defaults'], 10, 2);
 
         add_action('mo_get_preview_structure_before_closing_head', [$this, 'google_fonts']);
     }

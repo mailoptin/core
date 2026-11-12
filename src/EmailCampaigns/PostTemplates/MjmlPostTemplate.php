@@ -83,7 +83,7 @@ trait MjmlPostTemplate
         $class = (new \ReflectionClass($this))->getShortName();
 
         // Shelf and Market draw the price themselves: no second one in the excerpt (this email only).
-        if ($this->design_value('product')) {
+        if ($this->design_value('product') && ! $this->is_newsletter()) {
             // The Customizer's preview draws a sample post, not a product: show a sample price and sale.
             add_filter('mailoptin_email_product_data_pre', function ($data, $post) {
                 if (null !== $data || ! empty($post->ID) || ! is_customize_preview()) return $data;
@@ -996,8 +996,11 @@ CSS;
      * New blocks start in this look's fonts and colours (the email builder's
      * mo_ecb_elements_default_values filter). The bands are padded, so blocks have no side padding.
      */
-    public function email_content_builder_element_defaults($defaults)
+    public function email_content_builder_element_defaults($defaults, $email_campaign_id = null)
     {
+        // Only this email's blocks: another email drawn in the same request (a cron run) keeps its own.
+        if (null !== $email_campaign_id && (int)$email_campaign_id !== (int)$this->email_campaign_id) return $defaults;
+
         $look    = (array)$this->design_value('defaults', []);
         $accent  = $look['content_ellipsis_button_background_color'] ?? '#333333';
         $on      = $look['content_ellipsis_button_text_color'] ?? '#ffffff';

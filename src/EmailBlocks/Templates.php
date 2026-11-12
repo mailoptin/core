@@ -140,7 +140,7 @@ class Templates
                 'name'        => $id,
                 'description' => $description,
                 'class'       => 'MailOptin\\Core\\EmailCampaigns\\Newsletter\\Templates\\' . $id,
-                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/email-templates/' . strtolower($id) . '.png',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/email-templates/' . strtolower($id) . '-broadcast.png',
             ]);
         }
 
@@ -207,6 +207,14 @@ class Templates
     public static function set_preview($email_campaign_id, $template_id)
     {
         self::$preview[(int)$email_campaign_id] = (string)$template_id;
+    }
+
+    /**
+     * The template an email is drawn in now: the one being previewed, else its own.
+     */
+    public static function template_id_for($email_campaign_id)
+    {
+        return self::$preview[(int)$email_campaign_id] ?? (string)ER::get_template_class($email_campaign_id);
     }
 
     public static function clear_preview()
