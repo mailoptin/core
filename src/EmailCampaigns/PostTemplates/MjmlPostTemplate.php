@@ -25,9 +25,20 @@ trait MjmlPostTemplate
     /**
      * How the template looks.
      *
-     * @return array name; defaults (Customizer values); heading_font, body_font; header ('center'|'masthead'|'bar'|'none');
-     *               card (bool: the body is a white card on the page colour); button_radius; button_width (%);
-     *               meta_upper (bool); link_label (a "Read more →" text link instead of a button when not empty)
+     * @return array
+     *   defaults         Customizer values; digest_defaults: more for digests
+     *   heading_font     body_font
+     *   header           'center' (name centred, a rule under it) | 'masthead' (large, a double rule) |
+     *                    'bar' (a dark bar, name on the left) | 'sender' (a small "from" line in the body)
+     *   card             bool: a margin of page colour above and below the email
+     *   button_radius    button_width (%), button_upper (bool)
+     *   read_more        'button' | 'link' (a text link: the label and an arrow)
+     *   meta_style       'upper' | 'italic' | 'plain'
+     *   kicker           bool: the post's category above its title, in kicker_color (a colour setting)
+     *   list             the 1-column digest: 'side' (image on the left) | 'stack'
+     *   lead             bool: the newest post leads, its image across the email and its title on a band
+     *                    of the header's colour (new-post emails: the post)
+     *   footer_rule      a colour: a rule above the footer
      */
     abstract protected function design();
 
@@ -40,7 +51,32 @@ trait MjmlPostTemplate
 
     public function default_customizer_values()
     {
-        return (array)$this->design_value('defaults', []);
+        $defaults = (array)$this->design_value('defaults', []);
+
+        return $this->is_digest() ? array_merge($defaults, (array)$this->design_value('digest_defaults', [])) : $defaults;
+    }
+
+    /**
+     * The template's defaults, for this template's emails only. (The parent adds them for every email
+     * drawn in the same request: a cron run sending several emails would give one template's
+     * defaults, such as Letter's opening line or its images left out, to the others.) Later than
+     * Lucid's filters, which apply to every email.
+     */
+    public function handles_default_customizer_values()
+    {
+        $type  = $this->is_digest() ? \MailOptin\Core\Repositories\EmailCampaignRepository::POSTS_EMAIL_DIGEST : \MailOptin\Core\Repositories\EmailCampaignRepository::NEW_PUBLISH_POST;
+        $class = (new \ReflectionClass($this))->getShortName();
+
+        foreach ($this->default_customizer_values() as $tag => $value) {
+            add_filter("mailoptin_{$tag}_default", function ($default, $defaults = null, $campaign_type = null, $template_class = null) use ($value, $type, $class) {
+                return $campaign_type === $type && $template_class === $class ? $value : $default;
+            }, 20, 4);
+        }
+    }
+
+    protected function is_digest()
+    {
+        return $this instanceof \MailOptin\Core\EmailCampaigns\PostsEmailDigest\AbstractTemplate;
     }
 
     public function content_width()
@@ -79,6 +115,8 @@ trait MjmlPostTemplate
 
     public function customizer_content_settings($settings)
     {
+        if ($this->is_digest()) $settings['column_count'] = ['default' => '1', 'type' => 'option'];
+
         return self::refreshed($settings);
     }
 
@@ -99,6 +137,17 @@ trait MjmlPostTemplate
 
     public function customizer_content_controls($controls, $wp_customize, $option_prefix, $customizerClassInstance)
     {
+        if ($this->is_digest()) {
+            $controls['column_count'] = [
+                'label'    => __('Columns', 'mailoptin'),
+                'section'  => $customizerClassInstance->campaign_content_section_id,
+                'settings' => $option_prefix . '[column_count]',
+                'type'     => 'select',
+                'choices'  => ['1' => __('One', 'mailoptin'), '2' => __('Two', 'mailoptin'), '3' => __('Three', 'mailoptin')],
+                'priority' => 21,
+            ];
+        }
+
         return $controls;
     }
 
@@ -263,7 +312,7 @@ trait MjmlPostTemplate
                 'font_size'   => $args['size'],
                 'font_weight' => 'bold',
                 'radius'      => (int)$this->design_value('button_radius', 4),
-                'text'        => $label,
+                'text'        => $this->design_value('button_upper') ? '<span style="text-transform:uppercase;letter-spacing:0.06em;">' . $label . '</span>' : $label,
             ])
             . '</tbody></table></td></tr>';
     }
@@ -316,22 +365,65 @@ trait MjmlPostTemplate
      * The email
      * ------------------------------------------------------------------------------------------ */
 
+    protected function web_version_rows($align = 'center')
+    {
+        $color       = $this->color('header_web_version_link_color', '#666666');
+        $web_version = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="color:' . esc_attr($color) . ';">[mo_header_web_version_link_label]</a>', $this);
+
+        if ('' === trim(wp_strip_all_tags($web_version)) && false === strpos($web_version, '{{webversion}}')) return '';
+
+        return $this->text('<div style="text-align:' . $align . ';">' . $web_version . '</div>', ['size' => 12, 'color' => $color, 'pad_b' => 12]);
+    }
+
     protected function header_rows()
     {
-        $web_version = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="color:' . esc_attr($this->color('header_web_version_link_color', '#666666')) . ';">[mo_header_web_version_link_label]</a>', $this);
+        $color = $this->color('header_text_color', '#333333');
+        $style = $this->design_value('header', 'center');
 
-        $rows = '' !== trim(wp_strip_all_tags($web_version)) || false !== strpos($web_version, '{{webversion}}')
-            ? $this->text('<div style="text-align:center;">' . $web_version . '</div>', ['size' => 12, 'color' => $this->color('header_web_version_link_color', '#666666'), 'pad_b' => 12])
-            : '';
-
-        $name_style = 'masthead' === $this->design_value('header')
-            ? 'font-size:34px;font-weight:700;letter-spacing:0.02em;'
-            : 'font-size:26px;font-weight:700;';
-
-        return $rows . $this->text(
-                '<div class="mo-header-text mo-header-text-color" style="text-align:center;' . $name_style . 'color:' . esc_attr($this->color('header_text_color', '#333333')) . ';">[mo_header_logo_text]</div>',
-                ['font' => $this->heading_font(), 'size' => 26, 'color' => $this->color('header_text_color', '#333333'), 'pad_b' => 0]
+        if ('bar' === $style) {
+            return $this->text(
+                '<div class="mo-header-text mo-header-text-color" style="font-size:18px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:' . esc_attr($color) . ';">[mo_header_logo_text]</div>',
+                ['font' => $this->heading_font(), 'size' => 18, 'color' => $color, 'pad_b' => 0]
             );
+        }
+
+        if ('sender' === $style) {
+            return $this->text(
+                '<div class="mo-header-text mo-sender" style="font-size:14px;color:' . esc_attr($color) . ';">[mo_header_logo_text]</div>',
+                ['size' => 14, 'color' => $color, 'pad_b' => 0]
+            );
+        }
+
+        $name_style = 'masthead' === $style ? 'font-size:34px;font-weight:700;letter-spacing:0.02em;' : 'font-size:26px;font-weight:700;';
+
+        return $this->web_version_rows() . $this->text(
+                '<div class="mo-header-text mo-header-text-color" style="text-align:center;' . $name_style . 'color:' . esc_attr($color) . ';">[mo_header_logo_text]</div>',
+                ['font' => $this->heading_font(), 'size' => 26, 'color' => $color, 'pad_b' => 0]
+            );
+    }
+
+    /** The email's header: its bands. */
+    protected function header_html($page, $content)
+    {
+        $style  = $this->design_value('header', 'center');
+        $header = $this->color('header_background_color', $content);
+
+        switch ($style) {
+            case 'bar':
+                // The web version link sits above the bar, on the page.
+                return $this->band($this->web_version_rows(), $page, 0, 0, null, 'mo-header-container')
+                    . $this->band($this->header_rows(), $header, 16, 16, 28, 'mo-header-container');
+            case 'sender':
+                // The web version link sits above the letter, on the page.
+                return $this->band($this->web_version_rows('center'), $page, 0, 0, null, 'mo-header-container')
+                    . $this->band($this->header_rows(), $content, 34, 0, null, 'mo-header-container');
+            case 'masthead':
+                return $this->band($this->header_rows(), $header, 26, 14, null, 'mo-header-container')
+                    . $this->band($this->divider($this->color('header_text_color', '#333333'), 0, 0, 'double', 3), $header, 0, 0, null, 'mo-header-container');
+            default:
+                return $this->band($this->header_rows(), $header, 22, 20, null, 'mo-header-container')
+                    . $this->band($this->divider('#e6e9ec'), $header, 0, 0, null, 'mo-header-container');
+        }
     }
 
     protected function footer_rows()
@@ -345,7 +437,9 @@ trait MjmlPostTemplate
             . '<p style="margin:0;"><span class="unsubscribe-line mo-footer-unsubscribe-line">[mo_footer_unsubscribe_line]</span> ' . $link . '.</p>'
             . '</div>';
 
-        return $this->text($html, ['size' => $this->size('footer_font_size', 12), 'color' => $color, 'pad_b' => 0]);
+        $rule = (string)$this->design_value('footer_rule', '');
+
+        return ('' !== $rule ? $this->divider($rule, 0, 16) : '') . $this->text($html, ['size' => $this->size('footer_font_size', 12), 'color' => $color, 'pad_b' => 0]);
     }
 
     /** Text an author added before or after the posts in the Customizer. */
@@ -369,22 +463,16 @@ trait MjmlPostTemplate
     {
         $page    = $this->color('page_background_color', '#f2f4f6');
         $content = $this->color('content_background_color', '#ffffff');
-        $header  = $this->color('header_background_color', $content);
         $footer  = $this->color('footer_background_color', $page);
 
-        $html = '';
+        $html = $this->setting('header_removal') ? '' : $this->header_html($page, $content);
 
-        if ('none' !== $this->design_value('header') && ! $this->setting('header_removal')) {
-            $html .= $this->band($this->header_rows(), $header, 'masthead' === $this->design_value('header') ? 26 : 22, 20, null, 'mo-header-container');
-
-            // The rule under the header.
-            $rule = 'masthead' === $this->design_value('header') ? $this->divider($this->color('header_text_color', '#333333'), 0, 0, 'double', 3) : $this->divider('#e6e9ec');
-            $html .= $this->band($rule, $header, 0, 0);
-        }
+        $html .= $this->lead_html();
 
         $body = $this->extra_content('content_before_main_content') . $this->body_rows() . $this->extra_content('content_after_main_content');
 
-        $html .= $this->band('<tr><td class="mo-content-alignment" style="padding:0;"><table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tbody>' . $body . '</tbody></table></td></tr>', $content, 28, 20);
+        // Nothing left for the body (a one-post Spotlight digest with its excerpt and button off): no empty band.
+        if ('' !== trim($body)) $html .= $this->band('<tr><td class="mo-content-alignment" style="padding:0;"><table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tbody>' . $body . '</tbody></table></td></tr>', $content, 'sender' === $this->design_value('header') ? 20 : 28, 20);
 
         if ( ! $this->setting('footer_removal')) {
             $html .= $this->band($this->footer_rows(), $footer, 22, 26, null, 'mo-footer-container');
@@ -412,6 +500,7 @@ trait MjmlPostTemplate
     a { text-decoration:none; }
     .mo-post-meta { font-size:12px;line-height:1.5; }
     .mo-header-text img { max-width:100%;height:auto; }
+    .mo-sender img { max-height:40px;width:auto; }
     .mo-wc-price ins { text-decoration:none; }
     .mo-wc-price .screen-reader-text { display:none; }
     @media only screen and (max-width:480px) {
@@ -447,7 +536,7 @@ CSS;
     {
         if ('' === trim($meta) || ! $this->show('content_post_meta_removal')) return '';
 
-        $style = $this->design_value('meta_upper', true) ? 'text-transform:uppercase;letter-spacing:0.06em;' : '';
+        $style = ['upper' => 'text-transform:uppercase;letter-spacing:0.06em;', 'italic' => 'font-style:italic;font-size:14px;'][$this->design_value('meta_style', 'upper')] ?? '';
 
         return $this->text('<div class="mo-post-meta" style="' . $style . 'text-align:' . $this->alignment() . ';">' . $meta . '</div>', ['size' => 12, 'color' => $this->color('footer_text_color', '#666666'), 'pad_b' => 8]);
     }
@@ -465,17 +554,99 @@ CSS;
     protected function read_more($url, $compact = false)
     {
         $label = esc_html((string)$this->setting('content_ellipsis_button_label'));
-        $link  = (string)$this->design_value('link_label', '');
 
-        if ($compact || '' !== $link) {
-            $color = $this->color('content_ellipsis_button_background_color', '#333333');
+        if ($compact || 'link' === $this->design_value('read_more')) {
+            $color = $this->accent();
 
             return '<tr class="mo-content-remove-ellipsis-button"><td style="padding:0;"><table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tbody>'
-                . $this->text('<div style="text-align:' . $this->alignment() . ';"><a href="' . $url . '" style="color:' . esc_attr($color) . ';font-weight:700;text-decoration:none;">' . ('' !== $link ? esc_html($link) : $label . ' &rarr;') . '</a></div>', ['size' => 14, 'color' => $color, 'pad_b' => 4])
+                . $this->text('<div style="text-align:' . $this->alignment() . ';"><a href="' . $url . '" style="color:' . esc_attr($color) . ';font-weight:700;text-decoration:none;">' . $label . ' &rarr;</a></div>', ['font' => $this->body_font(), 'size' => $compact ? 14 : 15, 'color' => $color, 'pad_b' => 4])
                 . '</tbody></table></td></tr>';
         }
 
         return $this->button($url, $label);
+    }
+
+    /**
+     * The colour for links and labels on the email's body: the button's.
+     */
+    protected function accent()
+    {
+        return $this->color('content_ellipsis_button_background_color', '#333333');
+    }
+
+    /** The post's category above its title. $name is escaped, or a placeholder. */
+    protected function kicker($name, $color = null)
+    {
+        if ( ! $this->design_value('kicker') || '' === trim($name)) return '';
+
+        return $this->text(
+            '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;text-align:' . $this->alignment() . ';">' . $name . '</div>',
+            ['font' => 'Helvetica, Arial, sans-serif', 'size' => 11, 'color' => $color ?: $this->accent(), 'pad_b' => 8]
+        );
+    }
+
+    /* ---------------------------------------------------------------------------------------------
+     * The lead (Spotlight): the image across the email, then the title on a dark band
+     * ------------------------------------------------------------------------------------------ */
+
+    /**
+     * @param array $p title, url, image, alt, category (placeholders for new-post emails)
+     * @param bool $marked whether the image and category may be missing (new-post emails)
+     */
+    protected function lead_bands($p, $marked)
+    {
+        $band  = $this->color('header_background_color', '#14171a');
+        $title = $this->color('header_text_color', '#ffffff');
+        $html  = '';
+
+        if ($this->show('content_remove_feature_image') && ($marked || '' !== (string)$p['image'])) {
+            $image = $this->band($this->image($p['image'], $p['alt'], $this->post_href($p['url']), self::$email_width, 0), $band, 0, 0, 0);
+            $html  .= $marked ? '<!--mo-feature-image-->' . $image . '<!--/mo-feature-image-->' : $image;
+        }
+
+        // On the dark band: kicker_color (Spotlight: the button's yellow text).
+        $kicker = $this->kicker($p['category'], $this->color((string)$this->design_value('kicker_color', 'content_ellipsis_button_background_color'), '#f2b705'));
+        if ($marked && '' !== $kicker) $kicker = '<!--mo-post-category-->' . $kicker . '<!--/mo-post-category-->';
+
+        $inner = '<span style="color:' . esc_attr($title) . ';font-size:' . ($marked ? 30 : 24) . 'px;">' . $p['title'] . '</span>';
+        if ($this->show('content_remove_post_link')) {
+            $inner = '<a href="' . $p['url'] . '" style="color:' . esc_attr($title) . ';text-decoration:none;">' . $inner . '</a>';
+        }
+
+        $rows = $kicker . $this->text('<div style="font-weight:800;line-height:1.2;">' . $inner . '</div>', ['font' => $this->heading_font(), 'size' => $marked ? 30 : 24, 'color' => $title, 'pad_b' => 0]);
+
+        return $html . $this->band($rows, $band, 22, 24, 28);
+    }
+
+    protected function lead_html()
+    {
+        if ( ! $this->design_value('lead')) return '';
+
+        if ( ! $this->is_digest()) {
+            return $this->lead_bands([
+                'title'    => '{{post.title}}',
+                'url'      => '{{post.url}}',
+                'image'    => '{{post.feature.image}}',
+                'alt'      => '{{post.feature.image.alt}}',
+                'category' => '{{post.category}}',
+            ], true);
+        }
+
+        $posts = (array)$this->posts;
+        if (empty($posts)) return '';
+
+        $values = $this->post_values(reset($posts));
+        $p      = ['url' => esc_url($values['url']), 'image' => esc_url($values['image']), 'alt' => esc_attr($values['alt'])] + $values;
+
+        return $this->post_item_filters($this->lead_bands($p, false), $values);
+    }
+
+    /** The digest's posts drawn in the body: all of them, or those after the lead. */
+    protected function body_posts()
+    {
+        $posts = array_values((array)$this->posts);
+
+        return $this->design_value('lead') ? array_slice($posts, 1) : $posts;
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -502,11 +673,26 @@ CSS;
 
     protected function new_post_rows()
     {
-        $rows = $this->marked_image('{{post.feature.image}}', '{{post.feature.image.alt}}', $this->post_href('{{post.url}}'), $this->content_width(), 22);
+        $lead   = (bool)$this->design_value('lead');
+        $kicker = $this->kicker('{{post.category}}');
+        $rows   = '';
 
-        if ($this->has_post_meta()) $rows .= $this->meta('{{post.meta}}');
+        // Text first (Ledger): the category, title and meta above the image.
+        if ('stack' === $this->design_value('list') && ! $lead) {
+            $rows .= ('' !== $kicker ? '<!--mo-post-category-->' . $kicker . '<!--/mo-post-category-->' : '');
+            $rows .= $this->headline('{{post.title}}', '{{post.url}}', $this->size('content_title_font_size', 26));
+            if ($this->has_post_meta()) $rows .= $this->meta('{{post.meta}}');
+            $rows .= $this->marked_image('{{post.feature.image}}', '{{post.feature.image.alt}}', $this->post_href('{{post.url}}'), $this->content_width(), 20);
+        } elseif ( ! $lead) {
+            $rows .= $this->marked_image('{{post.feature.image}}', '{{post.feature.image.alt}}', $this->post_href('{{post.url}}'), $this->content_width(), 22);
+            $rows .= ('' !== $kicker ? '<!--mo-post-category-->' . $kicker . '<!--/mo-post-category-->' : '');
+            if ($this->has_post_meta()) $rows .= $this->meta('{{post.meta}}');
+            $rows .= $this->headline('{{post.title}}', '{{post.url}}', $this->size('content_title_font_size', 26));
+        } elseif ($this->has_post_meta()) {
+            // The lead band has the image and title.
+            $rows .= $this->meta('{{post.meta}}');
+        }
 
-        $rows .= $this->headline('{{post.title}}', '{{post.url}}', $this->size('content_title_font_size', 26));
         $rows .= $this->excerpt('{{post.content}}');
 
         if ($this->show('content_remove_ellipsis_button')) $rows .= $this->read_more('{{post.url}}');
@@ -549,6 +735,7 @@ CSS;
             'alt' => apply_filters('mo_posts_email_digest_post_feature_image_alt', $this->feature_image_alt($post), $post, $id),
             'url' => apply_filters('mo_posts_email_digest_post_url', $this->post_url($post), $post, $id),
             'meta' => (string)apply_filters('mo_posts_email_digest_post_meta', $this->post_meta($post), $post, $id),
+            'category' => esc_html($this->post_category($post)),
             'post' => $post,
         ];
     }
@@ -577,6 +764,8 @@ CSS;
             $rows .= $this->image(esc_url($p['image']), esc_attr($p['alt']), $this->post_href(esc_url($p['url'])), $room, 14);
         }
 
+        $rows .= $this->kicker($p['category']);
+
         if ($columns < 3) $rows .= $this->meta($p['meta']);
 
         $rows .= $this->headline($p['title'], esc_url($p['url']), 3 === $columns ? 16 : $this->size('content_title_font_size', 20));
@@ -594,10 +783,11 @@ CSS;
     {
         $has_image = '' !== (string)$p['image'] && $this->show('content_remove_feature_image');
 
-        if ( ! $has_image) return $this->digest_card($p, $this->content_width(), 1);
+        if ( ! $has_image || 'side' !== $this->design_value('list', 'side')) return $this->digest_card($p, $this->content_width(), 1);
 
         $image = $this->image(esc_url($p['image']), esc_attr($p['alt']), $this->post_href(esc_url($p['url'])), $this->column_room('33-67', 0), 0);
-        $text  = $this->meta($p['meta'])
+        $text  = $this->kicker($p['category'])
+            . $this->meta($p['meta'])
             . $this->headline($p['title'], esc_url($p['url']), $this->size('content_title_font_size', 20))
             . $this->excerpt($p['content'], 15)
             . ($this->show('content_remove_ellipsis_button') ? $this->read_more(esc_url($p['url']), true) : '')
@@ -612,7 +802,16 @@ CSS;
         $layout  = [2 => '50-50', 3 => '33-33-33'][$count] ?? '';
         $rows    = [];
 
-        foreach (array_chunk((array)$this->posts, $count) as $group) {
+        // The lead's band has its image and title; its meta, excerpt and button open the body.
+        if ($this->design_value('lead') && ! empty($this->posts)) {
+            $lead = $this->post_values(reset($this->posts));
+            $html = $this->meta($lead['meta']) . $this->excerpt($lead['content'])
+                . ($this->show('content_remove_ellipsis_button') ? $this->read_more(esc_url($lead['url'])) : '');
+
+            if ('' !== $html) $rows[] = $this->post_item_filters($html . $this->spacer(8), $lead);
+        }
+
+        foreach (array_chunk($this->body_posts(), $count) as $group) {
             $values = array_map([$this, 'post_values'], $group);
 
             if (1 === $count) {

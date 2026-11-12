@@ -16,7 +16,9 @@ trait Folio
             'card'          => true,
             'button_radius' => 4,
             'button_width'  => 100,
-            'meta_upper'    => true,
+            'meta_style'    => 'upper',
+            'read_more'     => 'button',
+            'list'          => 'side',
             'defaults'      => [
                 'page_background_color'                    => '#eef1f4',
                 'header_background_color'                  => '#ffffff',
@@ -35,6 +37,7 @@ trait Folio
                 'footer_unsubscribe_link_color'            => '#5b6168',
                 'footer_font_size'                         => '12',
             ],
+            'digest_defaults' => ['content_title_font_size' => '20'],
         ];
     }
 }

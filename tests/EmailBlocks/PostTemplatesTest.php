@@ -238,4 +238,145 @@ class PostTemplatesTest extends \WP_UnitTestCase
     {
         $this->assertStringContainsString('.mo-header-text img { max-width:100%', (new FolioDigest($this->campaign(ER::POSTS_EMAIL_DIGEST), $this->posts))->get_styles());
     }
+
+    /* Ledger, Letter, Spotlight ------------------------------------------------------------------ */
+
+    protected function make($template, $type, $settings = [])
+    {
+        $id = ER::add_email_campaign($template . ' ' . uniqid(), $type, $template);
+        if ($settings) ER::update_settings_by_id($id, $settings);
+
+        return ER::NEW_PUBLISH_POST === $type
+            ? (new NewPostTemplatify($id, $this->posts[0]))->forge()
+            : (new DigestTemplatify($id, $this->posts))->forge();
+    }
+
+    public function test_every_template_is_listed_after_folio_and_before_lucid()
+    {
+        $property = new \ReflectionProperty(EmailTemplatesRepository::class, 'email_templates');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+
+        foreach ([ER::NEW_PUBLISH_POST, ER::POSTS_EMAIL_DIGEST] as $type) {
+            $this->assertSame(['Folio', 'Ledger', 'Letter', 'Spotlight', 'Lucid'], array_values(array_intersect(
+                wp_list_pluck(EmailTemplatesRepository::get_by_type($type), 'template_class'),
+                ['Folio', 'Ledger', 'Letter', 'Spotlight', 'Lucid']
+            )));
+        }
+    }
+
+    public function provide_templates()
+    {
+        return [['Folio'], ['Ledger'], ['Letter'], ['Spotlight']];
+    }
+
+    /**
+     * @dataProvider provide_templates
+     */
+    public function test_each_template_draws_both_emails($template)
+    {
+        $html = $this->make($template, ER::NEW_PUBLISH_POST);
+        $this->assertStringContainsString('Tulips in November', $html, $template);
+        $this->assertStringContainsString('Notes on tulips in november', $html, $template);
+        $this->assertStringNotContainsString('__MO_', $html);
+        $this->assertStringNotContainsString('{{post.', $html);
+
+        // The digest follows the Columns setting.
+        foreach (['1' => null, '2' => 'mj-column-per-50', '3' => 'mj-column-per-33-33'] as $count => $class) {
+            $html = $this->make($template, ER::POSTS_EMAIL_DIGEST, ['column_count' => $count]);
+
+            foreach ($this->posts as $post) $this->assertStringContainsString($post->post_title, $html, "$template, $count");
+            $this->assertStringNotContainsString('__MO_', $html);
+            if ($class) $this->assertStringContainsString('class="' . $class . ' ', $html, "$template, $count columns");
+            if ( ! $class) $this->assertStringNotContainsString('class="mj-column-per-50 ', $html, "$template, one column");
+        }
+    }
+
+    public function test_defaults_stay_with_their_template()
+    {
+        // Several emails drawn in one request, as when a cron run sends them: Letter's opening line
+        // and its images-off default must not reach the others.
+        $letter = $this->make('Letter', ER::NEW_PUBLISH_POST);
+        $this->assertStringContainsString('just published something', $letter);
+        $this->assertStringNotContainsString('flower.jpg', $letter, 'Letter leaves images out by default.');
+
+        foreach (['Folio', 'Spotlight', 'Ledger'] as $template) {
+            $html = $this->make($template, ER::NEW_PUBLISH_POST);
+            $this->assertStringNotContainsString('just published something', $html, $template);
+            $this->assertStringContainsString('flower.jpg', $html, $template);
+        }
+
+        // And a digest's defaults stay with digests.
+        $this->assertStringContainsString('went up on the blog', $this->make('Letter', ER::POSTS_EMAIL_DIGEST));
+        $this->assertStringNotContainsString('went up on the blog', $this->make('Letter', ER::NEW_PUBLISH_POST));
+    }
+
+    public function test_category_labels()
+    {
+        $term = self::factory()->category->create(['name' => 'Bulbs & Seeds']);
+        foreach ($this->posts as $post) wp_set_post_categories($post->ID, [$term]);
+
+        foreach (['Ledger', 'Spotlight'] as $template) {
+            $this->assertStringContainsString('Bulbs &amp; Seeds', $this->make($template, ER::NEW_PUBLISH_POST), $template);
+            $this->assertStringContainsString('Bulbs &amp; Seeds', $this->make($template, ER::POSTS_EMAIL_DIGEST), $template);
+        }
+
+        // Folio has none.
+        $this->assertStringNotContainsString('Bulbs &amp; Seeds', $this->make('Folio', ER::NEW_PUBLISH_POST));
+
+        // "Uncategorized" isn't shown, and its empty label leaves no row behind.
+        foreach ($this->posts as $post) wp_set_post_categories($post->ID, [(int)get_option('default_category')]);
+        $html = $this->make('Ledger', ER::NEW_PUBLISH_POST);
+        $this->assertStringNotContainsString('Uncategorized', $html);
+        $this->assertStringNotContainsString('<!--mo-post-category-->', $html);
+    }
+
+    public function test_spotlight_leads_with_the_newest_post()
+    {
+        $html = $this->make('Spotlight', ER::POSTS_EMAIL_DIGEST, ['column_count' => '3']);
+
+        // The first post is drawn once, in the lead, before the others.
+        $first = $this->posts[0]->post_title;
+        $this->assertSame(1, substr_count($html, '>' . $first . '<'));
+        $this->assertLessThan(strpos($html, $this->posts[1]->post_title), strpos($html, $first));
+        // The other three fill one row of three.
+        $this->assertSame(3, substr_count($html, 'class="mj-column-per-33-33 '));
+    }
+
+    public function test_ledger_and_letter_use_links_not_buttons()
+    {
+        $ledger = $this->make('Ledger', ER::NEW_PUBLISH_POST);
+        $this->assertStringContainsString('Continue reading →', $ledger);
+        $this->assertStringNotContainsString('bgcolor="#9b2226"', $ledger);
+
+        $this->assertStringContainsString('Read it on the blog →', $this->make('Letter', ER::NEW_PUBLISH_POST));
+    }
+
+    public function test_spotlight_lead_keeps_its_link_and_text()
+    {
+        // Links off: the lead's button is still there, and its excerpt opens the body.
+        $html = $this->make('Spotlight', ER::POSTS_EMAIL_DIGEST, ['content_remove_post_link' => true]);
+        $this->assertStringContainsString('href="' . esc_url(get_permalink($this->posts[0])) . '"', $html);
+        $this->assertStringContainsString('Notes on tulips in november', $html);
+
+        // One post, excerpt and button off: no empty white band.
+        $this->posts = [$this->posts[0]];
+        $html = $this->make('Spotlight', ER::POSTS_EMAIL_DIGEST, ['content_remove_post_body' => true, 'content_remove_ellipsis_button' => true]);
+        $this->assertStringContainsString('Tulips in November', $html);
+        $this->assertStringNotContainsString('<tbody></tbody>', preg_replace('/\s+/', '', $html));
+    }
+
+    public function test_spotlight_yellow_stays_on_the_dark_band()
+    {
+        $html = $this->make('Spotlight', ER::POSTS_EMAIL_DIGEST, ['column_count' => '2']);
+
+        // The compact links on white use the dark button colour, not the yellow.
+        $this->assertDoesNotMatchRegularExpression('/<a [^>]*color:\s*#f2b705[^>]*>[^<]*Read the story/i', $html);
+        $this->assertMatchesRegularExpression('/color:\s*#f2b705/i', $html, 'The lead keeps its yellow label.');
+    }
+
+    public function test_letter_has_a_web_version_link()
+    {
+        $this->assertStringContainsString('{{webversion}}', $this->make('Letter', ER::NEW_PUBLISH_POST));
+    }
 }

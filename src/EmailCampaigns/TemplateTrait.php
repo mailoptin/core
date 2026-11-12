@@ -27,6 +27,35 @@ trait TemplateTrait
      *
      * @return false|string
      */
+    /**
+     * The post's first category (a product's, for WooCommerce products), or '' for none or the
+     * default "Uncategorized".
+     *
+     * @param int|WP_Post $post
+     *
+     * @return string not escaped
+     */
+    public function post_category($post)
+    {
+        $post = get_post($post);
+
+        if ( ! $post) return '';
+
+        $taxonomy = 'product' === $post->post_type ? 'product_cat' : 'category';
+        $terms    = get_the_terms($post, $taxonomy);
+
+        if (empty($terms) || is_wp_error($terms)) return '';
+
+        foreach ($terms as $term) {
+            if ('category' === $taxonomy && (int)$term->term_id === (int)get_option('default_category')) continue;
+            if ('product_cat' === $taxonomy && (int)$term->term_id === (int)get_option('default_product_cat')) continue;
+
+            return (string)apply_filters('mailoptin_email_post_category', $term->name, $post, $term);
+        }
+
+        return '';
+    }
+
     public function post_url($post)
     {
         if ($post instanceof \stdClass) {

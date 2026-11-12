@@ -25,6 +25,42 @@ class EmailTemplatesRepository extends AbstractRepository
                     'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/folio-digest.png'
                 ),
                 array(
+                    'name'           => 'Ledger',
+                    'template_class' => 'Ledger',
+                    'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/ledger.png'
+                ),
+                array(
+                    'name'           => 'Ledger',
+                    'template_class' => 'Ledger',
+                    'campaign_type'  => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/ledger-digest.png'
+                ),
+                array(
+                    'name'           => 'Letter',
+                    'template_class' => 'Letter',
+                    'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/letter.png'
+                ),
+                array(
+                    'name'           => 'Letter',
+                    'template_class' => 'Letter',
+                    'campaign_type'  => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/letter-digest.png'
+                ),
+                array(
+                    'name'           => 'Spotlight',
+                    'template_class' => 'Spotlight',
+                    'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/spotlight.png'
+                ),
+                array(
+                    'name'           => 'Spotlight',
+                    'template_class' => 'Spotlight',
+                    'campaign_type'  => EmailCampaignRepository::POSTS_EMAIL_DIGEST,
+                    'screenshot'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/spotlight-digest.png'
+                ),
+                array(
                     'name'           => 'Lucid',
                     'template_class' => 'Lucid',
                     'campaign_type'  => EmailCampaignRepository::NEW_PUBLISH_POST,
