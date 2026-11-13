@@ -80,6 +80,9 @@ class Starters
             if ( ! in_array((string)$context_id, $starter['contexts'], true)) return false;
             if ('' === $starter['needs']) return true;
 
+            // Products and discount codes in a broadcast: Premium, with a shop running.
+            if ('broadcast_shop' === $starter['needs']) return \MailOptin\Core\EmailBlocks\Builtin\ShopBlock::broadcasts_available();
+
             if (null === $provides) $provides = self::trigger_provides($args);
 
             return in_array($starter['needs'], $provides, true);
@@ -341,6 +344,40 @@ class Starters
                 'content'     => function () use ($hi) {
                     return [
                         self::text(self::p($hi, self::prompt(__('Write as you would to one reader. A short note works best: one idea, one link.', 'mailoptin')), '<a href="' . esc_url(home_url('/')) . '">' . self::prompt(__('The one link', 'mailoptin')) . ' &rarr;</a>', esc_html__('[Sign-off],', 'mailoptin') . '<br>' . self::prompt(__('Your name', 'mailoptin')))),
+                    ];
+                },
+            ],
+            [
+                'id'          => 'sale',
+                'name'        => __('Sale', 'mailoptin'),
+                'description' => __('A sale headline, a discount code and products in a grid.', 'mailoptin'),
+                'blocks'      => __('Text, Discount code, Products (2 columns), Button', 'mailoptin'),
+                'needs'       => 'broadcast_shop',
+                'content'     => function () {
+                    return [
+                        self::text('<h1>' . self::prompt(__('Sale headline', 'mailoptin')) . '</h1>' . self::p(self::prompt(__('When it ends and what\'s included.', 'mailoptin')))),
+                        ['id' => self::id('discount'), 'type' => 'discount_code', 'settings' => ['code_mode' => 'existing', 'existing_code' => self::prompt_text(__('CODE', 'mailoptin')), 'button_text' => '']],
+                        ['id' => self::id('products'), 'type' => 'products', 'settings' => ['product_source' => 'on_sale', 'product_count' => '4', 'product_columns' => '2']],
+                        self::button(__('Shop the sale', 'mailoptin'), function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : ''),
+                    ];
+                },
+            ],
+            [
+                'id'          => 'product-launch',
+                'name'        => __('Product launch', 'mailoptin'),
+                'description' => __('A new product with its picture, what it does and a buy button.', 'mailoptin'),
+                'blocks'      => __('Text, Products (1), Text, Columns (2 points)', 'mailoptin'),
+                'needs'       => 'broadcast_shop',
+                'content'     => function () {
+                    $point = function ($title, $text) { return [self::text('<h3>' . esc_html($title) . '</h3><p>' . esc_html($text) . '</p>')]; };
+
+                    return [
+                        self::text('<h1>' . self::prompt(__('Introducing your new product', 'mailoptin')) . '</h1>' . self::p(self::prompt(__('One or two sentences: what it is and who it\'s for.', 'mailoptin')))),
+                        ['id' => self::id('products'), 'type' => 'products', 'settings' => ['product_source' => 'newest', 'product_count' => '1', 'product_columns' => '1', 'button_text' => __('Buy now', 'mailoptin')]],
+                        self::columns('50-50', [
+                            $point(self::prompt_text(__('Why it\'s good', 'mailoptin')), self::prompt_text(__('A benefit, in a sentence.', 'mailoptin'))),
+                            $point(self::prompt_text(__('How it\'s made', 'mailoptin')), self::prompt_text(__('A detail people care about.', 'mailoptin'))),
+                        ]),
                     ];
                 },
             ],

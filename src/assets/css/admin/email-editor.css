@@ -162,3 +162,17 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-ee-insert:hover .mo-ee-insert-add, .mo-ee-insert-add:focus { opacity: 1; }
 #mo-ee-blocks:hover .mo-ee-insert-add { opacity: .35; }
 #mo-ee-blocks .mo-ee-insert:hover .mo-ee-insert-add { opacity: 1; }
+
+/* Searched lists (the Posts block's posts, the Products block's products) */
+.mo-ee-search { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.mo-ee-search-chosen { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.mo-ee-search-chosen:empty { display: none; }
+.mo-ee-search-chip { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 2px 4px 2px 10px; background: #f0f6fc; border: 1px solid #c5d9ed; border-radius: 12px; font-size: 12px; }
+.mo-ee-search-remove { border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; color: #50575e; }
+.mo-ee-search-remove:hover, .mo-ee-search-remove:focus { color: #b32d2e; }
+.mo-ee-search-results { margin: 0; padding: 0; list-style: none; border: 1px solid #dcdcde; border-radius: 4px; background: #fff; max-height: 220px; overflow-y: auto; }
+.mo-ee-search-results:empty { display: none; }
+.mo-ee-search-result, .mo-ee-search-none { margin: 0; padding: 6px 10px; }
+.mo-ee-search-result { cursor: pointer; }
+.mo-ee-search-result:hover, .mo-ee-search-result:focus { background: #f0f6fc; outline: none; }
+.mo-ee-search-none { color: #646970; }

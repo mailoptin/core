@@ -104,6 +104,25 @@ abstract class Store
         return home_url('/');
     }
 
+    /**
+     * Products for an email's Products block.
+     *
+     * @param array $args source (chosen|category|on_sale|newest), ids, category, count
+     *
+     * @return array[] each: id, name, url, image, price, regular ('' unless on sale), percent
+     *                 (prices as HTML-safe text)
+     */
+    public function products($args)
+    {
+        return [];
+    }
+
+    /** Product categories for the block's settings: id => name. */
+    public function product_categories()
+    {
+        return [];
+    }
+
     /** Remove codes the automations made that were never used, a while after they expired. */
     public function purge_coupons()
     {

@@ -49,6 +49,70 @@ class WooStore extends Store
         return html_entity_decode(wp_strip_all_tags(wc_price((float)$amount, $currency ? ['currency' => $currency] : [])), ENT_QUOTES, 'UTF-8');
     }
 
+    public function products($args)
+    {
+        if ( ! $this->active()) return [];
+
+        $count = max(1, min(12, absint($args['count'] ?? 4)));
+        $query = ['status' => 'publish', 'visibility' => 'catalog', 'limit' => $count, 'orderby' => 'date', 'order' => 'DESC', 'return' => 'ids'];
+        // As the shop shows them: out-of-stock products hidden when the shop hides them.
+        if ('yes' === get_option('woocommerce_hide_out_of_stock_items')) $query['stock_status'] = 'instock';
+
+        switch ((string)($args['source'] ?? 'newest')) {
+            case 'chosen':
+                $ids = array_values(array_filter(array_map('absint', (array)($args['ids'] ?? []))));
+                if ( ! $ids) return [];
+                $query = ['status' => 'publish', 'include' => $ids, 'limit' => count($ids), 'orderby' => 'include', 'return' => 'ids'];
+                break;
+            case 'category':
+                $term = get_term(absint($args['category'] ?? 0), 'product_cat');
+                if ( ! $term || is_wp_error($term)) return [];
+                $query['category'] = [$term->slug];
+                break;
+            case 'on_sale':
+                $sale = wc_get_product_ids_on_sale();
+                if ( ! $sale) return [];
+                // Variations on sale count as their product.
+                $parents = array_filter(array_map('wp_get_post_parent_id', $sale));
+                $query['include'] = array_values(array_unique(array_merge($sale, $parents)));
+                break;
+        }
+
+        // Prices as the post templates show them (sale, "From").
+        $price = new class {
+            use \MailOptin\Core\EmailCampaigns\TemplateTrait;
+
+            public $email_campaign_id = 0;
+        };
+
+        $out = [];
+        foreach ((array)wc_get_products($query) as $id) {
+            $product = wc_get_product($id);
+            if ( ! $product || $product->is_type('variation')) continue;
+            $data  = (array)$price->product_data($id);
+            $bits  = $this->product_bits($id);
+            $out[] = [
+                'id'      => (int)$id,
+                'name'    => $product->get_name(),
+                'url'     => $bits['url'],
+                'image'   => ($product->get_image_id() ? (string)wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_single') : '') ?: $bits['image'],
+                'price'   => (string)($data['price'] ?? ''),
+                'regular' => (string)($data['regular'] ?? ''),
+                'percent' => (int)($data['percent'] ?? 0),
+            ];
+            if (count($out) >= $count) break;
+        }
+
+        return $out;
+    }
+
+    public function product_categories()
+    {
+        $terms = $this->active() ? get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false]) : [];
+
+        return is_wp_error($terms) ? [] : wp_list_pluck((array)$terms, 'name', 'term_id');
+    }
+
     protected function product_bits($product_id, $variation_id = 0)
     {
         $product = $this->active() ? wc_get_product($variation_id ?: $product_id) : null;

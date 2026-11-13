@@ -317,6 +317,12 @@ class BlocksTest extends \WP_UnitTestCase
 
         // No posts chosen: nothing.
         $this->assertSame('', $this->blocks()->render([['id' => 'p', 'type' => 'posts', 'settings' => ['post_list' => []]]], $this->email));
+
+        // A chosen post made private since doesn't go out.
+        $secret = self::factory()->post->create(['post_title' => 'Gone private', 'post_status' => 'private']);
+        $html   = $this->blocks()->render([['id' => 'p', 'type' => 'posts', 'settings' => ['post_list' => [$a, $secret]]]], $this->email);
+        $this->assertStringContainsString("?p=$a\"", $html);
+        $this->assertStringNotContainsString('Gone private', $html);
     }
 
     public function test_a_posts_block_keeps_its_posts_when_saved()

@@ -30,7 +30,7 @@ class EmailEditor
         add_action('admin_enqueue_scripts', [$this, 'enqueue']);
         add_filter('admin_body_class', [$this, 'body_class']);
 
-        foreach (['preview', 'save', 'test'] as $action) {
+        foreach (['preview', 'save', 'test', 'search'] as $action) {
             add_action('wp_ajax_mo_email_editor_' . $action, [$this, 'ajax_' . $action]);
         }
 
@@ -564,7 +564,15 @@ HTML;
             foreach ($group['items'] as $item) $known[] = $item['key'];
         }
 
-        return Checks::run($state, $html, $known);
+        $checks = Checks::run($state, $html, $known);
+
+        // A broadcast's discount code: the same for everyone, so a coupon the shop must have.
+        if (ER::NEWSLETTER === ER::get_email_campaign_type($email_campaign_id)) {
+            $warn = array_merge(Checks::unavailable_block_warnings($state, $email_campaign_id), Checks::broadcast_discount_warnings($state));
+            if ($warn) $checks = array_merge($warn, $checks);
+        }
+
+        return $checks;
     }
 
     /**
@@ -640,6 +648,9 @@ HTML;
                 'show'              => __('Show', 'mailoptin'),
                 'addHere'           => __('+ Add an element here', 'mailoptin'),
                 'search'            => __('Search…', 'mailoptin'),
+                'noResults'         => __('Nothing found.', 'mailoptin'),
+                /* translators: %s: a post's or product's title */
+                'removeItem'        => __('Remove %s', 'mailoptin'),
                 'fallback'          => __('If empty, show', 'mailoptin'),
                 'fallbackHint'      => __('Optional, e.g. "there" in "Hi {{…|there}}".', 'mailoptin'),
                 'testSent'   => __('Test sent.', 'mailoptin'),
@@ -706,6 +717,15 @@ HTML;
                 break;
             case 'select':
             case 'font_family':
+                // A list searched for (posts, products): chosen ones as chips, a search box to add more.
+                if ( ! empty($field['search'])) {
+                    $html .= '<div class="mo-ee-search" data-search="' . esc_attr($field['search']) . '">'
+                             . '<select class="mo-ee-input mo-ee-search-value" data-name="' . $name . '" multiple hidden aria-hidden="true" tabindex="-1"></select>'
+                             . '<ul class="mo-ee-search-chosen" aria-label="' . esc_attr__('Chosen', 'mailoptin') . '"></ul>'
+                             . '<input type="search" class="mo-ee-search-input regular-text" placeholder="' . esc_attr__('Type to search…', 'mailoptin') . '" aria-label="' . esc_attr($field['label'] ?? '') . '" autocomplete="off">'
+                             . '<ul class="mo-ee-search-results" role="listbox"></ul></div>';
+                    break;
+                }
                 $html .= '<select class="mo-ee-input" data-name="' . $name . '"' . ( ! empty($field['multiple']) ? ' multiple' : '') . '>' . self::options_html($field['choices'] ?? []) . '</select>';
                 break;
             default:
@@ -862,6 +882,41 @@ HTML;
         $reload = $template && array_keys(self::design_fields($email_campaign_id)) !== array_keys($old_fields);
 
         wp_send_json_success(['version' => self::version($email_campaign_id), 'state' => self::state($email_campaign_id), 'reload' => $reload]);
+    }
+
+    /**
+     * Posts or products for a searched list (the Posts block's posts, the Products block's products):
+     * matching a search, or the titles of ids already chosen.
+     */
+    public function ajax_search()
+    {
+        self::authorize();
+
+        $kind      = 'products' === ($_POST['kind'] ?? '') ? 'products' : 'posts';
+        $post_type = 'products' === $kind ? 'product' : sanitize_key((string)wp_unslash($_POST['post_type'] ?? 'post'));
+        $object    = get_post_type_object($post_type);
+
+        // Only types that are public and that this person may read.
+        if ( ! $object || ! $object->public || ! current_user_can($object->cap->read)) wp_send_json_success([]);
+
+        $args = ['post_type' => $post_type, 'post_status' => 'publish', 'posts_per_page' => 20, 'no_found_rows' => true, 'suppress_filters' => false];
+        $ids  = array_values(array_filter(array_map('absint', explode(',', (string)wp_unslash($_POST['ids'] ?? '')))));
+
+        if ($ids) {
+            $args['post__in']       = array_slice($ids, 0, 100);
+            $args['posts_per_page'] = count($args['post__in']);
+            $args['orderby']        = 'post__in';
+        } else {
+            $args['s'] = sanitize_text_field((string)wp_unslash($_POST['term'] ?? ''));
+            if (mb_strlen($args['s']) < 2) wp_send_json_success([]);
+        }
+
+        $found = [];
+        foreach (get_posts($args) as $post) {
+            $found[] = ['id' => (string)$post->ID, 'text' => html_entity_decode(get_the_title($post), ENT_QUOTES, 'UTF-8') ?: '#' . $post->ID];
+        }
+
+        wp_send_json_success($found);
     }
 
     /**

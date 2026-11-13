@@ -36,13 +36,18 @@ class DiscountCode extends ShopBlock
         return '';
     }
 
+    protected function for_broadcasts()
+    {
+        return true;
+    }
+
     public function fields()
     {
         return [
                 'code_mode'     => ['type' => 'select', 'label' => __('Code', 'mailoptin'), 'choices' => [
                     self::MODE_NEW      => __('A new code for each person (single use, tied to their email address)', 'mailoptin'),
                     self::MODE_EXISTING => __('A coupon you already have (everyone gets the same code)', 'mailoptin'),
-                ], 'default' => self::MODE_NEW, 'tab' => 'content'],
+                ], 'default' => self::MODE_NEW, 'description' => __('In a broadcast everyone gets the same code: a coupon you already have.', 'mailoptin'), 'tab' => 'content'],
                 'existing_code' => ['type' => 'text', 'label' => __('Coupon code', 'mailoptin'), 'description' => __('For "a coupon you already have".', 'mailoptin'), 'default' => '', 'tab' => 'content'],
                 'discount_type' => ['type' => 'select', 'label' => __('Discount', 'mailoptin'), 'choices' => [
                     'percent'       => __('Percentage off', 'mailoptin'),
@@ -94,12 +99,14 @@ class DiscountCode extends ShopBlock
 
         if ( ! $store) return '';
 
-        if (self::MODE_EXISTING === ($settings['code_mode'] ?? '')) {
+        // A broadcast is the same email for everyone: a coupon the shop has (or a code typed in).
+        if ('broadcast' === $mode || self::MODE_EXISTING === ($settings['code_mode'] ?? '')) {
             $code    = strtoupper(trim((string)($settings['existing_code'] ?? '')));
             $expires = '';
             // An existing coupon's own terms apply: say only what the code is.
             $terms   = '';
             if ('' === $code || ('send' === $mode && ! $store->coupon_exists($code))) return '';
+            // The editor's checks say when a broadcast's code isn't a coupon in the shop.
         } elseif ('send' !== $mode) {
             // A preview or a test: a sample code, no coupon made.
             $code    = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string)($settings['prefix'] ?? ''))) . ('' !== (string)($settings['prefix'] ?? '') ? '-' : '') . 'SAMPLE';

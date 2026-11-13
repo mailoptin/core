@@ -102,6 +102,8 @@ trait MjmlPostTemplate
             }, 10, 2);
         }
 
+        if ($this->is_newsletter()) add_filter('mailoptin_email_block_defaults', [$this, 'shop_block_defaults'], 10, 3);
+
         // Market's offer strip: a setting of its own, so its default is added to the email's defaults
         // (the editor and the Customizer then show it, and save it like any other).
         if ($this->design_value('offer_strip')) {
@@ -1040,6 +1042,23 @@ CSS;
         $defaults['posts']['read_more_color']  = $accent;
         $defaults['posts']['post_font_family'] = $head;
         $defaults['posts']['block_padding']    = $pad(8, 16);
+
+        return $defaults;
+    }
+
+    /**
+     * The shop blocks (Products, Discount code, Cart contents...) in this look's button colours, for
+     * this email only (mailoptin_email_block_defaults).
+     */
+    public function shop_block_defaults($defaults, $block_id, $email_campaign_id = 0)
+    {
+        if ((int)$email_campaign_id !== (int)$this->email_campaign_id || ! array_key_exists('button_background_color', $defaults)) return $defaults;
+
+        $look = (array)$this->design_value('defaults', []);
+
+        $defaults['button_background_color'] = $look['content_ellipsis_button_background_color'] ?? $defaults['button_background_color'];
+        $defaults['button_color']            = $look['content_ellipsis_button_text_color'] ?? $defaults['button_color'];
+        if (isset($defaults['block_padding'])) $defaults['block_padding'] = ['top' => '8', 'right' => '0', 'bottom' => '16', 'left' => '0'];
 
         return $defaults;
     }

@@ -26,7 +26,7 @@ class EmailEditorTest extends \WP_Ajax_UnitTestCase
         // admin_init runs update checks; no network in tests.
         add_filter('pre_http_request', function () { return ['headers' => [], 'body' => '', 'response' => ['code' => 200, 'message' => 'OK'], 'cookies' => []]; });
         // Hooks are reset after each test; the editor is a single instance.
-        foreach (['preview', 'save', 'test'] as $action) add_action('wp_ajax_mo_email_editor_' . $action, [EmailEditor::get_instance(), 'ajax_' . $action]);
+        foreach (['preview', 'save', 'test', 'search'] as $action) add_action('wp_ajax_mo_email_editor_' . $action, [EmailEditor::get_instance(), 'ajax_' . $action]);
 
         $this->email = ER::add_email_campaign('Editor ' . uniqid(), ER::NEWSLETTER, 'Lucid');
         ER::update_settings_by_id($this->email, ['email_campaign_title' => 'Hello', 'email_newsletter_content' => wp_json_encode([['id' => 'a', 'type' => 'text', 'settings' => ['text_content' => 'First']]])]);
@@ -138,5 +138,47 @@ class EmailEditorTest extends \WP_Ajax_UnitTestCase
         $res = $this->call('preview', ['state' => '{}']);
         $this->assertFalse($res['success']);
         $this->assertSame('Hello', ER::get_customizer_value($this->email, 'email_campaign_title'));
+    }
+
+    public function test_search_finds_published_posts_by_title_and_by_id()
+    {
+        $match = self::factory()->post->create(['post_title' => 'Zebra crossing guide']);
+        $other = self::factory()->post->create(['post_title' => 'Unrelated']);
+        self::factory()->post->create(['post_title' => 'Zebra draft', 'post_status' => 'draft']);
+
+        $res = $this->call('search', ['kind' => 'posts', 'post_type' => 'post', 'term' => 'Zebra']);
+        $this->assertTrue($res['success']);
+        $this->assertSame([['id' => (string)$match, 'text' => 'Zebra crossing guide']], $res['data']);
+
+        // Saved ids come back in the saved order, with their titles.
+        $res = $this->call('search', ['kind' => 'posts', 'post_type' => 'post', 'ids' => $other . ',' . $match]);
+        $this->assertSame([(string)$other, (string)$match], array_column($res['data'], 'id'));
+
+        // Too short a term finds nothing.
+        $this->assertSame([], $this->call('search', ['kind' => 'posts', 'term' => 'Z'])['data']);
+    }
+
+    public function test_search_only_covers_public_types_and_needs_the_nonce()
+    {
+        register_post_type('mo_private_thing', ['public' => false]);
+        self::factory()->post->create(['post_title' => 'Secret thing', 'post_type' => 'mo_private_thing']);
+
+        $this->assertSame([], $this->call('search', ['kind' => 'posts', 'post_type' => 'mo_private_thing', 'term' => 'Secret'])['data']);
+
+        $res = $this->call('search', ['kind' => 'posts', 'term' => 'Secret', 'nonce' => 'bad']);
+        $this->assertFalse($res['success']);
+
+        $this->_setRole('subscriber');
+        $this->assertFalse($this->call('search', ['kind' => 'posts', 'term' => 'Secret'])['success']);
+    }
+
+    public function test_posts_and_products_pickers_are_searchable()
+    {
+        $posts = \MailOptin\Core\EmailBlocks\Blocks::get_instance()->get('posts');
+        $this->assertSame('posts', $posts->fields()['post_list']['search']);
+
+        $html = EmailEditor::field_html('post_list', $posts->fields()['post_list']);
+        $this->assertStringContainsString('data-search="posts"', $html);
+        $this->assertStringContainsString('mo-ee-search-value', $html);
     }
 }

@@ -18,6 +18,15 @@ class Posts extends ElementBlock
         return 'MailOptin\\Core\\Admin\\Customizer\\CustomControls\\EmailContentBuilder\\Elements\Posts';
     }
 
+    /** The posts are searched for in the editor (there are too many to list). */
+    public function fields()
+    {
+        $fields = parent::fields();
+        if (isset($fields['post_list'])) $fields['post_list']['search'] = 'posts';
+
+        return $fields;
+    }
+
     public function render($settings, $context, Style $style, $id)
     {
         $template = $style->template;
@@ -56,7 +65,8 @@ class Posts extends ElementBlock
     {
         $template = $style->template;
 
-        if ( ! get_post($post)) return '';
+        // Chosen posts made private, drafts or deleted since don't go out.
+        if ( ! get_post($post) || 'publish' !== get_post_status($post)) return '';
 
         $pad     = Mjml::padding($settings['block_padding'] ?? []);
         $font    = esc_attr($style->font_stack($settings['post_font_family'] ?? ''));
