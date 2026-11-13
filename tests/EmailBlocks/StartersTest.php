@@ -92,41 +92,6 @@ class StartersTest extends \WP_UnitTestCase
 
         $this->assertSame(['text'], array_column($content, 'type'));
 
-        // In the picker's thumbnail, a labelled box where each shop block goes.
-        $preview = Starters::get_instance()->content('abandoned-cart', $id, true);
-        $this->assertSame(['text', 'text', 'text'], array_column($preview, 'type'));
-        $this->assertStringContainsString('dashed', $preview[1]['settings']['text_content']);
-    }
-
-    public function test_a_failing_starter_doesnt_break_the_thumbnails()
-    {
-        // A plugin's starter that fails, through the shared instance the picker uses.
-        $shared = Starters::get_instance();
-        $shared->register(['id' => 'broken', 'name' => 'Broken', 'content' => function ($id) { if ($id) throw new \RuntimeException('no'); return []; }]);
-
-        try {
-            $html = EmailEditor::starter_previews('broadcast', 'Folio');
-
-            $this->assertSame('', $html['broken']);
-            $this->assertStringContainsString('[Your headline for this issue]', $html['newsletter']);
-        } finally {
-            $property = new \ReflectionProperty(Starters::class, 'starters');
-            $property->setAccessible(true);
-            $list = $property->getValue($shared);
-            unset($list['broken']);
-            $property->setValue($shared, $list);
-        }
-    }
-
-    public function test_thumbnails_are_drawn_again_after_a_new_post()
-    {
-        // Hooks are reset between tests: the plugin's, as Base adds them on every request.
-        EmailEditor::register_cache_hooks();
-        $before = EmailEditor::starter_previews('broadcast', 'Folio');
-        self::factory()->post->create(['post_title' => 'Brand new post']);
-
-        $this->assertStringContainsString('Brand new post', EmailEditor::starter_previews('broadcast', 'Folio')['newsletter']);
-        $this->assertStringNotContainsString('Brand new post', $before['newsletter']);
     }
 
     public function test_a_plugin_can_add_a_starter()
@@ -138,23 +103,6 @@ class StartersTest extends \WP_UnitTestCase
 
         $this->assertArrayHasKey('acme', $starters->for_context('broadcast'));
         $this->assertInstanceOf(\WP_Error::class, $starters->register(['id' => 'bad']));
-    }
-
-    public function test_thumbnails_are_drawn_and_leave_nothing_behind()
-    {
-        global $wpdb;
-        $table  = ER::email_campaigns_table();
-        $before = (int)$wpdb->get_var("SELECT COUNT(*) FROM $table");
-
-        $html = EmailEditor::starter_previews('broadcast', 'Spotlight');
-
-        $this->assertSame(['', 'blank', 'newsletter', 'announcement', 'welcome', 'event', 'note'], array_keys($html));
-        $this->assertStringContainsString('[The news in one line]', $html['announcement']);
-        $this->assertStringContainsString('#14171a', $html['newsletter'], 'In the chosen look.');
-        $this->assertSame($before, (int)$wpdb->get_var("SELECT COUNT(*) FROM $table"), 'The throwaway emails are deleted.');
-
-        // Kept for a day: the second call draws nothing.
-        $this->assertSame($html, EmailEditor::starter_previews('broadcast', 'Spotlight'));
     }
 
     public function test_prompts_left_are_flagged()

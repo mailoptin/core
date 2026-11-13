@@ -35,102 +35,14 @@ class EmailEditor
         }
 
         add_action('admin_post_mo_email_new', [$this, 'handle_new']);
-        add_action('wp_ajax_mo_email_starter_previews', [$this, 'ajax_starter_previews']);
     }
 
     /**
-     * The picker's thumbnails show the site's posts and settings: drawn again when they change. On
-     * every request (Base).
-     */
-    public static function register_cache_hooks()
-    {
-        add_action('update_option_mailoptin_settings', [__CLASS__, 'flush_starter_previews']);
-        add_action('transition_post_status', [__CLASS__, 'flush_on_publish'], 10, 2);
-    }
-
-    public static function flush_on_publish($new, $old)
-    {
-        if ('publish' === $new || 'publish' === $old) self::flush_starter_previews();
-    }
-
-    public static function flush_starter_previews()
-    {
-        update_option('mo_starter_previews_version', (int)get_option('mo_starter_previews_version', 0) + 1, false);
-    }
-
-    /**
-     * The template picker's styles and its starter thumbnails' script.
+     * The template picker's styles.
      */
     public static function enqueue_picker()
     {
         wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
-        wp_enqueue_script('mailoptin-email-picker', MAILOPTIN_ASSETS_URL . 'js/admin/email-picker.js', ['jquery'], MAILOPTIN_VERSION_NUMBER, true);
-    }
-
-    /**
-     * admin-ajax.php?action=mo_email_starter_previews: each starter layout drawn in a template, for
-     * the picker's thumbnails. Drawn by the code that sends the email, in a throwaway email, and kept
-     * for a day per template and kind of email.
-     */
-    public function ajax_starter_previews()
-    {
-        if ( ! current_user_has_privilege() || ! check_ajax_referer('mo_email_starter_previews', 'nonce', false)) wp_send_json_error(null, 403);
-
-        $context  = self::context(sanitize_key((string)wp_unslash($_POST['context'] ?? '')));
-        $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['template'] ?? ''));
-        // An automation's email: the starters its trigger can fill.
-        $args     = ['automation_id' => absint($_POST['automation_id'] ?? 0)];
-
-        if ( ! $context || ! $context->accepts_template($template) || ER::CODE_YOUR_OWN_TEMPLATE === $template) wp_send_json_error(null, 400);
-
-        wp_send_json_success(self::starter_previews($context->id(), $template, $args));
-    }
-
-    /**
-     * @return array starter id ('' for the template's own default) => the email's HTML
-     */
-    public static function starter_previews($context_id, $template, $args = [])
-    {
-        $ids = array_merge([''], array_keys(Starters::get_instance()->for_context($context_id, $args)));
-
-        // The person's language (admins may differ), the starters offered, and a version bumped when
-        // posts or settings change.
-        $key    = 'mo_starter_previews_' . md5(wp_json_encode([
-                $context_id, $template, $ids, determine_locale(), get_bloginfo('name'), (int)get_option('mo_starter_previews_version', 0),
-                defined('MAILOPTIN_VERSION_NUMBER') ? MAILOPTIN_VERSION_NUMBER : '',
-            ]));
-        $cached = get_transient($key);
-        if (is_array($cached)) return $cached;
-
-        $html = [];
-
-        foreach ($ids as $starter) {
-            // A broadcast, never sent or listed: made, drawn and deleted.
-            $id = ER::add_email_campaign('mo-starter-preview-' . wp_generate_password(12, false), ER::NEWSLETTER, $template);
-            if ( ! $id) continue;
-
-            try {
-                // Blocks this throwaway email can't have (Cart contents) shown as labelled boxes.
-                $content = '' === $starter ? null : Starters::get_instance()->content($starter, $id, $context_id);
-                if (null === $content) {
-                    self::add_starter_content($id);
-                } else {
-                    ER::update_settings_by_id($id, ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($content))]);
-                }
-                $html[$starter] = (new Templatify($id))->forge();
-            } catch (\Throwable $e) {
-                // One starter that fails (a plugin's) has no thumbnail; the others still do.
-                $html[$starter] = '';
-            } finally {
-                ER::delete_settings_by_id($id);
-                ER::delete_campaign_by_id($id);
-                \MailOptin\Core\EmailBlocks\Builtin\ElementBlock::flush_defaults();
-            }
-        }
-
-        set_transient($key, $html, DAY_IN_SECONDS);
-
-        return $html;
     }
 
     /* ---------------------------------------------------------------------------------------------

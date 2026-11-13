@@ -198,14 +198,4 @@ class BroadcastShopBlocksTest extends \WP_UnitTestCase
         remove_all_filters('mailoptin_broadcast_shop_blocks_available');
         $this->assertStringContainsString('The Products element won\'t be sent', $texts());
     }
-
-    public function test_automation_starter_thumbnails_keep_the_shop_boxes()
-    {
-        $id      = $this->broadcast([]);
-        $preview = Starters::get_instance()->content('abandoned-cart', $id, 'automation');
-
-        // Discount code goes in broadcasts now, but this is an automation's layout: a labelled box.
-        $boxes = array_filter(array_column(array_column($preview, 'settings'), 'text_content'), function ($t) { return false !== strpos($t, 'dashed'); });
-        $this->assertCount(2, $boxes);
-    }
 }

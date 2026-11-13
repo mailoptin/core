@@ -106,20 +106,16 @@ class Starters
      *
      * @return array blocks as saved
      */
-    public function content($id, $email_campaign_id, $preview = false)
+    public function content($id, $email_campaign_id)
     {
         $starter = $this->get($id);
         if ( ! $starter) return [];
 
-        return $this->with_defaults((array)call_user_func($starter['content'], $email_campaign_id), $email_campaign_id, $preview);
+        return $this->with_defaults((array)call_user_func($starter['content'], $email_campaign_id), $email_campaign_id);
     }
 
-    /**
-     * @param bool|string $preview for the picker's thumbnail (drawn in a broadcast): the kind of email
-     *                             it's for; a block the email can't have there (Cart contents), or any
-     *                             shop block in an automation's layout, is shown as a labelled box
-     */
-    protected function with_defaults($elements, $email_campaign_id, $preview = false)
+    /** Blocks with the email's defaults; blocks the email can't have are left out. */
+    protected function with_defaults($elements, $email_campaign_id)
     {
         $out = [];
 
@@ -127,20 +123,13 @@ class Starters
             $block = is_array($element) ? Blocks::get_instance()->get($element['type'] ?? '') : null;
             if ( ! $block) continue;
 
-            $boxed = $preview && 'broadcast' !== $preview && $block instanceof Builtin\ShopBlock;
-
-            if ($boxed || ! $block->available_for($email_campaign_id)) {
-                if ($preview) {
-                    $out[] = $this->with_defaults([self::text('<p style="border:1px dashed #a7aaad;padding:18px;text-align:center;color:#646970;">' . esc_html($block->title()) . '</p>')], $email_campaign_id)[0];
-                }
-                continue;
-            }
+            if ( ! $block->available_for($email_campaign_id)) continue;
 
             $element['settings'] = array_replace($block->defaults($email_campaign_id), (array)($element['settings'] ?? []));
 
             if ('columns' === $element['type']) {
-                $element['columns'] = array_map(function ($children) use ($email_campaign_id, $preview) {
-                    return $this->with_defaults((array)$children, $email_campaign_id, $preview);
+                $element['columns'] = array_map(function ($children) use ($email_campaign_id) {
+                    return $this->with_defaults((array)$children, $email_campaign_id);
                 }, (array)($element['columns'] ?? []));
             }
 
