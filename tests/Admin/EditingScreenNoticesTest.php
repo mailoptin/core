@@ -34,8 +34,31 @@ class EditingScreenNoticesTest extends \WP_UnitTestCase
         $this->on_screen(['page' => 'mailoptin-emails', 'view' => 'automations', 'screen' => 'edit', 'id' => 3]);
         $this->assertTrue(is_mailoptin_editing_screen());
 
+        $this->on_screen(['page' => 'mailoptin-emails', 'view' => 'create-broadcast']);
+        $this->assertTrue(is_mailoptin_editing_screen());
+
+        $this->on_screen(['page' => 'mailoptin-emails', 'view' => 'add-new-email-automation']);
+        $this->assertTrue(is_mailoptin_editing_screen());
+
+        $this->on_screen(['page' => 'mailoptin-emails', 'view' => 'automations', 'screen' => 'new']);
+        $this->assertTrue(is_mailoptin_editing_screen());
+
         $this->on_screen(['page' => 'mailoptin-emails', 'view' => 'automations']);
         $this->assertFalse(is_mailoptin_editing_screen(), 'The automations list is not an editor.');
+
+        $this->on_screen(['page' => 'mailoptin-emails', 'view' => ['edit-email']]);
+        $this->assertFalse(is_mailoptin_editing_screen(), 'Odd input is not an editor, and no error.');
+
+        // Others can add their screens.
+        add_filter('mailoptin_is_editing_screen', '__return_true');
+        $this->on_screen(['page' => 'mailoptin-emails', 'view' => 'automations']);
+        $this->assertTrue(is_mailoptin_editing_screen());
+        remove_filter('mailoptin_is_editing_screen', '__return_true');
+
+        // Never on the front end.
+        set_current_screen('front');
+        $_GET = ['page' => 'mailoptin-emails', 'view' => 'edit-email'];
+        $this->assertFalse(is_mailoptin_editing_screen());
 
         $this->on_screen(['page' => 'mailoptin-settings', 'view' => 'edit-email']);
         $this->assertFalse(is_mailoptin_editing_screen());

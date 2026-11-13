@@ -50,6 +50,9 @@ if ( ! class_exists('\MoBFnote')) {
 
             if (defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
 
+            // Not while someone is writing an email or setting up an automation.
+            if (function_exists('\\MailOptin\\Core\\is_mailoptin_editing_screen') && \MailOptin\Core\is_mailoptin_editing_screen()) return;
+
             if ( ! current_user_can('manage_options')) return;
 
             $now = time();

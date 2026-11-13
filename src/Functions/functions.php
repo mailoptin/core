@@ -353,7 +353,7 @@ function is_mailoptin_editing_screen()
     $view   = isset($_GET['view']) ? sanitize_key($_GET['view']) : '';
     $screen = isset($_GET['screen']) ? sanitize_key($_GET['screen']) : '';
 
-    $editing = in_array($view, ['edit-email', 'broadcast', 'create-broadcast'], true) || ('automations' === $view && in_array($screen, ['edit', 'new'], true));
+    $editing = in_array($view, ['edit-email', 'broadcast', 'create-broadcast', 'add-new-email-automation'], true) || ('automations' === $view && in_array($screen, ['edit', 'new'], true));
 
     return (bool)apply_filters('mailoptin_is_editing_screen', $editing);
 }
