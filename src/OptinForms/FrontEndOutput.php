@@ -75,6 +75,9 @@ class FrontEndOutput
                 if ( ! $this->query_level_targeting_rule_checker($id)) {
                     continue;
                 }
+
+                // For checks that cost more (Read Next's related posts): only once targeting has passed.
+                if ( ! apply_filters('mailoptin_show_optin_form_after_targeting', true, $id)) continue;
             }
 
             echo OptinFormFactory::build($id);

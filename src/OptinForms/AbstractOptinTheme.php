@@ -28,10 +28,17 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         add_shortcode('mo-optin-form-submit-button', [$this, 'shortcode_optin_form_submit_button']);
         add_shortcode('mo-optin-form-cta-button', [$this, 'shortcode_optin_form_cta_button']);
         add_shortcode('mo-optin-form-note', [$this, 'shortcode_optin_form_note']);
+        add_shortcode('mo-related-posts', [$this, 'shortcode_related_posts']);
 
         do_action('mo_optin_theme_shortcodes_add', $optin_campaign_id);
 
         parent::__construct($optin_campaign_id);
+    }
+
+    /** Posts related to the one being read (templates such as Read Next). */
+    public function shortcode_related_posts($atts)
+    {
+        return RelatedPosts::render($this, (array)$atts);
     }
 
     public function video_embed_html($html)
