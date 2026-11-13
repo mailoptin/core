@@ -129,9 +129,6 @@ class Base
         require_once __DIR__ . '/Api/functions.php';
         require_once __DIR__ . '/EmailBlocks/functions.php';
         EmailBlocks\Templates::get_instance();
-        // The template picker's starter thumbnails are drawn again when posts or settings change
-        // (posts are published from the block editor through the REST API, not only wp-admin).
-        Admin\EmailEditor\EmailEditor::register_cache_hooks();
 
         $this->admin_hooks();
         Admin\Customizer\EmailCampaign\Customizer::instance();

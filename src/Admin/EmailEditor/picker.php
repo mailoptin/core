@@ -51,27 +51,30 @@ $start     = isset($starters['newsletter']) && 'broadcast' === $context->id() ? 
     </fieldset>
 
     <?php if ($starters) : ?>
-    <fieldset class="mo-ee-picker-grid mo-ee-starters" data-context="<?php echo esc_attr($context->id()); ?>" data-nonce="<?php echo esc_attr(wp_create_nonce('mo_email_starter_previews')); ?>" data-automation="<?php echo esc_attr(absint($args['automation_id'] ?? 0)); ?>">
-        <legend class="mo-ee-picker-legend"><?php esc_html_e('Start from', 'mailoptin'); ?></legend>
-        <p class="description mo-ee-starters-note"><?php esc_html_e('Ready-made content in the template you chose. Edit or delete any part; text in [brackets] is for you to replace.', 'mailoptin'); ?></p>
-        <label class="mo-ee-picker-card">
-            <span class="mo-ee-picker-shot mo-ee-starter-shot" data-starter=""></span>
-            <span class="mo-ee-picker-name">
-                <input type="radio" name="starter" value="" <?php checked('', $start); ?>>
-                <b><?php esc_html_e('Simple message', 'mailoptin'); ?></b>
-            </span>
-            <span class="mo-ee-picker-desc"><?php esc_html_e('A greeting, a button and a sign-off.', 'mailoptin'); ?></span>
-        </label>
-        <?php foreach ($starters as $starter) : ?>
-            <label class="mo-ee-picker-card">
-                <span class="mo-ee-picker-shot mo-ee-starter-shot" data-starter="<?php echo esc_attr($starter['id']); ?>"></span>
-                <span class="mo-ee-picker-name">
-                    <input type="radio" name="starter" value="<?php echo esc_attr($starter['id']); ?>" <?php checked($starter['id'], $start); ?>>
-                    <b><?php echo esc_html($starter['name']); ?></b>
-                </span>
-                <?php if ('' !== $starter['description']) : ?><span class="mo-ee-picker-desc"><?php echo esc_html($starter['description']); ?></span><?php endif; ?>
-            </label>
-        <?php endforeach; ?>
+    <?php
+    // A second, lighter choice under the template: what the email starts with, as short text cards.
+    $options = array_merge([[
+        'id'          => '',
+        'name'        => __('Simple message', 'mailoptin'),
+        'description' => __('A greeting, a button and a sign-off.', 'mailoptin'),
+        'blocks'      => __('Text, Button, Text', 'mailoptin'),
+    ]], array_values($starters));
+    ?>
+    <fieldset class="mo-ee-starters">
+        <legend class="mo-ee-starters-legend"><?php esc_html_e('Start from', 'mailoptin'); ?></legend>
+        <p class="description"><?php esc_html_e('Ready-made content in the template you chose. Edit or delete any part; text in [brackets] is for you to replace.', 'mailoptin'); ?></p>
+        <div class="mo-ee-starters-list">
+            <?php foreach ($options as $option) : ?>
+                <label class="mo-ee-starter">
+                    <input type="radio" name="starter" value="<?php echo esc_attr($option['id']); ?>" <?php checked($option['id'], $start); ?>>
+                    <span class="mo-ee-starter-text">
+                        <b><?php echo esc_html($option['name']); ?></b>
+                        <?php if ('' !== $option['description']) : ?><span class="mo-ee-starter-desc"><?php echo esc_html($option['description']); ?></span><?php endif; ?>
+                        <?php if ('' !== $option['blocks']) : ?><span class="mo-ee-starter-blocks"><?php echo esc_html($option['blocks']); ?></span><?php endif; ?>
+                    </span>
+                </label>
+            <?php endforeach; ?>
+        </div>
     </fieldset>
     <?php endif; ?>
 
