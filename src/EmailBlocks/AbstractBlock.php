@@ -46,6 +46,24 @@ abstract class AbstractBlock
     }
 
     /**
+     * Where the block sits in the editor's "Add a block" palette: basics, layout, content or shop
+     * (see Blocks::groups()). Blocks in a group the palette doesn't know go under "More".
+     */
+    public function group()
+    {
+        return 'more';
+    }
+
+    /**
+     * The block's tile icon in the palette: a name from Icons::PATHS, a "dashicons-*" class, or SVG
+     * path data on a 24px grid. Empty: a generic block icon.
+     */
+    public function palette_icon()
+    {
+        return '';
+    }
+
+    /**
      * @return array tab id => label
      */
     public function tabs()

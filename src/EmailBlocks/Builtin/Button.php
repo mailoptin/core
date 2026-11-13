@@ -39,4 +39,14 @@ class Button extends ElementBlock
             'text'        => esc_html($settings['button_text']),
         ]);
     }
+
+    public function group()
+    {
+        return 'basics';
+    }
+
+    public function palette_icon()
+    {
+        return 'button';
+    }
 }

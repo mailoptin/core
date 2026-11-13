@@ -33,4 +33,14 @@ class ProductsBought extends ProductList
     {
         return $store->order($context);
     }
+
+    public function group()
+    {
+        return 'shop';
+    }
+
+    public function palette_icon()
+    {
+        return 'bought';
+    }
 }

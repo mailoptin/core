@@ -148,4 +148,14 @@ class DiscountCode extends ShopBlock
 
         return $this->text_row($style, $settings, $box, 15, $pad['pad_t'], 4) . $this->button_row($style, $settings, $store->apply_coupon_url($code));
     }
+
+    public function group()
+    {
+        return 'shop';
+    }
+
+    public function palette_icon()
+    {
+        return 'discount';
+    }
 }

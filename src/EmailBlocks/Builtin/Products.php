@@ -172,4 +172,14 @@ class Products extends ShopBlock
 
         return $rows;
     }
+
+    public function group()
+    {
+        return 'shop';
+    }
+
+    public function palette_icon()
+    {
+        return 'products';
+    }
 }

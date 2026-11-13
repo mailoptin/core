@@ -66,15 +66,29 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
                 <?php else : ?>
                 <ol id="mo-ee-blocks" class="mo-ee-blocks"></ol>
                 <p class="mo-ee-empty" id="mo-ee-empty"><?php esc_html_e('No elements yet. Add one below.', 'mailoptin'); ?></p>
-                <h3 class="mo-ee-h"><?php esc_html_e('Add an element', 'mailoptin'); ?></h3>
-                <div class="mo-ee-add">
-                    <?php foreach ($blocks as $id => $block) : ?>
-                        <button type="button" class="mo-ee-add-btn" data-type="<?php echo esc_attr($id); ?>" title="<?php echo esc_attr($block->description()); ?>"><?php echo esc_html($block->title()); ?></button>
-                    <?php endforeach; ?>
-                    <?php if (isset($blocks['columns'], $blocks['image'], $blocks['text'])) : ?>
-                        <button type="button" class="mo-ee-add-btn" data-preset="image-text" title="<?php esc_attr_e('An image on the left, text on the right. Stacks on phones.', 'mailoptin'); ?>"><?php esc_html_e('Image + text', 'mailoptin'); ?></button>
-                        <button type="button" class="mo-ee-add-btn" data-preset="text-image" title="<?php esc_attr_e('Text on the left, an image on the right. Stacks on phones.', 'mailoptin'); ?>"><?php esc_html_e('Text + image', 'mailoptin'); ?></button>
-                    <?php endif; ?>
+                <?php
+                // Image + text and Text + image: two-column presets, shown with the layout blocks.
+                $presets = isset($blocks['columns'], $blocks['image'], $blocks['text']) ? [
+                    'image-text' => [__('Image + text', 'mailoptin'), __('An image on the left, text on the right. Stacks on phones.', 'mailoptin'), 'imagetext'],
+                    'text-image' => [__('Text + image', 'mailoptin'), __('Text on the left, an image on the right. Stacks on phones.', 'mailoptin'), 'textimage'],
+                ] : [];
+                $tile = function ($attr, $value, $title, $description, $icon) {
+                    return '<button type="button" class="mo-ee-add-btn mo-ee-tile" ' . $attr . '="' . esc_attr($value) . '" title="' . esc_attr($description) . '">'
+                        . \MailOptin\Core\EmailBlocks\Icons::html($icon) . '<span class="mo-ee-tile-label">' . esc_html($title) . '</span></button>';
+                };
+                ?>
+                <div class="mo-ee-palette-head">
+                    <h3 class="mo-ee-h"><?php esc_html_e('Add a block', 'mailoptin'); ?></h3>
+                    <span class="mo-ee-palette-hint"><?php esc_html_e('Click to add it at the end', 'mailoptin'); ?></span>
+                </div>
+                <?php // One grid: basics first, then layout, content and shop (the blocks' group() orders them). ?>
+                <div class="mo-ee-add mo-ee-tiles">
+                    <?php foreach ($palette as $group) {
+                        foreach ($group['blocks'] as $id => $block) {
+                            echo $tile('data-type', $id, $block->title(), $block->description(), $block->palette_icon());
+                            if ('columns' === $id) foreach ($presets as $preset => $p) echo $tile('data-preset', $preset, $p[0], $p[1], $p[2]);
+                        }
+                    } ?>
                 </div>
                 <?php endif; ?>
             </section>

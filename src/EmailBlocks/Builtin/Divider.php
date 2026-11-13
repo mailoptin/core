@@ -27,4 +27,14 @@ class Divider extends ElementBlock
             'outlook_width' => Mjml::number(max(0, $style->width - $padding['pad_l'] - $padding['pad_r']) * $width / 100),
         ]);
     }
+
+    public function group()
+    {
+        return 'basics';
+    }
+
+    public function palette_icon()
+    {
+        return 'divider';
+    }
 }

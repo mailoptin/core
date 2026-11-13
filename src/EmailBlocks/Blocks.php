@@ -53,6 +53,48 @@ class Blocks
         });
     }
 
+    /**
+     * The palette's groups, in order: id => label. "more" collects blocks in a group not listed here.
+     */
+    public static function groups()
+    {
+        $groups = (array)apply_filters('mailoptin_email_block_groups', [
+            'basics'  => __('Basics', 'mailoptin'),
+            'layout'  => __('Layout', 'mailoptin'),
+            'content' => __('Content', 'mailoptin'),
+            'shop'    => __('Shop', 'mailoptin'),
+        ]);
+
+        // Keys as a block's group() is read (sanitize_key), so "Social" matches 'social'.
+        $clean = [];
+        foreach ($groups as $id => $label) {
+            $id = sanitize_key((string)$id);
+            if ('' !== $id && 'more' !== $id && ! isset($clean[$id])) $clean[$id] = (string)$label;
+        }
+
+        return $clean + ['more' => __('More', 'mailoptin')];
+    }
+
+    /**
+     * The blocks offered in this email, by palette group (empty groups left out).
+     *
+     * @param AbstractBlock[]|null $available the email's blocks, when already looked up
+     *
+     * @return array group id => ['label' => string, 'blocks' => AbstractBlock[]]
+     */
+    public function palette_for($email_campaign_id, $available = null)
+    {
+        $groups = [];
+        foreach (self::groups() as $id => $label) $groups[$id] = ['label' => $label, 'blocks' => []];
+
+        foreach (null === $available ? $this->available_for($email_campaign_id) : $available as $id => $block) {
+            $group = sanitize_key((string)$block->group());
+            $groups[isset($groups[$group]) ? $group : 'more']['blocks'][$id] = $block;
+        }
+
+        return array_filter($groups, function ($group) { return ! empty($group['blocks']); });
+    }
+
     protected function load()
     {
         if ($this->loaded) return;

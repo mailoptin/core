@@ -25,4 +25,14 @@ class Text extends ElementBlock
             'content'     => wpautop(stripslashes((string)$settings['text_content'])),
         ]);
     }
+
+    public function group()
+    {
+        return 'basics';
+    }
+
+    public function palette_icon()
+    {
+        return 'text';
+    }
 }
