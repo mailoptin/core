@@ -56,6 +56,73 @@ trait TemplateTrait
         return '';
     }
 
+    /**
+     * A WooCommerce product's price for an email: the price shown (the lowest for a variable product,
+     * "From" when they differ), the regular price when on sale, and the percentage off.
+     *
+     * @param int|WP_Post $post
+     *
+     * @return array|null price, regular ('' unless on sale), percent (0 unless on sale); null when
+     *                    the post isn't a product or WooCommerce isn't active. Prices are HTML-safe text.
+     */
+    public function product_data($post)
+    {
+        $post = get_post($post);
+
+        if ( ! $post) return null;
+
+        // Other shops can supply their own (an array with price, regular and percent).
+        $pre = apply_filters('mailoptin_email_product_data_pre', null, $post);
+        if (is_array($pre)) return $pre + ['price' => '', 'regular' => '', 'percent' => 0];
+
+        if ('product' !== $post->post_type || ! function_exists('wc_get_product')) return null;
+
+        $product = wc_get_product($post);
+        if ( ! $product) return null;
+
+        if ($product->is_type('variable')) {
+            // The cheapest variation, and that variation's own regular price.
+            $prices = $product->get_variation_prices(true);
+            if (empty($prices['price'])) return null;
+
+            $key     = array_search(min($prices['price']), $prices['price']);
+            $price   = (float)$prices['price'][$key];
+            $regular = (float)($prices['regular_price'][$key] ?? $price);
+            $from    = $price !== (float)max($prices['price']);
+        } elseif ($product->is_type('grouped')) {
+            // From the cheapest of its products; no sale of its own.
+            $children = array_filter(array_map('wc_get_product', $product->get_children()), function ($child) {
+                return $child && $child->is_visible() && '' !== (string)$child->get_price();
+            });
+            if (empty($children)) return null;
+
+            $amounts = array_map(function ($child) { return (float)wc_get_price_to_display($child); }, $children);
+            $price   = min($amounts);
+            $regular = $price;
+            $from    = $price !== max($amounts);
+        } else {
+            $price   = (float)wc_get_price_to_display($product);
+            $regular = (float)wc_get_price_to_display($product, ['price' => $product->get_regular_price()]);
+            $from    = false;
+        }
+
+        if ('' === (string)$product->get_price()) return null;
+
+        $text = function ($amount) { return trim(wp_strip_all_tags(wc_price($amount))); };
+
+        // Rounded down so a discount is never overstated; under 1% isn't shown as a sale.
+        $percent = $product->is_on_sale() && $regular > $price && $regular > 0 ? (int)floor(($regular - $price) / $regular * 100) : 0;
+        $on_sale = $percent >= 1;
+
+        $data = [
+            'price'   => ($from ? esc_html__('From', 'mailoptin') . ' ' : '') . $text($price),
+            'regular' => $on_sale ? $text($regular) : '',
+            'percent' => $on_sale ? $percent : 0,
+        ];
+
+        return apply_filters('mailoptin_email_product_data', $data, $product, $post);
+    }
+
     public function post_url($post)
     {
         if ($post instanceof \stdClass) {

@@ -380,6 +380,114 @@ class PostTemplatesTest extends \WP_UnitTestCase
         $this->assertStringContainsString('{{webversion}}', $this->make('Letter', ER::NEW_PUBLISH_POST));
     }
 
+    /* Shelf and Market ----------------------------------------------------------------------------- */
+
+    /** The first post is on sale, the second at full price; the others aren't products. */
+    protected function fake_products()
+    {
+        $sale = $this->posts[0]->ID;
+        $full = $this->posts[1]->ID;
+
+        add_filter('mailoptin_email_product_data_pre', function ($data, $post) use ($sale, $full) {
+            if ($post->ID === $sale) return ['price' => '£11.50', 'regular' => '£14.00', 'percent' => 17];
+            if ($post->ID === $full) return ['price' => '£9.50', 'regular' => '', 'percent' => 0];
+
+            return $data;
+        }, 10, 2);
+    }
+
+    public function test_shop_templates_are_listed_before_lucid()
+    {
+        $property = new \ReflectionProperty(EmailTemplatesRepository::class, 'email_templates');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+
+        foreach ([ER::NEW_PUBLISH_POST, ER::POSTS_EMAIL_DIGEST] as $type) {
+            $this->assertSame(['Folio', 'Ledger', 'Letter', 'Spotlight', 'Shelf', 'Market', 'Lucid'], array_values(array_intersect(
+                wp_list_pluck(EmailTemplatesRepository::get_by_type($type), 'template_class'),
+                ['Folio', 'Ledger', 'Letter', 'Spotlight', 'Shelf', 'Market', 'Lucid']
+            )));
+        }
+    }
+
+    public function test_new_product_email_shows_the_price_and_sale()
+    {
+        $this->fake_products();
+
+        $shelf = $this->make('Shelf', ER::NEW_PUBLISH_POST);
+        $this->assertStringContainsString('£11.50', $shelf);
+        $this->assertMatchesRegularExpression('/text-decoration:\s*line-through;?">£14.00/', $shelf);
+        $this->assertStringNotContainsString('−17%', $shelf, 'Shelf has no badge.');
+
+        $market = $this->make('Market', ER::NEW_PUBLISH_POST);
+        $this->assertStringContainsString('−17%', $market);
+        $this->assertStringContainsString('£14.00', $market);
+        foreach (['{{product.', '<!--mo-product'] as $left) $this->assertStringNotContainsString($left, $market);
+    }
+
+    public function test_full_price_product_and_plain_post()
+    {
+        $this->fake_products();
+
+        // Full price: the price, no crossed-out price, no badge.
+        $id   = ER::add_email_campaign('Market ' . uniqid(), ER::NEW_PUBLISH_POST, 'Market');
+        $html = (new NewPostTemplatify($id, $this->posts[1]))->forge();
+        $this->assertStringContainsString('£9.50', $html);
+        $this->assertStringNotContainsString('line-through', $html);
+        $this->assertStringNotContainsString('−', $html);
+
+        // Not a product: drawn as a post, no price rows.
+        $html = (new NewPostTemplatify($id, $this->posts[2]))->forge();
+        $this->assertStringContainsString('Bulb planters', $html);
+        $this->assertStringNotContainsString('mo-wc-price', $html);
+        $this->assertStringNotContainsString('{{product.', $html);
+    }
+
+    public function test_product_digests_follow_the_columns()
+    {
+        $this->fake_products();
+
+        foreach (['Shelf', 'Market'] as $template) {
+            foreach (['1' => null, '2' => 'mj-column-per-50', '3' => 'mj-column-per-33-33'] as $count => $class) {
+                $html = $this->make($template, ER::POSTS_EMAIL_DIGEST, ['column_count' => $count]);
+
+                $this->assertStringContainsString('£11.50', $html, "$template $count");
+                $this->assertStringContainsString('£9.50', $html, "$template $count");
+                if ($class) $this->assertStringContainsString('class="' . $class . ' ', $html, "$template $count");
+                $this->assertSame('Market' === $template ? 1 : 0, substr_count($html, '−17%'), "$template $count: one badge, on the product on sale");
+                $this->assertStringNotContainsString('__MO_', $html);
+            }
+        }
+    }
+
+    public function test_market_offer_strip()
+    {
+        $this->assertStringContainsString('New in the shop', $this->make('Market', ER::NEW_PUBLISH_POST));
+
+        $html = $this->make('Market', ER::NEW_PUBLISH_POST, ['offer_strip_text' => 'Free delivery <b>over</b> £40']);
+        $this->assertStringContainsString('Free delivery &lt;b&gt;over&lt;/b&gt; £40', $html);
+
+        $this->assertStringNotContainsString('New in the shop', $this->make('Market', ER::NEW_PUBLISH_POST, ['offer_strip_text' => '']));
+        $this->assertStringNotContainsString('New in the shop', $this->make('Shelf', ER::NEW_PUBLISH_POST));
+    }
+
+    public function test_woocommerce_price_is_left_out_of_the_excerpt_for_this_email_only()
+    {
+        $market = ER::add_email_campaign('Market ' . uniqid(), ER::NEW_PUBLISH_POST, 'Market');
+        new \MailOptin\Core\EmailCampaigns\NewPublishPost\Templates\Market($market);
+
+        $this->assertFalse(apply_filters('mo_email_automation_display_woocommerce_price', true, $market));
+        $this->assertTrue(apply_filters('mo_email_automation_display_woocommerce_price', true, $market + 1000));
+    }
+
+    public function test_offer_strip_stays_when_the_header_is_removed()
+    {
+        $html = $this->make('Market', ER::NEW_PUBLISH_POST, ['offer_strip_text' => 'Free delivery', 'header_removal' => true]);
+
+        $this->assertStringContainsString('Free delivery', $html);
+        $this->assertStringNotContainsString('[mo_header_logo_text]', $html);
+    }
+
     public function test_ledger_columns_are_divided_by_rules()
     {
         $html = $this->make('Ledger', ER::POSTS_EMAIL_DIGEST, ['column_count' => '3']);
