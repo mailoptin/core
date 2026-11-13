@@ -40,6 +40,7 @@ class AjaxHandler
         // MailOptin_event => nopriv
         $ajax_events = array(
             'track_optin_impression'                   => true,
+            'track_optin_click'                        => true,
             'subscribe_to_email_list'                  => true,
             'send_test_email'                          => false,
             'create_optin_campaign'                    => false,
@@ -1143,6 +1144,16 @@ class AjaxHandler
         (new OptinCampaignStat($optin_campaign_id))->save($stat_type);
 
         do_action('mailoptin_track_impressions', $payload, $optin_campaign_id, $optin_uuid);
+    }
+
+    /**
+     * A click on a related post (Read Next): a conversion for that campaign.
+     */
+    public function track_optin_click()
+    {
+        if ( ! isset($_REQUEST['stat_data']) || ! is_array($_REQUEST['stat_data'])) return;
+
+        \MailOptin\Core\OptinForms\RelatedPosts::track_click(sanitize_data($_REQUEST['stat_data']));
     }
 
     public static function get_valid_optin_impression_campaign_id($payload)
