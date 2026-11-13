@@ -99,7 +99,7 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
                 <?php foreach ($sections as $section => $label) : ?>
                     <details class="mo-ee-section" <?php echo 'body' === $section ? 'open' : ''; ?>>
                         <summary><?php echo esc_html($label); ?></summary>
-                        <?php foreach (EmailEditor::design_fields() as $name => $field) {
+                        <?php foreach (EmailEditor::design_fields($email_campaign_id) as $name => $field) {
                             if (($field['section'] ?? 'body') === $section) echo EmailEditor::field_html($name, $field);
                         } ?>
                     </details>

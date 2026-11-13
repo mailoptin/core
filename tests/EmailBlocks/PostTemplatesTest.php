@@ -64,8 +64,9 @@ class PostTemplatesTest extends \WP_UnitTestCase
             $this->assertContains('Lucid', $names, $type);
         }
 
-        // Not offered for broadcasts: Folio draws posts.
-        $this->assertNotContains('Folio', wp_list_pluck((array)EmailTemplatesRepository::get_by_type(ER::NEWSLETTER), 'template_class'));
+        // Broadcasts get the same looks (their own classes), Folio first and Lucid still there.
+        $broadcast = wp_list_pluck(array_values(\MailOptin\Core\EmailBlocks\Templates::get_instance()->all()), 'id');
+        $this->assertSame(['Folio', 'Ledger', 'Letter', 'Spotlight', 'Shelf', 'Market', 'Lucid'], array_values(array_intersect($broadcast, ['Folio', 'Ledger', 'Letter', 'Spotlight', 'Shelf', 'Market', 'Lucid'])));
     }
 
     public function test_new_post_email()

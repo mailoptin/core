@@ -125,6 +125,25 @@ class Templates
         // Registered with the function before this ran: kept, built-ins don't replace them.
         $early = $this->templates;
 
+        // The MJML looks first (Folio is a new email's default), the same as for post notifications.
+        $looks = [
+            'Folio'     => __('Calm and clean, Georgia titles', 'mailoptin'),
+            'Ledger'    => __('Newspaper: serif, rules, text first', 'mailoptin'),
+            'Letter'    => __('Reads like a personal note', 'mailoptin'),
+            'Spotlight' => __('Magazine: a dark bar, bold type', 'mailoptin'),
+            'Shelf'     => __('Shop: clean and centred', 'mailoptin'),
+            'Market'    => __('Shop: bold, an offer strip', 'mailoptin'),
+        ];
+        foreach ($looks as $id => $description) {
+            $this->register([
+                'id'          => $id,
+                'name'        => $id,
+                'description' => $description,
+                'class'       => 'MailOptin\\Core\\EmailCampaigns\\Newsletter\\Templates\\' . $id,
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/email-templates/' . strtolower($id) . '-broadcast.png',
+            ]);
+        }
+
         $this->register([
             'id'         => 'Lucid',
             'name'       => 'Lucid',
@@ -188,6 +207,14 @@ class Templates
     public static function set_preview($email_campaign_id, $template_id)
     {
         self::$preview[(int)$email_campaign_id] = (string)$template_id;
+    }
+
+    /**
+     * The template an email is drawn in now: the one being previewed, else its own.
+     */
+    public static function template_id_for($email_campaign_id)
+    {
+        return self::$preview[(int)$email_campaign_id] ?? (string)ER::get_template_class($email_campaign_id);
     }
 
     public static function clear_preview()

@@ -36,7 +36,8 @@ class AbstractCustomizer
             $this->email_campaign_type = EmailCampaignRepository::NEWSLETTER;
         }
 
-        $this->email_campaign_class = EmailCampaignRepository::get_template_class($email_campaign_id);
+        // While the editor previews another template (not saved yet), its defaults.
+        $this->email_campaign_class = \MailOptin\Core\EmailBlocks\Templates::template_id_for($email_campaign_id);
 
         $this->customizer_defaults = $this->register_customizer_defaults();
     }

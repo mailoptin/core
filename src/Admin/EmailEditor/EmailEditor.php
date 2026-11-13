@@ -303,8 +303,17 @@ HTML;
      * Design settings (the old Customizer's Body, Header, Content and Footer sections), with their
      * field types: shown on the Design tab and checked on save.
      */
-    public static function design_fields()
+    public static function design_fields($email_campaign_id = 0)
     {
+        // Settings only the email's template has (Market's offer strip).
+        $extra = [];
+        if ($email_campaign_id) {
+            $template = Templates::get_instance()->get(Templates::template_id_for($email_campaign_id));
+            if ($template && is_callable([$template['class'], 'extra_design_fields'])) {
+                $extra = (array)call_user_func([$template['class'], 'extra_design_fields']);
+            }
+        }
+
         $color = function ($label, $section) {
             return ['type' => 'color_picker', 'label' => $label, 'section' => $section];
         };
@@ -328,7 +337,7 @@ HTML;
             'footer_background_color'       => $color(__('Footer background', 'mailoptin'), 'footer'),
             'footer_text_color'             => $color(__('Footer text colour', 'mailoptin'), 'footer'),
             'footer_font_size'              => ['type' => 'range', 'label' => __('Footer text size (px)', 'mailoptin'), 'min' => 8, 'max' => 30, 'step' => 1, 'section' => 'footer'],
-        ]);
+        ] + $extra, $email_campaign_id);
     }
 
     public static function settings_fields()
@@ -356,8 +365,19 @@ HTML;
             return $state;
         }
 
-        foreach (self::design_fields() as $key => $field) $state['design'][$key] = ER::get_merged_customizer_value($email_campaign_id, $key);
-        foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)ER::get_merged_customizer_value($email_campaign_id, $key);
+        // The template first: it adds its defaults (colours, Market's offer strip) to the email's.
+        \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($email_campaign_id);
+
+        // What get_merged_customizer_value() gives each field, with the defaults worked out once and
+        // the settings read once (it works both out again for every field).
+        $defaults = (new \MailOptin\Core\Admin\Customizer\EmailCampaign\AbstractCustomizer($email_campaign_id))->customizer_defaults;
+        $saved    = (array)ER::get_settings_by_id($email_campaign_id);
+        $value    = function ($key) use ($defaults, $saved) {
+            return isset($saved[$key]) ? $saved[$key] : (isset($defaults[$key]) ? $defaults[$key] : '');
+        };
+
+        foreach (self::design_fields($email_campaign_id) as $key => $field) $state['design'][$key] = $value($key);
+        foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)$value($key);
 
         return $state;
     }
@@ -383,7 +403,7 @@ HTML;
 
         $values = ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($state['content'] ?? []))];
 
-        foreach (['design' => self::design_fields(), 'settings' => self::settings_fields()] as $group => $fields) {
+        foreach (['design' => self::design_fields($email_campaign_id), 'settings' => self::settings_fields()] as $group => $fields) {
             $posted = (array)($state[$group] ?? []);
 
             foreach ($fields as $key => $field) {
@@ -392,6 +412,70 @@ HTML;
         }
 
         return $values;
+    }
+
+    /** The template a posted state's design values were made for: the one shown last, else the saved one. */
+    protected static function design_template($state, $email_campaign_id)
+    {
+        $shown = is_string($state['design_template'] ?? null) ? $state['design_template'] : '';
+
+        return '' !== $shown ? $shown : (string)ER::get_template_class($email_campaign_id);
+    }
+
+    /**
+     * The design values an email's template gives it, for the design fields: its defaults.
+     */
+    public static function template_design_defaults($email_campaign_id, $template_id)
+    {
+        Templates::set_preview($email_campaign_id, $template_id);
+
+        try {
+            // The template adds its defaults (colours, Market's offer strip) when it is made.
+            \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($email_campaign_id);
+            $defaults = (new \MailOptin\Core\Admin\Customizer\EmailCampaign\AbstractCustomizer($email_campaign_id))->customizer_defaults;
+            $fields   = self::design_fields($email_campaign_id);
+        } finally {
+            Templates::clear_preview();
+        }
+
+        $values = [];
+        foreach ($fields as $key => $field) $values[$key] = $defaults[$key] ?? '';
+
+        return $values;
+    }
+
+    /**
+     * Switching template: a design value still at a template's default takes the new template's
+     * (a colour the person chose stays), and fields only another template has go.
+     */
+    public static function switch_design($state, $email_campaign_id, $to)
+    {
+        if ( ! is_array($state['design'] ?? null)) return $state;
+
+        $new = self::template_design_defaults($email_campaign_id, $to);
+
+        // A value at any template's default (the saved one's, or a look tried on screen and not
+        // saved) is a default, not a choice.
+        $known = [];
+        foreach (array_keys(Templates::get_instance()->for_email($email_campaign_id)) as $template_id) {
+            if ($template_id === $to) continue;
+            foreach (self::template_design_defaults($email_campaign_id, $template_id) as $key => $value) $known[$key][] = (string)$value;
+        }
+
+        foreach ($state['design'] as $key => $value) {
+            if ( ! array_key_exists($key, $new)) {
+                unset($state['design'][$key]);
+            } elseif (in_array((string)$value, $known[$key] ?? [], true)) {
+                $state['design'][$key] = $new[$key];
+            }
+        }
+
+        // Fields the new template adds (Market's offer strip) start at its default.
+        foreach ($new as $key => $value) {
+            if ( ! array_key_exists($key, $state['design'])) $state['design'][$key] = $value;
+        }
+
+        return $state;
     }
 
     /**
@@ -468,7 +552,7 @@ HTML;
     public static function version($email_campaign_id)
     {
         $saved = (array)Settings::get_saved(Settings::TYPE_EMAIL, $email_campaign_id);
-        $keys  = array_merge(['email_newsletter_content', 'code_your_own'], array_keys(self::design_fields()), array_keys(self::settings_fields()));
+        $keys  = array_merge(['email_newsletter_content', 'code_your_own'], array_keys(self::design_fields($email_campaign_id)), array_keys(self::settings_fields()));
 
         return md5(wp_json_encode([ER::get_template_class($email_campaign_id), array_intersect_key($saved, array_flip($keys))]));
     }
@@ -686,12 +770,17 @@ HTML;
         $email_campaign_id = self::authorize();
         $state             = self::posted_state();
 
+        // Another template chosen, not saved yet: drawn in it, with its colours where the old ones were.
+        $template = self::posted_template($state, $email_campaign_id);
+        // Once per switch: the editor then says which template its design values are for.
+        $switch   = $template && self::design_template($state, $email_campaign_id) !== $template;
+        if ($switch) $state = self::switch_design($state, $email_campaign_id, $template);
+
         foreach (self::clean_state($state, $email_campaign_id) as $key => $value) {
             Settings::set_preview(Settings::TYPE_EMAIL, $email_campaign_id, $key, $value);
         }
 
-        // Another template chosen, not saved yet.
-        if ($template = self::posted_template($state, $email_campaign_id)) Templates::set_preview($email_campaign_id, $template);
+        if ($template) Templates::set_preview($email_campaign_id, $template);
 
         try {
             $html = (new Templatify($email_campaign_id))->forge();
@@ -703,7 +792,14 @@ HTML;
         // Checked as drawn for someone (sample cart and products in), so the size is what's sent.
         $shown = self::with_samples($email_campaign_id, $html);
 
-        wp_send_json_success(['html' => $shown, 'checks' => self::checks($email_campaign_id, $state, $shown)]);
+        $data = ['html' => $shown, 'checks' => self::checks($email_campaign_id, $state, $shown)];
+        // The switched design values, for the Design tab to show.
+        if ($switch && is_array($state['design'] ?? null)) {
+            $data['design']          = $state['design'];
+            $data['design_template'] = $template;
+        }
+
+        wp_send_json_success($data);
     }
 
     /**
@@ -725,14 +821,24 @@ HTML;
             wp_send_json_error(['conflict' => true, 'state' => self::state($email_campaign_id), 'version' => self::version($email_campaign_id)], 409);
         }
 
-        $state = self::posted_state();
+        $state      = self::posted_state();
+        $old_fields = self::design_fields($email_campaign_id);
+        $posted     = self::posted_template($state, $email_campaign_id);
+
+        // Design values made for another template than the one being saved: switched first.
+        if ($posted && self::design_template($state, $email_campaign_id) !== $posted) $state = self::switch_design($state, $email_campaign_id, $posted);
+
+        $template = $posted && $posted !== ER::get_template_class($email_campaign_id) ? $posted : null;
+
+        // Saved with the template in place, so the design fields are the new template's.
+        if ($template) Templates::set_for_email($email_campaign_id, $template);
 
         ER::update_settings_by_id($email_campaign_id, self::clean_state($state, $email_campaign_id));
 
-        $template = self::posted_template($state, $email_campaign_id);
-        if ($template && $template !== ER::get_template_class($email_campaign_id)) Templates::set_for_email($email_campaign_id, $template);
+        // Fields differ between templates: the editor reloads to show the new one's.
+        $reload = $template && array_keys(self::design_fields($email_campaign_id)) !== array_keys($old_fields);
 
-        wp_send_json_success(['version' => self::version($email_campaign_id), 'state' => self::state($email_campaign_id)]);
+        wp_send_json_success(['version' => self::version($email_campaign_id), 'state' => self::state($email_campaign_id), 'reload' => $reload]);
     }
 
     /**

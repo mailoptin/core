@@ -12,9 +12,12 @@ abstract class AbstractTemplate extends \MailOptin\Core\EmailCampaigns\AbstractT
     {
         parent::__construct($email_campaign_id);
 
-        add_filter('mo_ecb_elements_default_values', [$this, 'email_content_builder_element_defaults']);
+        // The email the defaults are for is passed too: a template can keep to its own emails.
+        add_filter('mo_ecb_elements_default_values', [$this, 'email_content_builder_element_defaults'], 10, 2);
 
-        add_action('mo_get_preview_structure_before_closing_head', [$this, 'google_fonts']);
+        // One printer for every template made in the request (the same static callback is added
+        // once): each email's <head> gets the fonts link once, not once per template made before it.
+        add_action('mo_get_preview_structure_before_closing_head', [__CLASS__, 'print_google_fonts']);
     }
 
     public function get_font_family_stack($font_family)
@@ -74,6 +77,11 @@ abstract class AbstractTemplate extends \MailOptin\Core\EmailCampaigns\AbstractT
     }
 
     public function google_fonts()
+    {
+        self::print_google_fonts();
+    }
+
+    public static function print_google_fonts()
     {
         echo <<<HTML
 <!--[if !mso]><!-->
