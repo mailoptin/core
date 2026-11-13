@@ -740,7 +740,7 @@ class Automations_Page
                     echo '<label class="screen-reader-text" for="mo-auto-unit-' . $sid . '">' . esc_html__('Unit', 'mailoptin') . '</label><select id="mo-auto-unit-' . $sid . '" name="' . esc_attr($prefix) . '[unit]">';
                     foreach (self::unit_labels() as $unit => $label) echo '<option value="' . esc_attr($unit) . '"' . selected($unit, $s['unit'] ?? 'days', false) . '>' . esc_html($label) . '</option>';
                     echo '</select> &nbsp; ';
-                    echo '<label><input type="checkbox" name="' . esc_attr($prefix) . '[until_on]" value="1"' . checked('' !== $until, true, false) . '> ' . esc_html__('then until', 'mailoptin') . '</label> ';
+                    echo '<label><input type="checkbox" name="' . esc_attr($prefix) . '[until_on]" value="1"' . checked('' !== $until, true, false) . '> ' . esc_html__('then send at', 'mailoptin') . '</label> ';
                     echo '<label class="screen-reader-text" for="mo-auto-until-' . $sid . '">' . esc_html__('Time of day', 'mailoptin') . '</label><input type="time" id="mo-auto-until-' . $sid . '" name="' . esc_attr($prefix) . '[until]" value="' . esc_attr($until ?: '09:00') . '"> ';
                     echo '<label><input type="checkbox" name="' . esc_attr($prefix) . '[weekdays_only]" value="1"' . checked( ! empty($s['weekdays_only']), true, false) . '> ' . esc_html__('on a weekday', 'mailoptin') . '</label>';
                     echo '</div><div class="mo-auto-tools">' . $tools . '</div>';

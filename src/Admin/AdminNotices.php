@@ -51,6 +51,9 @@ class AdminNotices
 
     public function is_admin_notice_show()
     {
+        // Not while someone is writing an email or setting up an automation.
+        if (\MailOptin\Core\is_mailoptin_editing_screen()) return false;
+
         return apply_filters('mo_ads_admin_notices_display', true);
     }
 
@@ -176,6 +179,8 @@ class AdminNotices
     {
         if ( ! current_user_can('manage_options')) return;
 
+        if (\MailOptin\Core\is_mailoptin_editing_screen()) return;
+
         if ( ! PAnD::is_admin_notice_active('review-plugin-notice-forever')) return;
 
         if (get_option('mo_dismiss_leave_review_forever', false)) return;
@@ -221,6 +226,8 @@ class AdminNotices
         }
 
         if (EmailCampaignRepository::campaign_count() < 1) return;
+
+        if (\MailOptin\Core\is_mailoptin_editing_screen()) return;
 
         if (strpos(\MailOptin\Core\current_url_with_query_string(), MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE) === false) return;
 
