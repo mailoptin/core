@@ -50,6 +50,13 @@ class Templatify implements TemplatifyInterface
         }
 
         $preview_structure = str_replace('{{post.feature.image}}', $feature_image, $preview_structure);
+
+        // The category label (Ledger, Spotlight): left out when the post has none.
+        $category = esc_html($this->post_category($this->post));
+        if ('' === $category) {
+            $preview_structure = preg_replace('#<!--mo-post-category-->.*?<!--/mo-post-category-->#s', '', $preview_structure);
+        }
+        $preview_structure = str_replace('{{post.category}}', $category, $preview_structure);
         $preview_structure = str_replace('{{post.feature.image.alt}}', $this->feature_image_alt($this->post), $preview_structure);
 
         $search = array(
