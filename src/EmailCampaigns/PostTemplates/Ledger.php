@@ -20,6 +20,7 @@ trait Ledger
             'kicker'          => true,
             'list'            => 'stack',
             'footer_rule'     => '#1d1d1d',
+            'column_rule'     => '#ddd6c8',
             'defaults'        => [
                 'page_background_color'                    => '#f4f1ea',
                 'header_background_color'                  => '#fffdf8',

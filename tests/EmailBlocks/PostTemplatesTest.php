@@ -488,4 +488,13 @@ class PostTemplatesTest extends \WP_UnitTestCase
         $this->assertStringContainsString('Free delivery', $html);
         $this->assertStringNotContainsString('[mo_header_logo_text]', $html);
     }
+
+    public function test_ledger_columns_are_divided_by_rules()
+    {
+        $html = $this->make('Ledger', ER::POSTS_EMAIL_DIGEST, ['column_count' => '3']);
+        // A rule before the second and third column of each row (4 posts: 3, then 1).
+        $this->assertSame(2, preg_match_all('/border-left:\s*1px solid #ddd6c8/i', $html));
+
+        $this->assertDoesNotMatchRegularExpression('/border-left:\s*1px solid #ddd6c8/i', $this->make('Folio', ER::POSTS_EMAIL_DIGEST, ['column_count' => '3']));
+    }
 }
