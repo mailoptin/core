@@ -79,6 +79,22 @@ class PaletteTest extends \WP_UnitTestCase
         $this->assertSame('more', array_key_last($palette), 'More stays last.');
     }
 
+    public function test_odd_group_lists_from_the_filter()
+    {
+        // Not an array: the defaults are lost but More still collects everything.
+        add_filter('mailoptin_email_block_groups', '__return_false');
+        $palette = (new Blocks())->palette_for($this->email);
+        $this->assertSame(['more'], array_keys($palette));
+        remove_filter('mailoptin_email_block_groups', '__return_false');
+
+        // "more" can't be moved or renamed; "Social" with a capital still matches 'social'.
+        add_filter('mailoptin_email_block_groups', function () { return ['more' => 'Elsewhere', 'Social' => 'Social', 'basics' => 'Basics']; });
+        $groups = Blocks::groups();
+        $this->assertSame(['social', 'basics', 'more'], array_keys($groups));
+        $this->assertSame('More', $groups['more']);
+        $this->assertSame(['social'], $this->ids((new Blocks())->palette_for($this->email)['social']));
+    }
+
     public function test_empty_groups_are_left_out()
     {
         add_filter('mailoptin_email_block_groups', function ($groups) { return $groups + ['empty' => 'Nothing here']; });

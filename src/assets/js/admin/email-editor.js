@@ -747,9 +747,10 @@
             });
             $('#mo-ee-palette-none').prop('hidden', shown > 0);
         }).on('keydown', function (e) {
-            // Enter adds the first match.
-            if ('Enter' !== e.key) return;
+            // Enter adds the first match (not while composing CJK text, nor with nothing typed).
+            if ('Enter' !== e.key || e.isComposing || (e.originalEvent && e.originalEvent.isComposing)) return;
             e.preventDefault();
+            if (!$.trim(this.value)) return;
             $('.mo-ee-tile').not('[hidden]').first().trigger('click');
         });
 

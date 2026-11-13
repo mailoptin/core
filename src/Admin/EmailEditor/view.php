@@ -73,7 +73,7 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
                     'text-image' => [__('Text + image', 'mailoptin'), __('Text on the left, an image on the right. Stacks on phones.', 'mailoptin'), 'textimage'],
                 ] : [];
                 $tile = function ($attr, $value, $title, $description, $icon) {
-                    return '<button type="button" class="mo-ee-add-btn mo-ee-tile" ' . $attr . '="' . esc_attr($value) . '" title="' . esc_attr($description) . '" data-search="' . esc_attr(strtolower($title . ' ' . $description)) . '">'
+                    return '<button type="button" class="mo-ee-add-btn mo-ee-tile" ' . $attr . '="' . esc_attr($value) . '" title="' . esc_attr($description) . '" data-search="' . esc_attr(function_exists('mb_strtolower') ? mb_strtolower($title . ' ' . $description, 'UTF-8') : strtolower($title . ' ' . $description)) . '">'
                         . \MailOptin\Core\EmailBlocks\Icons::html($icon) . '<span class="mo-ee-tile-label">' . esc_html($title) . '</span></button>';
                 };
                 ?>

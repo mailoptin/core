@@ -671,7 +671,7 @@ HTML;
         }
 
         $blocks    = Blocks::get_instance()->available_for($email_campaign_id);
-        $palette   = Blocks::get_instance()->palette_for($email_campaign_id);
+        $palette   = Blocks::get_instance()->palette_for($email_campaign_id, $blocks);
         $templates = Templates::get_instance()->for_email($email_campaign_id);
 
         include __DIR__ . '/view.php';

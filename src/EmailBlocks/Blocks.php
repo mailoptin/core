@@ -65,22 +65,29 @@ class Blocks
             'shop'    => __('Shop', 'mailoptin'),
         ]);
 
-        unset($groups['more']);
+        // Keys as a block's group() is read (sanitize_key), so "Social" matches 'social'.
+        $clean = [];
+        foreach ($groups as $id => $label) {
+            $id = sanitize_key((string)$id);
+            if ('' !== $id && 'more' !== $id && ! isset($clean[$id])) $clean[$id] = (string)$label;
+        }
 
-        return $groups + ['more' => __('More', 'mailoptin')];
+        return $clean + ['more' => __('More', 'mailoptin')];
     }
 
     /**
      * The blocks offered in this email, by palette group (empty groups left out).
      *
+     * @param AbstractBlock[]|null $available the email's blocks, when already looked up
+     *
      * @return array group id => ['label' => string, 'blocks' => AbstractBlock[]]
      */
-    public function palette_for($email_campaign_id)
+    public function palette_for($email_campaign_id, $available = null)
     {
         $groups = [];
         foreach (self::groups() as $id => $label) $groups[$id] = ['label' => $label, 'blocks' => []];
 
-        foreach ($this->available_for($email_campaign_id) as $id => $block) {
+        foreach (null === $available ? $this->available_for($email_campaign_id) : $available as $id => $block) {
             $group = sanitize_key((string)$block->group());
             $groups[isset($groups[$group]) ? $group : 'more']['blocks'][$id] = $block;
         }
