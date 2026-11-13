@@ -340,6 +340,24 @@ function is_mailoptin_admin_page()
     return (isset($_GET['page']) && in_array($_GET['page'], $mo_admin_pages_slug));
 }
 
+/**
+ * A MailOptin screen where something is being written or set up (the email editor, the broadcast page,
+ * an automation): review requests and feature promotions stay off these.
+ *
+ * @return bool
+ */
+function is_mailoptin_editing_screen()
+{
+    if ( ! is_admin() || ! isset($_GET['page']) || MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG !== $_GET['page']) return false;
+
+    $view   = isset($_GET['view']) ? sanitize_key($_GET['view']) : '';
+    $screen = isset($_GET['screen']) ? sanitize_key($_GET['screen']) : '';
+
+    $editing = in_array($view, ['edit-email', 'broadcast', 'create-broadcast'], true) || ('automations' === $view && in_array($screen, ['edit', 'new'], true));
+
+    return (bool)apply_filters('mailoptin_is_editing_screen', $editing);
+}
+
 function is_mailoptin_customizer_preview()
 {
     return is_customize_preview() && (isset($_GET['mailoptin_optin_campaign_id']) || isset($_GET['mailoptin_email_campaign_id']));

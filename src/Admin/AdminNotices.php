@@ -51,6 +51,9 @@ class AdminNotices
 
     public function is_admin_notice_show()
     {
+        // Not while someone is writing an email or setting up an automation.
+        if (\MailOptin\Core\is_mailoptin_editing_screen()) return false;
+
         return apply_filters('mo_ads_admin_notices_display', true);
     }
 
@@ -175,6 +178,8 @@ class AdminNotices
     public function review_plugin_notice()
     {
         if ( ! current_user_can('manage_options')) return;
+
+        if (\MailOptin\Core\is_mailoptin_editing_screen()) return;
 
         if ( ! PAnD::is_admin_notice_active('review-plugin-notice-forever')) return;
 
