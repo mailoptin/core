@@ -302,7 +302,7 @@
         $select.find('option').each(function () {
             var text = $(this).text();
             $('<li class="mo-ee-search-chip"></li>').text(text).append(
-                $('<button type="button" class="mo-ee-search-remove">&times;</button>').attr('aria-label', (i18n.removeItem || 'Remove %s').replace('%s', text)).data('id', this.value)
+                $('<button type="button" class="mo-ee-search-remove">&times;</button>').attr('aria-label', (i18n.removeItem || 'Remove %s').replace('%s', function () { return text; })).data('id', this.value)
             ).appendTo($list);
         });
     }
@@ -325,6 +325,8 @@
 
         searchRequest($.extend(searchKind($select.closest('.mo-ee-search')), {ids: unknown.join(',')})).done(function (res) {
             if (!res || !res.success) return;
+            // Ids the server didn't find (no longer published) keep their number: don't ask again.
+            unknown.forEach(function (id) { titles[id] = titles[id] || '#' + id; });
             res.data.forEach(function (item) {
                 titles[item.id] = item.text;
                 $select.find('option').filter(function () { return this.value === item.id; }).text(item.text);
@@ -795,13 +797,17 @@
         $('#mo-ee').on('input change', '.mo-ee-input:not(.mo-ee-color)', function () { onField($(this)); });
 
         // Searched lists: type to search, pick a result to add it, × to take it out.
-        var searchTimer = null;
+        // Only the latest search shows: an older reply arriving late, or one for a box since
+        // cleared, is dropped.
+        var searchTimer = null, searchSeq = 0;
         $('#mo-ee').on('input', '.mo-ee-search-input', function () {
             var $input = $(this), $box = $input.closest('.mo-ee-search'), $results = $box.find('.mo-ee-search-results'), term = $.trim($input.val());
+            var seq = ++searchSeq;
             clearTimeout(searchTimer);
             if (term.length < 2) { $results.empty(); return; }
             searchTimer = setTimeout(function () {
                 searchRequest($.extend(searchKind($box), {term: term})).done(function (res) {
+                    if (seq !== searchSeq || $.trim($input.val()) !== term) return;
                     $results.empty();
                     if (!res || !res.success) return;
                     if (!res.data.length) $('<li class="mo-ee-search-none"></li>').text(i18n.noResults || '').appendTo($results);
@@ -818,6 +824,7 @@
             var $box = $(this).closest('.mo-ee-search'), $select = $box.find('.mo-ee-search-value');
             searchAdd($select, $(this).data('id'), $(this).text());
             searchChips($select);
+            clearTimeout(searchTimer); searchSeq++;
             $box.find('.mo-ee-search-results').empty();
             $box.find('.mo-ee-search-input').val('').trigger('focus');
             $select.trigger('change');

@@ -65,7 +65,8 @@ class Posts extends ElementBlock
     {
         $template = $style->template;
 
-        if ( ! get_post($post)) return '';
+        // Chosen posts made private, drafts or deleted since don't go out.
+        if ( ! get_post($post) || 'publish' !== get_post_status($post)) return '';
 
         $pad     = Mjml::padding($settings['block_padding'] ?? []);
         $font    = esc_attr($style->font_stack($settings['post_font_family'] ?? ''));
