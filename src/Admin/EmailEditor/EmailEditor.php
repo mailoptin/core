@@ -391,8 +391,16 @@ HTML;
         // The template first: it adds its defaults (colours, Market's offer strip) to the email's.
         \MailOptin\Core\Admin\Customizer\EmailCampaign\EmailCampaignFactory::make($email_campaign_id);
 
-        foreach (self::design_fields($email_campaign_id) as $key => $field) $state['design'][$key] = ER::get_merged_customizer_value($email_campaign_id, $key);
-        foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)ER::get_merged_customizer_value($email_campaign_id, $key);
+        // What get_merged_customizer_value() gives each field, with the defaults worked out once and
+        // the settings read once (it works both out again for every field).
+        $defaults = (new \MailOptin\Core\Admin\Customizer\EmailCampaign\AbstractCustomizer($email_campaign_id))->customizer_defaults;
+        $saved    = (array)ER::get_settings_by_id($email_campaign_id);
+        $value    = function ($key) use ($defaults, $saved) {
+            return isset($saved[$key]) ? $saved[$key] : (isset($defaults[$key]) ? $defaults[$key] : '');
+        };
+
+        foreach (self::design_fields($email_campaign_id) as $key => $field) $state['design'][$key] = $value($key);
+        foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)$value($key);
 
         return $state;
     }
