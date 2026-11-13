@@ -73,7 +73,7 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
                     'text-image' => [__('Text + image', 'mailoptin'), __('Text on the left, an image on the right. Stacks on phones.', 'mailoptin'), 'textimage'],
                 ] : [];
                 $tile = function ($attr, $value, $title, $description, $icon) {
-                    return '<button type="button" class="mo-ee-add-btn mo-ee-tile" ' . $attr . '="' . esc_attr($value) . '" title="' . esc_attr($description) . '" data-search="' . esc_attr(function_exists('mb_strtolower') ? mb_strtolower($title . ' ' . $description, 'UTF-8') : strtolower($title . ' ' . $description)) . '">'
+                    return '<button type="button" class="mo-ee-add-btn mo-ee-tile" ' . $attr . '="' . esc_attr($value) . '" title="' . esc_attr($description) . '">'
                         . \MailOptin\Core\EmailBlocks\Icons::html($icon) . '<span class="mo-ee-tile-label">' . esc_html($title) . '</span></button>';
                 };
                 ?>
@@ -81,21 +81,14 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
                     <h3 class="mo-ee-h"><?php esc_html_e('Add a block', 'mailoptin'); ?></h3>
                     <span class="mo-ee-palette-hint"><?php esc_html_e('Click to add it at the end', 'mailoptin'); ?></span>
                 </div>
-                <label class="screen-reader-text" for="mo-ee-block-search"><?php esc_html_e('Search blocks', 'mailoptin'); ?></label>
-                <input type="search" id="mo-ee-block-search" class="mo-ee-block-search" placeholder="<?php esc_attr_e('Search blocks', 'mailoptin'); ?>" autocomplete="off">
-                <div class="mo-ee-add">
-                    <?php foreach ($palette as $group_id => $group) : ?>
-                        <div class="mo-ee-group" data-group-id="<?php echo esc_attr($group_id); ?>">
-                            <h4 class="mo-ee-group-h"><?php echo esc_html($group['label']); ?></h4>
-                            <div class="mo-ee-tiles">
-                                <?php foreach ($group['blocks'] as $id => $block) {
-                                    echo $tile('data-type', $id, $block->title(), $block->description(), $block->palette_icon());
-                                    if ('columns' === $id) foreach ($presets as $preset => $p) echo $tile('data-preset', $preset, $p[0], $p[1], $p[2]);
-                                } ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                    <p class="mo-ee-palette-none" id="mo-ee-palette-none" hidden><?php esc_html_e('No blocks match.', 'mailoptin'); ?></p>
+                <?php // One grid: basics first, then layout, content and shop (the blocks' group() orders them). ?>
+                <div class="mo-ee-add mo-ee-tiles">
+                    <?php foreach ($palette as $group) {
+                        foreach ($group['blocks'] as $id => $block) {
+                            echo $tile('data-type', $id, $block->title(), $block->description(), $block->palette_icon());
+                            if ('columns' === $id) foreach ($presets as $preset => $p) echo $tile('data-preset', $preset, $p[0], $p[1], $p[2]);
+                        }
+                    } ?>
                 </div>
                 <?php endif; ?>
             </section>
