@@ -7,6 +7,30 @@ use MailOptin\Core\Repositories\OptinCampaignsRepository as OCR;
 trait PageTargetingRuleTrait
 {
     /**
+     * A page targeting list (post IDs, term IDs, post types) as an array.
+     *
+     * An older version of the Customizer saved these lists as JSON text, and in_array() or
+     * array_intersect() on a string is a fatal error on PHP 8, so decode those and drop anything
+     * that isn't a list.
+     *
+     * @param mixed $value
+     *
+     * @return array
+     */
+    public static function normalize_page_targeting_list($value)
+    {
+        if (is_array($value)) return $value;
+
+        if (is_string($value) && '' !== $value) {
+            $decoded = json_decode($value, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
+    /**
      * Determine if the optin passes page level targeting rules.
      *
      * @param int $id
@@ -37,15 +61,15 @@ trait PageTargetingRuleTrait
         $post_post_type = get_post_type($post_id);
 
         $load_optin_index                = OCR::get_customizer_value($id, 'load_optin_index');
-        $posts_never_load                = OCR::get_customizer_value($id, 'posts_never_load');
-        $pages_never_load                = OCR::get_customizer_value($id, 'pages_never_load');
-        $cpt_never_load                  = OCR::get_customizer_value($id, 'cpt_never_load');
-        $post_categories_load            = OCR::get_customizer_value($id, 'post_categories_load');
-        $post_categories_hide            = OCR::get_customizer_value($id, 'post_categories_hide');
-        $post_tags_hide                  = OCR::get_customizer_value($id, 'post_tags_hide');
-        $post_tags_load                  = OCR::get_customizer_value($id, 'post_tags_load');
-        $exclusive_post_types_posts_load = OCR::get_customizer_value($id, 'exclusive_post_types_posts_load');
-        $post_types_load                 = OCR::get_customizer_value($id, 'exclusive_post_types_load');
+        $posts_never_load                = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'posts_never_load'));
+        $pages_never_load                = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'pages_never_load'));
+        $cpt_never_load                  = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'cpt_never_load'));
+        $post_categories_load            = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'post_categories_load'));
+        $post_categories_hide            = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'post_categories_hide'));
+        $post_tags_hide                  = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'post_tags_hide'));
+        $post_tags_load                  = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'post_tags_load'));
+        $exclusive_post_types_posts_load = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'exclusive_post_types_posts_load'));
+        $post_types_load                 = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'exclusive_post_types_load'));
 
         if (OCR::get_customizer_value($id, 'click_launch_status') || OCR::get_merged_customizer_value($id, 'load_optin_globally')) {
             // if current post should never contain optin, return false.

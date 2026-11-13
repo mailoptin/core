@@ -12,12 +12,12 @@ class AbstractConnectTest extends WP_UnitTestCase
     public $disable_email_filter;
     public $notification_key;
 
-    public function setUp()
+    public function set_up()
     {
-        parent::setUp();
+        parent::set_up();
     }
 
-    public function tearDown()
+    public function tear_down()
     {
         if ( ! empty($this->mail_filter)) {
             remove_filter('pre_wp_mail', $this->mail_filter);
@@ -31,8 +31,11 @@ class AbstractConnectTest extends WP_UnitTestCase
             delete_transient($this->notification_key);
         }
 
-        $this->unlink(MAILOPTIN_OPTIN_ERROR_LOG.'mailchimp.log');
-        parent::tearDown();
+        if (file_exists(MAILOPTIN_OPTIN_ERROR_LOG . 'mailchimp.log')) {
+            $this->unlink(MAILOPTIN_OPTIN_ERROR_LOG . 'mailchimp.log');
+        }
+
+        parent::tear_down();
     }
 
 
@@ -43,7 +46,8 @@ class AbstractConnectTest extends WP_UnitTestCase
 
         $content = file_get_contents(MAILOPTIN_OPTIN_ERROR_LOG.'mailchimp.log');
 
-        $this->assertSame('hello'. "\r\n" . 'hi'. "\r\n", $content);
+        // Each line is prefixed with the time it was logged.
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}: hello\r\n\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}: hi\r\n$/', $content);
     }
 
     public function testSendOptinErrorEmailThrottlesRepeatedNotifications()
