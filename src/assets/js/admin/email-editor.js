@@ -732,9 +732,32 @@
             $form.find('.mo-ee-subpanel').prop('hidden', true).filter('[data-tab="' + tab + '"]').prop('hidden', false);
         });
 
+        // Search the palette: tiles whose name or description match; groups with none left are hidden.
+        $('#mo-ee-block-search').on('input', function () {
+            var words = $.trim(this.value).toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
+            $('.mo-ee-group').each(function () {
+                var inGroup = 0;
+                $(this).find('.mo-ee-tile').each(function () {
+                    var text = String($(this).data('search') || ''), hit = words.every(function (w) { return text.indexOf(w) !== -1; });
+                    $(this).prop('hidden', !hit);
+                    if (hit) inGroup++;
+                });
+                $(this).prop('hidden', !inGroup);
+                shown += inGroup;
+            });
+            $('#mo-ee-palette-none').prop('hidden', shown > 0);
+        }).on('keydown', function (e) {
+            // Enter adds the first match.
+            if ('Enter' !== e.key) return;
+            e.preventDefault();
+            $('.mo-ee-tile').not('[hidden]').first().trigger('click');
+        });
+
         $('.mo-ee-add-btn').on('click', function () {
             if ($(this).data('preset')) addPreset($(this).data('preset'));
             else addBlock($(this).data('type'));
+            // Back to the whole palette for next time.
+            if ($('#mo-ee-block-search').val()) $('#mo-ee-block-search').val('').trigger('input');
         });
         $('#mo-ee-blocks')
             .on('click', '.mo-ee-item-open', function () { openBlock($(this).closest('li').data('id')); })

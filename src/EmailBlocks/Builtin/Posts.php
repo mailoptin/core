@@ -113,4 +113,14 @@ class Posts extends ElementBlock
         // Space before the next post.
         return $html . Mjml::fill('spacer', ['pad_t' => 0, 'pad_r' => 0, 'pad_b' => $pad['pad_b'], 'pad_l' => 0, 'height' => 25]);
     }
+
+    public function group()
+    {
+        return 'content';
+    }
+
+    public function palette_icon()
+    {
+        return 'posts';
+    }
 }

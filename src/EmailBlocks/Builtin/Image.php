@@ -30,4 +30,14 @@ class Image extends ElementBlock
             'href'  => '' !== $link ? Fields::link($link) : '',
         ]);
     }
+
+    public function group()
+    {
+        return 'basics';
+    }
+
+    public function palette_icon()
+    {
+        return 'image';
+    }
 }

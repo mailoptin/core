@@ -140,4 +140,14 @@ class Columns extends AbstractBlock
 
         return '<tr><td style="padding:0;">' . Mjml::fill($name, $values) . '</td></tr>';
     }
+
+    public function group()
+    {
+        return 'layout';
+    }
+
+    public function palette_icon()
+    {
+        return 'columns';
+    }
 }

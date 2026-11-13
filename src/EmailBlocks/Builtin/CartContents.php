@@ -33,4 +33,14 @@ class CartContents extends ProductList
     {
         return $store->cart($context);
     }
+
+    public function group()
+    {
+        return 'shop';
+    }
+
+    public function palette_icon()
+    {
+        return 'cart';
+    }
 }

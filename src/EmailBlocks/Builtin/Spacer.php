@@ -17,4 +17,14 @@ class Spacer extends ElementBlock
     {
         return Mjml::fill('spacer', Mjml::padding($settings['block_padding']) + ['height' => absint($settings['spacer_height'])]);
     }
+
+    public function group()
+    {
+        return 'basics';
+    }
+
+    public function palette_icon()
+    {
+        return 'spacer';
+    }
 }
