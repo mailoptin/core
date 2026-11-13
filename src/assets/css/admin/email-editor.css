@@ -182,3 +182,6 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-ee-search-result { cursor: pointer; }
 .mo-ee-search-result:hover, .mo-ee-search-result:focus { background: #f0f6fc; outline: none; }
 .mo-ee-search-none { color: #646970; }
+.mo-ee-add-btn.mo-ee-tile[draggable="true"] { cursor: grab; }
+.mo-ee-add-btn.mo-ee-tile[draggable="true"]:active { cursor: grabbing; }
+.mo-ee-is-dragging .mo-ee-frame-wrap { box-shadow: 0 0 0 2px #2271b1, 0 1px 4px rgba(0,0,0,.08); }

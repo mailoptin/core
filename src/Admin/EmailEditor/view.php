@@ -79,7 +79,7 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
                 ?>
                 <div class="mo-ee-palette-head">
                     <h3 class="mo-ee-h"><?php esc_html_e('Add a block', 'mailoptin'); ?></h3>
-                    <span class="mo-ee-palette-hint"><?php esc_html_e('Click to add it at the end', 'mailoptin'); ?></span>
+                    <span class="mo-ee-palette-hint"><?php esc_html_e('Drag into the email, or click', 'mailoptin'); ?></span>
                 </div>
                 <?php // One grid: basics first, then layout, content and shop (the blocks' group() orders them). ?>
                 <div class="mo-ee-add mo-ee-tiles">
