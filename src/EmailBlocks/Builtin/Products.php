@@ -49,9 +49,9 @@ class Products extends ShopBlock
                     'category' => __('From a category', 'mailoptin'),
                     'chosen'   => __('Ones I choose', 'mailoptin'),
                 ], 'default' => 'newest', 'tab' => 'content'],
-                'product_ids'      => ['type' => 'select', 'multiple' => true, 'search' => 'products', 'label' => __('Choose products', 'mailoptin'), 'description' => __('For "Ones I choose", in this order.', 'mailoptin'), 'choices' => [], 'default' => [], 'tab' => 'content'],
-                'product_category' => ['type' => 'select', 'label' => __('Category', 'mailoptin'), 'description' => __('For "From a category".', 'mailoptin'), 'choices' => ['' => __('Choose…', 'mailoptin')] + ($store ? $store->product_categories() : []), 'default' => '', 'tab' => 'content'],
-                'product_count'    => ['type' => 'range', 'label' => __('How many', 'mailoptin'), 'min' => 1, 'max' => 12, 'step' => 1, 'default' => '4', 'tab' => 'content'],
+                'product_ids'      => ['type' => 'select', 'multiple' => true, 'search' => 'products', 'label' => __('Choose products', 'mailoptin'), 'description' => __('In this order.', 'mailoptin'), 'choices' => [], 'default' => [], 'tab' => 'content', 'show_if' => ['product_source' => ['chosen']]],
+                'product_category' => ['type' => 'select', 'label' => __('Category', 'mailoptin'), 'choices' => ['' => __('Choose…', 'mailoptin')] + ($store ? $store->product_categories() : []), 'default' => '', 'tab' => 'content', 'show_if' => ['product_source' => ['category']]],
+                'product_count'    => ['type' => 'range', 'label' => __('How many', 'mailoptin'), 'min' => 1, 'max' => 12, 'step' => 1, 'default' => '4', 'tab' => 'content', 'show_if' => ['product_source' => ['!chosen']]],
                 'product_columns'  => ['type' => 'select', 'label' => __('Side by side', 'mailoptin'), 'choices' => ['1' => __('One (image on the left)', 'mailoptin'), '2' => __('Two', 'mailoptin'), '3' => __('Three', 'mailoptin')], 'default' => '2', 'tab' => 'content'],
                 'show_price'       => ['type' => 'checkbox', 'label' => __('Prices', 'mailoptin'), 'default' => true, 'tab' => 'content'],
             ] + $this->button_fields(__('Shop now', 'mailoptin'));

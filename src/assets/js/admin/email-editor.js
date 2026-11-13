@@ -73,6 +73,7 @@
     function changed(structural) {
         status();
         renderList();
+        updateBlockHead();
         $('#mo-ee-subject').text(state.settings.email_campaign_title || i18n.untitled);
         schedulePreview();
         clearTimeout(draftTimer);
@@ -259,6 +260,78 @@
     function fill($scope, obj) {
         filling = true;
         try { fillFields($scope, obj); } finally { filling = false; }
+        refreshControls($scope);
+    }
+
+    /* ---------------------------------------------------------------- the open block's form */
+
+    // Where the open block sits, for its header: "Block 2 of 5", or "In Columns · column 2".
+    function whereIs(id) {
+        var at = locate(id), where = '';
+        if (!at) return '';
+        if (at.list === state.content) return (i18n.blockOf || 'Block %1$s of %2$s').replace('%1$s', at.index + 1).replace('%2$s', at.list.length);
+        state.content.forEach(function (b) {
+            (b.columns || []).forEach(function (col, c) { if (col === at.list) where = (i18n.inColumn || 'In Columns · column %s').replace('%s', c + 1); });
+        });
+        return where;
+    }
+
+    function updateBlockHead() {
+        var at = openId ? locate(openId) : null;
+        if (!at) return;
+        $('.mo-ee-block-where').text(whereIs(openId));
+        $('.mo-ee-block-up').prop('disabled', 0 === at.index);
+        $('.mo-ee-block-down').prop('disabled', at.index === at.list.length - 1);
+    }
+
+    function moveOpen(by) {
+        var at = openId ? locate(openId) : null, to = at ? at.index + by : -1;
+        if (!at || to < 0 || to >= at.list.length) return;
+        beginEdit(true);
+        at.list.splice(to, 0, at.list.splice(at.index, 1)[0]);
+        changed(true);
+    }
+
+    // A rule from a field's show_if: one of the values, or (with "!") none of them.
+    function allows(allowed, value) {
+        allowed = (allowed || []).map(String);
+        var not = allowed.filter(function (a) { return '!' === a.charAt(0); }).map(function (a) { return a.slice(1); });
+        var yes = allowed.filter(function (a) { return '!' !== a.charAt(0); });
+        return not.indexOf(value) === -1 && (!yes.length || yes.indexOf(value) !== -1);
+    }
+
+    // The friendlier controls follow their inputs: slider values, the pressed button, the image
+    // preview, and fields that only apply to some choices.
+    function refreshControls($scope) {
+        var block = openId ? blockById(openId) : null, values = block ? withDefaults(block) : null;
+        $scope.find('.mo-ee-range').each(function () {
+            // A slider can't show "not set" (it sits mid-way): say the template decides instead.
+            var $o = $(this).find('output'), $in = $(this).find('input'), raw = values ? values[$in.data('name')] : $in.val();
+            var unset = undefined === raw || null === raw || '' === raw;
+            $(this).toggleClass('is-unset', unset);
+            $o.text(unset ? (i18n.auto || 'Auto') : $in.val() + ($o.data('unit') || ''));
+        });
+        $scope.find('.mo-ee-seg').each(function () {
+            var v = String($(this).prev('.mo-ee-seg-source').val());
+            $(this).find('.mo-ee-seg-btn').each(function () {
+                var on = String($(this).data('value')) === v;
+                $(this).toggleClass('is-on', on).attr('aria-pressed', on ? 'true' : 'false');
+            });
+        });
+        $scope.find('.mo-ee-image').each(function () {
+            var url = $.trim(String($(this).find('.mo-ee-input').val() || '')), ok = /^(https?:)?\/\//i.test(url) || /^\/[^\/]/.test(url);
+            $(this).toggleClass('is-empty', !ok);
+            $(this).find('.mo-ee-image-preview img').attr('src', ok ? url : '');
+            $(this).find('.mo-ee-pick-image-btn').text(ok ? (i18n.replaceImage || 'Replace') : (i18n.chooseImage || 'Choose image'));
+        });
+        if (!values) return;
+        $scope.find('[data-show-if]').each(function () {
+            var rules = $(this).data('showIf') || {}, show = true;
+            $.each(rules, function (name, allowed) {
+                if (!allows(allowed, String(values[name] === undefined || values[name] === null ? '' : values[name]))) show = false;
+            });
+            $(this).prop('hidden', !show);
+        });
     }
 
     function fillFields($scope, obj) {
@@ -375,9 +448,14 @@
             $fallback.val('');
         });
 
-        // Above the classic editor as a whole, when the field is one.
+        // Above the classic editor as a whole, when the field is one; inside a block's link field,
+        // at its end.
         var $wrap = $field.closest('.wp-editor-wrap');
-        ($wrap.length ? $wrap : $field).before($menu);
+        if ($wrap.length) $wrap.before($menu);
+        else if ($field.is('input') && $field.closest('.mo-ee-block-form').length) {
+            $field.wrap('<div class="mo-ee-inputgroup"></div>').after($menu);
+            $menu.addClass('mo-ee-ph-inline').find('summary').removeClass('button button-small').text('{ } ' + (i18n.placeholder || 'Placeholder'));
+        } else $field.before($menu);
     }
 
     function insertAt($field, text) {
@@ -442,6 +520,7 @@
         var open = blockById(openId);
         if ('columns_layout' === name && open && open.columns && obj === open.settings) fitColumns(open);
         changed(false);
+        if (open && obj === open.settings) refreshControls($('.mo-ee-block-form'));
     }
 
     function openBlock(id) {
@@ -453,7 +532,10 @@
 
         var $form = $('.mo-ee-block-form').html($('#mo-ee-form-' + block.type).html() || '');
         $('.mo-ee-block-title').text((cfg.blocks[block.type] || {}).title || block.type);
+        // The icon is the server's own markup (Icons::html), not anything typed in.
+        $('.mo-ee-block-icon').html((cfg.blocks[block.type] || {}).iconHtml || '');
         showPane('block');
+        updateBlockHead();
 
         fill($form, withDefaults(block));
         bind($form);
@@ -501,6 +583,8 @@
 
     function showPane(name) {
         $('.mo-ee-pane').removeClass('is-on').filter('[data-pane="' + name + '"]').addClass('is-on');
+        // A block's own header stands in for the page's tabs while it's open.
+        $('body').toggleClass('mo-ee-block-open', 'block' === name);
         var tab = 'block' === name ? 'content' : name;
         $('.mo-ee-tab').each(function () {
             var on = $(this).data('panel') === tab;
@@ -857,7 +941,7 @@
         $('.mo-ee-tab').on('click', function () { closeBlock(); showPane($(this).data('panel')); });
         $(document).on('click', '.mo-ee-subtab', function () {
             var tab = $(this).data('tab'), $form = $(this).closest('.mo-ee-block-form');
-            $form.find('.mo-ee-subtab').removeClass('is-on').filter(this).addClass('is-on');
+            $form.find('.mo-ee-subtab').removeClass('is-on').attr('aria-selected', 'false').filter(this).addClass('is-on').attr('aria-selected', 'true');
             $form.find('.mo-ee-subpanel').prop('hidden', true).filter('[data-tab="' + tab + '"]').prop('hidden', false);
         });
 
@@ -901,6 +985,50 @@
             });
 
         $('.mo-ee-block-done').on('click', closeBlock);
+        $('.mo-ee-block-up').on('click', function () { moveOpen(-1); });
+        $('.mo-ee-block-down').on('click', function () { moveOpen(1); });
+        $('.mo-ee-block-dup').on('click', function () {
+            var at = openId ? locate(openId) : null;
+            if (!at) return;
+            beginEdit(true);
+            at.list.splice(at.index + 1, 0, withNewIds(clone(at.block)));
+            changed(true);
+        });
+        $('.mo-ee-block-del').on('click', function () {
+            var at = openId ? locate(openId) : null;
+            if (!at || !window.confirm(i18n.delete)) return;
+            beginEdit(true);
+            closeBlock();
+            at.list.splice(at.index, 1);
+            changed(true);
+        });
+
+        // A row of buttons for a short list: the hidden select is the field.
+        $('.mo-ee-block-form').on('click', '.mo-ee-seg-btn', function () {
+            $(this).closest('.mo-ee-seg').prev('.mo-ee-seg-source').val(String($(this).data('value'))).trigger('change');
+        }).on('click', '.mo-ee-pick-image-btn', function (e) {
+            e.preventDefault();
+            var $input = $(this).closest('.mo-ee-image').find('.mo-ee-input'), frame = wp.media({multiple: false, library: {type: 'image'}});
+            frame.on('select', function () { $input.val(frame.state().get('selection').first().toJSON().url).trigger('change'); });
+            frame.open();
+        }).on('click', '.mo-ee-image-remove', function () {
+            $(this).closest('.mo-ee-image').find('.mo-ee-input').val('').trigger('change');
+        }).on('click', '.mo-ee-reset-style', function () {
+            // Back to the template's look: every Style setting to the block's default for this email.
+            var block = openId ? blockById(openId) : null, defaults = block ? (cfg.blocks[block.type] || {}).defaults || {} : null;
+            if (!block) return;
+            var names = {};
+            $('.mo-ee-block-form .mo-ee-subpanel[data-tab="style"] .mo-ee-input').each(function () { names[$(this).data('name')] = true; });
+            beginEdit(true);
+            Object.keys(names).forEach(function (n) {
+                if (defaults[n] === undefined) delete block.settings[n];
+                else block.settings[n] = clone(defaults[n]);
+            });
+            // A layout put back must keep the columns in step, as choosing one does.
+            if (block.columns) fitColumns(block);
+            fill($('.mo-ee-block-form'), withDefaults(block));
+            changed(false);
+        });
 
         // The "+" and "Add to this column" menus act on a click or Enter, not on arrow keys (some
         // browsers fire change for each arrow press on a closed select).

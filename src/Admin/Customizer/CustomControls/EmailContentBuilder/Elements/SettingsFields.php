@@ -31,9 +31,12 @@ class SettingsFields
         printf('<div class="mo-select-image-btn"><a href="#" class="button action">%s</a></div>', esc_html__('Choose Image', 'mailoptin'));
     }
 
-    public static function font_family($name, $setting)
+    /**
+     * Fonts an email can use: the standard ones every client has, then web fonts some clients load.
+     */
+    public static function font_choices()
     {
-        $setting['choices'] = [
+        return [
             ''                                        => esc_html__('Select...', 'mailoptin'),
             esc_html__('Standard Fonts', 'mailoptin') => [
                 'Arial'           => esc_html__('Arial', 'mailoptin'),
@@ -64,6 +67,11 @@ class SettingsFields
                 'Pacifico'          => esc_html__('Pacifico', 'mailoptin'),
             ]
         ];
+    }
+
+    public static function font_family($name, $setting)
+    {
+        $setting['choices'] = self::font_choices();
 
         self::select($name, $setting);
     }

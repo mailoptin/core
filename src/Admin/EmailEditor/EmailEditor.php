@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\Admin\EmailEditor;
 
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\SettingsFields;
 use MailOptin\Core\EmailBlocks\AbstractBlock;
 use MailOptin\Core\EmailBlocks\Blocks;
 use MailOptin\Core\EmailBlocks\Fields;
@@ -610,7 +611,7 @@ HTML;
 
         $blocks = [];
         foreach (Blocks::get_instance()->available_for($email_campaign_id) as $id => $block) {
-            $blocks[$id] = ['title' => $block->title(), 'description' => $block->description(), 'defaults' => $block->defaults($email_campaign_id)];
+            $blocks[$id] = ['title' => $block->title(), 'description' => $block->description(), 'defaults' => $block->defaults($email_campaign_id), 'iconHtml' => \MailOptin\Core\EmailBlocks\Icons::html($block->palette_icon())];
         }
 
         wp_localize_script('mailoptin-email-editor', 'moEmailEditor', [
@@ -640,6 +641,15 @@ HTML;
                 'columnsSummary' => __('%1$s columns, %2$s elements', 'mailoptin'),
                 /* translators: %s: column number */
                 'column'         => __('Column %s', 'mailoptin'),
+                /* translators: 1: a block's place, 2: how many blocks */
+                'blockOf'        => __('Block %1$s of %2$s', 'mailoptin'),
+                /* translators: %s: a column's number */
+                'inColumn'       => __('In Columns · column %s', 'mailoptin'),
+                'chooseImage'    => __('Choose image', 'mailoptin'),
+                'replaceImage'   => __('Replace', 'mailoptin'),
+                'placeholder'    => __('Placeholder', 'mailoptin'),
+                /* translators: shown beside a slider whose value is left to the template */
+                'auto'           => __('Auto', 'mailoptin'),
                 'addToColumn'    => __('+ Add to this column', 'mailoptin'),
                 'insertPlaceholder' => __('Insert placeholder', 'mailoptin'),
                 /* translators: %d: number of warnings */
@@ -682,14 +692,33 @@ HTML;
     /**
      * One form field, by type. Values are filled in by the editor from the email's data.
      */
-    public static function field_html($name, $field)
+    public static function field_html($name, $field, $in_block = false)
     {
+        $type = $field['type'] ?? 'text';
+
+        // In a block's form: a unit in the label ("Font Size (px)") goes beside the slider instead.
+        $unit = '';
+        if ($in_block && 'range' === $type && preg_match('/^(.*\S)\s*\((px|%)\)\s*$/', (string)($field['label'] ?? ''), $m)) {
+            $field['label'] = $m[1];
+            $unit           = $m[2];
+        }
+
         $label = esc_html($field['label'] ?? '');
         $name  = esc_attr($name);
-        $type  = $field['type'] ?? 'text';
-        $html  = '<div class="mo-ee-field mo-ee-field-' . esc_attr($type) . '">';
+        $attrs = ! empty($field['show_if']) && $in_block ? " data-show-if='" . esc_attr(wp_json_encode($field['show_if'])) . "'" : '';
+        $html  = '<div class="mo-ee-field mo-ee-field-' . esc_attr($type) . '"' . $attrs . '>';
 
         if ('checkbox' !== $type && '' !== $label) $html .= '<label class="mo-ee-label">' . $label . '</label>';
+
+        if ($in_block) {
+            $control = self::block_control_html($name, $field, $type, $unit);
+            if (null !== $control) {
+                $html .= $control;
+                if ( ! empty($field['description'])) $html .= '<p class="description">' . esc_html($field['description']) . '</p>';
+
+                return $html . '</div>';
+            }
+        }
 
         switch ($type) {
             case 'tinymce':
@@ -740,6 +769,78 @@ HTML;
         return $html . '</div>';
     }
 
+    /**
+     * The friendlier controls of a block's form, over the same inputs (each still a .mo-ee-input with
+     * its data-name, so filling, saving and undo work as for any field). Null: the usual control.
+     */
+    protected static function block_control_html($name, $field, $type, $unit)
+    {
+        switch ($type) {
+            case 'checkbox':
+                return '<label class="mo-ee-switch"><input type="checkbox" class="mo-ee-input" data-name="' . $name . '"><span class="mo-ee-switch-track" aria-hidden="true"></span><span class="mo-ee-switch-label">' . esc_html($field['checkbox_label'] ?? $field['label'] ?? '') . '</span></label>';
+
+            case 'range':
+                return sprintf(
+                    '<div class="mo-ee-range"><input type="range" class="mo-ee-input" data-name="%s" min="%s" max="%s" step="%s" aria-label="%s"><output class="mo-ee-range-value" data-unit="%s"></output></div>',
+                    $name, esc_attr($field['min'] ?? 0), esc_attr($field['max'] ?? 100), esc_attr($field['step'] ?? 1), esc_attr($field['label'] ?? ''), esc_attr($unit)
+                );
+
+            case 'dimension':
+                // Above and below show; the sides are a click away.
+                $input = function ($side, $label) use ($name) {
+                    return '<label><span>' . esc_html($label) . '</span><input type="number" min="0" class="mo-ee-input" data-name="' . $name . '" data-part="' . $side . '"></label>';
+                };
+
+                return '<div class="mo-ee-dimension">' . $input('top', __('Above', 'mailoptin')) . $input('bottom', __('Below', 'mailoptin')) . '</div>'
+                       . '<details class="mo-ee-sides"><summary>' . esc_html__('Sides', 'mailoptin') . '</summary><div class="mo-ee-dimension">'
+                       . $input('left', __('Left', 'mailoptin')) . $input('right', __('Right', 'mailoptin')) . '</div></details>';
+
+            case 'select_image':
+                return '<div class="mo-ee-image is-empty">'
+                       . '<div class="mo-ee-image-preview"><img alt=""><span class="mo-ee-image-none">' . esc_html__('No image yet', 'mailoptin') . '</span></div>'
+                       . '<div class="mo-ee-image-actions"><button type="button" class="button mo-ee-pick-image-btn">' . esc_html__('Choose image', 'mailoptin') . '</button>'
+                       . '<button type="button" class="button-link mo-ee-image-remove">' . esc_html__('Remove', 'mailoptin') . '</button></div>'
+                       . '<details class="mo-ee-image-url"><summary>' . esc_html__('Use a URL', 'mailoptin') . '</summary><input type="url" class="mo-ee-input" data-name="' . $name . '" placeholder="https://"></details>'
+                       . '</div>';
+
+            case 'font_family':
+                $choices = ! empty($field['choices']) ? $field['choices'] : SettingsFields::font_choices();
+                if (isset($choices[''])) $choices[''] = __('Same as the email', 'mailoptin');
+
+                return '<select class="mo-ee-input" data-name="' . $name . '">' . self::options_html($choices) . '</select>';
+
+            case 'select':
+                if ( ! empty($field['search']) || ! empty($field['multiple'])) return null;
+
+                $choices = (array)($field['choices'] ?? []);
+                $flat    = array_filter($choices, 'is_scalar');
+                if (count($flat) !== count($choices) || count($flat) < 2 || count($flat) > 4) return null;
+
+                // Alignment as icons; other short lists as buttons side by side.
+                $align = ! array_diff(array_map('strval', array_keys($flat)), ['left', 'center', 'right']);
+                foreach ($flat as $label) if ( ! $align && mb_strlen((string)$label) > 24) return null;
+                if ($align) $flat = array_intersect_key(['left' => $flat['left'] ?? '', 'center' => $flat['center'] ?? '', 'right' => $flat['right'] ?? ''], $flat);
+
+                $buttons = '';
+                foreach ($flat as $value => $label) {
+                    $inner = $align ? self::align_icon((string)$value) . '<span class="screen-reader-text">' . esc_html($label) . '</span>' : esc_html($label);
+                    $buttons .= '<button type="button" class="mo-ee-seg-btn" data-value="' . esc_attr($value) . '" aria-pressed="false">' . $inner . '</button>';
+                }
+
+                return '<select class="mo-ee-input mo-ee-seg-source" data-name="' . $name . '" hidden aria-hidden="true" tabindex="-1">' . self::options_html($flat) . '</select>'
+                       . '<div class="mo-ee-seg' . ($align ? ' mo-ee-seg-icons' : '') . ' mo-ee-seg-' . count($flat) . '" role="group" aria-label="' . esc_attr($field['label'] ?? '') . '">' . $buttons . '</div>';
+        }
+
+        return null;
+    }
+
+    protected static function align_icon($side)
+    {
+        $paths = ['left' => 'M4 6h16M4 12h10M4 18h14', 'center' => 'M4 6h16M7 12h10M5 18h14', 'right' => 'M4 6h16M10 12h10M6 18h14'];
+
+        return '<svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="' . esc_attr($paths[$side] ?? $paths['left']) . '"/></svg>';
+    }
+
     protected static function options_html($choices)
     {
         $html = '';
@@ -756,27 +857,99 @@ HTML;
     }
 
     /**
-     * A block's settings form, by tab.
+     * How a block's fields are shown in the editor, where that differs from the field itself: which
+     * panel and section, a plainer label or description. Keyed by field name.
+     */
+    protected static function field_presentation()
+    {
+        return apply_filters('mailoptin_email_block_field_presentation', [
+            'image_url'      => ['label' => __('Image', 'mailoptin')],
+            'button_link'    => ['label' => __('Link', 'mailoptin')],
+            'image_alt_text' => ['panel' => 'content', 'label' => __('Alt text', 'mailoptin'), 'description' => __('Read out to people who can\'t see images, and shown when images are blocked.', 'mailoptin')],
+            'block_padding'  => ['label' => __('Around the block', 'mailoptin')],
+            'button_padding' => ['label' => __('Inside the button', 'mailoptin')],
+            'block_background_color' => ['label' => __('Block background', 'mailoptin')],
+        ]);
+    }
+
+    /** The Style panel's sections, in order. */
+    protected static function style_sections()
+    {
+        return [
+            ''        => '',
+            'colours' => __('Colours', 'mailoptin'),
+            'text'    => __('Text', 'mailoptin'),
+            'shape'   => __('Shape and place', 'mailoptin'),
+            'spacing' => __('Spacing', 'mailoptin'),
+        ];
+    }
+
+    /** Where a field sits in the Style panel: its own 'section', else by what it sets. */
+    protected static function section_for($name, $field)
+    {
+        if (isset($field['section'])) return (string)$field['section'];
+
+        $type = $field['type'] ?? 'text';
+        if ('color_picker' === $type) return 'colours';
+        if ('dimension' === $type) return 'spacing';
+        if ('font_family' === $type || preg_match('/font_(size|weight)|line_height/', $name)) return 'text';
+        if (preg_match('/align|width|height|radius|_style$|valign/', $name)) return 'shape';
+
+        return '';
+    }
+
+    /**
+     * A block's settings form: Content and Style (what used to be "Block Settings", the spacing and
+     * background around the block, is part of Style). The Style panel is in sections, and ends with
+     * a way back to the template's look.
      */
     public static function block_form_html(AbstractBlock $block)
     {
-        $tabs   = $block->tabs() ?: ['' => ''];
-        $fields = $block->fields();
-        $html   = '';
+        $tabs   = $block->tabs();
+        $shown  = self::field_presentation();
+        $panels = ['content' => [], 'style' => []];
 
-        if (count($tabs) > 1) {
-            $html .= '<div class="mo-ee-subtabs">';
-            foreach ($tabs as $tab => $label) $html .= '<button type="button" class="mo-ee-subtab" data-tab="' . esc_attr($tab) . '">' . esc_html($label) . '</button>';
+        foreach ($block->fields() as $name => $field) {
+            $field = array_replace($field, $shown[$name] ?? []);
+            $tab   = (string)($field['tab'] ?? '');
+
+            if (isset($field['panel'])) $panel = 'style' === $field['panel'] ? 'style' : 'content';
+            // No tabs: what isn't plainly a look (colours, text, shape, spacing) is content, so
+            // "Reset to the template's style" never takes a block's own words, links or layout.
+            elseif ( ! $tabs) $panel = '' === self::section_for($name, $field) ? 'content' : 'style';
+            else $panel = false !== strpos($tab, 'content') || ('' === $tab && false !== strpos((string)array_key_first($tabs), 'content')) ? 'content' : 'style';
+
+            $panels[$panel][$name] = $field;
+        }
+
+        $html = '';
+        if ($panels['content'] && $panels['style']) {
+            $html .= '<div class="mo-ee-subtabs" role="tablist">'
+                     . '<button type="button" class="mo-ee-subtab" role="tab" data-tab="content">' . esc_html__('Content', 'mailoptin') . '</button>'
+                     . '<button type="button" class="mo-ee-subtab" role="tab" data-tab="style">' . esc_html__('Style', 'mailoptin') . '</button>'
+                     . '</div>';
+        }
+
+        if ($panels['content']) {
+            $html .= '<div class="mo-ee-subpanel" data-tab="content">';
+            foreach ($panels['content'] as $name => $field) $html .= self::field_html($name, $field, true);
             $html .= '</div>';
         }
 
-        foreach ($tabs as $tab => $label) {
-            $html .= '<div class="mo-ee-subpanel" data-tab="' . esc_attr($tab) . '">';
-            foreach ($fields as $name => $field) {
-                if ('' === $tab || ($field['tab'] ?? '') === $tab || ( ! isset($tabs[$field['tab'] ?? '']) && $tab === array_key_first($tabs))) {
-                    $html .= self::field_html($name, $field);
-                }
+        if ($panels['style']) {
+            $sections = array_fill_keys(array_keys(self::style_sections()), '');
+            foreach ($panels['style'] as $name => $field) {
+                $section = self::section_for($name, $field);
+                if ( ! isset($sections[$section])) $section = '';
+                $sections[$section] .= self::field_html($name, $field, true);
             }
+
+            $html .= '<div class="mo-ee-subpanel" data-tab="style">';
+            foreach (self::style_sections() as $id => $label) {
+                if ('' === $sections[$id]) continue;
+                $html .= '<div class="mo-ee-section-group" data-section="' . esc_attr($id) . '">' . ('' !== $label ? '<h4 class="mo-ee-section-h">' . esc_html($label) . '</h4>' : '') . $sections[$id] . '</div>';
+            }
+            $html .= '<button type="button" class="button-link mo-ee-reset-style">' . esc_html__('Reset to the template\'s style', 'mailoptin') . '</button>';
             $html .= '</div>';
         }
 

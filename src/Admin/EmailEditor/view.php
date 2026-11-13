@@ -127,8 +127,13 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
 
             <section class="mo-ee-pane mo-ee-block-pane" data-pane="block">
                 <div class="mo-ee-block-head">
-                    <button type="button" class="button-link mo-ee-block-done"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span><?php esc_html_e('All elements', 'mailoptin'); ?></button>
-                    <strong class="mo-ee-block-title"></strong>
+                    <button type="button" class="mo-ee-head-btn mo-ee-block-done" aria-label="<?php esc_attr_e('Back to all blocks', 'mailoptin'); ?>" title="<?php esc_attr_e('All blocks', 'mailoptin'); ?>"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span></button>
+                    <span class="mo-ee-block-icon" aria-hidden="true"></span>
+                    <div class="mo-ee-block-name"><strong class="mo-ee-block-title"></strong><span class="mo-ee-block-where"></span></div>
+                    <button type="button" class="mo-ee-head-btn mo-ee-block-up" aria-label="<?php esc_attr_e('Move up', 'mailoptin'); ?>" title="<?php esc_attr_e('Move up', 'mailoptin'); ?>"><span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span></button>
+                    <button type="button" class="mo-ee-head-btn mo-ee-block-down" aria-label="<?php esc_attr_e('Move down', 'mailoptin'); ?>" title="<?php esc_attr_e('Move down', 'mailoptin'); ?>"><span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span></button>
+                    <button type="button" class="mo-ee-head-btn mo-ee-block-dup" aria-label="<?php esc_attr_e('Duplicate', 'mailoptin'); ?>" title="<?php esc_attr_e('Duplicate', 'mailoptin'); ?>"><span class="dashicons dashicons-admin-page" aria-hidden="true"></span></button>
+                    <button type="button" class="mo-ee-head-btn mo-ee-block-del" aria-label="<?php esc_attr_e('Delete', 'mailoptin'); ?>" title="<?php esc_attr_e('Delete', 'mailoptin'); ?>"><span class="dashicons dashicons-trash" aria-hidden="true"></span></button>
                 </div>
                 <div class="mo-ee-block-form"></div>
             </section>
