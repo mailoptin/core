@@ -50,19 +50,15 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-ee-icon:hover { color: #2271b1; }
 .mo-ee-empty { color: #646970; }
 .mo-ee-h { font-size: 13px; margin: 18px 0 8px; }
-/* "Add a block": icon tiles in groups, with a search box. */
-.mo-ee-palette-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+/* "Add a block": icon tiles in one grid. */
+.mo-ee-palette-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .mo-ee-palette-hint { color: #646970; font-size: 12px; }
-.mo-ee-block-search { width: 100%; height: 34px; margin: 4px 0 12px; padding: 0 10px; border: 1px solid #c3c4c7; border-radius: 6px; }
-.mo-ee-add { display: flex; flex-direction: column; gap: 14px; }
-.mo-ee-group-h { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: #3c434a; }
 .mo-ee-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
 .mo-ee-add-btn.mo-ee-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; min-height: 76px; padding: 8px 4px; background: #fbfbfc; border: 1px solid #e2e4e7; border-radius: 8px; color: #1d2327; font-size: 12px; font-weight: 500; line-height: 1.25; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
 .mo-ee-tile-icon { width: 24px; height: 24px; color: #2271b1; flex: 0 0 auto; }
 .mo-ee-tile-icon.dashicons { font-size: 24px; }
 .mo-ee-add-btn.mo-ee-tile:hover, .mo-ee-add-btn.mo-ee-tile:focus-visible { border-color: #2271b1; background: #f0f6fc; }
 .mo-ee-add-btn.mo-ee-tile:focus-visible { outline: 2px solid #2271b1; outline-offset: 1px; }
-.mo-ee-palette-none { margin: 0; color: #646970; }
 
 .mo-ee-block-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .mo-ee-subtabs { display: flex; gap: 4px; margin-bottom: 10px; }
@@ -186,7 +182,6 @@ body.mo-ee-fullscreen .notice, body.mo-ee-fullscreen .update-nag { display: none
 .mo-ee-search-result { cursor: pointer; }
 .mo-ee-search-result:hover, .mo-ee-search-result:focus { background: #f0f6fc; outline: none; }
 .mo-ee-search-none { color: #646970; }
-.mo-ee-tile[hidden], .mo-ee-group[hidden] { display: none !important; }
 .mo-ee-add-btn.mo-ee-tile[draggable="true"] { cursor: grab; }
 .mo-ee-add-btn.mo-ee-tile[draggable="true"]:active { cursor: grabbing; }
 .mo-ee-is-dragging .mo-ee-frame-wrap { box-shadow: 0 0 0 2px #2271b1, 0 1px 4px rgba(0,0,0,.08); }

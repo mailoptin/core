@@ -712,7 +712,6 @@
             dragging = null;
             if (what.preset) addPreset(what.preset, target.index);
             else addBlock(what.type, target.column, target.index);
-            if ($('#mo-ee-block-search').val()) $('#mo-ee-block-search').val('').trigger('input');
         });
     }
 
@@ -862,28 +861,6 @@
             $form.find('.mo-ee-subpanel').prop('hidden', true).filter('[data-tab="' + tab + '"]').prop('hidden', false);
         });
 
-        // Search the palette: tiles whose name or description match; groups with none left are hidden.
-        $('#mo-ee-block-search').on('input', function () {
-            var words = $.trim(this.value).toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
-            $('.mo-ee-group').each(function () {
-                var inGroup = 0;
-                $(this).find('.mo-ee-tile').each(function () {
-                    var text = String($(this).data('search') || ''), hit = words.every(function (w) { return text.indexOf(w) !== -1; });
-                    $(this).prop('hidden', !hit);
-                    if (hit) inGroup++;
-                });
-                $(this).prop('hidden', !inGroup);
-                shown += inGroup;
-            });
-            $('#mo-ee-palette-none').prop('hidden', shown > 0);
-        }).on('keydown', function (e) {
-            // Enter adds the first match (not while composing CJK text, nor with nothing typed).
-            if ('Enter' !== e.key || e.isComposing || (e.originalEvent && e.originalEvent.isComposing)) return;
-            e.preventDefault();
-            if (!$.trim(this.value)) return;
-            $('.mo-ee-tile').not('[hidden]').first().trigger('click');
-        });
-
         // Tiles can be dragged into the preview; a click still adds at the end.
         $('.mo-ee-tile').attr('draggable', 'true').on('dragstart', function (e) {
             var dt = e.originalEvent && e.originalEvent.dataTransfer;
@@ -902,8 +879,6 @@
         $('.mo-ee-add-btn').on('click', function () {
             if ($(this).data('preset')) addPreset($(this).data('preset'));
             else addBlock($(this).data('type'));
-            // Back to the whole palette for next time.
-            if ($('#mo-ee-block-search').val()) $('#mo-ee-block-search').val('').trigger('input');
         });
         $('#mo-ee-blocks')
             .on('click', '.mo-ee-item-open', function () { openBlock($(this).closest('li').data('id')); })
