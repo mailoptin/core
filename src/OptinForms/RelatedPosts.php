@@ -277,10 +277,14 @@ HTML;
 
         // At most one click conversion per visitor (by IP) per campaign every 30 minutes, so the
         // endpoint can't be used to lift a campaign's (or a split-test variant's) conversion rate.
-        $ip  = isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : '';
-        $key = 'mo_rp_click_' . md5($optin_campaign_id . '|' . $ip . '|' . wp_salt('nonce'));
-        if (get_transient($key)) return false;
-        set_transient($key, 1, apply_filters('mailoptin_related_posts_click_window', 30 * MINUTE_IN_SECONDS));
+        // REMOTE_ADDR, as the sign-up limits use: forwarded headers can be made up. A window of 0 turns it off.
+        $window = (int)apply_filters('mailoptin_related_posts_click_window', 30 * MINUTE_IN_SECONDS);
+        if ($window > 0) {
+            $ip  = isset($_SERVER['REMOTE_ADDR']) && is_string($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+            $key = 'mo_rp_click_' . md5($optin_campaign_id . '|' . $ip . '|' . wp_salt('nonce'));
+            if (get_transient($key)) return false;
+            set_transient($key, 1, $window);
+        }
 
         (new OptinCampaignStat($optin_campaign_id))->save('conversion');
 

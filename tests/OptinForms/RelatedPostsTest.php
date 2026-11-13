@@ -192,4 +192,14 @@ class RelatedPostsTest extends \WP_UnitTestCase
         $this->assertStringContainsString('track_optin_click', RelatedPosts::click_script($form($live)));
         $this->assertSame('', RelatedPosts::click_script($form($testing)));
     }
+
+    public function test_a_click_window_of_zero_turns_the_limit_off()
+    {
+        $campaign = $this->campaign();
+        $uuid     = OCR::get_optin_campaign_uuid($campaign);
+        add_filter('mailoptin_related_posts_click_window', '__return_zero');
+
+        $this->assertTrue(RelatedPosts::track_click(['optin_uuid' => $uuid]));
+        $this->assertTrue(RelatedPosts::track_click(['optin_uuid' => $uuid]), 'No marker left behind that never expires.');
+    }
 }
