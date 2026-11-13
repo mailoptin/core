@@ -5,6 +5,7 @@ namespace MailOptin\Core\Admin\EmailEditor;
 use MailOptin\Core\EmailBlocks\AbstractBlock;
 use MailOptin\Core\EmailBlocks\Blocks;
 use MailOptin\Core\EmailBlocks\Fields;
+use MailOptin\Core\EmailBlocks\Starters;
 use MailOptin\Core\EmailBlocks\Templates;
 use MailOptin\Core\EmailCampaigns\Newsletter\Templatify;
 use MailOptin\Core\Repositories\CampaignSettingsRepository as Settings;
@@ -34,6 +35,14 @@ class EmailEditor
         }
 
         add_action('admin_post_mo_email_new', [$this, 'handle_new']);
+    }
+
+    /**
+     * The template picker's styles.
+     */
+    public static function enqueue_picker()
+    {
+        wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -94,7 +103,7 @@ class EmailEditor
      *
      * @return int|\WP_Error the email's id
      */
-    public static function start($context_id, $template, $args = [])
+    public static function start($context_id, $template, $args = [], $starter = '')
     {
         $context = self::context($context_id);
 
@@ -105,7 +114,11 @@ class EmailEditor
 
         if (is_wp_error($id)) return $id;
 
-        self::add_starter_content($id);
+        // A starter layout chosen in the picker: the email starts with it, not the template's default.
+        $starter = (string)$starter;
+        $chosen  = '' !== $starter && isset(Starters::get_instance()->for_context($context_id, $args)[$starter]) ? $starter : '';
+
+        self::add_starter_content($id, $chosen);
 
         return $id;
     }
@@ -113,13 +126,22 @@ class EmailEditor
     /**
      * The template's starter content, for an email that has none yet.
      */
-    public static function add_starter_content($email_campaign_id)
+    public static function add_starter_content($email_campaign_id, $starter = '')
     {
         // Written by hand: a short, plain email to start from, not the Customizer's long sample.
         if (self::is_code($email_campaign_id)) {
             if ('' === (string)ER::get_customizer_value_without_default($email_campaign_id, 'code_your_own')) {
                 ER::update_settings_by_id($email_campaign_id, ['code_your_own' => self::starter_html()]);
             }
+
+            return;
+        }
+
+        // A starter layout replaces what the email was just made with (an automation's new email
+        // already has the template's default).
+        if ('' !== (string)$starter) {
+            $content = Starters::get_instance()->content($starter, $email_campaign_id);
+            ER::update_settings_by_id($email_campaign_id, ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($content))]);
 
             return;
         }
@@ -174,7 +196,7 @@ class EmailEditor
      */
     public static function new_broadcast_page()
     {
-        wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', [], MAILOPTIN_VERSION_NUMBER);
+        self::enqueue_picker();
 
         $error  = isset($_GET['mo_error']) ? sanitize_text_field(wp_unslash($_GET['mo_error'])) : '';
         $fields = '<p class="mo-ee-picker-field"><label for="mo-ee-new-name"><b>' . esc_html__('Broadcast name', 'mailoptin') . '</b></label>'
@@ -242,7 +264,8 @@ HTML;
 
         $template = preg_replace('/[^A-Za-z0-9_-]/', '', (string)wp_unslash($_POST['template'] ?? ''));
         $args     = array_map('sanitize_text_field', (array)wp_unslash($_POST['args'] ?? []));
-        $result   = self::start($context_id, $template, $args);
+        $starter  = sanitize_key((string)wp_unslash($_POST['starter'] ?? ''));
+        $result   = self::start($context_id, $template, $args, $starter);
 
         if (is_wp_error($result)) {
             $back = wp_get_referer() ?: admin_url();

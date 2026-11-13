@@ -11,6 +11,9 @@ if ( ! defined('ABSPATH')) exit;
 
 $templates = $context->templates();
 $first     = $templates ? array_key_first($templates) : ER::CODE_YOUR_OWN_TEMPLATE;
+$starters  = \MailOptin\Core\EmailBlocks\Starters::get_instance()->for_context($context->id(), $args);
+// Broadcasts start from the newsletter layout; other emails from the template's short default.
+$start     = isset($starters['newsletter']) && 'broadcast' === $context->id() ? 'newsletter' : '';
 ?>
 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="mo-ee-picker<?php echo $compact ? ' is-compact' : ''; ?>">
     <input type="hidden" name="action" value="mo_email_new">
@@ -46,6 +49,34 @@ $first     = $templates ? array_key_first($templates) : ER::CODE_YOUR_OWN_TEMPLA
             </label>
         <?php endif; ?>
     </fieldset>
+
+    <?php if ($starters) : ?>
+    <?php
+    // A second, lighter choice under the template: what the email starts with, as short text cards.
+    $options = array_merge([[
+        'id'          => '',
+        'name'        => __('Simple message', 'mailoptin'),
+        'description' => __('A greeting, a button and a sign-off.', 'mailoptin'),
+        'blocks'      => __('Text, Button, Text', 'mailoptin'),
+    ]], array_values($starters));
+    ?>
+    <fieldset class="mo-ee-starters">
+        <legend class="mo-ee-starters-legend"><?php esc_html_e('Start from', 'mailoptin'); ?></legend>
+        <p class="description"><?php esc_html_e('Ready-made content in the template you chose. Edit or delete any part; text in [brackets] is for you to replace.', 'mailoptin'); ?></p>
+        <div class="mo-ee-starters-list">
+            <?php foreach ($options as $option) : ?>
+                <label class="mo-ee-starter">
+                    <input type="radio" name="starter" value="<?php echo esc_attr($option['id']); ?>" <?php checked($option['id'], $start); ?>>
+                    <span class="mo-ee-starter-text">
+                        <b><?php echo esc_html($option['name']); ?></b>
+                        <?php if ('' !== $option['description']) : ?><span class="mo-ee-starter-desc"><?php echo esc_html($option['description']); ?></span><?php endif; ?>
+                        <?php if ('' !== $option['blocks']) : ?><span class="mo-ee-starter-blocks"><?php echo esc_html($option['blocks']); ?></span><?php endif; ?>
+                    </span>
+                </label>
+            <?php endforeach; ?>
+        </div>
+    </fieldset>
+    <?php endif; ?>
 
     <p class="mo-ee-picker-actions">
         <button type="submit" class="button button-primary"><?php echo esc_html($submit); ?></button>
