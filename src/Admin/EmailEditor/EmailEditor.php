@@ -647,6 +647,8 @@ HTML;
                 'allGood'           => __('Ready to send', 'mailoptin'),
                 'show'              => __('Show', 'mailoptin'),
                 'addHere'           => __('+ Add an element here', 'mailoptin'),
+                /* translators: %s: a block's name, e.g. Button */
+                'dropHere'          => __('Drop %s here', 'mailoptin'),
                 'search'            => __('Search…', 'mailoptin'),
                 'noResults'         => __('Nothing found.', 'mailoptin'),
                 /* translators: %s: a post's or product's title */

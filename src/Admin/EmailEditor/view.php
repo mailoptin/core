@@ -79,7 +79,7 @@ $is_code  = EmailEditor::is_code($email_campaign_id);
                 ?>
                 <div class="mo-ee-palette-head">
                     <h3 class="mo-ee-h"><?php esc_html_e('Add a block', 'mailoptin'); ?></h3>
-                    <span class="mo-ee-palette-hint"><?php esc_html_e('Click to add it at the end', 'mailoptin'); ?></span>
+                    <span class="mo-ee-palette-hint"><?php esc_html_e('Drag into the email, or click', 'mailoptin'); ?></span>
                 </div>
                 <label class="screen-reader-text" for="mo-ee-block-search"><?php esc_html_e('Search blocks', 'mailoptin'); ?></label>
                 <input type="search" id="mo-ee-block-search" class="mo-ee-block-search" placeholder="<?php esc_attr_e('Search blocks', 'mailoptin'); ?>" autocomplete="off">

@@ -206,9 +206,10 @@
         if (!block) return;
         beginEdit(true);
         if (column) {
-            var parent = blockById(column[0]);
-            if (!parent) return;
-            parent.columns[column[1]].push(block);
+            var parent = blockById(column[0]), list = parent && parent.columns ? parent.columns[column[1]] : null;
+            if (!list) return;
+            if (typeof index === 'number' && index >= 0 && index <= list.length) list.splice(index, 0, block);
+            else list.push(block);
         } else if (typeof index === 'number' && index >= 0 && index <= state.content.length) {
             state.content.splice(index, 0, block);
         } else {
@@ -219,13 +220,14 @@
     }
 
     // Ready-made columns: an image beside text.
-    function addPreset(name) {
+    function addPreset(name, index) {
         var cols = newBlock('columns', {columns_layout: 'image-text' === name ? '33-67' : '67-33'});
         var image = newBlock('image', {image_width: '170'}), text = newBlock('text');
         if (!cols || !image || !text) return;
         cols.columns = 'image-text' === name ? [[image], [text]] : [[text], [image]];
         beginEdit(true);
-        state.content.push(cols);
+        if (typeof index === 'number' && index >= 0 && index <= state.content.length) state.content.splice(index, 0, cols);
+        else state.content.push(cols);
         changed(true);
     }
 
@@ -584,6 +586,114 @@
             var id = el ? el.getAttribute('data-id') : '';
             if (id && blockById(id)) openBlock(id);
         });
+
+        frameDrops(doc);
+    }
+
+    /* ---------------------------------------------------------------- drag a block into the preview */
+
+    // What's being dragged from the palette: {type} or {preset}, else null (so drags of anything
+    // else, such as a file or text, are left alone).
+    var dragging = null;
+
+    function dragLabel() {
+        if (!dragging) return '';
+        var $tile = dragging.preset ? $('.mo-ee-tile[data-preset="' + dragging.preset + '"]') : $('.mo-ee-tile[data-type="' + dragging.type + '"]');
+        return $.trim($tile.find('.mo-ee-tile-label').text());
+    }
+
+    // Where a drop at (x, y) in the preview goes: {column: [columnsId, i] | null, index, line: {top, left, width}}.
+    function dropTarget(doc, x, y) {
+        var win = doc.defaultView, intoColumn = dragging && !dragging.preset && 'columns' !== dragging.type;
+        var top = function (el) { return el.getBoundingClientRect().top; };
+
+        // Inside a column of a Columns block (a column never holds columns).
+        var el = doc.elementFromPoint(x, y);
+        var wrap = el && el.closest ? el.closest('[data-id]') : null;
+        while (intoColumn && wrap) {
+            var parent = blockById(wrap.getAttribute('data-id'));
+            if (parent && 'columns' === parent.type) {
+                var cols = Array.prototype.filter.call(wrap.querySelectorAll('[class*="mj-column-"]'), function (d) {
+                    var up = d.parentElement && d.parentElement.closest('[class*="mj-column-"]');
+                    return !up || !wrap.contains(up);
+                });
+                var c = -1;
+                cols.forEach(function (d, i) { if (d.contains(el)) c = i; });
+                if (c >= 0 && parent.columns && parent.columns[c]) {
+                    var colRect = cols[c].getBoundingClientRect(), kids = parent.columns[c], idx = kids.length, lineY = colRect.bottom;
+                    var tops = kids.map(function (k) { var e = doc.querySelector('[data-id="' + k.id + '"]'); return e ? top(e) : null; });
+                    for (var i = 0; i < kids.length; i++) {
+                        if (null === tops[i]) continue;
+                        var next = i + 1 < kids.length && null !== tops[i + 1] ? tops[i + 1] : colRect.bottom;
+                        if (y < (tops[i] + next) / 2) { idx = i; lineY = tops[i]; break; }
+                    }
+                    if (!kids.length) lineY = colRect.top + colRect.height / 2;
+                    return {column: [parent.id, c], index: idx, line: {top: lineY + win.scrollY, left: colRect.left + win.scrollX, width: colRect.width}};
+                }
+            }
+            wrap = wrap.parentElement ? wrap.parentElement.closest('[data-id]') : null;
+        }
+
+        // Between the email's top-level blocks.
+        var found = [];
+        state.content.forEach(function (b, i) { var e = doc.querySelector('[data-id="' + b.id + '"]'); if (e) found.push({i: i, el: e}); });
+        if (!found.length) {
+            var body = doc.body.getBoundingClientRect();
+            return {column: null, index: state.content.length, line: {top: y + win.scrollY, left: body.left + win.scrollX + 20, width: Math.max(80, body.width - 40)}};
+        }
+        var last = found[found.length - 1], lastRect = last.el.getBoundingClientRect();
+        var end = lastRect.bottom + Math.max(0, lastRect.height < 40 ? 40 - lastRect.height : 0);
+        var index = state.content.length, at = end, ref = lastRect;
+        for (var j = 0; j < found.length; j++) {
+            var t = top(found[j].el), n = j + 1 < found.length ? top(found[j + 1].el) : end;
+            if (y < (t + n) / 2) { index = found[j].i; at = t; ref = found[j].el.getBoundingClientRect(); break; }
+        }
+        return {column: null, index: index, line: {top: at + win.scrollY, left: ref.left + win.scrollX, width: ref.width}};
+    }
+
+    function showDropLine(doc, target) {
+        var line = doc.getElementById('mo-ee-dropline');
+        if (!line) {
+            line = doc.createElement('div');
+            line.id = 'mo-ee-dropline';
+            line.setAttribute('aria-hidden', 'true');
+            line.style.cssText = 'position:absolute;z-index:2147483647;height:4px;margin-top:-2px;background:#2271b1;border-radius:2px;pointer-events:none;box-shadow:0 0 0 2px rgba(255,255,255,.8)';
+            var tag = doc.createElement('span');
+            tag.style.cssText = 'position:absolute;left:50%;top:-11px;transform:translateX(-50%);white-space:nowrap;background:#2271b1;color:#fff;font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:5px 9px;border-radius:99px';
+            line.appendChild(tag);
+            doc.body.appendChild(line);
+        }
+        line.style.top = Math.round(target.line.top) + 'px';
+        line.style.left = Math.round(target.line.left) + 'px';
+        line.style.width = Math.round(target.line.width) + 'px';
+        line.firstChild.textContent = (i18n.dropHere || 'Drop %s here').replace('%s', function () { return dragLabel(); });
+    }
+
+    function hideDropLine(doc) {
+        var line = doc && doc.getElementById('mo-ee-dropline');
+        if (line) line.parentNode.removeChild(line);
+    }
+
+    function frameDrops(doc) {
+        doc.addEventListener('dragover', function (e) {
+            if (!dragging) return;
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+            showDropLine(doc, dropTarget(doc, e.clientX, e.clientY));
+        });
+        doc.addEventListener('dragleave', function (e) {
+            // Left the preview (not just moved between its elements).
+            if (!e.relatedTarget) hideDropLine(doc);
+        });
+        doc.addEventListener('drop', function (e) {
+            if (!dragging) return;
+            e.preventDefault();
+            var target = dropTarget(doc, e.clientX, e.clientY), what = dragging;
+            hideDropLine(doc);
+            dragging = null;
+            if (what.preset) addPreset(what.preset, target.index);
+            else addBlock(what.type, target.column, target.index);
+        });
     }
 
     /* ---------------------------------------------------------------- checks before sending */
@@ -752,6 +862,20 @@
             e.preventDefault();
             if (!$.trim(this.value)) return;
             $('.mo-ee-tile').not('[hidden]').first().trigger('click');
+        });
+
+        // Tiles can be dragged into the preview; a click still adds at the end.
+        $('.mo-ee-tile').attr('draggable', 'true').on('dragstart', function (e) {
+            var dt = e.originalEvent && e.originalEvent.dataTransfer;
+            dragging = $(this).data('preset') ? {preset: String($(this).data('preset'))} : {type: String($(this).data('type'))};
+            // A type of our own: Firefox needs some data to start a drag, and fields don't take it as text.
+            if (dt) { dt.effectAllowed = 'copy'; dt.setData('application/x-mailoptin-block', dragging.preset || dragging.type); }
+            $('body').addClass('mo-ee-is-dragging');
+        }).on('dragend', function () {
+            dragging = null;
+            $('body').removeClass('mo-ee-is-dragging');
+            var frame = document.getElementById('mo-ee-frame');
+            hideDropLine(frame && frame.contentDocument);
         });
 
         $('.mo-ee-add-btn').on('click', function () {
