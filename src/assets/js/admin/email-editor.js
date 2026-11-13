@@ -186,6 +186,11 @@
         changed(true);
     }
 
+    // A block saved before one of its fields existed sends with that field's default: show it so.
+    function withDefaults(block) {
+        return $.extend(clone((cfg.blocks[block.type] || {}).defaults || {}), block.settings || {});
+    }
+
     function newBlock(type, settings) {
         var meta = cfg.blocks[type];
         if (!meta) return null;
@@ -258,6 +263,8 @@
         $scope.find('.mo-ee-input').each(function () {
             var $input = $(this), v = getValue(obj, $input);
 
+            if ($input.hasClass('mo-ee-search-value')) return searchFill($input, v);
+
             if ($input.is(':checkbox')) $input.prop('checked', v === true || v === 'true' || v === 'yes' || v === 1 || v === '1');
             else $input.val(v === undefined || v === null ? '' : v);
 
@@ -270,6 +277,59 @@
                 var html = window.wp && wp.editor && wp.editor.autop ? wp.editor.autop($input.val()) : $input.val();
                 if (ed.getContent() !== html) ed.setContent(html);
             }
+        });
+    }
+
+    /* ---------------------------------------------------------------- searched lists */
+
+    // Posts and products are searched for, not listed: the chosen ones live in a hidden <select
+    // multiple> (read and written like any field), shown as chips with a search box to add more.
+
+    var titles = {};
+
+    function searchRequest(data) {
+        return $.post(cfg.ajax, $.extend({action: 'mo_email_editor_search', id: cfg.id, nonce: cfg.nonce}, data));
+    }
+
+    function searchKind($box) {
+        var kind = $box.data('search');
+        var type = 'products' === kind ? 'product' : ($box.closest('.mo-ee-block-form, form, [data-group]').find('[data-name="posts_post_type"]').val() || 'post');
+        return {kind: kind, post_type: type};
+    }
+
+    function searchChips($select) {
+        var $box = $select.closest('.mo-ee-search'), $list = $box.find('.mo-ee-search-chosen').empty();
+        $select.find('option').each(function () {
+            var text = $(this).text();
+            $('<li class="mo-ee-search-chip"></li>').text(text).append(
+                $('<button type="button" class="mo-ee-search-remove">&times;</button>').attr('aria-label', (i18n.removeItem || 'Remove %s').replace('%s', text)).data('id', this.value)
+            ).appendTo($list);
+        });
+    }
+
+    function searchAdd($select, id, text) {
+        id = String(id);
+        if ($select.find('option').filter(function () { return this.value === id; }).length) return;
+        $('<option selected></option>').val(id).text(text || titles[id] || '#' + id).appendTo($select);
+    }
+
+    // The saved ids, with their titles (asked of the server for ones not seen yet).
+    function searchFill($select, v) {
+        var ids = $.isArray(v) ? v.map(String) : [];
+        $select.empty();
+        ids.forEach(function (id) { searchAdd($select, id); });
+        searchChips($select);
+
+        var unknown = ids.filter(function (id) { return !titles[id]; });
+        if (!unknown.length) return;
+
+        searchRequest($.extend(searchKind($select.closest('.mo-ee-search')), {ids: unknown.join(',')})).done(function (res) {
+            if (!res || !res.success) return;
+            res.data.forEach(function (item) {
+                titles[item.id] = item.text;
+                $select.find('option').filter(function () { return this.value === item.id; }).text(item.text);
+            });
+            searchChips($select);
         });
     }
 
@@ -342,7 +402,7 @@
         $('.mo-ee-template-input').each(function () { this.checked = this.value === state.template; });
         fill($('[data-group="design"]'), state.design);
         fill($('[data-group="settings"]'), state.settings);
-        if (openId) fill($('.mo-ee-block-form'), blockById(openId).settings);
+        if (openId) fill($('.mo-ee-block-form'), withDefaults(blockById(openId)));
     }
 
     // Which object a field writes to.
@@ -391,7 +451,7 @@
         $('.mo-ee-block-title').text((cfg.blocks[block.type] || {}).title || block.type);
         showPane('block');
 
-        fill($form, block.settings);
+        fill($form, withDefaults(block));
         bind($form);
 
         var $tabs = $form.find('.mo-ee-subtab');
@@ -414,7 +474,8 @@
         });
 
         // Text and links can hold placeholders.
-        $form.find('.mo-ee-richtext, [data-name$="_link"]').each(function () { placeholderMenu($(this)); });
+        // Links take a placeholder; "Remove read more link" (a checkbox) doesn't.
+        $form.find('.mo-ee-richtext, [data-name$="_link"]:not(:checkbox)').each(function () { placeholderMenu($(this)); });
 
         renderList();
         outlineOpen();
@@ -732,6 +793,41 @@
         });
 
         $('#mo-ee').on('input change', '.mo-ee-input:not(.mo-ee-color)', function () { onField($(this)); });
+
+        // Searched lists: type to search, pick a result to add it, × to take it out.
+        var searchTimer = null;
+        $('#mo-ee').on('input', '.mo-ee-search-input', function () {
+            var $input = $(this), $box = $input.closest('.mo-ee-search'), $results = $box.find('.mo-ee-search-results'), term = $.trim($input.val());
+            clearTimeout(searchTimer);
+            if (term.length < 2) { $results.empty(); return; }
+            searchTimer = setTimeout(function () {
+                searchRequest($.extend(searchKind($box), {term: term})).done(function (res) {
+                    $results.empty();
+                    if (!res || !res.success) return;
+                    if (!res.data.length) $('<li class="mo-ee-search-none"></li>').text(i18n.noResults || '').appendTo($results);
+                    res.data.forEach(function (item) {
+                        titles[item.id] = item.text;
+                        $('<li role="option" tabindex="0" class="mo-ee-search-result"></li>').text(item.text).data('id', item.id).appendTo($results);
+                    });
+                });
+            }, 250);
+        });
+        $('#mo-ee').on('click keydown', '.mo-ee-search-result', function (e) {
+            if ('keydown' === e.type && 'Enter' !== e.key && ' ' !== e.key) return;
+            e.preventDefault();
+            var $box = $(this).closest('.mo-ee-search'), $select = $box.find('.mo-ee-search-value');
+            searchAdd($select, $(this).data('id'), $(this).text());
+            searchChips($select);
+            $box.find('.mo-ee-search-results').empty();
+            $box.find('.mo-ee-search-input').val('').trigger('focus');
+            $select.trigger('change');
+        });
+        $('#mo-ee').on('click', '.mo-ee-search-remove', function () {
+            var id = String($(this).data('id')), $select = $(this).closest('.mo-ee-search').find('.mo-ee-search-value');
+            $select.find('option').filter(function () { return this.value === id; }).remove();
+            searchChips($select);
+            $select.trigger('change');
+        });
 
         $(document).on('click', '.mo-ee-pick-image', function (e) {
             e.preventDefault();

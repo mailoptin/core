@@ -106,23 +106,6 @@ class WooStore extends Store
         return $out;
     }
 
-    public function product_choices()
-    {
-        if ( ! $this->active()) return [];
-
-        // Ids and titles only, once per request: the block's settings ask for them often.
-        static $choices = null;
-
-        if (null === $choices) {
-            $choices = [];
-            foreach ((array)wc_get_products(['status' => 'publish', 'limit' => 300, 'orderby' => 'title', 'order' => 'ASC', 'return' => 'ids']) as $id) {
-                $choices[(string)$id] = (string)get_the_title($id);
-            }
-        }
-
-        return $choices;
-    }
-
     public function product_categories()
     {
         $terms = $this->active() ? get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false]) : [];

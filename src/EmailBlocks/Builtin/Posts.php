@@ -18,6 +18,15 @@ class Posts extends ElementBlock
         return 'MailOptin\\Core\\Admin\\Customizer\\CustomControls\\EmailContentBuilder\\Elements\Posts';
     }
 
+    /** The posts are searched for in the editor (there are too many to list). */
+    public function fields()
+    {
+        $fields = parent::fields();
+        if (isset($fields['post_list'])) $fields['post_list']['search'] = 'posts';
+
+        return $fields;
+    }
+
     public function render($settings, $context, Style $style, $id)
     {
         $template = $style->template;

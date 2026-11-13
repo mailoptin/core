@@ -117,12 +117,6 @@ abstract class Store
         return [];
     }
 
-    /** Products to choose from in the block's settings: id => name. */
-    public function product_choices()
-    {
-        return [];
-    }
-
     /** Product categories for the block's settings: id => name. */
     public function product_categories()
     {
