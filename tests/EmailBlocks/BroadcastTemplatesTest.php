@@ -200,4 +200,24 @@ class BroadcastTemplatesTest extends \WP_UnitTestCase
         $this->assertSame('#f2f4f6', $back['design']['page_background_color']);
         $this->assertArrayNotHasKey('offer_strip_text', $back['design']);
     }
+
+    public function test_editor_state_matches_the_merged_values()
+    {
+        foreach (['Market', 'Lucid'] as $template) {
+            $id    = $this->broadcast($template, ['page_background_color' => '#abcdef']);
+            $state = EmailEditor::state($id);
+
+            foreach ($state['design'] as $key => $value) $this->assertSame(ER::get_merged_customizer_value($id, $key), $value, "$template $key");
+            foreach ($state['settings'] as $key => $value) $this->assertSame((string)ER::get_merged_customizer_value($id, $key), $value, "$template $key");
+            $this->assertSame('#abcdef', $state['design']['page_background_color']);
+        }
+    }
+
+    public function test_one_fonts_link_however_many_templates_were_made()
+    {
+        foreach (['Folio', 'Ledger', 'Lucid'] as $template) (new Templatify($this->broadcast($template)))->forge();
+
+        $html = (new Templatify($this->broadcast('Folio')))->forge();
+        $this->assertSame(1, substr_count($html, 'fonts.googleapis.com/css?family=Arvo'));
+    }
 }
