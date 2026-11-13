@@ -22,7 +22,7 @@ class RelatedPosts
 
     public function __construct()
     {
-        add_filter('mailoptin_show_optin_form', [$this, 'hide_when_nothing_related'], 10, 2);
+        add_filter('mailoptin_show_optin_form_after_targeting', [$this, 'hide_when_nothing_related'], 10, 2);
 
         add_filter('mo_optin_customizer_sections_ids', [$this, 'active_sections']);
         add_action('mo_optin_before_design_customizer_section', [$this, 'section'], 10, 2);
@@ -86,7 +86,14 @@ class RelatedPosts
             wp_cache_set($key, $ids, 'mailoptin_related_posts', HOUR_IN_SECONDS);
         }
 
-        return $ids ? array_values(array_filter(array_map('get_post', $ids))) : [];
+        if ( ! $ids) return [];
+
+        // The posts, their meta and terms, then their images: a few queries, not a few per post.
+        _prime_post_caches($ids, true, true);
+        $thumbs = array_filter(array_map('get_post_thumbnail_id', $ids));
+        if ($thumbs) _prime_post_caches($thumbs, false, true);
+
+        return array_values(array_filter(array_map('get_post', $ids)));
     }
 
     protected static function query(\WP_Post $post, $count, $match)
@@ -109,6 +116,15 @@ class RelatedPosts
         }
 
         if (count($tax_query) < 2) return [];
+
+        // WooCommerce products hidden from the shop aren't recommended either.
+        if ('product' === $post->post_type && taxonomy_exists('product_visibility')) {
+            $tax_query = [
+                'relation' => 'AND',
+                $tax_query,
+                ['taxonomy' => 'product_visibility', 'field' => 'name', 'terms' => ['exclude-from-catalog'], 'operator' => 'NOT IN'],
+            ];
+        }
 
         return get_posts([
             'post_type'           => $post->post_type,
@@ -223,6 +239,9 @@ class RelatedPosts
      */
     public static function click_script($form)
     {
+        // An admin testing the campaign isn't a reader.
+        if (OCR::is_test_mode($form->optin_campaign_id)) return '';
+
         $uuid = esc_js($form->optin_campaign_uuid);
 
         return <<<HTML
@@ -234,10 +253,13 @@ class RelatedPosts
     document.addEventListener('click', function (e) {
         var link = e.target && e.target.closest ? e.target.closest('#$uuid .mo-related-post-link') : null;
         var g = window.mailoptin_globals;
-        if (!link || !g || g.is_customize_preview === 'true' || !navigator.sendBeacon) return;
-        var data = new FormData();
+        // One conversion per page view, however many posts are opened (in new tabs, say).
+        if (!link || !g || g.is_customize_preview === 'true' || window.moRelatedPostsClick['$uuid'] === 'sent') return;
+        window.moRelatedPostsClick['$uuid'] = 'sent';
+        var data = new FormData(), url = String(g.mailoptin_ajaxurl).replace('%%endpoint%%', 'track_optin_click');
         data.append('stat_data[optin_uuid]', '$uuid');
-        navigator.sendBeacon(String(g.mailoptin_ajaxurl).replace('%%endpoint%%', 'track_optin_click'), data);
+        if (navigator.sendBeacon && navigator.sendBeacon(url, data)) return;
+        if (window.fetch) fetch(url, {method: 'POST', body: data, keepalive: true, credentials: 'same-origin'});
     });
 })();
 </script>
@@ -252,6 +274,13 @@ HTML;
         $optin_campaign_id = absint(OCR::get_optin_campaign_id_by_uuid($payload['optin_uuid']));
 
         if ( ! $optin_campaign_id || ! self::is_related_posts_campaign($optin_campaign_id) || ! OCR::is_activated($optin_campaign_id)) return false;
+
+        // At most one click conversion per visitor (by IP) per campaign every 30 minutes, so the
+        // endpoint can't be used to lift a campaign's (or a split-test variant's) conversion rate.
+        $ip  = isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : '';
+        $key = 'mo_rp_click_' . md5($optin_campaign_id . '|' . $ip . '|' . wp_salt('nonce'));
+        if (get_transient($key)) return false;
+        set_transient($key, 1, apply_filters('mailoptin_related_posts_click_window', 30 * MINUTE_IN_SECONDS));
 
         (new OptinCampaignStat($optin_campaign_id))->save('conversion');
 

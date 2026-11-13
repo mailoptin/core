@@ -106,17 +106,17 @@ class RelatedPostsTest extends \WP_UnitTestCase
         $other    = $this->campaign('Mimosa');
 
         $this->go_to(get_permalink($this->current));
-        $this->assertFalse(apply_filters('mailoptin_show_optin_form', true, $campaign), 'Nothing related yet.');
-        $this->assertTrue(apply_filters('mailoptin_show_optin_form', true, $other), 'Other templates are left alone.');
+        $this->assertFalse(apply_filters('mailoptin_show_optin_form_after_targeting', true, $campaign), 'Nothing related yet.');
+        $this->assertTrue(apply_filters('mailoptin_show_optin_form_after_targeting', true, $other), 'Other templates are left alone.');
 
         $this->post('Related', [$this->bulbs], 1);
-        $this->assertTrue(apply_filters('mailoptin_show_optin_form', true, $campaign));
+        $this->assertTrue(apply_filters('mailoptin_show_optin_form_after_targeting', true, $campaign));
 
         $this->go_to(home_url('/'));
-        $this->assertFalse(apply_filters('mailoptin_show_optin_form', true, $campaign), 'Not on pages that are not a post.');
+        $this->assertFalse(apply_filters('mailoptin_show_optin_form_after_targeting', true, $campaign), 'Not on pages that are not a post.');
 
         $this->go_to(get_permalink($this->current));
-        $this->assertFalse(apply_filters('mailoptin_show_optin_form', false, $campaign), 'Never shows what another rule hid.');
+        $this->assertFalse(apply_filters('mailoptin_show_optin_form_after_targeting', false, $campaign), 'Never shows what another rule hid.');
     }
 
     public function test_the_list_follows_the_settings_and_is_escaped()
@@ -166,6 +166,8 @@ class RelatedPostsTest extends \WP_UnitTestCase
         $this->assertFalse(RelatedPosts::track_click(['optin_uuid' => 'nope']));
         $this->assertFalse(RelatedPosts::track_click(['optin_uuid' => ['array']]));
 
+        $this->assertFalse(RelatedPosts::track_click(['optin_uuid' => OCR::get_optin_campaign_uuid($campaign)]), 'The same visitor again soon: no second conversion.');
+
         $this->assertEquals(1, (new OptinCampaignStat($campaign))->get_conversions());
         $this->assertEquals(0, (new OptinCampaignStat($other))->get_conversions());
     }
@@ -179,5 +181,15 @@ class RelatedPostsTest extends \WP_UnitTestCase
         $this->assertCount(1, $themes);
         $this->assertSame('slidein', current($themes)['optin_type']);
         $this->assertFileExists(dirname(__DIR__, 2) . '/src/assets/images/optin-themes/readnext-slidein.png');
+    }
+
+    public function test_the_click_script_is_left_out_in_test_mode()
+    {
+        $live    = $this->campaign();
+        $testing = $this->campaign('ReadNext', ['test_mode' => true]);
+        $form    = function ($id) { return (object)['optin_campaign_id' => $id, 'optin_campaign_uuid' => OCR::get_optin_campaign_uuid($id)]; };
+
+        $this->assertStringContainsString('track_optin_click', RelatedPosts::click_script($form($live)));
+        $this->assertSame('', RelatedPosts::click_script($form($testing)));
     }
 }
