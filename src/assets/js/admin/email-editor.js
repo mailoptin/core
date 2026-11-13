@@ -204,10 +204,10 @@
         if (column && 'columns' === type) return;
         var block = newBlock(type);
         if (!block) return;
+        var parent = column ? blockById(column[0]) : null, list = parent && parent.columns ? parent.columns[column[1]] : null;
+        if (column && !list) return;
         beginEdit(true);
         if (column) {
-            var parent = blockById(column[0]), list = parent && parent.columns ? parent.columns[column[1]] : null;
-            if (!list) return;
             if (typeof index === 'number' && index >= 0 && index <= list.length) list.splice(index, 0, block);
             else list.push(block);
         } else if (typeof index === 'number' && index >= 0 && index <= state.content.length) {
@@ -597,9 +597,7 @@
     var dragging = null;
 
     function dragLabel() {
-        if (!dragging) return '';
-        var $tile = dragging.preset ? $('.mo-ee-tile[data-preset="' + dragging.preset + '"]') : $('.mo-ee-tile[data-type="' + dragging.type + '"]');
-        return $.trim($tile.find('.mo-ee-tile-label').text());
+        return dragging ? dragging.label : '';
     }
 
     // Where a drop at (x, y) in the preview goes: {column: [columnsId, i] | null, index, line: {top, left, width}}.
@@ -613,12 +611,26 @@
         while (intoColumn && wrap) {
             var parent = blockById(wrap.getAttribute('data-id'));
             if (parent && 'columns' === parent.type) {
-                var cols = Array.prototype.filter.call(wrap.querySelectorAll('[class*="mj-column-"]'), function (d) {
-                    var up = d.parentElement && d.parentElement.closest('[class*="mj-column-"]');
-                    return !up || !wrap.contains(up);
+                // The outermost MJML columns in the block; "don't stack" layouts wrap them in one
+                // full-width group, so look inside it.
+                var outermost = function (root) {
+                    return Array.prototype.filter.call(root.querySelectorAll('[class*="mj-column-"]'), function (d) {
+                        var up = d.parentElement && d.parentElement.closest('[class*="mj-column-"]');
+                        return !up || !root.contains(up) || up === root;
+                    });
+                };
+                var cols = outermost(wrap), want = (parent.columns || []).length;
+                if (1 === cols.length && want > 1) cols = outermost(cols[0]).filter(function (d) { return d !== cols[0]; });
+                // The column under the pointer: by its box, else (an empty column has no height) by x.
+                var c = -1, byX = -1;
+                cols.forEach(function (d, i) {
+                    var r = d.getBoundingClientRect();
+                    if (x >= r.left && x <= r.right) {
+                        if (y >= r.top && y <= r.bottom) c = i;
+                        else if (byX < 0) byX = i;
+                    }
                 });
-                var c = -1;
-                cols.forEach(function (d, i) { if (d.contains(el)) c = i; });
+                if (c < 0) c = byX;
                 if (c >= 0 && parent.columns && parent.columns[c]) {
                     var colRect = cols[c].getBoundingClientRect(), kids = parent.columns[c], idx = kids.length, lineY = colRect.bottom;
                     var tops = kids.map(function (k) { var e = doc.querySelector('[data-id="' + k.id + '"]'); return e ? top(e) : null; });
@@ -627,7 +639,7 @@
                         var next = i + 1 < kids.length && null !== tops[i + 1] ? tops[i + 1] : colRect.bottom;
                         if (y < (tops[i] + next) / 2) { idx = i; lineY = tops[i]; break; }
                     }
-                    if (!kids.length) lineY = colRect.top + colRect.height / 2;
+                    if (!kids.length) lineY = colRect.height > 8 ? colRect.top + colRect.height / 2 : Math.min(y, wrap.getBoundingClientRect().bottom - 4);
                     return {column: [parent.id, c], index: idx, line: {top: lineY + win.scrollY, left: colRect.left + win.scrollX, width: colRect.width}};
                 }
             }
@@ -641,8 +653,14 @@
             var body = doc.body.getBoundingClientRect();
             return {column: null, index: state.content.length, line: {top: y + win.scrollY, left: body.left + win.scrollX + 20, width: Math.max(80, body.width - 40)}};
         }
-        var last = found[found.length - 1], lastRect = last.el.getBoundingClientRect();
-        var end = lastRect.bottom + Math.max(0, lastRect.height < 40 ? 40 - lastRect.height : 0);
+        // The last block may be several rows (Posts, Products) with its id on the first: its end is
+        // the last of the rows that follow it, up to the next block's.
+        var last = found[found.length - 1], lastRect = last.el.getBoundingClientRect(), end = lastRect.bottom;
+        var row = last.el.closest('tr');
+        if (row && row.contains(last.el)) {
+            for (var r = row.nextElementSibling; r && !r.querySelector('[data-id]') && !r.hasAttribute('data-id'); r = r.nextElementSibling) end = Math.max(end, r.getBoundingClientRect().bottom);
+        }
+        if (end - lastRect.top < 40) end = lastRect.top + 40;
         var index = state.content.length, at = end, ref = lastRect;
         for (var j = 0; j < found.length; j++) {
             var t = top(found[j].el), n = j + 1 < found.length ? top(found[j + 1].el) : end;
@@ -666,7 +684,8 @@
         line.style.top = Math.round(target.line.top) + 'px';
         line.style.left = Math.round(target.line.left) + 'px';
         line.style.width = Math.round(target.line.width) + 'px';
-        line.firstChild.textContent = (i18n.dropHere || 'Drop %s here').replace('%s', function () { return dragLabel(); });
+        var text = (i18n.dropHere || 'Drop %s here').replace('%s', function () { return dragLabel(); });
+        if (line.firstChild.textContent !== text) line.firstChild.textContent = text;
     }
 
     function hideDropLine(doc) {
@@ -693,6 +712,7 @@
             dragging = null;
             if (what.preset) addPreset(what.preset, target.index);
             else addBlock(what.type, target.column, target.index);
+            if ($('#mo-ee-block-search').val()) $('#mo-ee-block-search').val('').trigger('input');
         });
     }
 
@@ -868,6 +888,7 @@
         $('.mo-ee-tile').attr('draggable', 'true').on('dragstart', function (e) {
             var dt = e.originalEvent && e.originalEvent.dataTransfer;
             dragging = $(this).data('preset') ? {preset: String($(this).data('preset'))} : {type: String($(this).data('type'))};
+            dragging.label = $.trim($(this).find('.mo-ee-tile-label').text());
             // A type of our own: Firefox needs some data to start a drag, and fields don't take it as text.
             if (dt) { dt.effectAllowed = 'copy'; dt.setData('application/x-mailoptin-block', dragging.preset || dragging.type); }
             $('body').addClass('mo-ee-is-dragging');
