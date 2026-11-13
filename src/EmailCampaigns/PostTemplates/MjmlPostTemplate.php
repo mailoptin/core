@@ -39,6 +39,7 @@ trait MjmlPostTemplate
      *   lead             bool: the newest post leads, its image across the email and its title on a band
      *                    of the header's colour (new-post emails: the post)
      *   footer_rule      a colour: a rule above the footer
+     *   column_rule      a colour: thin rules between a digest's columns (newspaper columns)
      */
     abstract protected function design();
 
@@ -821,7 +822,16 @@ CSS;
 
             $columns = [];
             foreach ($values as $i => $p) {
-                $columns[] = $this->post_item_filters($this->digest_card($p, $this->column_room($layout, $i), $count), $p);
+                $rule = (string)$this->design_value('column_rule', '');
+                // Newspaper columns (Ledger): a thin rule before each column after the first.
+                if ('' !== $rule) {
+                    // Every column the same width: the first gives up the same room on its right.
+                    $card      = $this->digest_card($p, $this->column_room($layout, $i) - 13, $count);
+                    $edge      = $i > 0 ? 'border-left:1px solid ' . esc_attr($rule) . ';padding:0 0 0 12px;' : 'padding:0 13px 0 0;';
+                    $columns[] = $this->post_item_filters('<tr><td style="' . $edge . '"><table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tbody>' . $card . '</tbody></table></td></tr>', $p);
+                } else {
+                    $columns[] = $this->post_item_filters($this->digest_card($p, $this->column_room($layout, $i), $count), $p);
+                }
             }
 
             $rows[] = $this->columns($layout, $columns);
