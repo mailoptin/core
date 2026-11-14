@@ -378,7 +378,7 @@ HTML;
     public static function state($email_campaign_id)
     {
         $content = json_decode((string)ER::get_customizer_value($email_campaign_id, 'email_newsletter_content'), true);
-        $state   = ['template' => (string)ER::get_template_class($email_campaign_id), 'content' => is_array($content) ? array_values($content) : [], 'design' => [], 'settings' => []];
+        $state   = ['template' => (string)ER::get_template_class($email_campaign_id), 'content' => self::text_as_typed(is_array($content) ? array_values($content) : []), 'design' => [], 'settings' => []];
 
         // Written by hand: the HTML is the email, no blocks or design settings.
         if (self::is_code($email_campaign_id)) {
@@ -404,6 +404,28 @@ HTML;
         foreach (self::settings_fields() as $key => $field) $state['settings'][$key] = (string)$value($key);
 
         return $state;
+    }
+
+    /**
+     * Text the Customizer saved with slashes added, as the author wrote it: what the editor shows,
+     * and (marked once saved) what it keeps.
+     */
+    protected static function text_as_typed($content)
+    {
+        foreach ($content as $i => $element) {
+            if ( ! is_array($element)) continue;
+            if ('text' === ($element['type'] ?? '') && is_array($element['settings'] ?? null) && isset($element['settings']['text_content']) && is_string($element['settings']['text_content'])) {
+                $content[$i]['settings']['text_content'] = \MailOptin\Core\EmailBlocks\Builtin\Text::content($element['settings']);
+                $content[$i]['settings'][\MailOptin\Core\EmailBlocks\Builtin\Text::AS_TYPED] = true;
+            }
+            if (is_array($element['columns'] ?? null)) {
+                foreach ($element['columns'] as $c => $children) {
+                    if (is_array($children)) $content[$i]['columns'][$c] = self::text_as_typed($children);
+                }
+            }
+        }
+
+        return $content;
     }
 
     /**
