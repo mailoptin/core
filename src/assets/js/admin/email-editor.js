@@ -301,6 +301,12 @@
         beginEdit(true);
         at.list.splice(to, 0, at.list.splice(at.index, 1)[0]);
         changed(true);
+        // At the top or bottom the pressed button is disabled: keep the keyboard in the header.
+        var $btn = $(by < 0 ? '.mo-ee-block-up' : '.mo-ee-block-down');
+        if ($btn.prop('disabled')) {
+            var $other = $(by < 0 ? '.mo-ee-block-down' : '.mo-ee-block-up');
+            ($other.prop('disabled') ? $('.mo-ee-block-done') : $other).trigger('focus');
+        }
     }
 
     // A rule from a field's show_if: one of the values, or (with "!") none of them.
@@ -332,7 +338,10 @@
         $scope.find('.mo-ee-image').each(function () {
             var url = $.trim(String($(this).find('.mo-ee-input').val() || '')), ok = /^(https?:)?\/\//i.test(url) || /^\/[^\/]/.test(url);
             $(this).toggleClass('is-empty', !ok);
-            $(this).find('.mo-ee-image-preview img').attr('src', ok ? url : '');
+            // Typed URLs load once typing stops, not a request per key.
+            var $img = $(this).find('.mo-ee-image-preview img'), src = ok ? url : '';
+            clearTimeout($img.data('moTimer'));
+            if ($img.attr('src') !== src) $img.data('moTimer', setTimeout(function () { $img.attr('src', src); }, src && $(this).find('.mo-ee-input').is(':focus') ? 500 : 0));
             $(this).find('.mo-ee-pick-image-btn').text(ok ? (i18n.replaceImage || 'Replace') : (i18n.chooseImage || 'Choose image'));
         });
         if (!values) return;
@@ -469,6 +478,53 @@
         } else $field.before($menu);
     }
 
+    // {{key|fallback}} in a text block's HTML, as chips for the classic editor (text nodes only:
+    // a placeholder in a link's href stays as it is) and back.
+    var phLabels = null;
+    function phLabel(key) {
+        if (!phLabels) {
+            phLabels = {};
+            (cfg.placeholders || []).forEach(function (g) { (g.items || []).forEach(function (it) { phLabels[it.key] = it.label; }); });
+        }
+        return phLabels[key] || key;
+    }
+
+    function chipsIn(html) {
+        if (html.indexOf('{{') === -1) return html;
+        var doc = new DOMParser().parseFromString('<!doctype html><body>' + html, 'text/html'), re = /\{\{\s*([a-z][a-z0-9_.]*)\s*(?:\|([^}]*))?\}\}/gi;
+        var walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT), nodes = [], n;
+        while ((n = walker.nextNode())) if (n.nodeValue.indexOf('{{') !== -1 && !(n.parentNode.closest && n.parentNode.closest('.mo-ph'))) nodes.push(n);
+        if (!nodes.length) return html;
+        nodes.forEach(function (node) {
+            var text = node.nodeValue, frag = doc.createDocumentFragment(), last = 0, m;
+            re.lastIndex = 0;
+            while ((m = re.exec(text))) {
+                if (m.index > last) frag.appendChild(doc.createTextNode(text.slice(last, m.index)));
+                var chip = doc.createElement('span');
+                chip.className = 'mo-ph';
+                chip.setAttribute('contenteditable', 'false');
+                chip.setAttribute('data-mo-ph', m[0]);
+                chip.setAttribute('title', m[0]);
+                chip.textContent = phLabel(m[1]) + (m[2] && m[2].trim() ? ' · ' + m[2].trim() : '');
+                frag.appendChild(chip);
+                last = re.lastIndex;
+            }
+            if (last < text.length) frag.appendChild(doc.createTextNode(text.slice(last)));
+            node.parentNode.replaceChild(frag, node);
+        });
+        return doc.body.innerHTML;
+    }
+
+    function chipsOut(html) {
+        if (html.indexOf('mo-ph') === -1) return html;
+        return html.replace(/<span\b[^>]*\bdata-mo-ph="([^"]*)"[^>]*>[\s\S]*?<\/span>/g, function (all, raw) {
+            var t = document.createElement('textarea');
+            t.innerHTML = raw;
+            // Back to text in HTML: the fallback's own &, < and > stay escaped.
+            return t.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        });
+    }
+
     function insertAt($field, text) {
         var ed = $field[0].id && window.tinymce ? tinymce.get($field[0].id) : null;
 
@@ -563,8 +619,12 @@
             wp.editor.initialize(edId, {
                 tinymce: {
                     wpautop: true, height: 260,
+                    content_style: '.mo-ph{display:inline-block;padding:0 6px;border:1px solid #c5d9ed;border-radius:4px;background:#f0f6fc;color:#135e96;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:default;white-space:nowrap}',
                     setup: function (ed) {
                         ed.on('input change keyup', function () { if (filling) return; ed.save(); onField($ta); });
+                        // Placeholders show as chips here; what's saved stays {{key|fallback}}.
+                        ed.on('BeforeSetContent', function (e) { if (e.content) e.content = chipsIn(e.content); });
+                        ed.on('PostProcess', function (e) { if (e.get && e.content) e.content = chipsOut(e.content); });
                     }
                 },
                 quicktags: true, mediaButtons: true
@@ -671,7 +731,7 @@
     // A click on an element in the preview opens its settings; links there go nowhere.
     function frameClicks(doc) {
         var style = doc.createElement('style');
-        style.textContent = '[data-id]{cursor:pointer}[data-id]:hover{outline:2px dashed #2271b1;outline-offset:2px}[data-id].mo-ee-on{outline:2px solid #2271b1;outline-offset:2px}';
+        style.textContent = '[data-id]{cursor:pointer}[data-id]:hover{outline:2px dashed #2271b1;outline-offset:2px}[data-id].mo-ee-on{outline:2px solid #2271b1;outline-offset:2px}html.mo-ee-dragging [data-id]:hover{outline:none}';
         (doc.head || doc.documentElement).appendChild(style);
 
         if (openId) {
@@ -788,6 +848,7 @@
     }
 
     function hideDropLine(doc) {
+        if (doc && doc.documentElement) doc.documentElement.classList.remove('mo-ee-dragging');
         var line = doc && doc.getElementById('mo-ee-dropline');
         if (line) line.parentNode.removeChild(line);
     }
@@ -797,6 +858,8 @@
             if (!dragging) return;
             e.preventDefault();
             if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+            // The drop line shows where it lands; a hover outline would only add noise.
+            doc.documentElement.classList.add('mo-ee-dragging');
             showDropLine(doc, dropTarget(doc, e.clientX, e.clientY));
         });
         doc.addEventListener('dragleave', function (e) {
@@ -1016,6 +1079,10 @@
             closeBlock();
             at.list.splice(at.index, 1);
             changed(true);
+            // Focus goes to the block now in its place (or the one before), else the blocks to add.
+            var next = at.list[at.index] || at.list[at.index - 1];
+            var $to = next ? $('#mo-ee-blocks li.mo-ee-item[data-id="' + next.id + '"] > .mo-ee-item-row .mo-ee-item-open') : $();
+            ($to.length ? $to : $('.mo-ee-tile').first()).trigger('focus');
         });
 
         // A row of buttons for a short list: the hidden select is the field.

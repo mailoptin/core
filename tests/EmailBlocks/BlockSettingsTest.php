@@ -109,4 +109,11 @@ class BlockSettingsTest extends \WP_UnitTestCase
         $this->assertStringContainsString('Gap (px)', EmailEditor::field_html('g', ['type' => 'number', 'label' => 'Gap (px)'], true));
         $this->assertStringNotContainsString('(px)', EmailEditor::field_html('g', ['type' => 'range', 'label' => 'Gap (px)'], true));
     }
+
+    public function test_a_slider_can_name_its_unit()
+    {
+        $html = EmailEditor::field_html('r', ['type' => 'range', 'label' => 'Corners', 'unit' => 'px'], true);
+        $this->assertStringContainsString('data-unit="px"', $html);
+        $this->assertStringContainsString('Rounded corners', $this->form('button'));
+    }
 }

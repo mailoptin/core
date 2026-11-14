@@ -699,7 +699,7 @@ HTML;
         $type = $field['type'] ?? 'text';
 
         // In a block's form: a unit in the label ("Font Size (px)") goes beside the slider instead.
-        $unit = '';
+        $unit = $in_block && 'range' === $type ? (string)($field['unit'] ?? '') : '';
         if ($in_block && 'range' === $type && preg_match('/^(.*\S)\s*\((px|%)\)\s*$/', (string)($field['label'] ?? ''), $m)) {
             $field['label'] = $m[1];
             $unit           = $m[2];
@@ -870,6 +870,7 @@ HTML;
             'image_alt_text' => ['panel' => 'content', 'label' => __('Alt text', 'mailoptin'), 'description' => __('Read out to people who can\'t see images, and shown when images are blocked.', 'mailoptin')],
             'block_padding'  => ['label' => __('Around the block', 'mailoptin')],
             'button_padding' => ['label' => __('Inside the button', 'mailoptin')],
+            'button_border_radius' => ['label' => __('Rounded corners', 'mailoptin'), 'unit' => 'px'],
             'block_background_color' => ['label' => __('Block background', 'mailoptin')],
         ]);
     }
