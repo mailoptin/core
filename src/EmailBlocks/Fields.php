@@ -9,7 +9,12 @@ class Fields
 {
     public static function sanitize($field, $value)
     {
-        switch ($field['type'] ?? 'text') {
+        $type = $field['type'] ?? 'text';
+
+        // A list where one value belongs (a malformed post): nothing, not "Array" and a warning.
+        if (is_array($value) && in_array($type, ['tinymce', 'textarea', 'color_picker', 'select_image', 'url', 'text'], true)) $value = '';
+
+        switch ($type) {
             case 'tinymce':
             case 'textarea':
                 // Authors who may post unfiltered HTML keep it, as in posts.
@@ -74,7 +79,7 @@ class Fields
      */
     public static function color($value)
     {
-        $value = trim((string)$value);
+        $value = is_scalar($value) ? trim((string)$value) : '';
 
         if ('' === $value) return '';
 
@@ -95,7 +100,14 @@ class Fields
     {
         $value = trim((string)$value);
 
-        if (preg_match('/^\{\{\s*[a-z][a-z0-9_.]*\s*(\|[^}]*)?\}\}$/i', $value)) return esc_attr($value);
+        if (preg_match('/^(\{\{\s*[a-z][a-z0-9_.]*\s*)(?:\|([^}]*))?\}\}$/i', $value, $m)) {
+            // The fallback is the link when the placeholder is empty: no javascript: or other
+            // unsafe scheme (esc_url never sees it).
+            $fallback = $m[2] ?? '';
+            if ('' !== $fallback && wp_kses_bad_protocol($fallback, wp_allowed_protocols()) !== $fallback) $value = $m[1] . '}}';
+
+            return esc_attr($value);
+        }
 
         return esc_url($value);
     }

@@ -34,7 +34,11 @@ class Posts extends ElementBlock
 
         if ( ! $posts || ! $template || ! method_exists($template, 'post_url')) return '';
 
-        $count = min(3, max(1, absint($settings['post_column_count'] ?? 1)));
+        // Each post's fields, meta and terms in a few queries, not several for each post.
+        _prime_post_caches($posts, true, true);
+
+        // Each post needs room (about 160px, as Products): fewer side by side in a narrow column.
+        $count = min(3, max(1, absint($settings['post_column_count'] ?? 1)), max(1, intdiv($style->width + 20, 160)));
 
         if (1 === $count) {
             $html = '';
@@ -65,8 +69,11 @@ class Posts extends ElementBlock
     {
         $template = $style->template;
 
-        // Chosen posts made private, drafts or deleted since don't go out.
-        if ( ! get_post($post) || 'publish' !== get_post_status($post)) return '';
+        // Chosen posts made private, drafts, deleted or put behind a password since don't go out, nor
+        // posts of a type that isn't public (the editor's search doesn't offer them either).
+        $object = get_post($post);
+        $type   = $object ? get_post_type_object($object->post_type) : null;
+        if ( ! $object || ! $type || ! $type->public || 'publish' !== get_post_status($object) || '' !== (string)$object->post_password) return '';
 
         $pad     = Mjml::padding($settings['block_padding'] ?? []);
         $font    = esc_attr($style->font_stack($settings['post_font_family'] ?? ''));

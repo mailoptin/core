@@ -54,7 +54,7 @@ class DiscountCode extends ShopBlock
                     'fixed'         => __('Fixed amount off', 'mailoptin'),
                     'free_shipping' => __('Free shipping', 'mailoptin'),
                 ], 'default' => 'percent', 'tab' => 'content'],
-                'amount'        => ['type' => 'number', 'label' => __('Amount', 'mailoptin'), 'min' => 0, 'max' => 100000, 'default' => '10', 'tab' => 'content'],
+                'amount'        => ['type' => 'number', 'label' => __('Amount', 'mailoptin'), 'min' => 0, 'max' => 100000, 'default' => '10', 'tab' => 'content', 'show_if' => ['discount_type' => ['!free_shipping']]],
                 'expiry_days'   => ['type' => 'number', 'label' => __('Expires after (days)', 'mailoptin'), 'description' => __('0: never.', 'mailoptin'), 'min' => 0, 'max' => 365, 'default' => '7', 'tab' => 'content'],
                 'minimum'       => ['type' => 'number', 'label' => __('Minimum spend', 'mailoptin'), 'description' => __('0: none.', 'mailoptin'), 'min' => 0, 'max' => 1000000, 'default' => '0', 'tab' => 'content'],
                 'individual'    => ['type' => 'checkbox', 'label' => __('Not with other coupons', 'mailoptin'), 'default' => true, 'tab' => 'content'],

@@ -107,7 +107,8 @@ abstract class Store
     /**
      * Products for an email's Products block.
      *
-     * @param array $args source (chosen|category|on_sale|newest), ids, category, count
+     * @param array $args source (chosen|category|on_sale|newest), ids, category, count (all the ids
+     *                    when chosen)
      *
      * @return array[] each: id, name, url, image, price, regular ('' unless on sale), percent
      *                 (prices as HTML-safe text)

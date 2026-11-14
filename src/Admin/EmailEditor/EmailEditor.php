@@ -2,6 +2,7 @@
 
 namespace MailOptin\Core\Admin\EmailEditor;
 
+use MailOptin\Core\Admin\Customizer\CustomControls\EmailContentBuilder\Elements\SettingsFields;
 use MailOptin\Core\EmailBlocks\AbstractBlock;
 use MailOptin\Core\EmailBlocks\Blocks;
 use MailOptin\Core\EmailBlocks\Fields;
@@ -377,7 +378,7 @@ HTML;
     public static function state($email_campaign_id)
     {
         $content = json_decode((string)ER::get_customizer_value($email_campaign_id, 'email_newsletter_content'), true);
-        $state   = ['template' => (string)ER::get_template_class($email_campaign_id), 'content' => is_array($content) ? array_values($content) : [], 'design' => [], 'settings' => []];
+        $state   = ['template' => (string)ER::get_template_class($email_campaign_id), 'content' => self::text_as_typed(is_array($content) ? array_values($content) : []), 'design' => [], 'settings' => []];
 
         // Written by hand: the HTML is the email, no blocks or design settings.
         if (self::is_code($email_campaign_id)) {
@@ -406,6 +407,28 @@ HTML;
     }
 
     /**
+     * Text the Customizer saved with slashes added, as the author wrote it: what the editor shows,
+     * and (marked once saved) what it keeps.
+     */
+    protected static function text_as_typed($content)
+    {
+        foreach ($content as $i => $element) {
+            if ( ! is_array($element)) continue;
+            if ('text' === ($element['type'] ?? '') && is_array($element['settings'] ?? null) && isset($element['settings']['text_content']) && is_string($element['settings']['text_content'])) {
+                $content[$i]['settings']['text_content'] = \MailOptin\Core\EmailBlocks\Builtin\Text::content($element['settings']);
+                $content[$i]['settings'][\MailOptin\Core\EmailBlocks\Builtin\Text::AS_TYPED] = true;
+            }
+            if (is_array($element['columns'] ?? null)) {
+                foreach ($element['columns'] as $c => $children) {
+                    if (is_array($children)) $content[$i]['columns'][$c] = self::text_as_typed($children);
+                }
+            }
+        }
+
+        return $content;
+    }
+
+    /**
      * A posted state, cleaned: blocks by their own fields, design and settings by theirs.
      *
      * @return array setting => value, ready to save
@@ -424,7 +447,9 @@ HTML;
             return $values;
         }
 
-        $values = ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($state['content'] ?? []))];
+        // Blocks whose type is gone for now (its plugin off) are kept as saved, not lost.
+        $keep   = $email_campaign_id ? Blocks::get_instance()->unregistered_in((string)ER::get_customizer_value_without_default($email_campaign_id, 'email_newsletter_content')) : [];
+        $values = ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($state['content'] ?? [], false, $keep))];
 
         foreach (['design' => self::design_fields($email_campaign_id), 'settings' => self::settings_fields()] as $group => $fields) {
             $posted = (array)($state[$group] ?? []);
@@ -609,8 +634,9 @@ HTML;
         wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', ['wp-color-picker'], MAILOPTIN_VERSION_NUMBER);
 
         $blocks = [];
+        // Defaults as an object: none is {} for the editor, not [] (a list it would put settings in).
         foreach (Blocks::get_instance()->available_for($email_campaign_id) as $id => $block) {
-            $blocks[$id] = ['title' => $block->title(), 'description' => $block->description(), 'defaults' => $block->defaults($email_campaign_id)];
+            $blocks[$id] = ['title' => $block->title(), 'description' => $block->description(), 'defaults' => (object)$block->defaults($email_campaign_id), 'iconHtml' => \MailOptin\Core\EmailBlocks\Icons::html($block->palette_icon())];
         }
 
         wp_localize_script('mailoptin-email-editor', 'moEmailEditor', [
@@ -640,6 +666,15 @@ HTML;
                 'columnsSummary' => __('%1$s columns, %2$s elements', 'mailoptin'),
                 /* translators: %s: column number */
                 'column'         => __('Column %s', 'mailoptin'),
+                /* translators: 1: a block's place, 2: how many blocks */
+                'blockOf'        => __('Block %1$s of %2$s', 'mailoptin'),
+                /* translators: %s: a column's number */
+                'inColumn'       => __('In Columns · column %s', 'mailoptin'),
+                'chooseImage'    => __('Choose image', 'mailoptin'),
+                'replaceImage'   => __('Replace', 'mailoptin'),
+                'placeholder'    => __('Placeholder', 'mailoptin'),
+                /* translators: shown beside a slider whose value is left to the template */
+                'auto'           => __('Auto', 'mailoptin'),
                 'addToColumn'    => __('+ Add to this column', 'mailoptin'),
                 'insertPlaceholder' => __('Insert placeholder', 'mailoptin'),
                 /* translators: %d: number of warnings */
@@ -682,14 +717,33 @@ HTML;
     /**
      * One form field, by type. Values are filled in by the editor from the email's data.
      */
-    public static function field_html($name, $field)
+    public static function field_html($name, $field, $in_block = false)
     {
+        $type = $field['type'] ?? 'text';
+
+        // In a block's form: a unit in the label ("Font Size (px)") goes beside the slider instead.
+        $unit = $in_block && 'range' === $type ? (string)($field['unit'] ?? '') : '';
+        if ($in_block && 'range' === $type && preg_match('/^(.*\S)\s*\((px|%)\)\s*$/', (string)($field['label'] ?? ''), $m)) {
+            $field['label'] = $m[1];
+            $unit           = $m[2];
+        }
+
         $label = esc_html($field['label'] ?? '');
         $name  = esc_attr($name);
-        $type  = $field['type'] ?? 'text';
-        $html  = '<div class="mo-ee-field mo-ee-field-' . esc_attr($type) . '">';
+        $attrs = ! empty($field['show_if']) && $in_block ? " data-show-if='" . esc_attr(wp_json_encode($field['show_if'])) . "'" : '';
+        $html  = '<div class="mo-ee-field mo-ee-field-' . esc_attr($type) . '"' . $attrs . '>';
 
         if ('checkbox' !== $type && '' !== $label) $html .= '<label class="mo-ee-label">' . $label . '</label>';
+
+        if ($in_block) {
+            $control = self::block_control_html($name, $field, $type, $unit);
+            if (null !== $control) {
+                $html .= $control;
+                if ( ! empty($field['description'])) $html .= '<p class="description">' . esc_html($field['description']) . '</p>';
+
+                return $html . '</div>';
+            }
+        }
 
         switch ($type) {
             case 'tinymce':
@@ -740,6 +794,78 @@ HTML;
         return $html . '</div>';
     }
 
+    /**
+     * The friendlier controls of a block's form, over the same inputs (each still a .mo-ee-input with
+     * its data-name, so filling, saving and undo work as for any field). Null: the usual control.
+     */
+    protected static function block_control_html($name, $field, $type, $unit)
+    {
+        switch ($type) {
+            case 'checkbox':
+                return '<label class="mo-ee-switch"><input type="checkbox" class="mo-ee-input" data-name="' . $name . '"><span class="mo-ee-switch-track" aria-hidden="true"></span><span class="mo-ee-switch-label">' . esc_html($field['checkbox_label'] ?? $field['label'] ?? '') . '</span></label>';
+
+            case 'range':
+                return sprintf(
+                    '<div class="mo-ee-range"><input type="range" class="mo-ee-input" data-name="%s" min="%s" max="%s" step="%s" aria-label="%s"><output class="mo-ee-range-value" data-unit="%s"></output></div>',
+                    $name, esc_attr($field['min'] ?? 0), esc_attr($field['max'] ?? 100), esc_attr($field['step'] ?? 1), esc_attr($field['label'] ?? ''), esc_attr($unit)
+                );
+
+            case 'dimension':
+                // Above and below show; the sides are a click away.
+                $input = function ($side, $label) use ($name) {
+                    return '<label><span>' . esc_html($label) . '</span><input type="number" min="0" class="mo-ee-input" data-name="' . $name . '" data-part="' . $side . '"></label>';
+                };
+
+                return '<div class="mo-ee-dimension">' . $input('top', __('Above', 'mailoptin')) . $input('bottom', __('Below', 'mailoptin')) . '</div>'
+                       . '<details class="mo-ee-sides"><summary>' . esc_html__('Sides', 'mailoptin') . '</summary><div class="mo-ee-dimension">'
+                       . $input('left', __('Left', 'mailoptin')) . $input('right', __('Right', 'mailoptin')) . '</div></details>';
+
+            case 'select_image':
+                return '<div class="mo-ee-image is-empty">'
+                       . '<div class="mo-ee-image-preview"><img alt=""><span class="mo-ee-image-none">' . esc_html__('No image yet', 'mailoptin') . '</span></div>'
+                       . '<div class="mo-ee-image-actions"><button type="button" class="button mo-ee-pick-image-btn">' . esc_html__('Choose image', 'mailoptin') . '</button>'
+                       . '<button type="button" class="button-link mo-ee-image-remove">' . esc_html__('Remove', 'mailoptin') . '</button></div>'
+                       . '<details class="mo-ee-image-url"><summary>' . esc_html__('Use a URL', 'mailoptin') . '</summary><input type="url" class="mo-ee-input" data-name="' . $name . '" placeholder="https://"></details>'
+                       . '</div>';
+
+            case 'font_family':
+                $choices = ! empty($field['choices']) ? $field['choices'] : SettingsFields::font_choices();
+                if (isset($choices[''])) $choices[''] = __('Same as the email', 'mailoptin');
+
+                return '<select class="mo-ee-input" data-name="' . $name . '">' . self::options_html($choices) . '</select>';
+
+            case 'select':
+                if ( ! empty($field['search']) || ! empty($field['multiple'])) return null;
+
+                $choices = (array)($field['choices'] ?? []);
+                $flat    = array_filter($choices, 'is_scalar');
+                if (count($flat) !== count($choices) || count($flat) < 2 || count($flat) > 4) return null;
+
+                // Alignment as icons; other short lists as buttons side by side.
+                $align = ! array_diff(array_map('strval', array_keys($flat)), ['left', 'center', 'right']);
+                foreach ($flat as $label) if ( ! $align && mb_strlen((string)$label) > 24) return null;
+                if ($align) $flat = array_intersect_key(['left' => $flat['left'] ?? '', 'center' => $flat['center'] ?? '', 'right' => $flat['right'] ?? ''], $flat);
+
+                $buttons = '';
+                foreach ($flat as $value => $label) {
+                    $inner = $align ? self::align_icon((string)$value) . '<span class="screen-reader-text">' . esc_html($label) . '</span>' : esc_html($label);
+                    $buttons .= '<button type="button" class="mo-ee-seg-btn" data-value="' . esc_attr($value) . '" aria-pressed="false">' . $inner . '</button>';
+                }
+
+                return '<select class="mo-ee-input mo-ee-seg-source" data-name="' . $name . '" hidden aria-hidden="true" tabindex="-1">' . self::options_html($flat) . '</select>'
+                       . '<div class="mo-ee-seg' . ($align ? ' mo-ee-seg-icons' : '') . ' mo-ee-seg-' . count($flat) . '" role="group" aria-label="' . esc_attr($field['label'] ?? '') . '">' . $buttons . '</div>';
+        }
+
+        return null;
+    }
+
+    protected static function align_icon($side)
+    {
+        $paths = ['left' => 'M4 6h16M4 12h10M4 18h14', 'center' => 'M4 6h16M7 12h10M5 18h14', 'right' => 'M4 6h16M10 12h10M6 18h14'];
+
+        return '<svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="' . esc_attr($paths[$side] ?? $paths['left']) . '"/></svg>';
+    }
+
     protected static function options_html($choices)
     {
         $html = '';
@@ -756,27 +882,100 @@ HTML;
     }
 
     /**
-     * A block's settings form, by tab.
+     * How a block's fields are shown in the editor, where that differs from the field itself: which
+     * panel and section, a plainer label or description. Keyed by field name.
+     */
+    protected static function field_presentation()
+    {
+        return apply_filters('mailoptin_email_block_field_presentation', [
+            'image_url'      => ['label' => __('Image', 'mailoptin')],
+            'button_link'    => ['label' => __('Link', 'mailoptin')],
+            'image_alt_text' => ['panel' => 'content', 'label' => __('Alt text', 'mailoptin'), 'description' => __('Read out to people who can\'t see images, and shown when images are blocked.', 'mailoptin')],
+            'block_padding'  => ['label' => __('Around the block', 'mailoptin')],
+            'button_padding' => ['label' => __('Inside the button', 'mailoptin')],
+            'button_border_radius' => ['label' => __('Rounded corners', 'mailoptin'), 'unit' => 'px'],
+            'block_background_color' => ['label' => __('Block background', 'mailoptin')],
+        ]);
+    }
+
+    /** The Style panel's sections, in order. */
+    protected static function style_sections()
+    {
+        return [
+            ''        => '',
+            'colours' => __('Colours', 'mailoptin'),
+            'text'    => __('Text', 'mailoptin'),
+            'shape'   => __('Shape and place', 'mailoptin'),
+            'spacing' => __('Spacing', 'mailoptin'),
+        ];
+    }
+
+    /** Where a field sits in the Style panel: its own 'section', else by what it sets. */
+    protected static function section_for($name, $field)
+    {
+        if (isset($field['section'])) return (string)$field['section'];
+
+        $type = $field['type'] ?? 'text';
+        if ('color_picker' === $type) return 'colours';
+        if ('dimension' === $type) return 'spacing';
+        if ('font_family' === $type || preg_match('/font_(size|weight)|line_height/', $name)) return 'text';
+        if (preg_match('/align|width|height|radius|_style$|valign/', $name)) return 'shape';
+
+        return '';
+    }
+
+    /**
+     * A block's settings form: Content and Style (what used to be "Block Settings", the spacing and
+     * background around the block, is part of Style). The Style panel is in sections, and ends with
+     * a way back to the template's look.
      */
     public static function block_form_html(AbstractBlock $block)
     {
-        $tabs   = $block->tabs() ?: ['' => ''];
-        $fields = $block->fields();
-        $html   = '';
+        $tabs   = $block->tabs();
+        $shown  = self::field_presentation();
+        $panels = ['content' => [], 'style' => []];
 
-        if (count($tabs) > 1) {
-            $html .= '<div class="mo-ee-subtabs">';
-            foreach ($tabs as $tab => $label) $html .= '<button type="button" class="mo-ee-subtab" data-tab="' . esc_attr($tab) . '">' . esc_html($label) . '</button>';
+        foreach ($block->fields() as $name => $field) {
+            $field = array_replace($field, $shown[$name] ?? []);
+            $tab   = (string)($field['tab'] ?? '');
+
+            if (isset($field['panel'])) $panel = 'style' === $field['panel'] ? 'style' : 'content';
+            // No tabs: what isn't plainly a look (colours, text, shape, spacing) is content, so
+            // "Reset to the template's style" never takes a block's own words, links or layout.
+            elseif ( ! $tabs) $panel = '' === self::section_for($name, $field) ? 'content' : 'style';
+            else $panel = false !== strpos($tab, 'content') || ('' === $tab && false !== strpos((string)array_key_first($tabs), 'content')) ? 'content' : 'style';
+
+            $panels[$panel][$name] = $field;
+        }
+
+        $html = '';
+        if ($panels['content'] && $panels['style']) {
+            $html .= '<div class="mo-ee-subtabs" role="tablist">'
+                     . '<button type="button" class="mo-ee-subtab" role="tab" data-tab="content">' . esc_html__('Content', 'mailoptin') . '</button>'
+                     . '<button type="button" class="mo-ee-subtab" role="tab" data-tab="style">' . esc_html__('Style', 'mailoptin') . '</button>'
+                     . '</div>';
+        }
+
+        if ($panels['content']) {
+            $html .= '<div class="mo-ee-subpanel" data-tab="content">';
+            foreach ($panels['content'] as $name => $field) $html .= self::field_html($name, $field, true);
             $html .= '</div>';
         }
 
-        foreach ($tabs as $tab => $label) {
-            $html .= '<div class="mo-ee-subpanel" data-tab="' . esc_attr($tab) . '">';
-            foreach ($fields as $name => $field) {
-                if ('' === $tab || ($field['tab'] ?? '') === $tab || ( ! isset($tabs[$field['tab'] ?? '']) && $tab === array_key_first($tabs))) {
-                    $html .= self::field_html($name, $field);
-                }
+        if ($panels['style']) {
+            $sections = array_fill_keys(array_keys(self::style_sections()), '');
+            foreach ($panels['style'] as $name => $field) {
+                $section = self::section_for($name, $field);
+                if ( ! isset($sections[$section])) $section = '';
+                $sections[$section] .= self::field_html($name, $field, true);
             }
+
+            $html .= '<div class="mo-ee-subpanel" data-tab="style">';
+            foreach (self::style_sections() as $id => $label) {
+                if ('' === $sections[$id]) continue;
+                $html .= '<div class="mo-ee-section-group" data-section="' . esc_attr($id) . '">' . ('' !== $label ? '<h4 class="mo-ee-section-h">' . esc_html($label) . '</h4>' : '') . $sections[$id] . '</div>';
+            }
+            $html .= '<button type="button" class="button-link mo-ee-reset-style">' . esc_html__('Reset to the template\'s style', 'mailoptin') . '</button>';
             $html .= '</div>';
         }
 
@@ -801,9 +1000,17 @@ HTML;
         return $email_campaign_id;
     }
 
+    /** A posted value as text: '' when it isn't one (a list posted where text belongs). */
+    protected static function posted($key, $default = '')
+    {
+        $value = $_POST[$key] ?? $default;
+
+        return is_scalar($value) ? (string)wp_unslash($value) : '';
+    }
+
     protected static function posted_state()
     {
-        $state = json_decode(wp_unslash((string)($_POST['state'] ?? '')), true);
+        $state = json_decode(self::posted('state'), true);
 
         return is_array($state) ? $state : [];
     }
@@ -822,23 +1029,34 @@ HTML;
         $switch   = $template && self::design_template($state, $email_campaign_id) !== $template;
         if ($switch) $state = self::switch_design($state, $email_campaign_id, $template);
 
-        foreach (self::clean_state($state, $email_campaign_id) as $key => $value) {
+        $clean = self::clean_state($state, $email_campaign_id);
+        foreach ($clean as $key => $value) {
             Settings::set_preview(Settings::TYPE_EMAIL, $email_campaign_id, $key, $value);
         }
 
         if ($template) Templates::set_preview($email_campaign_id, $template);
 
+        $defaults = null;
         try {
             $html = (new Templatify($email_campaign_id))->forge();
+            // Checked as drawn for someone (sample cart and products in), so the size is what's sent;
+            // drawn while the on-screen settings and template apply (the cart's text colour, its font).
+            $shown = self::with_samples($email_campaign_id, $html);
+            // Asked for when the editor hasn't the blocks' defaults in this template yet (another
+            // template chosen): new blocks and "Reset" take its colours and fonts, not the old one's.
+            if ( ! empty($_POST['defaults']) && ! self::is_code($email_campaign_id)) {
+                \MailOptin\Core\EmailBlocks\Builtin\ElementBlock::flush_defaults();
+                $defaults = [];
+                // An object: no defaults is {} for the editor, not [] (a list it would save settings into).
+                foreach (Blocks::get_instance()->available_for($email_campaign_id) as $type => $block) $defaults[$type] = (object)$block->defaults($email_campaign_id);
+            }
         } finally {
             Settings::clear_preview();
             Templates::clear_preview();
         }
 
-        // Checked as drawn for someone (sample cart and products in), so the size is what's sent.
-        $shown = self::with_samples($email_campaign_id, $html);
-
-        $data = ['html' => $shown, 'checks' => self::checks($email_campaign_id, $state, $shown)];
+        $data = ['html' => $shown, 'checks' => self::checks($email_campaign_id, self::checked_state($state, $clean), $shown)];
+        if (null !== $defaults) $data['blocks'] = $defaults;
         // The switched design values, for the Design tab to show.
         if ($switch && is_array($state['design'] ?? null)) {
             $data['design']          = $state['design'];
@@ -846,6 +1064,19 @@ HTML;
         }
 
         wp_send_json_success($data);
+    }
+
+    /**
+     * What the checks look at: the posted state as it would be saved (cleaned), so a block posted
+     * without settings, or a setting of the wrong shape, can't trip them.
+     */
+    protected static function checked_state($state, $clean)
+    {
+        $content = json_decode((string)($clean['email_newsletter_content'] ?? ''), true);
+        $checked = ['content' => is_array($content) ? $content : [], 'settings' => array_intersect_key($clean, self::settings_fields())];
+        if (array_key_exists('code_your_own', $clean)) $checked['code'] = (string)$clean['code_your_own'];
+
+        return $checked;
     }
 
     /**
@@ -863,7 +1094,7 @@ HTML;
         $email_campaign_id = self::authorize();
 
         // Saved somewhere else since this editor loaded it: say so, unless told to save over it.
-        if (empty($_POST['force']) && (string)($_POST['version'] ?? '') !== self::version($email_campaign_id)) {
+        if (empty($_POST['force']) && self::posted('version') !== self::version($email_campaign_id)) {
             wp_send_json_error(['conflict' => true, 'state' => self::state($email_campaign_id), 'version' => self::version($email_campaign_id)], 409);
         }
 
@@ -896,21 +1127,22 @@ HTML;
         self::authorize();
 
         $kind      = 'products' === ($_POST['kind'] ?? '') ? 'products' : 'posts';
-        $post_type = 'products' === $kind ? 'product' : sanitize_key((string)wp_unslash($_POST['post_type'] ?? 'post'));
+        $post_type = 'products' === $kind ? 'product' : sanitize_key(self::posted('post_type', 'post'));
         $object    = get_post_type_object($post_type);
 
         // Only types that are public and that this person may read.
         if ( ! $object || ! $object->public || ! current_user_can($object->cap->read)) wp_send_json_success([]);
 
-        $args = ['post_type' => $post_type, 'post_status' => 'publish', 'posts_per_page' => 20, 'no_found_rows' => true, 'suppress_filters' => false];
-        $ids  = array_values(array_filter(array_map('absint', explode(',', (string)wp_unslash($_POST['ids'] ?? '')))));
+        // Published and not behind a password: what an email may show to everyone.
+        $args = ['post_type' => $post_type, 'post_status' => 'publish', 'has_password' => false, 'posts_per_page' => 20, 'no_found_rows' => true, 'suppress_filters' => false];
+        $ids  = array_values(array_filter(array_map('absint', explode(',', self::posted('ids')))));
 
         if ($ids) {
             $args['post__in']       = array_slice($ids, 0, 100);
             $args['posts_per_page'] = count($args['post__in']);
             $args['orderby']        = 'post__in';
         } else {
-            $args['s'] = sanitize_text_field((string)wp_unslash($_POST['term'] ?? ''));
+            $args['s'] = sanitize_text_field(self::posted('term'));
             if (mb_strlen($args['s']) < 2) wp_send_json_success([]);
         }
 
@@ -928,7 +1160,11 @@ HTML;
     public function ajax_test()
     {
         $email_campaign_id = self::authorize();
-        $to                = sanitize_email(wp_unslash($_POST['email'] ?? '')) ?: wp_get_current_user()->user_email;
+        $typed             = trim(self::posted('email'));
+        // Left empty: to this person. Mistyped: an error, not a test quietly sent to someone else.
+        $to                = '' !== $typed ? sanitize_email($typed) : wp_get_current_user()->user_email;
+
+        if ( ! is_email($to)) wp_send_json_error(['message' => __('Enter a valid email address.', 'mailoptin')]);
 
         $context = self::context_for($email_campaign_id);
 

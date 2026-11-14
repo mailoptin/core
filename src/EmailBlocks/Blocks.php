@@ -139,7 +139,7 @@ class Blocks
         if ( ! is_array($element) || empty($element['type'])) return '';
 
         $type  = sanitize_key($element['type']);
-        $id    = preg_replace('/[^A-Za-z0-9_-]/', '', (string)($element['id'] ?? ''));
+        $id    = preg_replace('/[^A-Za-z0-9_-]/', '', is_scalar($element['id'] ?? null) ? (string)$element['id'] : '');
         $block = $this->get($type);
 
         $settings = (array)($element['settings'] ?? []);
@@ -185,9 +185,13 @@ class Blocks
     /**
      * An email's content as saved by an editor: blocks that exist, each with clean settings and an id.
      *
+     * @param array $keep id => the saved element, for blocks whose type isn't registered now (their
+     *                    plugin is off): such a block, still in the email, is kept as it was saved
+     *                    rather than lost. Not drawn while its type is missing.
+     *
      * @return array
      */
-    public function sanitize_content($elements, $in_column = false)
+    public function sanitize_content($elements, $in_column = false, $keep = [])
     {
         $clean = [];
 
@@ -196,14 +200,19 @@ class Blocks
 
             $block = $this->get(sanitize_key($element['type'] ?? ''));
 
-            if ( ! $block) continue;
+            if ( ! $block) {
+                // Its settings can't be checked without its fields: the saved copy, never the posted one.
+                $id = is_scalar($element['id'] ?? null) ? (string)$element['id'] : '';
+                if ('' !== $id && isset($keep[$id]) && ! $this->get(sanitize_key($keep[$id]['type'] ?? ''))) $clean[] = $keep[$id];
+                continue;
+            }
 
             $is_columns = $block instanceof Builtin\Columns;
 
             // One level only: columns inside a column are dropped.
             if ($is_columns && $in_column) continue;
 
-            $id = preg_replace('/[^A-Za-z0-9_-]/', '', (string)($element['id'] ?? ''));
+            $id = preg_replace('/[^A-Za-z0-9_-]/', '', is_scalar($element['id'] ?? null) ? (string)$element['id'] : '');
 
             $item = [
                 'id'       => '' !== $id ? $id : wp_generate_password(10, false),
@@ -211,7 +220,7 @@ class Blocks
                 'settings' => $block->sanitize($element['settings'] ?? []),
             ];
 
-            if ($is_columns) $item['columns'] = $this->sanitize_columns($element['columns'] ?? [], $item['settings']['columns_layout'] ?? '');
+            if ($is_columns) $item['columns'] = $this->sanitize_columns($element['columns'] ?? [], $item['settings']['columns_layout'] ?? '', $keep);
 
             $clean[] = $item;
         }
@@ -223,7 +232,7 @@ class Blocks
      * As many columns as the layout has. Blocks in columns past that move to the last one, so
      * going from three columns to two loses nothing.
      */
-    protected function sanitize_columns($columns, $layout)
+    protected function sanitize_columns($columns, $layout, $keep = [])
     {
         $count   = count(Builtin\Columns::widths($layout));
         $columns = array_values(array_filter((array)$columns, 'is_array'));
@@ -231,10 +240,28 @@ class Blocks
 
         foreach ($columns as $i => $children) {
             $target         = min($i, $count - 1);
-            $clean[$target] = array_merge($clean[$target], $this->sanitize_content($children, true));
+            $clean[$target] = array_merge($clean[$target], $this->sanitize_content($children, true, $keep));
         }
 
         return $clean;
+    }
+
+    /**
+     * Blocks in saved content whose type isn't registered now, by id: for sanitize_content()'s $keep.
+     *
+     * @param array|string $content the saved content (its JSON, or decoded)
+     */
+    public function unregistered_in($content)
+    {
+        $content = is_string($content) ? json_decode($content, true) : $content;
+        $keep    = [];
+
+        foreach (self::flatten(is_array($content) ? $content : []) as $element) {
+            $id = is_scalar($element['id'] ?? null) ? (string)$element['id'] : '';
+            if ('' !== $id && ! empty($element['type']) && is_string($element['type']) && ! $this->get(sanitize_key($element['type']))) $keep[$id] = $element;
+        }
+
+        return $keep;
     }
 
     /**
