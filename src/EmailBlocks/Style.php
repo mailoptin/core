@@ -17,10 +17,14 @@ class Style
     /** @var int the width blocks are drawn in: the email's body, or a column */
     public $width = 570;
 
+    /** @var \ArrayObject design settings read so far, shared with the narrower copies (with_width) */
+    protected $values;
+
     public function __construct($email_campaign_id, $template = null)
     {
         $this->email_campaign_id = absint($email_campaign_id);
         $this->template          = $template;
+        $this->values            = new \ArrayObject();
 
         if ($template && method_exists($template, 'content_width')) $this->width = max(100, (int)$template->content_width());
     }
@@ -53,7 +57,12 @@ class Style
      */
     public function get($key, $default = '')
     {
-        $value = $this->email_campaign_id ? ER::get_merged_customizer_value($this->email_campaign_id, $key) : null;
+        // Read once per email drawn: each read works out every default again (several queries), and
+        // blocks ask for each product or post.
+        if ( ! $this->values->offsetExists($key)) {
+            $this->values[$key] = $this->email_campaign_id ? ER::get_merged_customizer_value($this->email_campaign_id, $key) : null;
+        }
+        $value = $this->values[$key];
 
         return null === $value || '' === $value ? $default : $value;
     }

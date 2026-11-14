@@ -612,8 +612,9 @@ HTML;
         wp_enqueue_style('mailoptin-email-editor', MAILOPTIN_ASSETS_URL . 'css/admin/email-editor.css', ['wp-color-picker'], MAILOPTIN_VERSION_NUMBER);
 
         $blocks = [];
+        // Defaults as an object: none is {} for the editor, not [] (a list it would put settings in).
         foreach (Blocks::get_instance()->available_for($email_campaign_id) as $id => $block) {
-            $blocks[$id] = ['title' => $block->title(), 'description' => $block->description(), 'defaults' => $block->defaults($email_campaign_id), 'iconHtml' => \MailOptin\Core\EmailBlocks\Icons::html($block->palette_icon())];
+            $blocks[$id] = ['title' => $block->title(), 'description' => $block->description(), 'defaults' => (object)$block->defaults($email_campaign_id), 'iconHtml' => \MailOptin\Core\EmailBlocks\Icons::html($block->palette_icon())];
         }
 
         wp_localize_script('mailoptin-email-editor', 'moEmailEditor', [
@@ -977,9 +978,17 @@ HTML;
         return $email_campaign_id;
     }
 
+    /** A posted value as text: '' when it isn't one (a list posted where text belongs). */
+    protected static function posted($key, $default = '')
+    {
+        $value = $_POST[$key] ?? $default;
+
+        return is_scalar($value) ? (string)wp_unslash($value) : '';
+    }
+
     protected static function posted_state()
     {
-        $state = json_decode(wp_unslash((string)($_POST['state'] ?? '')), true);
+        $state = json_decode(self::posted('state'), true);
 
         return is_array($state) ? $state : [];
     }
@@ -1005,17 +1014,27 @@ HTML;
 
         if ($template) Templates::set_preview($email_campaign_id, $template);
 
+        $defaults = null;
         try {
             $html = (new Templatify($email_campaign_id))->forge();
+            // Checked as drawn for someone (sample cart and products in), so the size is what's sent;
+            // drawn while the on-screen settings and template apply (the cart's text colour, its font).
+            $shown = self::with_samples($email_campaign_id, $html);
+            // Asked for when the editor hasn't the blocks' defaults in this template yet (another
+            // template chosen): new blocks and "Reset" take its colours and fonts, not the old one's.
+            if ( ! empty($_POST['defaults']) && ! self::is_code($email_campaign_id)) {
+                \MailOptin\Core\EmailBlocks\Builtin\ElementBlock::flush_defaults();
+                $defaults = [];
+                // An object: no defaults is {} for the editor, not [] (a list it would save settings into).
+                foreach (Blocks::get_instance()->available_for($email_campaign_id) as $type => $block) $defaults[$type] = (object)$block->defaults($email_campaign_id);
+            }
         } finally {
             Settings::clear_preview();
             Templates::clear_preview();
         }
 
-        // Checked as drawn for someone (sample cart and products in), so the size is what's sent.
-        $shown = self::with_samples($email_campaign_id, $html);
-
         $data = ['html' => $shown, 'checks' => self::checks($email_campaign_id, self::checked_state($state, $clean), $shown)];
+        if (null !== $defaults) $data['blocks'] = $defaults;
         // The switched design values, for the Design tab to show.
         if ($switch && is_array($state['design'] ?? null)) {
             $data['design']          = $state['design'];
@@ -1053,7 +1072,7 @@ HTML;
         $email_campaign_id = self::authorize();
 
         // Saved somewhere else since this editor loaded it: say so, unless told to save over it.
-        if (empty($_POST['force']) && (string)($_POST['version'] ?? '') !== self::version($email_campaign_id)) {
+        if (empty($_POST['force']) && self::posted('version') !== self::version($email_campaign_id)) {
             wp_send_json_error(['conflict' => true, 'state' => self::state($email_campaign_id), 'version' => self::version($email_campaign_id)], 409);
         }
 
@@ -1086,7 +1105,7 @@ HTML;
         self::authorize();
 
         $kind      = 'products' === ($_POST['kind'] ?? '') ? 'products' : 'posts';
-        $post_type = 'products' === $kind ? 'product' : sanitize_key((string)wp_unslash($_POST['post_type'] ?? 'post'));
+        $post_type = 'products' === $kind ? 'product' : sanitize_key(self::posted('post_type', 'post'));
         $object    = get_post_type_object($post_type);
 
         // Only types that are public and that this person may read.
@@ -1094,14 +1113,14 @@ HTML;
 
         // Published and not behind a password: what an email may show to everyone.
         $args = ['post_type' => $post_type, 'post_status' => 'publish', 'has_password' => false, 'posts_per_page' => 20, 'no_found_rows' => true, 'suppress_filters' => false];
-        $ids  = array_values(array_filter(array_map('absint', explode(',', (string)wp_unslash($_POST['ids'] ?? '')))));
+        $ids  = array_values(array_filter(array_map('absint', explode(',', self::posted('ids')))));
 
         if ($ids) {
             $args['post__in']       = array_slice($ids, 0, 100);
             $args['posts_per_page'] = count($args['post__in']);
             $args['orderby']        = 'post__in';
         } else {
-            $args['s'] = sanitize_text_field((string)wp_unslash($_POST['term'] ?? ''));
+            $args['s'] = sanitize_text_field(self::posted('term'));
             if (mb_strlen($args['s']) < 2) wp_send_json_success([]);
         }
 
@@ -1119,7 +1138,11 @@ HTML;
     public function ajax_test()
     {
         $email_campaign_id = self::authorize();
-        $to                = sanitize_email(wp_unslash($_POST['email'] ?? '')) ?: wp_get_current_user()->user_email;
+        $typed             = trim(self::posted('email'));
+        // Left empty: to this person. Mistyped: an error, not a test quietly sent to someone else.
+        $to                = '' !== $typed ? sanitize_email($typed) : wp_get_current_user()->user_email;
+
+        if ( ! is_email($to)) wp_send_json_error(['message' => __('Enter a valid email address.', 'mailoptin')]);
 
         $context = self::context_for($email_campaign_id);
 

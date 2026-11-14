@@ -139,7 +139,7 @@ class Blocks
         if ( ! is_array($element) || empty($element['type'])) return '';
 
         $type  = sanitize_key($element['type']);
-        $id    = preg_replace('/[^A-Za-z0-9_-]/', '', (string)($element['id'] ?? ''));
+        $id    = preg_replace('/[^A-Za-z0-9_-]/', '', is_scalar($element['id'] ?? null) ? (string)$element['id'] : '');
         $block = $this->get($type);
 
         $settings = (array)($element['settings'] ?? []);
@@ -212,7 +212,7 @@ class Blocks
             // One level only: columns inside a column are dropped.
             if ($is_columns && $in_column) continue;
 
-            $id = preg_replace('/[^A-Za-z0-9_-]/', '', (string)($element['id'] ?? ''));
+            $id = preg_replace('/[^A-Za-z0-9_-]/', '', is_scalar($element['id'] ?? null) ? (string)$element['id'] : '');
 
             $item = [
                 'id'       => '' !== $id ? $id : wp_generate_password(10, false),

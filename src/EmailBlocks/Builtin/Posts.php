@@ -69,9 +69,11 @@ class Posts extends ElementBlock
     {
         $template = $style->template;
 
-        // Chosen posts made private, drafts, deleted or put behind a password since don't go out.
+        // Chosen posts made private, drafts, deleted or put behind a password since don't go out, nor
+        // posts of a type that isn't public (the editor's search doesn't offer them either).
         $object = get_post($post);
-        if ( ! $object || 'publish' !== get_post_status($object) || '' !== (string)$object->post_password) return '';
+        $type   = $object ? get_post_type_object($object->post_type) : null;
+        if ( ! $object || ! $type || ! $type->public || 'publish' !== get_post_status($object) || '' !== (string)$object->post_password) return '';
 
         $pad     = Mjml::padding($settings['block_padding'] ?? []);
         $font    = esc_attr($style->font_stack($settings['post_font_family'] ?? ''));

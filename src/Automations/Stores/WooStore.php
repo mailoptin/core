@@ -62,7 +62,9 @@ class WooStore extends Store
             case 'chosen':
                 $ids = array_values(array_filter(array_map('absint', (array)($args['ids'] ?? []))));
                 if ( ! $ids) return [];
-                $query = ['status' => 'publish', 'include' => $ids, 'limit' => count($ids), 'orderby' => 'include', 'return' => 'ids'];
+                // Every product chosen: "How many" is for the other sources (the editor hides it here).
+                $count = count($ids);
+                $query = ['status' => 'publish', 'include' => $ids, 'limit' => $count, 'orderby' => 'include', 'return' => 'ids'];
                 break;
             case 'category':
                 $term = get_term(absint($args['category'] ?? 0), 'product_cat');

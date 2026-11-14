@@ -9,7 +9,12 @@ class Fields
 {
     public static function sanitize($field, $value)
     {
-        switch ($field['type'] ?? 'text') {
+        $type = $field['type'] ?? 'text';
+
+        // A list where one value belongs (a malformed post): nothing, not "Array" and a warning.
+        if (is_array($value) && in_array($type, ['tinymce', 'textarea', 'color_picker', 'select_image', 'url', 'text'], true)) $value = '';
+
+        switch ($type) {
             case 'tinymce':
             case 'textarea':
                 // Authors who may post unfiltered HTML keep it, as in posts.
@@ -74,7 +79,7 @@ class Fields
      */
     public static function color($value)
     {
-        $value = trim((string)$value);
+        $value = is_scalar($value) ? trim((string)$value) : '';
 
         if ('' === $value) return '';
 

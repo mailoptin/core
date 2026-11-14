@@ -8,7 +8,7 @@
 
     var cfg = window.moEmailEditor || {};
     var i18n = cfg.i18n || {};
-    var state = clone(cfg.state);
+    var state = objects(clone(cfg.state));
     var version = cfg.version;
     var savedJson = JSON.stringify(state);
     var undoStack = [], redoStack = [], editing = false;
@@ -16,6 +16,16 @@
     var draftKey = 'mo-email-editor-draft-' + cfg.id;
 
     function clone(o) { return JSON.parse(JSON.stringify(o)); }
+    // Settings saved empty come from PHP as [], a list: a setting put in one wouldn't be saved.
+    function objects(st) {
+        (function walk(list) {
+            (list || []).forEach(function (b) {
+                if (b && !$.isPlainObject(b.settings)) b.settings = $.extend({}, b.settings);
+                if (b && b.columns) b.columns.forEach(walk);
+            });
+        })(st && st.content);
+        return st;
+    }
     function uid() { return 'b' + Math.random().toString(36).slice(2, 10); }
     function dirty() { return JSON.stringify(state) !== savedJson; }
     // Where a block is: the list it sits in (the email, or a column) and its place there.
@@ -182,7 +192,7 @@
 
         function read($ol) {
             return $ol.children('li').map(function () {
-                var b = byId[$(this).data('id')];
+                var b = byId[$(this).attr('data-id')];
                 if (!b) return null;
                 var copy = $.extend({}, b);
                 if (b.columns) copy.columns = $(this).find('> .mo-ee-cols > .mo-ee-col-wrap > .mo-ee-col').map(function () { return [read($(this))]; }).get();
@@ -198,15 +208,26 @@
         changed(true);
     }
 
+    // Each block's defaults by template: the page has the saved template's; another template's
+    // come with its first preview (its colours and fonts for new blocks and "Reset").
+    var blockDefaults = {};
+    blockDefaults[(cfg.state || {}).template] = {};
+    Object.keys(cfg.blocks || {}).forEach(function (type) { blockDefaults[(cfg.state || {}).template][type] = cfg.blocks[type].defaults || {}; });
+
+    function defaultsOf(type) {
+        var by = blockDefaults[state.template];
+        return (by && by[type]) || (cfg.blocks[type] || {}).defaults || {};
+    }
+
     // A block saved before one of its fields existed sends with that field's default: show it so.
     function withDefaults(block) {
-        return $.extend(clone((cfg.blocks[block.type] || {}).defaults || {}), block.settings || {});
+        return $.extend({}, clone(defaultsOf(block.type)), block.settings || {});
     }
 
     function newBlock(type, settings) {
         var meta = cfg.blocks[type];
         if (!meta) return null;
-        var block = {id: uid(), type: type, settings: $.extend(clone(meta.defaults || {}), settings || {})};
+        var block = {id: uid(), type: type, settings: $.extend({}, clone(defaultsOf(type)), settings || {})};
         if ('columns' === type) { block.columns = []; fitColumns(block); }
         return block;
     }
@@ -307,6 +328,18 @@
             var $other = $(by < 0 ? '.mo-ee-block-down' : '.mo-ee-block-up');
             ($other.prop('disabled') ? $('.mo-ee-block-done') : $other).trigger('focus');
         }
+    }
+
+    // After a block is deleted, the keyboard goes to the block now in its place (or the one before),
+    // else the Columns block it was in, else the blocks to add. $at: where it was (locate()).
+    function focusAfterRemove(at) {
+        var next = at.list[at.index] || at.list[at.index - 1], parent = null;
+        if (!next && at.list !== state.content) {
+            state.content.forEach(function (b) { if ((b.columns || []).indexOf(at.list) !== -1) parent = b; });
+        }
+        var to = next || parent;
+        var $to = to ? $('#mo-ee-blocks li.mo-ee-item').filter(function () { return $(this).attr('data-id') === to.id; }).children('.mo-ee-item-row').find('.mo-ee-item-open') : $();
+        ($to.length ? $to : $('.mo-ee-tile').first()).trigger('focus');
     }
 
     // A rule from a field's show_if: one of the values, or (with "!") none of them.
@@ -528,6 +561,9 @@
     function insertAt($field, text) {
         var ed = $field[0].id && window.tinymce ? tinymce.get($field[0].id) : null;
 
+        // The classic editor's field is HTML (in either tab): a fallback's own <, > and & go in as text.
+        if ($field.hasClass('mo-ee-richtext')) text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
         if (ed && !ed.isHidden()) {
             ed.insertContent(text);
             ed.save();
@@ -543,6 +579,8 @@
     }
 
     function fillAll() {
+        // The open block may not be in the state now shown (another version loaded on a conflict).
+        if (openId && !blockById(openId)) closeBlock();
         if (cfg.code) {
             var html = state.code || '';
             if (codeMirror && codeMirror.getValue() !== html) { filling = true; codeMirror.setValue(html); filling = false; }
@@ -679,9 +717,10 @@
         if (previewXhr) previewXhr.abort();
 
         // The design and template as sent: the switched colours that come back are for these.
-        var sentDesign = JSON.stringify([state.template, state.design]);
-        previewXhr = $.post(cfg.ajax, {action: 'mo_email_editor_preview', id: cfg.id, nonce: cfg.nonce, state: JSON.stringify(state)});
+        var sentDesign = JSON.stringify([state.template, state.design]), sentTemplate = state.template;
+        previewXhr = $.post(cfg.ajax, {action: 'mo_email_editor_preview', id: cfg.id, nonce: cfg.nonce, state: JSON.stringify(state), defaults: cfg.code || blockDefaults[sentTemplate] ? 0 : 1});
         previewXhr.done(function (res) {
+            if (res && res.success && res.data.blocks) blockDefaults[sentTemplate] = res.data.blocks;
             // A newer change already asked for a newer preview.
             if (seq !== previewSeq || !res || !res.success) return;
 
@@ -905,7 +944,7 @@
 
         // Marked in place: the list isn't rebuilt under a drag, an open menu or the keyboard focus.
         $('#mo-ee-blocks li.mo-ee-item').each(function () {
-            var text = warnings[$(this).data('id')];
+            var text = warnings[$(this).attr('data-id')];
             $(this).toggleClass('is-warn', !!text).attr('title', text || null);
         });
     }
@@ -926,8 +965,9 @@
                 if (!res || !res.success) { status(i18n.failed); return result.reject(); }
                 version = res.data.version;
                 // A new template saved: its own Design fields (Market's offer strip) need the page again.
-                if (res.data.reload) { try { localStorage.removeItem(draftKey); } catch (e) {} window.location.reload(); return result.resolve(res); }
-                savedJson = JSON.stringify(res.data.state);
+                // Saved: the reload mustn't ask "Leave without saving?" (unless typed in since).
+                if (res.data.reload) { savedJson = posted; try { localStorage.removeItem(draftKey); } catch (e) {} window.location.reload(); return result.resolve(res); }
+                savedJson = JSON.stringify(objects(res.data.state));
                 try { localStorage.removeItem(draftKey); } catch (e) {}
                 // Take the server's cleaned copy only if nothing was typed while saving.
                 if (JSON.stringify(state) === posted) {
@@ -943,7 +983,7 @@
                 if (409 === xhr.status && data && data.conflict) {
                     if (window.confirm(i18n.conflict)) {
                         beginEdit(true);
-                        state = data.state;
+                        state = objects(data.state);
                         version = data.version;
                         savedJson = JSON.stringify(state);
                         fillAll();
@@ -978,7 +1018,7 @@
 
         if (window.confirm(stale ? i18n.draftStale : i18n.draft)) {
             undoStack.push(JSON.stringify(state));
-            state = draft.state;
+            state = objects(draft.state);
             // Keep the draft's version, so saving it asks about the newer one.
             if (stale) version = draft.version;
             fillAll();
@@ -1043,16 +1083,16 @@
             else addBlock($(this).data('type'));
         });
         $('#mo-ee-blocks')
-            .on('click', '.mo-ee-item-open', function () { openBlock($(this).closest('li').data('id')); })
+            .on('click', '.mo-ee-item-open', function () { openBlock($(this).closest('li').attr('data-id')); })
             .on('click', '.mo-ee-dup', function () {
-                var at = locate($(this).closest('li').data('id'));
+                var at = locate($(this).closest('li').attr('data-id'));
                 if (!at) return;
                 beginEdit(true);
                 at.list.splice(at.index + 1, 0, withNewIds(clone(at.block)));
                 changed(true);
             })
             .on('click', '.mo-ee-del', function () {
-                var id = $(this).closest('li').data('id');
+                var id = $(this).closest('li').attr('data-id');
                 if (!window.confirm(i18n.delete)) return;
                 var at = locate(id);
                 if (!at) return;
@@ -1060,6 +1100,7 @@
                 if (id === openId || (openId && at.block.columns && JSON.stringify(at.block.columns).indexOf('"' + openId + '"') !== -1)) closeBlock();
                 at.list.splice(at.index, 1);
                 changed(true);
+                focusAfterRemove(at);
             });
 
         $('.mo-ee-block-done').on('click', closeBlock);
@@ -1079,10 +1120,7 @@
             closeBlock();
             at.list.splice(at.index, 1);
             changed(true);
-            // Focus goes to the block now in its place (or the one before), else the blocks to add.
-            var next = at.list[at.index] || at.list[at.index - 1];
-            var $to = next ? $('#mo-ee-blocks li.mo-ee-item[data-id="' + next.id + '"] > .mo-ee-item-row .mo-ee-item-open') : $();
-            ($to.length ? $to : $('.mo-ee-tile').first()).trigger('focus');
+            focusAfterRemove(at);
         });
 
         // A row of buttons for a short list: the hidden select is the field.
@@ -1097,7 +1135,7 @@
             $(this).closest('.mo-ee-image').find('.mo-ee-input').val('').trigger('change');
         }).on('click', '.mo-ee-reset-style', function () {
             // Back to the template's look: every Style setting to the block's default for this email.
-            var block = openId ? blockById(openId) : null, defaults = block ? (cfg.blocks[block.type] || {}).defaults || {} : null;
+            var block = openId ? blockById(openId) : null, defaults = block ? defaultsOf(block.type) : null;
             if (!block) return;
             var names = {};
             $('.mo-ee-block-form .mo-ee-subpanel[data-tab="style"] .mo-ee-input').each(function () { names[$(this).data('name')] = true; });
@@ -1121,7 +1159,7 @@
             if ($sel.hasClass('mo-ee-insert-add')) {
                 addBlock(type, null, parseInt($sel.closest('.mo-ee-insert').data('index'), 10));
             } else {
-                addBlock(type, [$sel.closest('.mo-ee-cols').closest('li').data('id'), parseInt($sel.data('col'), 10)]);
+                addBlock(type, [$sel.closest('.mo-ee-cols').closest('li').attr('data-id'), parseInt($sel.data('col'), 10)]);
             }
             $sel.val('');
         };
@@ -1137,7 +1175,7 @@
         $('#mo-ee-checks').on('click', '.mo-ee-check-show', function () {
             $('#mo-ee-checks').prop('open', false);
             showPane('content');
-            openBlock($(this).data('id'));
+            openBlock($(this).attr('data-id'));
         });
 
         // The template: the email's frame, drawn around the same content.
