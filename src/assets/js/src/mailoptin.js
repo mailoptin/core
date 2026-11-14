@@ -1628,7 +1628,8 @@ var mailoptin_optin = {
 
         document.addEventListener('click', function (e) {
             var el = e.target && e.target.closest ? e.target.closest('[data-product_id]') : null;
-            if (el) _this.wc_atc_clicked = {id: el.getAttribute('data-product_id'), at: new Date().getTime()};
+            // A mini cart's remove link carries the id too; it isn't an add.
+            if (el && !/(^|\s)remove_from_cart_button(\s|$)/.test(el.className || '')) _this.wc_atc_clicked = {id: el.getAttribute('data-product_id'), at: new Date().getTime()};
         }, true);
     },
 
