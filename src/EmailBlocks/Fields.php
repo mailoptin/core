@@ -95,7 +95,14 @@ class Fields
     {
         $value = trim((string)$value);
 
-        if (preg_match('/^\{\{\s*[a-z][a-z0-9_.]*\s*(\|[^}]*)?\}\}$/i', $value)) return esc_attr($value);
+        if (preg_match('/^(\{\{\s*[a-z][a-z0-9_.]*\s*)(?:\|([^}]*))?\}\}$/i', $value, $m)) {
+            // The fallback is the link when the placeholder is empty: no javascript: or other
+            // unsafe scheme (esc_url never sees it).
+            $fallback = $m[2] ?? '';
+            if ('' !== $fallback && wp_kses_bad_protocol($fallback, wp_allowed_protocols()) !== $fallback) $value = $m[1] . '}}';
+
+            return esc_attr($value);
+        }
 
         return esc_url($value);
     }

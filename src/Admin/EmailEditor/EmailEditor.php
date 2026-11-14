@@ -425,7 +425,9 @@ HTML;
             return $values;
         }
 
-        $values = ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($state['content'] ?? []))];
+        // Blocks whose type is gone for now (its plugin off) are kept as saved, not lost.
+        $keep   = $email_campaign_id ? Blocks::get_instance()->unregistered_in((string)ER::get_customizer_value_without_default($email_campaign_id, 'email_newsletter_content')) : [];
+        $values = ['email_newsletter_content' => wp_json_encode(Blocks::get_instance()->sanitize_content($state['content'] ?? [], false, $keep))];
 
         foreach (['design' => self::design_fields($email_campaign_id), 'settings' => self::settings_fields()] as $group => $fields) {
             $posted = (array)($state[$group] ?? []);
@@ -995,7 +997,8 @@ HTML;
         $switch   = $template && self::design_template($state, $email_campaign_id) !== $template;
         if ($switch) $state = self::switch_design($state, $email_campaign_id, $template);
 
-        foreach (self::clean_state($state, $email_campaign_id) as $key => $value) {
+        $clean = self::clean_state($state, $email_campaign_id);
+        foreach ($clean as $key => $value) {
             Settings::set_preview(Settings::TYPE_EMAIL, $email_campaign_id, $key, $value);
         }
 
@@ -1011,7 +1014,7 @@ HTML;
         // Checked as drawn for someone (sample cart and products in), so the size is what's sent.
         $shown = self::with_samples($email_campaign_id, $html);
 
-        $data = ['html' => $shown, 'checks' => self::checks($email_campaign_id, $state, $shown)];
+        $data = ['html' => $shown, 'checks' => self::checks($email_campaign_id, self::checked_state($state, $clean), $shown)];
         // The switched design values, for the Design tab to show.
         if ($switch && is_array($state['design'] ?? null)) {
             $data['design']          = $state['design'];
@@ -1019,6 +1022,19 @@ HTML;
         }
 
         wp_send_json_success($data);
+    }
+
+    /**
+     * What the checks look at: the posted state as it would be saved (cleaned), so a block posted
+     * without settings, or a setting of the wrong shape, can't trip them.
+     */
+    protected static function checked_state($state, $clean)
+    {
+        $content = json_decode((string)($clean['email_newsletter_content'] ?? ''), true);
+        $checked = ['content' => is_array($content) ? $content : [], 'settings' => array_intersect_key($clean, self::settings_fields())];
+        if (array_key_exists('code_your_own', $clean)) $checked['code'] = (string)$clean['code_your_own'];
+
+        return $checked;
     }
 
     /**
@@ -1075,7 +1091,8 @@ HTML;
         // Only types that are public and that this person may read.
         if ( ! $object || ! $object->public || ! current_user_can($object->cap->read)) wp_send_json_success([]);
 
-        $args = ['post_type' => $post_type, 'post_status' => 'publish', 'posts_per_page' => 20, 'no_found_rows' => true, 'suppress_filters' => false];
+        // Published and not behind a password: what an email may show to everyone.
+        $args = ['post_type' => $post_type, 'post_status' => 'publish', 'has_password' => false, 'posts_per_page' => 20, 'no_found_rows' => true, 'suppress_filters' => false];
         $ids  = array_values(array_filter(array_map('absint', explode(',', (string)wp_unslash($_POST['ids'] ?? '')))));
 
         if ($ids) {

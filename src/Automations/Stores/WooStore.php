@@ -72,7 +72,8 @@ class WooStore extends Store
             case 'on_sale':
                 $sale = wc_get_product_ids_on_sale();
                 if ( ! $sale) return [];
-                // Variations on sale count as their product.
+                // Variations on sale count as their product (their posts read in one query, not one each).
+                _prime_post_caches($sale, false, false);
                 $parents = array_filter(array_map('wp_get_post_parent_id', $sale));
                 $query['include'] = array_values(array_unique(array_merge($sale, $parents)));
                 break;
@@ -86,7 +87,10 @@ class WooStore extends Store
         };
 
         $out = [];
-        foreach ((array)wc_get_products($query) as $id) {
+        $ids = array_map('absint', (array)wc_get_products($query));
+        // The products' posts and meta in a few queries, not several for each.
+        if ($ids) _prime_post_caches($ids, false, true);
+        foreach ($ids as $id) {
             $product = wc_get_product($id);
             if ( ! $product || $product->is_type('variation')) continue;
             $data  = (array)$price->product_data($id);

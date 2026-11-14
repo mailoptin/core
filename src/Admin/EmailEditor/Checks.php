@@ -93,8 +93,13 @@ class Checks
 
     protected static function block_warnings($block)
     {
-        $s    = (array)($block['settings'] ?? []);
+        $s    = is_array($block['settings'] ?? null) ? $block['settings'] : [];
         $warn = [];
+
+        // Kept from when its plugin was on: not drawn, so not sent.
+        if ( ! \MailOptin\Core\EmailBlocks\Blocks::get_instance()->get(sanitize_key((string)($block['type'] ?? '')))) {
+            return [__('This element isn\'t available any more (the plugin that adds it may be off): it\'s kept, but won\'t be sent.', 'mailoptin')];
+        }
 
         // A starter layout's prompt not replaced yet: "[Your headline]", exactly as a starter wrote it.
         $prompt  = null;
@@ -225,6 +230,7 @@ class Checks
 
         foreach (self::blocks((array)($state['content'] ?? [])) as $block) {
             $words = [];
+            if ( ! is_array($block['settings'] ?? null)) continue;
             array_walk_recursive($block['settings'], function ($value) use (&$words) {
                 if (is_string($value)) $words[] = $value;
             });

@@ -70,9 +70,12 @@
 
     /* ---------------------------------------------------------------- after any change */
 
+    // A structural change (blocks added, moved, removed, columns changed) redraws the list; typing
+    // only updates the open block's summary, not every row and its drag-and-drop on each key.
     function changed(structural) {
         status();
-        renderList();
+        if (structural) renderList();
+        else refreshSummary();
         updateBlockHead();
         $('#mo-ee-subject').text(state.settings.email_campaign_title || i18n.untitled);
         schedulePreview();
@@ -95,7 +98,15 @@
             return (i18n.columnsSummary || '%1$s columns, %2$s elements').replace('%1$s', block.columns.length).replace('%2$s', count);
         }
         var text = s.text_content || s.button_text || s.image_alt_text || '';
-        return $('<div>').html(String(text)).text().slice(0, 60);
+        // Parsed inert (no images loaded, no handlers run), for its words only.
+        return (new DOMParser().parseFromString(String(text), 'text/html').body.textContent || '').slice(0, 60);
+    }
+
+    function refreshSummary() {
+        var block = openId ? blockById(openId) : null;
+        if (!block) return;
+        $('#mo-ee-blocks li.mo-ee-item').filter(function () { return $(this).attr('data-id') === openId; })
+            .children('.mo-ee-item-row').find('.mo-ee-item-open > span').text(summary(block));
     }
 
     function itemHtml(block) {
@@ -518,8 +529,9 @@
         beginEdit();
         obj[name] = next[name];
         var open = blockById(openId);
-        if ('columns_layout' === name && open && open.columns && obj === open.settings) fitColumns(open);
-        changed(false);
+        var layout = 'columns_layout' === name && open && open.columns && obj === open.settings;
+        if (layout) fitColumns(open);
+        changed(layout);
         if (open && obj === open.settings) refreshControls($('.mo-ee-block-form'));
     }
 
@@ -606,13 +618,16 @@
         // One render at a time: an older one still running is no longer wanted.
         if (previewXhr) previewXhr.abort();
 
+        // The design and template as sent: the switched colours that come back are for these.
+        var sentDesign = JSON.stringify([state.template, state.design]);
         previewXhr = $.post(cfg.ajax, {action: 'mo_email_editor_preview', id: cfg.id, nonce: cfg.nonce, state: JSON.stringify(state)});
         previewXhr.done(function (res) {
             // A newer change already asked for a newer preview.
             if (seq !== previewSeq || !res || !res.success) return;
 
-            // Another template: its colours where the old template's defaults were.
-            if (res.data.design) {
+            // Another template: its colours where the old template's defaults were. Not over a
+            // colour changed (or an undo) since this was asked for: the next preview switches again.
+            if (res.data.design && JSON.stringify([state.template, state.design]) === sentDesign) {
                 state.design = res.data.design;
                 state.design_template = res.data.design_template;
                 fill($('[data-group="design"]'), state.design);
@@ -1027,7 +1042,7 @@
             // A layout put back must keep the columns in step, as choosing one does.
             if (block.columns) fitColumns(block);
             fill($('.mo-ee-block-form'), withDefaults(block));
-            changed(false);
+            changed(!!block.columns);
         });
 
         // The "+" and "Add to this column" menus act on a click or Enter, not on arrow keys (some
