@@ -111,4 +111,24 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
         $this->assertStringNotContainsString('mo-optin-objectives', $this->listing('upselltype', false), 'Not in the Customizer template switcher');
         remove_filter('mailoptin_optin_objectives', $f);
     }
+
+    public function test_free_sites_with_woocommerce_see_the_product_offer_templates_locked()
+    {
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM')) $this->markTestSkipped('Premium is loaded');
+
+        add_filter('mailoptin_show_locked_product_offer_themes', '__return_true');
+        $locked = OptinThemesRepository::locked_product_offer_themes();
+        remove_filter('mailoptin_show_locked_product_offer_themes', '__return_true');
+
+        $this->assertCount(10, $locked);
+        $this->assertSame(['lightbox' => 3, 'slidein' => 2, 'bar' => 1, 'inpost' => 2, 'sidebar' => 2], array_count_values(array_column($locked, 'optin_type')));
+
+        foreach ($locked as $t) {
+            $this->assertSame('premium', $t['flag'], 'Locked: links to the pricing page');
+            $this->assertSame(OptinThemesRepository::OBJECTIVE_PRODUCT_OFFERS, $t['objective']);
+            $this->assertFileExists(dirname(__DIR__, 2) . '/src/assets/images/optin-themes/product-offers/' . basename($t['screenshot']));
+        }
+
+        $this->assertSame([], OptinThemesRepository::locked_product_offer_themes(), 'Not without WooCommerce');
+    }
 }

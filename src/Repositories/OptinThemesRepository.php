@@ -58,6 +58,7 @@ class OptinThemesRepository extends AbstractRepository
                     . '<li>' . esc_html__('Ready-made templates for every optin type, set up to work as soon as you pick one', 'mailoptin') . '</li>'
                     . '</ul>'
                     . '<a class="button button-primary" target="_blank" rel="noopener" href="' . esc_url($url) . '">' . esc_html__('Get MailOptin Premium', 'mailoptin') . '</a>'
+                    . '<p class="mo-objective-upsell-note">' . esc_html__('The templates below come with Premium. Each opens a short setup: the product, the discount, and when it shows.', 'mailoptin') . '</p>'
                     . '</div>';
         }
 
@@ -109,7 +110,7 @@ class OptinThemesRepository extends AbstractRepository
         if (is_null(self::$optin_themes)) {
             self::$optin_themes = apply_filters(
                 'mailoptin_registered_optin_themes',
-                array_merge(self::free_themes(), self::premium_themes())
+                array_merge(self::free_themes(), self::premium_themes(), self::locked_product_offer_themes())
             );
         }
     }
@@ -160,6 +161,43 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/elegance-inpost.png'
             ],
         ];
+    }
+
+    /**
+     * Premium's product offer templates, shown locked on free sites with WooCommerce under "WooCommerce
+     * product offers" so shoppers can see what they'd get. With Premium active, its own templates are
+     * listed instead.
+     */
+    public static function locked_product_offer_themes()
+    {
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM') || ! apply_filters('mailoptin_show_locked_product_offer_themes', class_exists('WooCommerce'))) return [];
+
+        $templates = [
+            ['Showcase', 'OfferShowcase', 'lightbox'],
+            ['Quick Add', 'OfferQuickAdd', 'lightbox'],
+            ['Unlock', 'OfferUnlock', 'lightbox'],
+            ['Corner Card', 'OfferCornerCard', 'slidein'],
+            ['Corner Unlock', 'OfferCornerUnlock', 'slidein'],
+            ['Deal Bar', 'OfferDealBar', 'bar'],
+            ['Inline Feature', 'InlineFeature', 'inpost'],
+            ['Inline Unlock', 'OfferInlineUnlock', 'inpost'],
+            ['Widget Card', 'OfferWidgetCard', 'sidebar'],
+            ['Widget Unlock', 'OfferWidgetUnlock', 'sidebar'],
+        ];
+
+        $themes = [];
+        foreach ($templates as $t) {
+            $themes[] = [
+                'name'        => $t[0],
+                'optin_class' => $t[1],
+                'flag'        => 'premium',
+                'optin_type'  => $t[2],
+                'objective'   => self::OBJECTIVE_PRODUCT_OFFERS,
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/product-offers/' . sanitize_title($t[0]) . '-' . $t[2] . '.png',
+            ];
+        }
+
+        return $themes;
     }
 
     public static function premium_themes()
