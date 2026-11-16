@@ -38,6 +38,11 @@ class WooNoOrder extends AbstractTrigger
         return __('Checked every hour. Use it for win-back emails.', 'mailoptin');
     }
 
+    public function tip()
+    {
+        return __('Start with a friendly note about what\'s new. Save a discount for a later email, for people who still haven\'t ordered.', 'mailoptin');
+    }
+
     public function is_available()
     {
         return Woo::active();

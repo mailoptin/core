@@ -33,6 +33,9 @@ class Automations_Page
 
     const UNITS = ['minutes', 'hours', 'days', 'weeks'];
 
+    /** @var array email id => [exists, subject], for one page view */
+    protected static $email_info = [];
+
     public function __construct()
     {
         add_filter('mailoptin_emails_settings_page_tabs', [$this, 'tab']);
@@ -396,6 +399,10 @@ class Automations_Page
 
         $trigger = Triggers::get_instance()->get($automation['trigger_id']);
         $live    = Repo::STATUS_LIVE === $automation['status'];
+        $steps   = Repo::steps($automation_id);
+        $reasons = Repo::stop_reasons($automation_id);
+
+        self::$email_info = [];
 
         ob_start();
         ?>
@@ -441,6 +448,9 @@ class Automations_Page
                                             <noscript><button class="button" name="mo_automation_action" value="save"><?php esc_html_e('Change', 'mailoptin'); ?></button></noscript>
                                             <?php if ($trigger) : ?><p class="description"><?php echo esc_html($trigger->description()); ?></p><?php endif; ?>
                                         <?php endif; ?>
+                                        <?php if ($trigger && '' !== ($tip = trim((string)$trigger->tip()))) : ?>
+                                            <p class="mo-auto-tip"><span class="dashicons dashicons-lightbulb" aria-hidden="true"></span> <span><strong><?php esc_html_e('Tip:', 'mailoptin'); ?></strong> <?php echo esc_html($tip); ?></span></p>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <?php if ($trigger) echo self::fields_html($trigger->settings_fields(), 'trigger', $automation['trigger_settings']); ?>
@@ -459,7 +469,7 @@ class Automations_Page
                         <h2 class="mo-auto-box-h"><?php esc_html_e('3. Waits and emails', 'mailoptin'); ?></h2>
                         <div class="inside">
                             <p class="description"><?php esc_html_e('Steps run from top to bottom for each person. "Edit email" opens the email in the designer.', 'mailoptin'); ?></p>
-                            <?php echo self::steps_html($automation, $trigger, $live); ?>
+                            <?php echo self::steps_html($automation, $trigger, $live, $steps); ?>
                             <?php echo self::placeholders_html($trigger); ?>
                         </div>
                     </section>
@@ -473,7 +483,7 @@ class Automations_Page
                             <p class="description"><?php echo $live
                                     ? esc_html__('Changes apply straight away, also to people part-way through. Emails already sent are never sent again.', 'mailoptin')
                                     : esc_html__('Nothing is sent while it is a draft.', 'mailoptin'); ?></p>
-                            <?php echo self::report_html($automation); ?>
+                            <?php echo self::report_html($automation, $reasons); ?>
                             <?php if (WooCartAbandoned::ID === $automation['trigger_id']) echo self::recovery_html($automation['id']); ?>
                         </div>
                         <div class="mo-auto-actions">
@@ -486,11 +496,14 @@ class Automations_Page
                         </div>
                     </section>
 
+                    <?php echo self::plain_words_html($automation, $trigger, $steps); ?>
+
                     <section class="postbox">
-                        <h2 class="mo-auto-box-h"><?php esc_html_e('Stops early when', 'mailoptin'); ?></h2>
+                        <h2 class="mo-auto-box-h"><?php esc_html_e('Leaves early when', 'mailoptin'); ?></h2>
                         <div class="inside">
                             <p><?php echo esc_html($trigger ? $trigger->stops_when() : __('They unsubscribe.', 'mailoptin')); ?></p>
                             <p class="description"><?php esc_html_e('Or when they don\'t pass an "Only if" step.', 'mailoptin'); ?></p>
+                            <?php echo self::left_early_html($reasons); ?>
                         </div>
                     </section>
 
@@ -686,9 +699,10 @@ class Automations_Page
         return ob_get_clean();
     }
 
-    protected static function steps_html($automation, $trigger, $live)
+    protected static function steps_html($automation, $trigger, $live, $steps = null)
     {
-        $steps  = Repo::steps($automation['id']);
+        $steps   = null === $steps ? Repo::steps($automation['id']) : $steps;
+        $elapsed = 0;
         $sent   = Repo::step_sent_counts($automation['id']);
         $checks = $trigger ? Engine::checks($trigger) : [];
         $n      = 0;
@@ -715,13 +729,28 @@ class Automations_Page
                     $n++;
                     $email_id = absint($step['settings']['email_campaign_id'] ?? 0);
                     $paused   = ! empty($step['settings']['paused']);
-                    $subject  = $email_id ? (string)ER::get_customizer_value($email_id, 'email_campaign_title') : '';
+                    list($exists, $subject) = self::email_info($email_id);
                     echo '<span class="mo-auto-num" aria-hidden="true">' . $n . '</span><div class="mo-auto-step-body">';
-                    echo '<strong>' . esc_html('' !== $subject ? $subject : __('(no subject)', 'mailoptin')) . '</strong>';
-                    echo '<div class="description">' . esc_html(sprintf(__('Email %d', 'mailoptin'), $n)) . ($paused ? ' · ' . UI::badge(__('Paused: people pass by it', 'mailoptin'), 'warn') : '') . '</div>';
-                    if (isset($sent[$sid]) || $live) echo self::email_stats_html($totals[$logs[$email_id] ?? 0] ?? null, $sent[$sid] ?? 0);
+                    if ( ! $exists && $paused) {
+                        // Paused steps are passed by, so a missing email there stops nobody.
+                        echo '<strong class="mo-auto-danger">' . esc_html__('This email was deleted', 'mailoptin') . '</strong>';
+                        echo '<div class="description">' . esc_html__('The step is paused, so people pass by it. Remove the step to tidy up, or add a new email in its place.', 'mailoptin') . '</div>';
+                    } elseif ( ! $exists) {
+                        // The engine stops people here (email_missing), so say so and offer the way out.
+                        echo '<strong class="mo-auto-danger">' . esc_html__('This email was deleted', 'mailoptin') . '</strong>';
+                        echo '<div class="description">' . esc_html__('People who reach this step leave the automation here. Remove the step, or add a new email in its place.', 'mailoptin') . '</div>';
+                        echo '</div><div class="mo-auto-tools">';
+                        echo '<button class="button button-small" name="mo_automation_action" value="remove:' . $sid . '" data-confirm="' . esc_attr__('Remove this step?', 'mailoptin') . '">' . esc_html__('Remove step', 'mailoptin') . '</button> ';
+                        echo $tools . '</div>';
+                        break;
+                    } else {
+                        echo '<strong>' . esc_html('' !== $subject ? $subject : __('(no subject)', 'mailoptin')) . '</strong>';
+                        echo '<div class="description">' . esc_html(sprintf(__('Email %d', 'mailoptin'), $n)) . ($paused ? ' · ' . UI::badge(__('Paused: people pass by it', 'mailoptin'), 'warn') : '') . '</div>';
+                        if (isset($sent[$sid]) || $live) echo self::email_stats_html($totals[$logs[$email_id] ?? 0] ?? null, $sent[$sid] ?? 0);
+                    }
                     echo '</div><div class="mo-auto-tools">';
-                    if ($email_id) {
+                    if ( ! $exists) echo '<button class="button button-small" name="mo_automation_action" value="remove:' . $sid . '" data-confirm="' . esc_attr__('Remove this step?', 'mailoptin') . '">' . esc_html__('Remove step', 'mailoptin') . '</button> ';
+                    if ($exists) {
                         echo '<button class="button button-small" name="mo_automation_action" value="edit_email:' . $sid . '">' . esc_html__('Edit email', 'mailoptin') . '</button> ';
                         echo '<button class="button button-small" name="mo_automation_action" value="test:' . $sid . '">' . esc_html__('Send a test', 'mailoptin') . '</button> ';
                     }
@@ -743,6 +772,10 @@ class Automations_Page
                     echo '<label><input type="checkbox" name="' . esc_attr($prefix) . '[until_on]" value="1"' . checked('' !== $until, true, false) . '> ' . esc_html__('then send at', 'mailoptin') . '</label> ';
                     echo '<label class="screen-reader-text" for="mo-auto-until-' . $sid . '">' . esc_html__('Time of day', 'mailoptin') . '</label><input type="time" id="mo-auto-until-' . $sid . '" name="' . esc_attr($prefix) . '[until]" value="' . esc_attr($until ?: '09:00') . '"> ';
                     echo '<label><input type="checkbox" name="' . esc_attr($prefix) . '[weekdays_only]" value="1"' . checked( ! empty($s['weekdays_only']), true, false) . '> ' . esc_html__('on a weekday', 'mailoptin') . '</label>';
+                    $elapsed += self::wait_minutes($s);
+                    echo ' <span class="mo-auto-day" title="' . esc_attr__('Counted from when someone starts. A send time or weekdays only can add up to a few days.', 'mailoptin') . '">' . esc_html(self::elapsed_label($elapsed)) . '</span>';
+                    $outside = '' !== $until ? self::outside_hours($automation['settings'], $until) : '';
+                    if ('' !== $outside) echo '<p class="mo-auto-warn">' . esc_html($outside) . '</p>';
                     echo '</div><div class="mo-auto-tools">' . $tools . '</div>';
                     break;
 
@@ -799,10 +832,9 @@ class Automations_Page
                . '</div>';
     }
 
-    protected static function report_html($automation)
+    protected static function report_html($automation, $reasons = [])
     {
-        $stats   = Repo::automation_stats($automation['id']);
-        $reasons = Repo::stop_reasons($automation['id']);
+        $stats = Repo::automation_stats($automation['id']);
 
         if ( ! $stats['active'] && ! $stats['sent_30'] && empty($reasons)) return '';
 
@@ -811,15 +843,196 @@ class Automations_Page
         $html .= '<dt>' . esc_html__('Emails sent (30 days)', 'mailoptin') . '</dt><dd>' . esc_html(number_format_i18n($stats['sent_30'] ?? 0)) . '</dd>';
         $html .= '</dl>';
 
-        if ( ! empty($reasons)) {
-            $html .= '<details class="mo-auto-reasons"><summary>' . esc_html__('Why people stopped early', 'mailoptin') . '</summary><ul>';
-            foreach (array_slice($reasons, 0, 8, true) as $reason => $n) {
-                $html .= '<li>' . esc_html(self::reason_label($reason)) . ' <b>' . esc_html(number_format_i18n($n)) . '</b></li>';
-            }
-            $html .= '</ul></details>';
+        return $html;
+    }
+
+    /**
+     * How many have left early and why, under "Leaves early when".
+     */
+    protected static function left_early_html($reasons)
+    {
+        $total = array_sum(array_map('intval', (array)$reasons));
+
+        if ( ! $total) return '';
+
+        $html = '<details class="mo-auto-reasons"><summary>' . esc_html(sprintf(_n('%s person has left early', '%s people have left early', $total, 'mailoptin'), number_format_i18n($total))) . '</summary><ul>';
+        foreach (array_slice($reasons, 0, 8, true) as $reason => $n) {
+            $html .= '<li>' . esc_html(self::reason_label($reason)) . ' <b>' . esc_html(number_format_i18n($n)) . '</b></li>';
         }
 
-        return $html;
+        return $html . '</ul></details>';
+    }
+
+    /**
+     * The automation in a few sentences, built from what is saved.
+     */
+    protected static function plain_words_html($automation, $trigger, $steps)
+    {
+        $checks    = $trigger ? Engine::checks($trigger) : [];
+        $sentences = [sprintf(__('Starts when: %s.', 'mailoptin'), rtrim(self::starts_when($automation, $trigger), '.'))];
+        $wait      = '';
+        $only_if   = [];
+        $n         = 0;
+
+        foreach ($steps as $step) {
+            switch ($step['type']) {
+                case Repo::STEP_WAIT:
+                    $wait = self::wait_words($step['settings'], $wait, $automation['settings']);
+                    break;
+                case Repo::STEP_CHECK:
+                    $key = (string)($step['settings']['check'] ?? '');
+                    if ( ! isset($checks[$key])) {
+                        // The engine stops everyone at an "Only if" it can't check, so nothing after it happens.
+                        $sentences[] = __('Then everyone stops at an "Only if" step that isn\'t set up, or no longer applies. Choose what it checks.', 'mailoptin');
+                        break 2;
+                    }
+                    $only_if[] = $checks[$key]['label'];
+                    break;
+                case Repo::STEP_EMAIL:
+                    $n++;
+                    $email_id = absint($step['settings']['email_campaign_id'] ?? 0);
+                    list($exists, $subject) = self::email_info($email_id);
+                    $subject  = trim($subject);
+                    $email    = '' !== $subject ? sprintf(__('email %1$d ("%2$s")', 'mailoptin'), $n, $subject) : sprintf(__('email %d', 'mailoptin'), $n);
+                    $when     = '' !== $wait ? $wait : __('straight away', 'mailoptin');
+                    $cond     = $only_if ? ' ' . sprintf(__('if %s', 'mailoptin'), implode(__(' and ', 'mailoptin'), $only_if)) : '';
+                    if ( ! empty($step['settings']['paused'])) {
+                        $sentence = sprintf(__('%1$s%2$s, they pass by email %3$d, which is paused.', 'mailoptin'), $when, $cond, $n);
+                    } elseif ( ! $exists) {
+                        $sentence = sprintf(__('%1$s%2$s, they reach email %3$d, which was deleted, and leave the automation.', 'mailoptin'), $when, $cond, $n);
+                    } else {
+                        $sentence = sprintf(__('%1$s%2$s, they get %3$s.', 'mailoptin'), $when, $cond, $email);
+                    }
+                    $sentences[] = self::sentence_case($sentence);
+                    $wait    = '';
+                    $only_if = [];
+                    break;
+            }
+        }
+
+        if ( ! $n) $sentences[] = __('No emails yet.', 'mailoptin');
+
+        $from = (string)($automation['settings']['send_from'] ?? '');
+        $to   = (string)($automation['settings']['send_to'] ?? '');
+        if ('' !== $from && '' !== $to && $from !== $to) {
+            $sentences[] = sprintf(__('Emails only go out between %1$s and %2$s.', 'mailoptin'), self::time_words($from), self::time_words($to));
+        }
+
+        $html = '<section class="postbox mo-auto-plain"><h2 class="mo-auto-box-h">' . esc_html__('In plain words', 'mailoptin') . '</h2><div class="inside">';
+        foreach ($sentences as $sentence) $html .= '<p>' . esc_html($sentence) . '</p>';
+        $html .= '<p class="description">' . esc_html(sprintf(__('They leave early when: %s', 'mailoptin'), $trigger ? $trigger->stops_when() : __('They unsubscribe.', 'mailoptin'))) . '</p>';
+
+        return $html . '</div></section>';
+    }
+
+    /**
+     * "3 days later at 9:00 AM, on a weekday", added to what came before when waits follow each other.
+     */
+    protected static function wait_words($settings, $before = '', $hours = [])
+    {
+        $amount = max(0, (int)($settings['amount'] ?? 0));
+        $unit   = in_array($settings['unit'] ?? '', self::UNITS, true) ? $settings['unit'] : 'days';
+        $labels = [
+            'minutes' => _n('%s minute', '%s minutes', $amount, 'mailoptin'),
+            'hours'   => _n('%s hour', '%s hours', $amount, 'mailoptin'),
+            'days'    => _n('%s day', '%s days', $amount, 'mailoptin'),
+            'weeks'   => _n('%s week', '%s weeks', $amount, 'mailoptin'),
+        ];
+        $until  = (string)($settings['until'] ?? '');
+
+        if ($amount) {
+            $later = sprintf($labels[$unit], number_format_i18n($amount));
+            $words = '' !== $until
+                ? sprintf(__('%1$s later at %2$s', 'mailoptin'), $later, self::held_time($until, $hours))
+                : sprintf(__('%s later', 'mailoptin'), $later);
+        } else {
+            $words = '' !== $until ? sprintf(__('at %s', 'mailoptin'), self::held_time($until, $hours)) : __('straight away', 'mailoptin');
+        }
+        if ( ! empty($settings['weekdays_only'])) $words = sprintf(__('%s, on a weekday', 'mailoptin'), $words);
+
+        return '' !== $before ? sprintf(__('%1$s, then %2$s', 'mailoptin'), $before, $words) : $words;
+    }
+
+    /**
+     * Whether an email still exists, and its subject. Looked up once per page for each email.
+     *
+     * @return array [bool exists, string subject]
+     */
+    protected static function email_info($email_id)
+    {
+        $email_id = absint($email_id);
+
+        if ( ! isset(self::$email_info[$email_id])) {
+            $exists                       = $email_id && ER::get_email_campaign_by_id($email_id);
+            self::$email_info[$email_id] = [(bool)$exists, $exists ? (string)ER::get_customizer_value($email_id, 'email_campaign_title') : ''];
+        }
+
+        return self::$email_info[$email_id];
+    }
+
+    /** Capitalise a built sentence's first letter, multibyte-safe. */
+    protected static function sentence_case($sentence)
+    {
+        return function_exists('mb_strtoupper') ? mb_strtoupper(mb_substr($sentence, 0, 1)) . mb_substr($sentence, 1) : ucfirst($sentence);
+    }
+
+    /** A wait's send time as it happens: moved to the opening of the sending hours when outside them. */
+    protected static function held_time($until, $hours)
+    {
+        $time = \DateTimeImmutable::createFromFormat('Y-m-d H:i', wp_date('Y-m-d') . ' ' . $until, wp_timezone());
+
+        if ( ! $time || empty($hours)) return self::time_words($until);
+
+        return wp_date(get_option('time_format') ?: 'g:i A', Engine::next_in_window($hours, $time->getTimestamp()));
+    }
+
+    protected static function time_words($hhmm)
+    {
+        $time = \DateTimeImmutable::createFromFormat('H:i', (string)$hhmm, wp_timezone());
+
+        return $time ? wp_date(get_option('time_format') ?: 'g:i A', $time->getTimestamp()) : (string)$hhmm;
+    }
+
+    /** Roughly how long a wait step takes, in minutes, for the running "Day N" label. */
+    protected static function wait_minutes($settings)
+    {
+        $amount = max(0, (int)($settings['amount'] ?? 0));
+        $per    = ['minutes' => 1, 'hours' => 60, 'days' => 1440, 'weeks' => 10080];
+
+        return $amount * ($per[$settings['unit'] ?? 'days'] ?? 1440);
+    }
+
+    protected static function elapsed_label($minutes)
+    {
+        if ($minutes <= 0) return sprintf(__('Day %s', 'mailoptin'), number_format_i18n(0));
+        if ($minutes >= DAY_IN_SECONDS / 60) return sprintf(__('Day %s', 'mailoptin'), number_format_i18n(floor($minutes / 1440)));
+        if ($minutes >= 60) return sprintf(_n('%s hour in', '%s hours in', (int)floor($minutes / 60), 'mailoptin'), number_format_i18n(floor($minutes / 60)));
+
+        return sprintf(_n('%s minute in', '%s minutes in', (int)$minutes, 'mailoptin'), number_format_i18n($minutes));
+    }
+
+    /**
+     * Why a wait's send time won't hold: it falls outside the automation's sending hours.
+     *
+     * @return string empty when it is inside them, or they are off
+     */
+    protected static function outside_hours($settings, $until)
+    {
+        $from = (string)($settings['send_from'] ?? '');
+        $to   = (string)($settings['send_to'] ?? '');
+        $time = \DateTimeImmutable::createFromFormat('Y-m-d H:i', wp_date('Y-m-d') . ' ' . $until, wp_timezone());
+
+        if ('' === $from || '' === $to || ! $time) return '';
+
+        $at    = $time->getTimestamp();
+        $opens = Engine::next_in_window($settings, $at);
+
+        if ($opens === $at) return '';
+
+        return sprintf(
+            __('%1$s is outside your sending hours (%2$s to %3$s), so the email after this wait goes out at %4$s. Change the time, or the sending hours.', 'mailoptin'),
+            self::time_words($until), self::time_words($from), self::time_words($to), wp_date(get_option('time_format') ?: 'g:i A', $opens)
+        );
     }
 
     protected static function has_cart_automation($automations)
@@ -1643,6 +1856,10 @@ JS;
 .mo-auto-actions{display:flex;justify-content:space-between;gap:8px;padding:10px 16px;border-top:1px solid #f0f0f1;background:#f6f7f7}
 .mo-auto-report{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:10px 0}.mo-auto-report dd{margin:0;font-weight:600;text-align:right}
 .mo-auto-reasons summary{cursor:pointer;color:#2271b1}.mo-auto-reasons ul{margin:6px 0 0 16px;list-style:disc}
+.mo-auto-tip{display:flex;gap:6px;align-items:flex-start;margin:10px 0 0;padding:8px 10px;background:#f0f6fc;border-radius:3px}.mo-auto-tip .dashicons{color:#2271b1}
+.mo-auto-day{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:99px;background:#1d2327;color:#fff;font-size:11px;font-weight:600;line-height:18px;white-space:nowrap}
+.mo-auto-warn{flex-basis:100%;margin:8px 0 0;padding:6px 10px;border-left:4px solid #dba617;background:#fcf9e8}
+.mo-auto-plain p{margin:0 0 8px;line-height:1.55}.mo-auto-plain p:last-child{margin:0}
 .mo-auto-delete{text-align:right}.mo-auto-danger{color:#b32d2e!important}
 .mo-auto-recovery{border-top:1px solid #f0f0f1;margin-top:10px;padding-top:4px}.mo-auto-recovery b{font-size:16px}
 .mo-auto-carts .mo-col-customer{width:22%}.mo-auto-carts .mo-col-cart{width:30%}

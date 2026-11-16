@@ -41,6 +41,11 @@ class WooCartAbandoned extends AbstractTrigger
         return __('A shopper adds products and leaves without ordering. Use it to recover lost sales.', 'mailoptin');
     }
 
+    public function tip()
+    {
+        return __('The first reminder works best within an hour or two. Keep any discount for the last email.', 'mailoptin');
+    }
+
     public function is_available()
     {
         return Woo::active();

@@ -31,6 +31,11 @@ class ListJoined extends AbstractTrigger
         return __('From a form, an import or an admin. On a double opt-in list, when they confirm.', 'mailoptin');
     }
 
+    public function tip()
+    {
+        return __('Send the first email straight away, while they remember signing up, and space the rest 2 to 4 days apart.', 'mailoptin');
+    }
+
     public function default_runs()
     {
         return 'once';

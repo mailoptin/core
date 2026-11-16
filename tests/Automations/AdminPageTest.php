@@ -438,4 +438,125 @@ class AdminPageTest extends EngineTest
 
         $this->assertSame('Unsubscribed', Automations_Page::reason_label('unsubscribed'));
     }
+
+    public function test_waits_show_the_running_day_and_the_summary_reads_the_whole_flow()
+    {
+        $id = $this->automation([
+            ['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 10, 'unit' => 'days', 'until' => '09:00']],
+            $this->email_step('One'),
+            ['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'weeks', 'weekdays_only' => true]],
+            $this->email_step('Two'),
+        ]);
+
+        $edit = $this->render(['screen' => 'edit', 'id' => $id]);
+
+        $this->assertStringContainsString('>Day 10<', $edit);
+        $this->assertStringContainsString('>Day 17<', $edit, 'Weeks add up with days');
+        $this->assertStringContainsString('In plain words', $edit);
+        $this->assertStringContainsString('10 days later at ' . wp_date(get_option('time_format'), strtotime('today 09:00')) . ', they get email 1 (&quot;One&quot;).', $edit);
+        $this->assertStringContainsString('1 week later, on a weekday, they get email 2 (&quot;Two&quot;).', $edit);
+        $this->assertStringContainsString('Leaves early when', $edit);
+        $this->assertStringNotContainsString('Stops early when', $edit);
+    }
+
+    public function test_hours_in_and_only_if_steps_read_in_the_summary()
+    {
+        $checks = Engine::checks(self::$trigger);
+        $key    = array_key_first($checks);
+        $id     = $this->automation([
+            ['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 2, 'unit' => 'hours']],
+            ['type' => Repo::STEP_CHECK, 'settings' => ['check' => $key]],
+            $this->email_step('Reminder'),
+        ]);
+
+        $edit = $this->render(['screen' => 'edit', 'id' => $id]);
+
+        $this->assertStringContainsString('>2 hours in<', $edit);
+        $this->assertStringContainsString('2 hours later if ' . esc_html($checks[$key]['label']) . ', they get email 1', $edit);
+    }
+
+    public function test_a_deleted_email_says_people_leave_there_and_offers_remove()
+    {
+        $id    = $this->automation([$this->email_step('Gone'), $this->email_step('Kept')]);
+        $steps = Repo::steps($id);
+        ER::delete_campaign_by_id($steps[0]['settings']['email_campaign_id']);
+
+        $edit = $this->render(['screen' => 'edit', 'id' => $id]);
+
+        $this->assertStringContainsString('This email was deleted', $edit);
+        $this->assertStringContainsString('People who reach this step leave the automation here.', $edit);
+        $this->assertStringContainsString('value="remove:' . $steps[0]['id'] . '"', $edit);
+        $this->assertStringNotContainsString('value="edit_email:' . $steps[0]['id'] . '"', $edit);
+        $this->assertStringContainsString('value="edit_email:' . $steps[1]['id'] . '"', $edit, 'The other email keeps its buttons');
+        $this->assertStringNotContainsString('(no subject)', $edit);
+        $this->assertStringContainsString('they reach email 1, which was deleted, and leave the automation.', $edit);
+        $this->assertStringContainsString('they get email 2 (&quot;Kept&quot;).', $edit);
+    }
+
+    public function test_a_send_time_outside_sending_hours_is_pointed_out()
+    {
+        $hours  = ['send_from' => '08:00', 'send_to' => '20:00'];
+        $early  = $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days', 'until' => '07:00']], $this->email_step('A')], [], $hours);
+        $inside = $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days', 'until' => '09:00']], $this->email_step('B')], [], $hours);
+        $off    = $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days', 'until' => '07:00']], $this->email_step('C')]);
+
+        $html = $this->render(['screen' => 'edit', 'id' => $early]);
+        $this->assertStringContainsString('is outside your sending hours', $html);
+        $this->assertStringContainsString('goes out at ' . wp_date(get_option('time_format'), strtotime('today 08:00')), $html);
+        $this->assertStringContainsString('1 day later at ' . wp_date(get_option('time_format'), strtotime('today 08:00')) . ', they get email 1', $html, 'The summary says when it really goes');
+
+        $this->assertStringNotContainsString('is outside your sending hours', $this->render(['screen' => 'edit', 'id' => $inside]));
+        $this->assertStringNotContainsString('is outside your sending hours', $this->render(['screen' => 'edit', 'id' => $off]), 'No sending hours, no warning');
+
+        // Hours across midnight: 23:00 is inside 22:00 to 06:00.
+        $night = $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days', 'until' => '23:00']], $this->email_step('D')], [], ['send_from' => '22:00', 'send_to' => '06:00']);
+        $this->assertStringNotContainsString('is outside your sending hours', $this->render(['screen' => 'edit', 'id' => $night]));
+    }
+
+    public function test_a_trigger_tip_shows_only_when_the_trigger_has_one()
+    {
+        $plain = $this->render(['screen' => 'edit', 'id' => $this->automation([$this->email_step('A')])]);
+        $this->assertStringNotContainsString('class="mo-auto-tip"', $plain, 'The test trigger has no tip');
+
+        $id = Repo::create(['name' => 'Welcome', 'trigger_id' => 'list_joined', 'status' => Repo::STATUS_DRAFT]);
+        $html = $this->render(['screen' => 'edit', 'id' => $id]);
+        $this->assertStringContainsString('class="mo-auto-tip"', $html);
+        $this->assertStringContainsString(esc_html(Triggers::get_instance()->get('list_joined')->tip()), $html);
+        $this->assertSame('', self::$trigger->tip(), 'Triggers without a tip() keep working');
+    }
+
+    public function test_how_many_left_early_shows_under_leaves_early_when()
+    {
+        $id = $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days']], $this->email_step('A')]);
+
+        $this->assertStringNotContainsString('left early', $this->render(['screen' => 'edit', 'id' => $id]));
+
+        self::$trigger->fire('leaver@example.org', 'r1', ['number' => '1']);
+        $run = Repo::runs_for_email('leaver@example.org')[0];
+        Repo::finish_run($run['id'], Repo::RUN_STOPPED, 'unsubscribed');
+
+        $html = $this->render(['screen' => 'edit', 'id' => $id]);
+        $this->assertStringContainsString('1 person has left early', $html);
+        $this->assertStringContainsString(esc_html(Automations_Page::reason_label('unsubscribed')), $html);
+    }
+
+    public function test_a_paused_deleted_email_and_a_dead_only_if_read_as_the_engine_runs_them()
+    {
+        $id    = $this->automation([$this->email_step('Gone'), $this->email_step('Next')]);
+        $steps = Repo::steps($id);
+        ER::delete_campaign_by_id($steps[0]['settings']['email_campaign_id']);
+        $steps[0]['settings']['paused'] = true;
+        Repo::save_steps($id, $steps);
+
+        $edit = $this->render(['screen' => 'edit', 'id' => $id]);
+        $this->assertStringContainsString('The step is paused, so people pass by it.', $edit);
+        $this->assertStringNotContainsString('leave the automation here', $edit);
+        $this->assertStringContainsString('Straight away, they pass by email 1, which is paused.', $edit);
+        $this->assertStringContainsString('Resume this email', $edit, 'Still resumable');
+
+        $dead = $this->automation([['type' => Repo::STEP_CHECK, 'settings' => ['check' => 'no_such_check']], $this->email_step('Never')]);
+        $html = $this->render(['screen' => 'edit', 'id' => $dead]);
+        $this->assertStringContainsString('everyone stops at an &quot;Only if&quot; step', $html);
+        $this->assertStringNotContainsString('they get email 1 (&quot;Never&quot;)', $html);
+    }
 }
