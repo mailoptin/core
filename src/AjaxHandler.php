@@ -931,6 +931,8 @@ class AjaxHandler
 
             if ( ! self::is_leadbank_disabled() && $conversionRepoResponse) self::track_conversion($optin_campaign_id, $lead_data);
 
+            do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
+
             return AbstractConnect::ajax_success();
         }
 
@@ -949,6 +951,8 @@ class AjaxHandler
 
             if (AbstractConnect::is_ajax_success($response)) {
                 self::track_conversion($optin_campaign_id, $lead_data);
+
+                do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
             }
 
             return $response;
@@ -1044,6 +1048,13 @@ class AjaxHandler
         if ($is_any_success) {
 
             if ( ! self::is_leadbank_disabled() && $conversionRepoResponse) self::track_conversion($optin_campaign_id, $lead_data);
+
+            /**
+             * Fires once, only when the subscription succeeded with at least one integration
+             * (mailoptin_after_optin_subscription fires for each one, whatever the result). Premium's
+             * email-unlock product offers apply their coupon only after this.
+             */
+            do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
 
             return AbstractConnect::ajax_success();
         }
