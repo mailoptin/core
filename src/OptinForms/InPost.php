@@ -47,8 +47,9 @@ class InPost
             $optin_position = Repository::get_merged_customizer_value($id, 'inpost_form_optin_position');
 
             // A position another part of the plugin draws (Premium: in place of WooCommerce's Add to
-            // cart button) isn't put in the content; it uses display_variant() where it draws it.
-            if ( ! empty($optin_position) && ! in_array($optin_position, self::content_positions(), true)) continue;
+            // cart button) isn't put in the content; it uses display_variant() where it draws it. Any
+            // other value still goes after the content, as before.
+            if (in_array($optin_position, self::external_positions(), true)) continue;
 
             if ( ! OptinCampaignsRepository::is_test_mode($id)) {
 
@@ -115,11 +116,7 @@ class InPost
     }
 
     /**
-     * @return InPost
-     */
-    /**
-     * The positions inside a post's content. Others come from the
-     * mo_optin_form_customizer_inpost_form_optin_position_args filter and are drawn by whoever added them.
+     * The positions inside a post's content.
      */
     public static function content_positions()
     {
@@ -127,12 +124,27 @@ class InPost
     }
 
     /**
-     * Whether an in-post optin may show on this request, with every check the content insertion uses:
-     * activated, not hidden, cookies, the show filter and page, user and query targeting.
+     * Positions drawn outside the content by whoever added them (to the position choices, through
+     * mo_optin_form_customizer_inpost_form_optin_position_args), with display_variant().
+     *
+     * @return string[]
+     */
+    public static function external_positions()
+    {
+        return array_values(array_diff(array_map('strval', (array)apply_filters('mailoptin_inpost_external_positions', [])), self::content_positions()));
+    }
+
+    /**
+     * Whether an in-post optin may show at a position on this request, with every check the content
+     * insertion uses: activated, not hidden, cookies, the show filter and page, user and query targeting.
+     * Split test variants each have their own position, so the one chosen must be set to this position.
+     *
+     * @param int $id
+     * @param string $position e.g. the one passed to mailoptin_inpost_external_positions
      *
      * @return int the optin to show (the split test variant chosen), or 0
      */
-    public function display_variant($id)
+    public function display_variant($id, $position)
     {
         $id = absint($id);
 
@@ -141,6 +153,8 @@ class InPost
         if (isset($_GET['mohide']) && $_GET['mohide'] == 'true') return 0;
 
         $id = absint(Repository::choose_split_test_variant($id));
+
+        if ((string)Repository::get_merged_customizer_value($id, 'inpost_form_optin_position') !== (string)$position) return 0;
 
         if ( ! OptinCampaignsRepository::is_test_mode($id)) {
             if ( ! Repository::global_cookie_check_result()) return 0;

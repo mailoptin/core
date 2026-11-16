@@ -62,10 +62,10 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
         $this->assertEquals($this->kick_theme, $data);
     }
 
-    protected function listing($type)
+    protected function listing($type, $with_objectives = true)
     {
         ob_start();
-        OptinThemesRepository::listing_display_template($type);
+        OptinThemesRepository::listing_display_template($type, $with_objectives);
 
         return ob_get_clean();
     }
@@ -108,6 +108,7 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
         $this->assertStringContainsString('class="mo-objective-upsell" data-objective="woocommerce_product_offers" hidden', $html);
         $this->assertStringContainsString('Get MailOptin Premium', $html);
         $this->assertStringContainsString('utm_campaign=product_offers', $html);
+        $this->assertStringNotContainsString('mo-optin-objectives', $this->listing('upselltype', false), 'Not in the Customizer template switcher');
         remove_filter('mailoptin_optin_objectives', $f);
     }
 }

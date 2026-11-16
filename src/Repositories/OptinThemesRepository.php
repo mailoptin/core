@@ -624,11 +624,15 @@ class OptinThemesRepository extends AbstractRepository
         });
     }
 
-    public static function listing_display_template($optin_type = 'lightbox')
+    /**
+     * @param string $optin_type
+     * @param bool $with_objectives the objective links, on Add New (the Customizer's template switcher has no script for them)
+     */
+    public static function listing_display_template($optin_type = 'lightbox', $with_objectives = false)
     {
         $optin_designs = OptinThemesRepository::get_by_type($optin_type);
 
-        echo self::objectives_html($optin_designs, $optin_type);
+        if ($with_objectives) echo self::objectives_html($optin_designs, $optin_type);
 
         if (empty($optin_designs)) {
             if ($optin_type == 'bar') $optin_type = 'notification bar';

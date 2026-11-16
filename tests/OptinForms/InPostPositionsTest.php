@@ -16,6 +16,8 @@ class InPostPositionsTest extends WP_UnitTestCase
     {
         parent::set_up();
 
+        add_filter('mailoptin_inpost_external_positions', function ($p) { return array_merge($p, ['woocommerce_add_to_cart']); });
+
         // Set by mailoptin.php, which the core tests don't load; drawing a form needs it.
         if ( ! defined('MAILOPTIN_VERSION_NUMBER')) define('MAILOPTIN_VERSION_NUMBER', 'tests');
     }
@@ -27,6 +29,7 @@ class InPostPositionsTest extends WP_UnitTestCase
         $settings      = Repository::get_settings();
         $settings[$id] = ['inpost_form_optin_position' => $position, 'load_optin_globally' => true];
         Repository::updateSettings($settings);
+        $this->settings_changed();
         Repository::activate_campaign($id);
         $this->settings_changed();
 
@@ -51,7 +54,11 @@ class InPostPositionsTest extends WP_UnitTestCase
         Repository::deactivate_campaign($after);
         $this->inpost_optin('woocommerce_add_to_cart');
 
-        $this->assertSame('<p>Hello</p>', InPost::get_instance()->insert_optin('<p>Hello</p>'), 'A position outside the content is not inserted');
+        $this->assertSame('<p>Hello</p>', InPost::get_instance()->insert_optin('<p>Hello</p>'), 'A position drawn elsewhere is not inserted');
+
+        // An unknown value nobody draws still goes after the content, as before.
+        $this->inpost_optin('some_old_position');
+        $this->assertNotSame('<p>Hello</p>', InPost::get_instance()->insert_optin('<p>Hello</p>'));
     }
 
     public function test_display_variant_uses_the_same_checks()
@@ -59,16 +66,26 @@ class InPostPositionsTest extends WP_UnitTestCase
         $this->go_to(get_permalink(self::factory()->post->create()));
 
         $id = $this->inpost_optin('woocommerce_add_to_cart');
-        $this->assertSame($id, InPost::get_instance()->display_variant($id));
+        $this->assertSame($id, InPost::get_instance()->display_variant($id, 'woocommerce_add_to_cart'));
 
         add_filter('mailoptin_show_optin_form', '__return_false');
-        $this->assertSame(0, InPost::get_instance()->display_variant($id), 'The show filter applies');
+        $this->assertSame(0, InPost::get_instance()->display_variant($id, 'woocommerce_add_to_cart'), 'The show filter applies');
         remove_filter('mailoptin_show_optin_form', '__return_false');
 
         Repository::deactivate_campaign($id);
         $this->settings_changed();
-        $this->assertSame(0, InPost::get_instance()->display_variant($id), 'Not activated');
-        $this->assertSame(0, InPost::get_instance()->display_variant(0));
+        $this->assertSame(0, InPost::get_instance()->display_variant($id, 'woocommerce_add_to_cart'), 'Not activated');
+        $this->assertSame(0, InPost::get_instance()->display_variant(0, 'woocommerce_add_to_cart'));
         $this->assertSame(['before_content', 'between_content', 'after_content'], InPost::content_positions());
+        $this->assertSame(['woocommerce_add_to_cart'], InPost::external_positions());
+    }
+
+    public function test_display_variant_is_only_for_its_own_position()
+    {
+        $this->go_to(get_permalink(self::factory()->post->create()));
+
+        $id = $this->inpost_optin('after_content');
+        $this->assertSame(0, InPost::get_instance()->display_variant($id, 'woocommerce_add_to_cart'), 'Set to show in the content, not at Add to cart');
+        $this->assertSame($id, InPost::get_instance()->display_variant($id, 'after_content'));
     }
 }

@@ -293,7 +293,7 @@ class AjaxHandler
         echo '<div class="mailoptin-optin-themes mailoptin-optin-clear">';
         // lightbox/modal display should be default.
 
-        OptinThemesRepository::listing_display_template($optin_type);
+        OptinThemesRepository::listing_display_template($optin_type, true);
         echo '</div>';
 
         exit;
