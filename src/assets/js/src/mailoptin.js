@@ -701,7 +701,10 @@ var mailoptin_optin = {
             if (self.split_test_cookie_test(optin_config) === false) return;
 
             // Add-ons' last say, e.g. checks that need the visitor's cart on a cached page.
-            if (gates_passed !== true) {
+            if (gates_passed === true) {
+                // While the gate waited, another bar or slide-in may have taken this position.
+                if ((optin_type === 'bar' || optin_type === 'slidein') && self.is_flag_optin_type_active(optin_config, optin_type)) return;
+            } else {
                 var gate = self.display_gate(optin_config, optin_type);
 
                 if (gate === false) return;
