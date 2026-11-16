@@ -498,8 +498,14 @@ class AjaxHandler
         $response = OptinCampaignsRepository::add_optin_campaign(self::generateUniqueId(), $title, $theme, $type);
 
         if (is_int($response)) {
+            /** After a campaign is made from a template on Add New (Premium: product offers write their defaults). */
+            do_action('mailoptin_optin_campaign_created', $response, $theme, $type);
+
             wp_send_json_success(
-                array('redirect' => OptinCampaign_List::_optin_campaign_customize_url($response))
+                array(
+                    // Where Add New goes next: the Customizer, or a template's own setup (Premium: product offers).
+                    'redirect' => apply_filters('mailoptin_new_optin_campaign_redirect', OptinCampaign_List::_optin_campaign_customize_url($response), $response, $theme, $type)
+                )
             );
         } else {
             wp_send_json_error();
