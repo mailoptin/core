@@ -88,4 +88,22 @@ class InPostPositionsTest extends WP_UnitTestCase
         $this->assertSame(0, InPost::get_instance()->display_variant($id, 'woocommerce_add_to_cart'), 'Set to show in the content, not at Add to cart');
         $this->assertSame($id, InPost::get_instance()->display_variant($id, 'after_content'));
     }
+
+    public function test_an_add_on_can_have_an_inpost_optin_start_hidden_for_the_browser_to_decide()
+    {
+        $this->go_to(get_permalink(self::factory()->post->create(['post_content' => '<p>Hello</p>'])));
+
+        $id   = $this->inpost_optin('after_content');
+        $uuid = Repository::get_optin_campaign_uuid($id);
+        $html = InPost::get_instance()->insert_optin('<p>Hello</p>');
+
+        $this->assertMatchesRegularExpression("/id='$uuid'[^>]*style=''/", $html, 'Shown straight away by default');
+
+        add_filter('mailoptin_optin_starts_hidden', function ($hidden, $optin_campaign_id, $type) use ($id) {
+            return $hidden || ($optin_campaign_id == $id && 'inpost' === $type);
+        }, 10, 3);
+
+        $html = InPost::get_instance()->insert_optin('<p>Hello</p>');
+        $this->assertMatchesRegularExpression("/id='$uuid'[^>]*style='display: none'/", $html, 'Hidden until mailoptin.js has asked the display gates');
+    }
 }
