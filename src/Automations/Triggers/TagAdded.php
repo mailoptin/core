@@ -31,6 +31,11 @@ class TagAdded extends AbstractTrigger
         return __('From a form, an import, a bulk action or the API.', 'mailoptin');
     }
 
+    public function tip()
+    {
+        return __('Tags suit interests: write about what the tag means, and remove the tag to stop the series for someone.', 'mailoptin');
+    }
+
     public function is_available()
     {
         return TagsRepository::is_ready();

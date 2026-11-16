@@ -29,6 +29,11 @@ class WooOrderStatus extends AbstractTrigger
         return __('For example when an order is completed. Use it for review requests, thank-yous and follow-ups.', 'mailoptin');
     }
 
+    public function tip()
+    {
+        return __('Review requests do best 7 to 14 days after the order is completed, once it has arrived. Add "Only if they haven\'t reviewed" so reviewers aren\'t asked twice.', 'mailoptin');
+    }
+
     public function is_available()
     {
         return Woo::active();

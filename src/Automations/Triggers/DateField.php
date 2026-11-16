@@ -36,6 +36,11 @@ class DateField extends AbstractTrigger
         return __('Every year on a date custom field, such as Birthday.', 'mailoptin');
     }
 
+    public function tip()
+    {
+        return __('Give the first wait a send time, such as 9:00 AM, so the email arrives in the morning rather than at midnight.', 'mailoptin');
+    }
+
     public function is_available()
     {
         return TagsRepository::is_ready();

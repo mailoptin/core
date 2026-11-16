@@ -39,6 +39,14 @@ abstract class AbstractTrigger
     }
 
     /**
+     * Optional advice shown under the trigger in the builder, one sentence. Empty for none.
+     */
+    public function tip()
+    {
+        return '';
+    }
+
+    /**
      * When a run of this trigger ends before its last step, for the automation page. Unsubscribing
      * and the suppression list always stop it.
      */
