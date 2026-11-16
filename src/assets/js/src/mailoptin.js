@@ -178,7 +178,8 @@ var mailoptin_optin = {
                             window.location.reload();
                         }
                     } else {
-                        console.warn('something went wrong.');
+                        // An action added by an add-on (Premium: "Add product to cart") is theirs to run.
+                        $(document.body).trigger('moOptinCtaAction', [optin_js_config.cta_action, optin_container, optin_js_config, $optin_uuid]);
                     }
                     return false;
                 });

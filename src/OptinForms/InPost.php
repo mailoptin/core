@@ -46,6 +46,10 @@ class InPost
 
             $optin_position = Repository::get_merged_customizer_value($id, 'inpost_form_optin_position');
 
+            // A position another part of the plugin draws (Premium: in place of WooCommerce's Add to
+            // cart button) isn't put in the content; it uses display_variant() where it draws it.
+            if ( ! empty($optin_position) && ! in_array($optin_position, self::content_positions(), true)) continue;
+
             if ( ! OptinCampaignsRepository::is_test_mode($id)) {
 
                 // if optin global exit/interaction and success cookie result fails, move to next.
@@ -113,6 +117,42 @@ class InPost
     /**
      * @return InPost
      */
+    /**
+     * The positions inside a post's content. Others come from the
+     * mo_optin_form_customizer_inpost_form_optin_position_args filter and are drawn by whoever added them.
+     */
+    public static function content_positions()
+    {
+        return ['before_content', 'between_content', 'after_content'];
+    }
+
+    /**
+     * Whether an in-post optin may show on this request, with every check the content insertion uses:
+     * activated, not hidden, cookies, the show filter and page, user and query targeting.
+     *
+     * @return int the optin to show (the split test variant chosen), or 0
+     */
+    public function display_variant($id)
+    {
+        $id = absint($id);
+
+        if ( ! $id || Repository::is_split_test_variant($id) || ! Repository::is_activated($id)) return 0;
+
+        if (isset($_GET['mohide']) && $_GET['mohide'] == 'true') return 0;
+
+        $id = absint(Repository::choose_split_test_variant($id));
+
+        if ( ! OptinCampaignsRepository::is_test_mode($id)) {
+            if ( ! Repository::global_cookie_check_result()) return 0;
+            if ( ! apply_filters('mailoptin_show_optin_form', true, $id)) return 0;
+            if ( ! $this->user_targeting_rule_checker($id)) return 0;
+            if ( ! $this->page_level_targeting_rule_checker($id)) return 0;
+            if ( ! $this->query_level_targeting_rule_checker($id)) return 0;
+        }
+
+        return $id;
+    }
+
     public static function get_instance()
     {
         static $instance = null;

@@ -1795,3 +1795,31 @@ a.mailoptin-nav-tab.nav-tab {
 .moWP7higher .wp-full-overlay.expanded {
     margin-left: 320px;
 }
+/* Add New: objectives above the templates, and the free-site product offers panel. */
+.mo-optin-objectives {
+    float: none;
+    margin: 0 0 12px;
+}
+
+.mo-objective-upsell {
+    max-width: 760px;
+    margin: 0 0 20px;
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid #2271b1;
+}
+
+.mo-objective-upsell[hidden] {
+    display: none;
+}
+
+.mo-objective-upsell h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.mo-objective-upsell ul {
+    margin: 10px 0 16px 18px;
+    list-style: disc;
+}

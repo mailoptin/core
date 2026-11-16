@@ -635,6 +635,17 @@ class CustomizerControls
             unset($cta_button_action_choices['close_optin_reload_page']);
         }
 
+        /**
+         * More things the call-to-action button can do (Premium adds "Add product to cart"). The front
+         * end hands a choice it doesn't know to the "moOptinCtaAction" event.
+         */
+        $cta_button_action_choices = (array)apply_filters(
+            'mailoptin_optin_cta_button_action_choices',
+            $cta_button_action_choices,
+            $this->customizerClassInstance->optin_campaign_type,
+            $this->customizerClassInstance->optin_campaign_id
+        );
+
         $field_controls_args = apply_filters(
             "mo_optin_form_customizer_fields_controls",
             array(
@@ -1200,6 +1211,17 @@ class CustomizerControls
             unset($success_control_choices['close_optin']);
             unset($success_control_choices['close_optin_reload_page']);
         }
+
+        /**
+         * More things to do after someone subscribes (Premium adds "Add product to cart"). The front end
+         * passes the choice to the "moOptinConversion" event as optin_js_config.success_action.
+         */
+        $success_control_choices = (array)apply_filters(
+            'mailoptin_optin_success_action_choices',
+            $success_control_choices,
+            $this->customizerClassInstance->optin_campaign_type,
+            $this->customizerClassInstance->optin_campaign_id
+        );
 
         $success_controls_args = apply_filters(
             "mo_optin_form_customizer_success_controls",
