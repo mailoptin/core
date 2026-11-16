@@ -565,7 +565,9 @@ var mailoptin_optin = {
 
             // Block themes: product grids and the mini cart add through the Store API and send this instead.
             if (document.body && document.body.addEventListener) {
-                document.body.addEventListener('wc-blocks_added_to_cart', function () {
+                document.body.addEventListener('wc-blocks_added_to_cart', function (e) {
+                    // A product offer's own add (Premium) announces itself; it isn't a new add to react to.
+                    if (e && e.detail && e.detail.moProductOffer) return;
                     wc_atc_added(self.wc_atc_product_id());
                 });
             }
