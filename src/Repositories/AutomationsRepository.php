@@ -457,8 +457,21 @@ class AutomationsRepository extends AbstractRepository
             $ids[]     = $id;
         }
 
+        // A removed step takes the place of the kept step before it (in the old order), so a run
+        // that was on it carries on with the steps after it rather than past them all.
+        $new_position = [];
+        foreach ($ids as $i => $id) $new_position[$id] = ($i + 1) * 10;
+
+        $before = 0;
         foreach ($existing as $id => $step) {
-            if (isset($kept[$id]) || $step['deleted']) continue;
+            if (isset($kept[$id])) {
+                $before = $new_position[$id];
+                continue;
+            }
+
+            if ((int)$step['position'] !== $before) self::wpdb()->update(self::steps_table(), ['position' => $before], ['id' => $id]);
+
+            if ($step['deleted']) continue;
 
             self::wpdb()->update(self::steps_table(), ['deleted' => 1], ['id' => $id]);
 

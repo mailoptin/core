@@ -172,7 +172,7 @@ class EngineTest extends WP_UnitTestCase
         $this->assertStringContainsString('about order 1048', $sent[0]['body']);
         $this->assertStringContainsString('&lt;b&gt;fragile&lt;/b&gt;', $sent[0]['body']);
         $this->assertStringNotContainsString('{{order.', $sent[0]['body']);
-        $this->assertStringContainsString('mo_auto_unsub=', $sent[0]['body'] . $sent[0]['header']);
+        $this->assertStringContainsString('mo_auto_unsub_e=', $sent[0]['body'] . $sent[0]['header']);
         // No shared web version: it would show the template's raw placeholders.
         $this->assertStringNotContainsString('mo_web=', $sent[0]['body']);
 
@@ -591,5 +591,111 @@ class EngineTest extends WP_UnitTestCase
         $this->assertCount(3, $left);
         $this->assertSame(0, (int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . Repo::run_steps_table() . ' rs INNER JOIN ' . Repo::runs_table() . ' r ON r.id = rs.run_id WHERE r.automation_id = %d AND r.email = %s', $every, 'old@example.org')));
         $this->assertNotEmpty(array_filter($left, function ($r) use ($once) { return (int)$r['automation_id'] === $once && 'old@example.org' === $r['email']; }));
+    }
+
+    /** Ask for an unsubscribe page as the link does; returns whether it died with 404. */
+    protected function open_unsubscribe($url, $method = 'POST')
+    {
+        parse_str(wp_parse_url($url, PHP_URL_QUERY), $query);
+        $_GET                      = $query;
+        $_SERVER['REQUEST_METHOD'] = $method;
+        $status                    = 0;
+
+        add_filter('wp_die_handler', $handler = function () use (&$status) {
+            return function ($message, $title, $args) use (&$status) {
+                $status = (int)($args['response'] ?? 0);
+                throw new \RuntimeException('died');
+            };
+        });
+
+        try {
+            Engine::get_instance()->unsubscribe_request();
+        } catch (\RuntimeException $e) {
+        }
+
+        remove_filter('wp_die_handler', $handler);
+        $_GET                      = [];
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        return $status;
+    }
+
+    public function test_removing_steps_people_have_passed_does_not_end_their_run()
+    {
+        add_filter('mailoptin_automation_daily_cap', '__return_false');
+        $id = $this->automation([$this->email_step('E1'), $this->email_step('E2'), ['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days']], $this->email_step('E3')]);
+
+        $run_id = self::$trigger->fire('mid@example.org', 'r1', ['number' => '1'])[0];
+        $this->assertCount(2, $this->deliver());
+
+        // E1 and E2 go while this person waits.
+        Repo::save_steps($id, array_slice(Repo::steps($id), 2));
+
+        global $wpdb;
+        $wpdb->update(Repo::runs_table(), ['next_run_at' => '2000-01-01 00:00:00'], ['id' => $run_id]);
+
+        $sent = $this->deliver();
+        $this->assertCount(1, $sent);
+        $this->assertSame('E3', $sent[0]['subject']);
+        $this->assertSame(Repo::RUN_COMPLETED, Repo::get_run($run_id)['status']);
+    }
+
+    public function test_a_customers_unsubscribe_link_works_after_their_run_is_gone_and_cannot_be_forged()
+    {
+        $this->automation([$this->email_step()]);
+        $run_id = self::$trigger->fire('Shopper2@Example.org', 'r1', ['number' => '1'])[0];
+        $url    = Engine::unsubscribe_url(Repo::get_run($run_id), null, 0);
+
+        $this->assertStringContainsString('mo_auto_unsub_e=', $url);
+        $this->assertStringNotContainsString('mo_auto_unsub=', $url, 'No run id in the link');
+
+        // Runs are pruned after 90 days and erased on request; the link must still work.
+        global $wpdb;
+        $wpdb->delete(Repo::runs_table(), ['id' => $run_id]);
+
+        $forged = add_query_arg('mo_auto_unsub_e', rtrim(strtr(base64_encode('other@example.org'), '+/', '-_'), '='), $url);
+        $this->assertSame(404, $this->open_unsubscribe($forged));
+        $this->assertFalse(SuppressionRepository::is_suppressed('other@example.org'));
+
+        $this->assertSame(200, $this->open_unsubscribe($url, 'GET'), 'The page asks first');
+        $this->assertFalse(SuppressionRepository::is_suppressed('shopper2@example.org'));
+
+        $this->assertSame(200, $this->open_unsubscribe($url));
+        $this->assertTrue(SuppressionRepository::is_suppressed('shopper2@example.org'));
+    }
+
+    public function test_an_email_due_while_the_triggers_plugin_is_off_is_skipped_without_ending_the_run()
+    {
+        add_filter('mailoptin_automation_daily_cap', '__return_false');
+        $this->automation([$this->email_step('First'), ['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days']], $this->email_step('Second')]);
+        $run_id = self::$trigger->fire('woo@example.org', 'r1', ['number' => '1'])[0];
+
+        Engine::get_instance()->run(time() + 5);
+        TestEventTrigger::$available = false;
+        TestEventTrigger::$stop      = 'order_deleted'; // What an order trigger answers with WooCommerce off.
+
+        reset_phpmailer_instance();
+        QueueRunner::get_instance()->run_all();
+
+        $this->assertCount(0, tests_retrieve_phpmailer_instance()->mock_sent);
+        $this->assertSame(Repo::RUN_ACTIVE, Repo::get_run($run_id)['status'], 'Still waiting for the plugin');
+
+        TestEventTrigger::$available = true;
+        TestEventTrigger::$stop      = '';
+        global $wpdb;
+        $wpdb->update(Repo::runs_table(), ['next_run_at' => '2000-01-01 00:00:00'], ['id' => $run_id]);
+
+        $sent = $this->deliver();
+        $this->assertCount(1, $sent);
+        $this->assertSame('Second', $sent[0]['subject']);
+    }
+
+    public function test_a_value_a_customer_typed_is_never_expanded_as_a_tag()
+    {
+        $this->automation([$this->email_step('Order {{order.number}}', '<p>Note: {{order.note}}</p>')]);
+        self::$trigger->fire('typed@example.org', 'r1', ['number' => '9', 'note' => '{{unsubscribe}}']);
+
+        $sent = $this->deliver();
+        $this->assertStringContainsString('Note: {{unsubscribe}}', $sent[0]['body']);
     }
 }
