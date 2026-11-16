@@ -129,6 +129,8 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
             $this->assertFileExists(dirname(__DIR__, 2) . '/src/assets/images/optin-themes/product-offers/' . basename($t['screenshot']));
         }
 
+        add_filter('mailoptin_show_locked_product_offer_themes', '__return_false');
         $this->assertSame([], OptinThemesRepository::locked_product_offer_themes(), 'Not without WooCommerce');
+        remove_filter('mailoptin_show_locked_product_offer_themes', '__return_false');
     }
 }
