@@ -1242,6 +1242,31 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             $data['exit_intent_status'] = $exit_intent_status;
         }
 
+        // Premium display rules: when the visitor goes idle, and a floating tab that opens the campaign.
+        if (apply_filters('mailoptin_premium_display_rules', defined('MAILOPTIN_DETACH_LIBSODIUM'))) {
+            if ($this->get_customizer_value('idle_status') === true && absint($this->get_customizer_value('idle_value')) > 0) {
+                $data['idle_status'] = true;
+                $data['idle_value']  = min(600, max(5, absint($this->get_customizer_value('idle_value'))));
+            }
+
+            if ($this->get_customizer_value('launcher_status') === true && in_array($data['optin_type'], ['lightbox', 'slidein', 'bar'], true)) {
+                $text = trim(sanitize_text_field((string)$this->get_customizer_value('launcher_text')));
+
+                $data['launcher'] = [
+                    'text'       => '' !== $text ? $text : __('Get 10% off', 'mailoptin'),
+                    'style'      => 'tab' === $this->get_customizer_value('launcher_style') ? 'tab' : 'button',
+                    'position'   => in_array($this->get_customizer_value('launcher_position'), ['bottom_right', 'bottom_left', 'right', 'left'], true) ? $this->get_customizer_value('launcher_position') : 'bottom_right',
+                    'background' => sanitize_hex_color((string)$this->get_customizer_value('launcher_background')) ?: '#1f7a4d',
+                    'color'      => sanitize_hex_color((string)$this->get_customizer_value('launcher_color')) ?: '#ffffff',
+                    'only'       => $this->get_customizer_value('launcher_only') === true,
+                    'mobile'     => $this->get_customizer_value('launcher_mobile') !== false,
+                ];
+
+                // Opened only from the tab: the tab is always there, or nothing could open it.
+                $data['launcher']['when'] = ! $data['launcher']['only'] && 'after_close' === $this->get_customizer_value('launcher_when') ? 'after_close' : 'always';
+            }
+        }
+
         /** after conversion / success actions */
         $success_action         = $this->get_customizer_value('success_action');
         $data['success_action'] = $success_action;

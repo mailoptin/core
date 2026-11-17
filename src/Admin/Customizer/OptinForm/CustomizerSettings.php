@@ -815,6 +815,66 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                // Show when the visitor goes idle (Premium: Display Rules).
+                'idle_status'                     => array(
+                    'default'   => apply_filters('mo_optin_form_idle_status', false),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                'idle_value'                      => array(
+                    'default'   => apply_filters('mo_optin_form_idle_value', 30),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                // A floating tab or button that opens the campaign (Premium: Display Rules).
+                'launcher_status'                 => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_status', false),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_text'                   => array(
+                    'default'           => apply_filters('mo_optin_form_launcher_text', __('Get 10% off', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'launcher_style'                  => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_style', 'button'),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_position'               => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_position', 'bottom_right'),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_background'             => array(
+                    'default'           => apply_filters('mo_optin_form_launcher_background', '#1f7a4d'),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_hex_color',
+                ),
+                'launcher_color'                  => array(
+                    'default'           => apply_filters('mo_optin_form_launcher_color', '#ffffff'),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_hex_color',
+                ),
+                'launcher_when'                   => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_when', 'always'),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_only'                   => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_only', false),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_mobile'                 => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_mobile', true),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
                 'x_seconds_status'                => array(
                     'default'   => apply_filters('mo_optin_form_x_seconds_status', false),
                     'type'      => 'option',

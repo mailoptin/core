@@ -280,6 +280,46 @@ var mailoptin_optin = {
     },
 
     /**
+     * Is the "when the visitor goes idle" rule active?
+     *
+     * @param {object} optin_config
+     * @returns {boolean}
+     */
+    is_idle_active: function (optin_config) {
+        return optin_config.idle_status === true && optin_config.idle_value > 0;
+    },
+
+    /**
+     * Call back once the visitor has done nothing (no mouse, scroll, key or touch) for the given seconds.
+     * Time with the tab in the background doesn't count: they aren't there to see it.
+     *
+     * @param {number} seconds
+     * @param {function} callback
+     */
+    on_idle: function (seconds, callback) {
+        var timer = null, done = false, events = 'mousemove.moIdle keydown.moIdle scroll.moIdle touchstart.moIdle wheel.moIdle';
+        var stop = function () {
+            done = true;
+            clearTimeout(timer);
+            $(window).off('.moIdle' + seconds);
+            $(document).off('visibilitychange.moIdle' + seconds);
+        };
+        var restart = function () {
+            if (done) return;
+            clearTimeout(timer);
+            if (document.hidden) return;
+            timer = setTimeout(function () {
+                stop();
+                callback();
+            }, seconds * 1000);
+        };
+
+        $(window).on(events.replace(/\.moIdle/g, '.moIdle' + seconds), restart);
+        $(document).on('visibilitychange.moIdle' + seconds, restart);
+        restart();
+    },
+
+    /**
      * Is exit intent rule active?
      *
      * @param {object} optin_config
@@ -443,6 +483,9 @@ var mailoptin_optin = {
 
         // return if click launch status is activated for optin but the trigger isn't it.
         if (self.is_var_defined(optin_config, 'click_launch_status') && optin_config.click_launch_status === true && skip_display_checks === false) return;
+
+        // A campaign opened only from its floating tab doesn't open on its own.
+        if (self.is_var_defined(optin_config, 'launcher') && optin_config.launcher.only === true && skip_display_checks === false) return;
 
         if (self.is_optin_visible(optin_config) === false) return;
 
@@ -610,6 +653,20 @@ var mailoptin_optin = {
             }
 
             return;
+        }
+
+        // When the visitor goes idle: on its own, or as well as the other rules (whichever comes first).
+        if (self.is_idle_active(optin_config)) {
+            self.on_idle(optin_config.idle_value, function () {
+                // Not if another rule has opened it, or it was closed or they subscribed since.
+                if (_this.is(':visible') || self.is_optin_visible(optin_config) === false) return;
+
+                return self.display_optin_form.call(_this, optin_config, optin_type);
+            });
+
+            if (self.is_after_x_seconds_active(optin_config) === false &&
+                self.is_after_x_scroll_active(optin_config) === false &&
+                self.is_exit_intent_active(optin_config) === false) return;
         }
 
         var wait_seconds = optin_config.x_seconds_value * 1000;
@@ -1722,6 +1779,102 @@ var mailoptin_optin = {
     /**
      * Initialize class
      */
+    /**
+     * Floating tabs: a button or tab that opens its campaign (pop-up, slide-in or bar). It hides while
+     * the campaign is open, comes back when it closes, and goes once they subscribe.
+     */
+    init_launchers: function () {
+        var self = this;
+
+        $('.moOptinForm').each(function () {
+            var uuid = $(this).attr('id'), config = self.optin_js_config(uuid);
+
+            if (config && config.launcher && $.inArray(config.optin_type, ['lightbox', 'slidein', 'bar']) !== -1) {
+                self.add_launcher($(this), uuid, config);
+            }
+        });
+    },
+
+    add_launcher: function ($optin, uuid, config) {
+        var self = this, l = config.launcher, preview = $.MailOptin.is_customize_preview === true;
+
+        if ($('.mo-launcher[data-optin-uuid="' + uuid + '"]').length) return;
+
+        if (!document.getElementById('mo-launcher-css')) {
+            $('head').append('<style id="mo-launcher-css">' +
+                '.mo-launcher{position:fixed;z-index:99998;margin:0;border:0;cursor:pointer;font:600 15px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:0;text-transform:none;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .2s,visibility .2s;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}' +
+                '.mo-launcher:focus-visible{outline:3px solid #2271b1;outline-offset:2px}' +
+                '.mo-launcher-hidden{opacity:0;visibility:hidden;pointer-events:none}' +
+                '.mo-launcher-button{padding:12px 20px;border-radius:999px}' +
+                '.mo-launcher-button.mo-launcher-bottom-right{right:24px;bottom:24px}.mo-launcher-button.mo-launcher-bottom-left{left:24px;bottom:24px}' +
+                '.mo-launcher-button.mo-launcher-right{right:24px;top:50%;transform:translateY(-50%)}.mo-launcher-button.mo-launcher-left{left:24px;top:50%;transform:translateY(-50%)}' +
+                '.mo-launcher-tab{padding:10px 18px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.15)}' +
+                '.mo-launcher-tab.mo-launcher-bottom-right{right:24px;bottom:0;border-radius:6px 6px 0 0}.mo-launcher-tab.mo-launcher-bottom-left{left:24px;bottom:0;border-radius:6px 6px 0 0}' +
+                '.mo-launcher-tab.mo-launcher-right,.mo-launcher-tab.mo-launcher-left{top:50%;writing-mode:vertical-rl;transform:translateY(-50%) rotate(180deg);max-height:calc(100vh - 32px);max-width:none}' +
+                '.mo-launcher-tab.mo-launcher-right{right:0;border-radius:0 6px 6px 0}.mo-launcher-tab.mo-launcher-left{left:0;border-radius:6px 0 0 6px}' +
+                '.mo-launcher-bar-top,.mo-launcher-bar-bottom{right:24px;padding:8px 16px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.15)}' +
+                '.mo-launcher-bar-top{top:0;border-radius:0 0 6px 6px}.mo-launcher-bar-bottom{bottom:0;border-radius:6px 6px 0 0}' +
+                '.admin-bar .mo-launcher-bar-top{top:32px}' +
+                '@media (max-width:782px){.admin-bar .mo-launcher-bar-top{top:46px}}' +
+                '@media (max-width:767px){.mo-launcher-no-mobile{display:none!important}.mo-launcher-button.mo-launcher-bottom-right{right:16px;bottom:16px}.mo-launcher-button.mo-launcher-bottom-left{left:16px;bottom:16px}}' +
+                '</style>');
+        }
+
+        var place = config.optin_type === 'bar' ? 'mo-launcher-bar-' + (config.bar_position === 'bottom' ? 'bottom' : 'top') :
+            'mo-launcher-' + (l.style === 'tab' ? 'tab' : 'button') + ' mo-launcher-' + String(l.position || 'bottom_right').replace('_', '-');
+
+        var $tab = $('<button type="button"></button>')
+            .addClass('mo-launcher mo-launcher-hidden ' + place + (l.mobile === false ? ' mo-launcher-no-mobile' : ''))
+            .attr('data-optin-uuid', uuid)
+            .attr('aria-haspopup', config.optin_type === 'lightbox' ? 'dialog' : null)
+            .text(l.text)
+            .css({background: l.background, color: l.color});
+
+        $tab.appendTo(document.body);
+
+        // In the Customizer the campaign stays open: the tab sits on top to be seen, and a bar's tab
+        // just past the bar so it doesn't cover the bar's close button.
+        if (preview) {
+            $tab.css('z-index', 2147483647);
+            if (config.optin_type === 'bar') $tab.css(config.bar_position === 'bottom' ? 'bottom' : 'top', $optin.find('.mo-optin-form-wrapper').first().outerHeight() || 0);
+        }
+
+        // Campaigns that open on load are already showing when their tab is made.
+        var open = $optin.is(':visible'), closed_here = false;
+        var subscribed = function () {
+            return !!(Cookies.get('mo_success_' + uuid) || (config.global_success_cookie > 0 && Cookies.get('mo_global_success_cookie')));
+        };
+        var refresh = function () {
+            // The Customizer shows it, so its look can be set.
+            var show = preview || (!open && !subscribed() && (l.when !== 'after_close' || closed_here || !!Cookies.get('mo_' + uuid)));
+            $tab.toggleClass('mo-launcher-hidden', !show);
+        };
+
+        $tab.on('click', function (e) {
+            e.preventDefault();
+            if (preview) return;
+            $('#' + uuid + '.mo-optin-form-lightbox, #' + uuid + '.mo-optin-form-bar, #' + uuid + '.mo-optin-form-slidein').mailoptin(true);
+        });
+
+        $optin.on('moOptin:show', function () {
+            open = true;
+            refresh();
+        });
+
+        $optin.on('moOptin:close', function () {
+            open = false;
+            closed_here = true;
+            // Closing sets its cookies just after: look again then.
+            setTimeout(refresh, 50);
+        });
+
+        $(document.body).on('moOptinConversion', function (e, container) {
+            if ($(container).is('#' + uuid) || $(container).closest('#' + uuid).length) $tab.remove();
+        });
+
+        refresh();
+    },
+
     init: function () {
         var _this = this;
         // don't wait for dom to be loaded first. start tracking asap.
@@ -1732,6 +1885,7 @@ var mailoptin_optin = {
             _this.mailoptin_jq_plugin();
             _this.is_scheduled_for_display();
             _this.initOptinForms();
+            _this.init_launchers();
             _this.optin_conversion();
             _this.init_date_picker();
 
