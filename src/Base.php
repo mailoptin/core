@@ -119,6 +119,7 @@ class Base
         Misc::get_instance();
 
         FrontEndOutput::get_instance();
+        \MailOptin\Core\OptinForms\RelatedPosts::get_instance();
         InPost::get_instance();
         Shortcodes::get_instance();
         Recaptcha::get_instance();
