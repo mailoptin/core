@@ -36,7 +36,10 @@ class InPostPositionsTest extends WP_UnitTestCase
         return $id;
     }
 
-    /** The in-memory settings are flushed by a hook the test framework resets between tests. */
+    /**
+     * The in-memory settings are flushed by hooks the repository registers once per process, which the
+     * test framework removes after the test that registered them: flush by hand after each change.
+     */
     protected function settings_changed()
     {
         Repository::flush_saved_customizer_data_cache();
@@ -52,6 +55,8 @@ class InPostPositionsTest extends WP_UnitTestCase
         $this->assertNotSame('<p>Hello</p>', $html, 'After content is still inserted');
 
         Repository::deactivate_campaign($after);
+
+        $this->settings_changed();
         $this->inpost_optin('woocommerce_add_to_cart');
 
         $this->assertSame('<p>Hello</p>', InPost::get_instance()->insert_optin('<p>Hello</p>'), 'A position drawn elsewhere is not inserted');
@@ -73,6 +78,8 @@ class InPostPositionsTest extends WP_UnitTestCase
         remove_filter('mailoptin_show_optin_form', '__return_false');
 
         Repository::deactivate_campaign($id);
+
+        $this->settings_changed();
         $this->settings_changed();
         $this->assertSame(0, InPost::get_instance()->display_variant($id, 'woocommerce_add_to_cart'), 'Not activated');
         $this->assertSame(0, InPost::get_instance()->display_variant(0, 'woocommerce_add_to_cart'));

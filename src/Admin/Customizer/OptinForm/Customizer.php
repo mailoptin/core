@@ -74,6 +74,10 @@ class Customizer
     /** @var string ID of "After ‘X’ percent scroll" customizer section. */
     public $x_scroll_display_rule_section_id = 'mo_wp_x_scroll_display_rule_section';
 
+    public $idle_display_rule_section_id = 'mo_wp_idle_display_rule_section';
+
+    public $launcher_display_rule_section_id = 'mo_wp_launcher_display_rule_section';
+
     /** @var string ID of "WordPress page filter display rule" customizer section. */
     public $page_filter_display_rule_section_id = 'mo_wp_page_filter_display_rule_section';
 
@@ -484,6 +488,8 @@ class Customizer
                 $this->exit_intent_display_rule_section_id,
                 $this->x_seconds_display_rule_section_id,
                 $this->x_scroll_display_rule_section_id,
+                $this->idle_display_rule_section_id,
+                $this->launcher_display_rule_section_id,
                 $this->x_page_views_display_rule_section_id,
                 $this->page_filter_display_rule_section_id,
                 $this->query_filter_display_rule_section_id,
