@@ -867,12 +867,21 @@ form.mo-inline {
     margin-bottom: 20px;
 }
 
-.mo-end-test-modal .mo-end-test-content-optin-name {
-    width: 50%;
-    float: left;
-    position: relative;
+.mo-end-test-modal .mo-end-test-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mo-end-test-modal .mo-end-test-table th,
+.mo-end-test-modal .mo-end-test-table td {
+    padding: 15px 10px;
+    border-bottom: 2px solid #ececec;
     text-align: center;
-    word-break: break-all;
+    vertical-align: middle;
+}
+
+.mo-end-test-modal .mo-end-test-content-optin-name {
+    word-break: break-word;
 }
 
 .mo-end-test-modal .mo-end-test-centered {

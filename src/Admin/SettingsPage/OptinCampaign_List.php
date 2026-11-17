@@ -431,7 +431,8 @@ class OptinCampaign_List extends \WP_List_Table
             'percent'    => __('Conversion', 'mailoptin'),
         );
 
-        return $columns;
+        // Add-ons add columns here and fill them through mo_optin_campaign_column_value.
+        return (array)apply_filters('mailoptin_optin_campaign_list_columns', $columns);
     }
 
     /**
