@@ -42,6 +42,16 @@ class Messages
     /** The template class a campaign is drawn with, as OptinFormFactory resolves it. */
     public static function template_class($optin_campaign_id)
     {
+        static $cache = [];
+
+        $optin_campaign_id = absint($optin_campaign_id);
+        if (isset($cache[$optin_campaign_id])) return $cache[$optin_campaign_id];
+
+        return $cache[$optin_campaign_id] = self::resolve_class($optin_campaign_id);
+    }
+
+    protected static function resolve_class($optin_campaign_id)
+    {
         $class = OCR::get_optin_campaign_class($optin_campaign_id);
         $type  = ucfirst((string)OCR::get_optin_campaign_type($optin_campaign_id));
 
@@ -124,7 +134,8 @@ class Messages
             'msg_label'     => $text,
             'msg_image'     => 'esc_url_raw',
             'msg_icon'      => function ($v) { return mb_substr(sanitize_text_field((string)$v), 0, 8); },
-            'msg_code'      => function ($v) { return strtoupper(preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$v)); },
+            // As a coupon code is typed: shown and copied exactly as entered.
+            'msg_code'      => function ($v) { return mb_substr(trim(sanitize_text_field((string)$v)), 0, 60); },
             'msg_new_tab'   => function ($v) { return self::on($v); },
             'msg_no_thanks' => $text,
             'msg_accent'    => function ($v) { return sanitize_hex_color((string)$v) ?: ''; },
@@ -272,6 +283,15 @@ class Messages
         $id      = '' !== $uuid ? absint(OCR::get_optin_campaign_id_by_uuid($uuid)) : 0;
 
         if ( ! $id || ! self::is_campaign($id) || ! OCR::is_activated($id)) wp_die('', '', ['response' => 400]);
+
+        if (apply_filters('mo_disable_message_click_tracking', false, $id)) wp_die('', '', ['response' => 204]);
+
+        // One click per visitor (IP address) per message per day: the endpoint is public, and clicks are
+        // what split tests on messages are judged on.
+        $ip  = function_exists('MailOptin\Core\get_ip_address') ? (string)\MailOptin\Core\get_ip_address() : (string)($_SERVER['REMOTE_ADDR'] ?? '');
+        $key = 'mo_msg_click_' . md5($id . '|' . $ip);
+        if (get_transient($key)) wp_die('', '', ['response' => 204]);
+        set_transient($key, 1, DAY_IN_SECONDS);
 
         (new OptinCampaignStat($id))->save('conversion');
 

@@ -210,6 +210,11 @@ class OptinThemesRepository extends AbstractRepository
      */
     public static function message_themes()
     {
+        static $cache = null;
+        if (null !== $cache) return $cache;
+
+        $premium_active = defined('MAILOPTIN_DETACH_LIBSODIUM');
+
         $templates = [
             ['Announcement Bar', 'AnnouncementBar', 'bar', true],
             ['Notice Bar', 'NoticeBar', 'bar', true],
@@ -237,11 +242,22 @@ class OptinThemesRepository extends AbstractRepository
                 'objective'   => self::OBJECTIVE_MESSAGES,
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/messages/' . sanitize_title($t[0]) . '-' . $t[2] . '.png',
             ];
-            if ($t[3]) $theme['flag'] = 'premium';
+            if ($t[3]) {
+                $theme['flag'] = 'premium';
+
+                if ($premium_active) {
+                    // Only those the installed Premium has (an older one may not).
+                    if ( ! class_exists('\\MailOptin\\Libsodium\\PremiumTemplates\\OptinForms\\' . ucfirst($t[2]) . '\\' . $t[1])) continue;
+                } elseif (in_array($t[2], ['bar', 'slidein'], true)) {
+                    // Free sites have no bars or slide-ins: their "upgrade" notice shows instead.
+                    continue;
+                }
+            }
+
             $themes[] = $theme;
         }
 
-        return $themes;
+        return $cache = $themes;
     }
 
     /** The Premium message templates, for Premium to find their classes. */

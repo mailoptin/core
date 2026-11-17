@@ -166,7 +166,8 @@ var mailoptin_optin = {
             // handle CTA button click if activated
             if (self.is_var_defined(optin_js_config, 'cta_display') && optin_js_config.cta_display === true && self.is_var_defined(optin_js_config, 'cta_action')) {
                 // if cta action is to navigate
-                $(document).on('click', '#' + $optin_css_id + '_cta_button', function (e) {
+                // Bound once per button: this runs again on every click-launch.
+                $(document).off('click.moCta', '#' + $optin_css_id + '_cta_button').on('click.moCta', '#' + $optin_css_id + '_cta_button', function (e) {
                     // A message's button is a link: it goes where it points (a new tab included) by itself.
                     // The click counts as the campaign's conversion and hides it with the success cookie.
                     if (optin_js_config.is_message === true) {
@@ -183,8 +184,12 @@ var mailoptin_optin = {
                         if ($(this).attr('target') === '_blank') {
                             var message = $(this).parents('.moOptinForm');
                             setTimeout(function () {
-                                if (optin_js_config.optin_type === 'lightbox') $.MoModalBox.close();
-                                self._close_optin(message);
+                                if (optin_js_config.optin_type === 'lightbox') {
+                                    $.MoModalBox.close();
+                                } else {
+                                    self._close_optin(message);
+                                }
+                                self.flag_optin_type_close(optin_js_config, optin_js_config.optin_type);
                             }, 0);
                         }
                         return true;
@@ -1749,6 +1754,15 @@ $(function () {
     $(document).on('click', '.mo-msg-copy', function (e) {
         e.preventDefault();
         var button = $(this), code = String(button.data('mo-msg-copy') || ''), label = button.text();
+
+        // On a code template, copying the code is the click: counted once per message per page.
+        var message = button.parents('.moOptinForm'), uuid = message.attr('id');
+        if (uuid && !message.data('mo-msg-counted') && !$.MailOptin.is_customize_preview) {
+            message.data('mo-msg-counted', true);
+            var config = mailoptin_optin.optin_js_config(uuid);
+            if (config) mailoptin_optin.set_cookie('success', uuid, config);
+            $.MailOptin.track_message_click(uuid);
+        }
 
         var done = function () {
             button.text(button.data('copied') || label);

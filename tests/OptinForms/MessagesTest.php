@@ -41,10 +41,13 @@ class MessagesTest extends WP_UnitTestCase
 
     public function test_fifteen_templates_four_of_them_free()
     {
+        // Without Premium: the four free ones, and the locked Premium pop-ups, in-post and sidebar ones (free
+        // sites have no bars or slide-ins, whose "upgrade" notice shows instead).
         $themes = OptinThemesRepository::message_themes();
 
-        $this->assertCount(15, $themes);
-        $this->assertCount(11, OptinThemesRepository::premium_message_themes());
+        $this->assertCount(9, $themes);
+        $this->assertCount(5, OptinThemesRepository::premium_message_themes());
+        $this->assertEmpty(array_filter($themes, function ($t) { return in_array($t['optin_type'], ['bar', 'slidein'], true); }));
 
         $free = array_map(function ($t) { return $t['optin_class']; }, array_filter($themes, function ($t) { return empty($t['flag']); }));
         $this->assertEqualsCanonicalizing(['AnnouncementPopup', 'NoticeBox', 'FeatureCard', 'SimpleNotice'], array_values($free));
@@ -85,6 +88,24 @@ class MessagesTest extends WP_UnitTestCase
         $this->assertStringNotContainsString('javascript:', $html);
         $this->assertStringContainsString('target="_blank" rel="noopener"', $html);
         $this->assertStringContainsString('&lt;b&gt;x&lt;/b&gt;', $html);
+    }
+
+    public function test_typed_brackets_never_run_as_shortcodes_and_the_image_is_an_img()
+    {
+        add_shortcode('mo_test_boom', function () { return 'BOOM'; });
+
+        $id            = $this->campaign('AnnouncementPopup', 'lightbox');
+        $settings      = Repository::get_settings();
+        $settings[$id] = ['msg_no_thanks' => 'No [mo_test_boom] thanks', 'msg_image' => "https://example.org/x.jpg');position:fixed;inset:0;background:url('//evil"];
+        Repository::updateSettings($settings);
+        Repository::flush_saved_customizer_data_cache();
+
+        $html = OptinFormFactory::build($id);
+
+        $this->assertStringNotContainsString('BOOM', $html);
+        $this->assertMatchesRegularExpression('/No &#0?91;mo_test_boom&#0?93; thanks/', $html);
+        $this->assertDoesNotMatchRegularExpression('#url\([^)]*x\.jpg#', $html);
+        $this->assertMatchesRegularExpression('#<img src="[^"]*" alt="">#', $html);
     }
 
     public function test_the_customizer_shows_message_and_hides_what_a_message_has_no_use_for()

@@ -47,18 +47,10 @@ abstract class AbstractMessageTheme extends AbstractOptinTheme
             $registered[static::class] = true;
             $type                      = static::$type;
 
-            // The templates draw their own close button, and use Inter.
+            // The templates draw their own close button. (Inter is loaded from the font defaults below.)
             add_filter('mo_optin_campaign_icon_close', static function ($val, $optin_class, $optin_type) use ($class, $type) {
                 return $optin_class === $class && $optin_type === $type ? false : $val;
             }, 10, 3);
-
-            add_filter('mo_optin_form_fonts_list', static function ($webfont, $optin_campaign_id = 0) use ($class) {
-                if ($class === \MailOptin\Core\Repositories\OptinCampaignsRepository::get_optin_campaign_class($optin_campaign_id)) {
-                    $webfont[] = "'Inter:400,600,700'";
-                }
-
-                return $webfont;
-            }, 10, 2);
         }
 
         $defaults = array_merge([
@@ -128,35 +120,45 @@ abstract class AbstractMessageTheme extends AbstractOptinTheme
         return sanitize_hex_color((string)$this->get_customizer_value($key)) ?: $fallback;
     }
 
+    /**
+     * Plain text for the template: escaped, with square brackets as entities, since the template is run
+     * through do_shortcode and a typed "[...]" mustn't become a shortcode.
+     */
+    protected static function text($value)
+    {
+        return str_replace(['[', ']'], ['&#91;', '&#93;'], esc_html((string)$value));
+    }
+
     protected function label_html($class = 'mo-msg-label')
     {
         $label = trim((string)$this->msg('msg_label'));
 
-        return '' === $label ? '' : '<div class="' . esc_attr($class) . '">' . esc_html($label) . '</div>';
+        return '' === $label ? '' : '<div class="' . esc_attr($class) . '">' . self::text($label) . '</div>';
     }
 
+    /** The image: an img element (never a CSS url(), where a crafted address could add styles). */
     protected function image_html($class = 'mo-msg-image')
     {
         $url = esc_url((string)$this->msg('msg_image'));
 
-        return '' === $url ? '' : '<div class="' . esc_attr($class) . '" style="background-image:url(\'' . $url . '\')" role="img" aria-label="' . esc_attr(wp_strip_all_tags((string)$this->get_customizer_value('headline'))) . '"></div>';
+        return '' === $url ? '' : '<div class="' . esc_attr($class) . '"><img src="' . $url . '" alt=""></div>';
     }
 
     protected function icon_html($class = 'mo-msg-icon')
     {
         $icon = trim((string)$this->msg('msg_icon'));
 
-        return '' === $icon ? '' : '<span class="' . esc_attr($class) . '" aria-hidden="true">' . esc_html($icon) . '</span>';
+        return '' === $icon ? '' : '<span class="' . esc_attr($class) . '" aria-hidden="true">' . self::text($icon) . '</span>';
     }
 
     /** A code with a Copy button (the copying is done by mailoptin.js). */
     protected function code_html($class = 'mo-msg-code')
     {
-        $code = strtoupper(trim((string)$this->msg('msg_code')));
+        $code = trim((string)$this->msg('msg_code'));
         if ('' === $code) return '';
 
-        return '<span class="' . esc_attr($class) . '"><span class="mo-msg-code-value">' . esc_html($code) . '</span>'
-               . '<button type="button" class="mo-msg-copy" data-mo-msg-copy="' . esc_attr($code) . '" data-copied="' . esc_attr__('Copied', 'mailoptin') . '">' . esc_html__('Copy', 'mailoptin') . '</button></span>';
+        return '<span class="' . esc_attr($class) . '"><span class="mo-msg-code-value">' . self::text($code) . '</span>'
+               . '<button type="button" class="mo-msg-copy" data-mo-msg-copy="' . str_replace(['[', ']'], ['&#91;', '&#93;'], esc_attr($code)) . '" data-copied="' . esc_attr__('Copied', 'mailoptin') . '">' . esc_html__('Copy', 'mailoptin') . '</button></span>';
     }
 
     /**
@@ -171,14 +173,14 @@ abstract class AbstractMessageTheme extends AbstractOptinTheme
         $url    = esc_url((string)$this->get_customizer_value('cta_button_navigation_url'));
         $target = Messages::on($this->msg('msg_new_tab')) ? ' target="_blank" rel="noopener"' : '';
 
-        return '<a id="' . esc_attr($this->optin_css_id) . '_cta_button" class="mo-optin-form-cta-button ' . esc_attr($class) . '" href="' . ($url ?: '#') . '"' . $target . '>' . esc_html($text) . '</a>';
+        return '<a id="' . esc_attr($this->optin_css_id) . '_cta_button" class="mo-optin-form-cta-button ' . esc_attr($class) . '" href="' . ($url ?: '#') . '"' . $target . '>' . self::text($text) . '</a>';
     }
 
     protected function no_thanks_html($class = 'mo-msg-no-thanks')
     {
         $text = trim((string)$this->msg('msg_no_thanks'));
 
-        return '' === $text ? '' : '[mo-close-optin class="' . esc_attr($class) . '"]' . esc_html($text) . '[/mo-close-optin]';
+        return '' === $text ? '' : '[mo-close-optin class="' . esc_attr($class) . '"]' . self::text($text) . '[/mo-close-optin]';
     }
 
     protected function close_html($class = 'mo-msg-close')
@@ -210,7 +212,8 @@ $c .mo-optin-form-headline { color: $title; font-weight: 700; margin: 0; }
 $c .mo-optin-form-description { color: $text; margin: 0; }
 $c .mo-optin-form-headline:empty, $c .mo-optin-form-description:empty { display: none; }
 $c .mo-msg-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: $accent; }
-$c .mo-msg-image { background-size: cover; background-position: center; }
+$c .mo-msg-image { overflow: hidden; background: rgba(127,127,127,.12); }
+$c .mo-msg-image img { display: block; width: 100%; height: 100%; max-width: none; margin: 0; object-fit: cover; }
 $c .mo-msg-icon { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
 $c a.mo-msg-button {
     display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 18px;
