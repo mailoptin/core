@@ -1244,9 +1244,13 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         // Premium display rules: when the visitor goes idle, and a floating tab that opens the campaign.
         if (apply_filters('mailoptin_premium_display_rules', defined('MAILOPTIN_DETACH_LIBSODIUM'))) {
-            if ($this->get_customizer_value('idle_status') === true && absint($this->get_customizer_value('idle_value')) > 0) {
+            // An untouched slider isn't saved: its 30 seconds.
+            $idle_value = $this->get_customizer_value('idle_value');
+            $idle_value = '' === (string)$idle_value || null === $idle_value ? 30 : absint($idle_value);
+
+            if ($this->get_customizer_value('idle_status') === true && $idle_value > 0) {
                 $data['idle_status'] = true;
-                $data['idle_value']  = min(600, max(5, absint($this->get_customizer_value('idle_value'))));
+                $data['idle_value']  = min(600, max(5, $idle_value));
             }
 
             if ($this->get_customizer_value('launcher_status') === true && in_array($data['optin_type'], ['lightbox', 'slidein', 'bar'], true)) {

@@ -53,6 +53,8 @@ class DisplayTriggersTest extends WP_UnitTestCase
         $this->assertSame(600, $this->config('lightbox', ['idle_status' => true, 'idle_value' => 99999])['idle_value']);
         $this->assertArrayNotHasKey('idle_status', $this->config('lightbox', ['idle_status' => false, 'idle_value' => 30]));
         $this->assertArrayNotHasKey('idle_status', $this->config('lightbox', ['idle_status' => true, 'idle_value' => 0]));
+        $this->assertSame(30, $this->config('lightbox', ['idle_status' => true])['idle_value'], 'An untouched slider: its 30 seconds.');
+        $this->assertSame(30, $this->config('lightbox', ['idle_status' => true, 'idle_value' => ''])['idle_value']);
     }
 
     public function test_the_tab_is_sent_with_clean_values()
