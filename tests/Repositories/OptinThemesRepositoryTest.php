@@ -133,4 +133,28 @@ class OptinThemesRepositoryTest extends WP_UnitTestCase
         $this->assertSame([], OptinThemesRepository::locked_product_offer_themes(), 'Not without WooCommerce');
         remove_filter('mailoptin_show_locked_product_offer_themes', '__return_false');
     }
+
+    /** Every card on Add New has its own screenshot, and they're all the same size. */
+    public function test_every_template_card_has_its_own_screenshot_at_the_same_size()
+    {
+        $base  = dirname(__DIR__, 2) . '/src/assets/';
+        $seen  = [];
+        $count = 0;
+
+        foreach (OptinThemesRepository::get_all() as $theme) {
+            $url = (string)$theme['screenshot'];
+            if (false === strpos($url, MAILOPTIN_ASSETS_URL)) continue; // added by an add-on
+
+            $file = $base . str_replace(MAILOPTIN_ASSETS_URL, '', $url);
+            $this->assertFileExists($file, $theme['optin_class'] . ' ' . $theme['optin_type']);
+            $this->assertSame([1356, 878], array_slice(getimagesize($file), 0, 2), $file);
+
+            $key = $theme['optin_class'] . '|' . $theme['optin_type'];
+            $this->assertArrayNotHasKey($url, $seen, "$key shares a screenshot with " . ($seen[$url] ?? ""));
+            $seen[$url] = $key;
+            $count++;
+        }
+
+        $this->assertGreaterThan(60, $count);
+    }
 }
