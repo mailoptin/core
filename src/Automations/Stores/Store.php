@@ -83,13 +83,25 @@ abstract class Store
      * same code comes back.
      *
      * @param array $args type (percent|fixed|free_shipping), amount, expiry_days, minimum,
-     *                    individual_use, exclude_sale, prefix, email, automation_id, key
+     *                    individual_use, exclude_sale, prefix, email, automation_id, run_id, key
      *
      * @return array|\WP_Error code, expires (Y-m-d, or '')
      */
     public function create_coupon($args)
     {
         return new \WP_Error('mo_coupon_unsupported', __('This shop doesn\'t make discount codes.', 'mailoptin'));
+    }
+
+    /**
+     * The newest code a run's emails made that this person can still use, for a reminder that repeats it.
+     *
+     * @param array $run id, automation_id, email
+     *
+     * @return array|null ['code' => string, 'expires' => 'Y-m-d' or '']
+     */
+    public function run_coupon($run)
+    {
+        return null;
     }
 
     /** Whether a code exists in the shop. */

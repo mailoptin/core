@@ -72,6 +72,7 @@ class Triggers
                      new Triggers\TagAdded(),
                      new Triggers\DateField(),
                      new Triggers\WooOrderStatus(),
+                     new Triggers\WooOrderCount(),
                      new Triggers\WooNoOrder(),
                      new Triggers\WooCartAbandoned(),
                  ] as $builtin) {

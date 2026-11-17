@@ -11,6 +11,8 @@ class WooStore extends Store
     /** On a code an automation made: what made it, and the key that keeps it to one per email. */
     const META_AUTOMATION = '_mo_automation_id';
     const META_KEY = '_mo_automation_key';
+    /** The run whose email made the code, for a reminder that repeats it. */
+    const META_RUN = '_mo_automation_run';
 
     /** Unused codes are deleted this long after they expire. */
     const PURGE_AFTER_DAYS = 30;
@@ -194,6 +196,44 @@ class WooStore extends Store
         return $ids ? (int)$ids[0] : 0;
     }
 
+    public function run_coupon($run)
+    {
+        $run_id = absint($run['id'] ?? 0);
+        $email  = strtolower((string)($run['email'] ?? ''));
+
+        if ( ! $this->active() || ! $run_id) return null;
+
+        $ids = get_posts([
+            'post_type'     => 'shop_coupon',
+            'post_status'   => 'publish',
+            'fields'        => 'ids',
+            'numberposts'   => 5,
+            'orderby'       => 'ID',
+            'order'         => 'DESC',
+            'no_found_rows' => true,
+            'meta_query'    => [
+                ['key' => self::META_RUN, 'value' => $run_id],
+                ['key' => self::META_AUTOMATION, 'value' => absint($run['automation_id'] ?? 0)],
+            ],
+        ]);
+
+        foreach ($ids as $id) {
+            $coupon  = new \WC_Coupon($id);
+            $allowed = array_map('strtolower', (array)$coupon->get_email_restrictions());
+            $expires = $coupon->get_date_expires();
+            $limit   = (int)$coupon->get_usage_limit();
+
+            // Only a code for this person that can still be used: else the reminder makes a fresh one.
+            if ('' !== $email && ! empty($allowed) && ! in_array($email, $allowed, true)) continue;
+            if ($expires && $expires->getTimestamp() <= time()) continue;
+            if ($limit && $coupon->get_usage_count() >= $limit) continue;
+
+            return $this->details($coupon);
+        }
+
+        return null;
+    }
+
     protected function details($coupon)
     {
         $expires = $coupon->get_date_expires();
@@ -249,6 +289,7 @@ class WooStore extends Store
 
         $coupon->update_meta_data(self::META_AUTOMATION, absint($args['automation_id'] ?? 0));
         if ('' !== $key) $coupon->update_meta_data(self::META_KEY, $key);
+        if ( ! empty($args['run_id'])) $coupon->update_meta_data(self::META_RUN, absint($args['run_id']));
 
         $coupon->save();
 
