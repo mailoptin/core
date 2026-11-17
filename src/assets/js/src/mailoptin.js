@@ -25,6 +25,21 @@ $.MailOptin = {
     is_customize_preview: (mailoptin_globals.is_customize_preview === 'true'),
 
     /**
+     * Counts a click on a message's button. Sent as the page unloads (sendBeacon), so it never holds
+     * the visitor up.
+     */
+    track_message_click: function (optin_uuid) {
+        var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_message_click');
+
+        if (navigator.sendBeacon) {
+            var data = new FormData();
+            data.append('stat_data[optin_uuid]', optin_uuid);
+            if (navigator.sendBeacon(url, data)) return;
+        }
+
+        $.post(url, {stat_data: {optin_uuid: optin_uuid}});
+    },
+    /**
      * Track optin conversion and impression.
      *
      * @param {string} optin_uuid
@@ -151,7 +166,35 @@ var mailoptin_optin = {
             // handle CTA button click if activated
             if (self.is_var_defined(optin_js_config, 'cta_display') && optin_js_config.cta_display === true && self.is_var_defined(optin_js_config, 'cta_action')) {
                 // if cta action is to navigate
-                $(document).on('click', '#' + $optin_css_id + '_cta_button', function (e) {
+                // Bound once per button: this runs again on every click-launch.
+                $(document).off('click.moCta', '#' + $optin_css_id + '_cta_button').on('click.moCta', '#' + $optin_css_id + '_cta_button', function (e) {
+                    // A message's button is a link: it goes where it points (a new tab included) by itself.
+                    // The click counts as the campaign's conversion and hides it with the success cookie.
+                    if (optin_js_config.is_message === true) {
+                        if ($.MailOptin.is_customize_preview === true) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        self.set_cookie('success', $optin_uuid, optin_js_config);
+                        optin_js_config.mo_email = 'CTA';
+                        self.ga_event_tracking('conversion', optin_js_config);
+                        $.MailOptin.track_message_click($optin_uuid);
+
+                        // A link opened in a new tab leaves this page as it is: close the message here.
+                        if ($(this).attr('target') === '_blank') {
+                            var message = $(this).parents('.moOptinForm');
+                            setTimeout(function () {
+                                if (optin_js_config.optin_type === 'lightbox') {
+                                    $.MoModalBox.close();
+                                } else {
+                                    self._close_optin(message);
+                                }
+                                self.flag_optin_type_close(optin_js_config, optin_js_config.optin_type);
+                            }, 0);
+                        }
+                        return true;
+                    }
+
                     e.preventDefault();
                     var optin_container = $(this).parents('.moOptinForm');
 
@@ -1704,3 +1747,35 @@ mcGroupsValidation();
 recaptcha();
 
 mailoptin_optin.init();
+
+
+// Message templates: the Copy button next to a discount code.
+$(function () {
+    $(document).on('click', '.mo-msg-copy', function (e) {
+        e.preventDefault();
+        var button = $(this), code = String(button.data('mo-msg-copy') || ''), label = button.text();
+
+        // On a code template, copying the code is the click: counted once per message per page.
+        var message = button.parents('.moOptinForm'), uuid = message.attr('id');
+        if (uuid && !message.data('mo-msg-counted') && !$.MailOptin.is_customize_preview) {
+            message.data('mo-msg-counted', true);
+            var config = mailoptin_optin.optin_js_config(uuid);
+            if (config) mailoptin_optin.set_cookie('success', uuid, config);
+            $.MailOptin.track_message_click(uuid);
+        }
+
+        var done = function () {
+            button.text(button.data('copied') || label);
+            setTimeout(function () { button.text(label); }, 2000);
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(done, function () {});
+        } else {
+            var field = $('<input type="text">').val(code).css({position: 'fixed', top: '-100px'}).appendTo('body');
+            field[0].select();
+            try { document.execCommand('copy'); done(); } catch (err) {}
+            field.remove();
+        }
+    });
+});
