@@ -15,6 +15,8 @@ import {
 
 import ServerSideRender from '@wordpress/server-side-render';
 
+import {useEffect} from '@wordpress/element';
+
 const optin_options = Object.entries(moBlockOptinCampaigns.optins).map(([id, label]) => {
     return {label, value: id}
 });
@@ -46,6 +48,15 @@ function OptinSelectField({attributes, setAttributes}) {
 }
 
 export default function Edit({attributes, setAttributes}) {
+    // blocks saved before the uuid switch store the numeric optin id; swap it for the uuid
+    // so the optin can be translated by multilingual plugins such as WPML.
+    useEffect(() => {
+        const idToUuid = moBlockOptinCampaigns.idToUuid || {};
+        if (attributes.id && /^\d+$/.test(String(attributes.id)) && idToUuid[attributes.id]) {
+            setAttributes({id: idToUuid[attributes.id]});
+        }
+    }, [attributes.id]);
+
     return (
         <div {...useBlockProps()}>
             <InspectorControls key="setting">

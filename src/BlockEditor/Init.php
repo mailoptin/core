@@ -45,17 +45,20 @@ class Init
         if (is_null($optin_bucket)) {
             $optins = OptinCampaignsRepository::get_optin_campaigns_by_types(["sidebar", "inpost"]);
 
-            $optin_bucket = [];
+            $optin_bucket = ['optins' => [], 'idToUuid' => []];
 
+            // the block saves the optin uuid (text) rather than its numeric id so multilingual plugins
+            // such as WPML can send it to translation and the translator can pick the translated optin.
             foreach ($optins as $optin) {
-                $optin_bucket[$optin->id] = $optin->name;
+                $optin_bucket['optins'][$optin->uuid]   = $optin->name;
+                $optin_bucket['idToUuid'][$optin->id] = $optin->uuid;
             }
         }
 
         wp_localize_script(
             'mailoptin-email-optin-editor-script',
             'moBlockOptinCampaigns',
-            ['optins' => $optin_bucket]
+            $optin_bucket
         );
 
         $deps_asset_file = include dirname(__FILE__) . '/build/disable-email-plugin-sidebar/index.asset.php';

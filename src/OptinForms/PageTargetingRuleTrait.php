@@ -31,6 +31,19 @@ trait PageTargetingRuleTrait
     }
 
     /**
+     * True if any of the given IDs is in the saved page targeting list.
+     *
+     * @param array $ids
+     * @param array $list
+     *
+     * @return bool
+     */
+    public static function page_targeting_ids_match($ids, $list)
+    {
+        return ! empty(array_intersect((array)$ids, (array)$list));
+    }
+
+    /**
      * Determine if the optin passes page level targeting rules.
      *
      * @param int $id
@@ -60,6 +73,16 @@ trait PageTargetingRuleTrait
         /** @var string $post_post_type post type of current post */
         $post_post_type = get_post_type($post_id);
 
+        /**
+         * IDs that count as the current post, e.g. its translations in a multilingual plugin,
+         * so a post selected in Page Targeting also matches its translations.
+         */
+        $post_ids = $post_id ? array_values(array_unique(array_map('absint', (array)apply_filters('mo_page_targeting_equivalent_post_ids', [$post_id], $post_id, $post_post_type)))) : [$post_id];
+
+        /** Same for the post's categories and tags. */
+        $post_categories = (array)apply_filters('mo_targeting_equivalent_term_ids', $post_categories, 'category');
+        $post_tags       = (array)apply_filters('mo_targeting_equivalent_term_ids', $post_tags, 'post_tag');
+
         $load_optin_index                = OCR::get_customizer_value($id, 'load_optin_index');
         $posts_never_load                = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'posts_never_load'));
         $pages_never_load                = self::normalize_page_targeting_list(OCR::get_customizer_value($id, 'pages_never_load'));
@@ -73,17 +96,17 @@ trait PageTargetingRuleTrait
 
         if (OCR::get_customizer_value($id, 'click_launch_status') || OCR::get_merged_customizer_value($id, 'load_optin_globally')) {
             // if current post should never contain optin, return false.
-            if ( ! empty($posts_never_load) && in_array($post_id, $posts_never_load)) {
+            if ( ! empty($posts_never_load) && self::page_targeting_ids_match($post_ids, $posts_never_load)) {
                 return false;
             }
 
             // if current page should never contain optin, return false.
-            if ( ! empty($pages_never_load) && is_page($post_id) && in_array($post_id, $pages_never_load)) {
+            if ( ! empty($pages_never_load) && is_page($post_id) && self::page_targeting_ids_match($post_ids, $pages_never_load)) {
                 return false;
             }
 
             // if current CPT post should never contain optin, return false.
-            if ( ! empty($cpt_never_load) && in_array($post_id, $cpt_never_load)) {
+            if ( ! empty($cpt_never_load) && self::page_targeting_ids_match($post_ids, $cpt_never_load)) {
                 return false;
             }
 
@@ -125,12 +148,12 @@ trait PageTargetingRuleTrait
         }
 
         // if current post should never contain optin, return false.
-        if ( ! empty($posts_never_load) && in_array($post_id, $posts_never_load)) {
+        if ( ! empty($posts_never_load) && self::page_targeting_ids_match($post_ids, $posts_never_load)) {
             return false;
         }
 
         // if current page should never contain optin, return false.
-        if ( ! empty($pages_never_load) && is_page($post_id) && in_array($post_id, $pages_never_load)) {
+        if ( ! empty($pages_never_load) && is_page($post_id) && self::page_targeting_ids_match($post_ids, $pages_never_load)) {
             return false;
         }
 
@@ -152,7 +175,7 @@ trait PageTargetingRuleTrait
         }
 
         // if current CPT post should never contain optin, return false.
-        if ( ! empty($cpt_never_load) && in_array($post_id, $cpt_never_load)) {
+        if ( ! empty($cpt_never_load) && self::page_targeting_ids_match($post_ids, $cpt_never_load)) {
             return false;
         }
 
@@ -179,7 +202,7 @@ trait PageTargetingRuleTrait
         }
 
         // if current post isn't found in a set of all cpt posts to display optin for, return false.
-        if ( ! empty($exclusive_post_types_posts_load) && in_array($post_id, $exclusive_post_types_posts_load)) {
+        if ( ! empty($exclusive_post_types_posts_load) && self::page_targeting_ids_match($post_ids, $exclusive_post_types_posts_load)) {
             return true;
         }
 
