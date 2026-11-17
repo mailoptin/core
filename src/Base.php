@@ -120,6 +120,7 @@ class Base
 
         FrontEndOutput::get_instance();
         InPost::get_instance();
+        \MailOptin\Core\OptinForms\Messages::get_instance();
         Shortcodes::get_instance();
         Recaptcha::get_instance();
         //Turnstile initialization

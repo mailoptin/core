@@ -10,6 +10,9 @@ class OptinThemesRepository extends AbstractRepository
 
     const OBJECTIVE_PRODUCT_OFFERS = 'woocommerce_product_offers';
 
+    /** Banners, notices and pop-ups that don't ask for an email (Messages). */
+    const OBJECTIVE_MESSAGES = 'messages';
+
     private static $optin_themes;
 
     /**
@@ -20,7 +23,7 @@ class OptinThemesRepository extends AbstractRepository
      */
     public static function objectives()
     {
-        $objectives = [self::OBJECTIVE_DEFAULT => __('Collect emails', 'mailoptin')];
+        $objectives = [self::OBJECTIVE_DEFAULT => __('Collect emails', 'mailoptin'), self::OBJECTIVE_MESSAGES => __('Announcements', 'mailoptin')];
 
         if (class_exists('WooCommerce')) {
             $objectives[self::OBJECTIVE_PRODUCT_OFFERS] = __('WooCommerce product offers', 'mailoptin');
@@ -110,7 +113,7 @@ class OptinThemesRepository extends AbstractRepository
         if (is_null(self::$optin_themes)) {
             self::$optin_themes = apply_filters(
                 'mailoptin_registered_optin_themes',
-                array_merge(self::free_themes(), self::premium_themes(), self::locked_product_offer_themes())
+                array_merge(self::free_themes(), self::message_themes(), self::premium_themes(), self::locked_product_offer_themes())
             );
         }
     }
@@ -198,6 +201,53 @@ class OptinThemesRepository extends AbstractRepository
         }
 
         return $themes;
+    }
+
+    /**
+     * The message templates (Announcements). The lightbox, in-post and sidebar ones marked free are in
+     * core; the rest come with Premium (whose PremiumTemplates finds them in its own OptinForms folders)
+     * and show locked on free sites.
+     */
+    public static function message_themes()
+    {
+        $templates = [
+            ['Announcement Bar', 'AnnouncementBar', 'bar', true],
+            ['Notice Bar', 'NoticeBar', 'bar', true],
+            ['Code Bar', 'CodeBar', 'bar', true],
+            ['Notice Slide-in', 'NoticeSlidein', 'slidein', true],
+            ['Compact Slide-in', 'CompactSlidein', 'slidein', true],
+            ['Person Slide-in', 'PersonSlidein', 'slidein', true],
+            ['Announcement Pop-up', 'AnnouncementPopup', 'lightbox', false],
+            ['Split Pop-up', 'SplitPopup', 'lightbox', true],
+            ['Code Pop-up', 'CodePopup', 'lightbox', true],
+            ['Notice Box', 'NoticeBox', 'inpost', false],
+            ['Feature Card', 'FeatureCard', 'inpost', false],
+            ['Banner Strip', 'BannerStrip', 'inpost', true],
+            ['Notice Card', 'NoticeCard', 'sidebar', true],
+            ['Simple Notice', 'SimpleNotice', 'sidebar', false],
+            ['Code Card', 'CodeCard', 'sidebar', true],
+        ];
+
+        $themes = [];
+        foreach ($templates as $t) {
+            $theme = [
+                'name'        => $t[0],
+                'optin_class' => $t[1],
+                'optin_type'  => $t[2],
+                'objective'   => self::OBJECTIVE_MESSAGES,
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/messages/' . sanitize_title($t[0]) . '-' . $t[2] . '.png',
+            ];
+            if ($t[3]) $theme['flag'] = 'premium';
+            $themes[] = $theme;
+        }
+
+        return $themes;
+    }
+
+    /** The Premium message templates, for Premium to find their classes. */
+    public static function premium_message_themes()
+    {
+        return array_values(array_filter(self::message_themes(), function ($t) { return 'premium' === ($t['flag'] ?? ''); }));
     }
 
     public static function premium_themes()
