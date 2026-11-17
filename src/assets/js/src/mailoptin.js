@@ -537,18 +537,40 @@ var mailoptin_optin = {
         // WooCommerce added to cart
         if (self.is_var_defined(optin_config, 'wc_atc_activate_rule') && optin_config.wc_atc_activate_rule === true) {
 
-            $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
+            var wc_atc_last = {at: 0, id: null};
 
-                var product_id = $thisbutton.data('product_id');
+            var wc_atc_added = function (product_id) {
+                // One add can arrive twice: WooCommerce's block mini cart repeats the jQuery event as its own.
+                // Only the repeat is dropped: a quick add of another product still counts.
+                var now = new Date().getTime();
+                if (now - wc_atc_last.at < 1500 &&
+                    (product_id === null || wc_atc_last.id === null || product_id === wc_atc_last.id)
+                ) return;
+                wc_atc_last = {at: now, id: product_id};
 
+                // Only for the chosen products: an add whose product isn't known doesn't count.
                 if (self.is_var_defined(optin_config, 'wc_atc_products') &&
-                    $.inArray(product_id, optin_config.wc_atc_products) === -1
+                    (product_id === null || $.inArray(product_id, optin_config.wc_atc_products) === -1)
                 ) {
-                    return false;
+                    return;
                 }
 
-                return self.display_optin_form.call(_this, optin_config, optin_type);
+                self.display_optin_form.call(_this, optin_config, optin_type);
+            };
+
+            // Classic add-to-cart buttons. Other plugins (side carts) fire this without a button.
+            $(document.body).on('added_to_cart', function (event, fragments, cart_hash, $thisbutton) {
+                wc_atc_added(self.wc_atc_product_id($thisbutton));
             });
+
+            // Block themes: product grids and the mini cart add through the Store API and send this instead.
+            if (document.body && document.body.addEventListener) {
+                document.body.addEventListener('wc-blocks_added_to_cart', function (e) {
+                    // A product offer's own add (Premium) announces itself; it isn't a new add to react to.
+                    if (e && e.detail && e.detail.moProductOffer) return;
+                    wc_atc_added(self.wc_atc_product_id());
+                });
+            }
 
             if (self.is_var_defined(mailoptin_globals, 'wc_atc_products')) {
 
@@ -1576,6 +1598,43 @@ var mailoptin_optin = {
         });
     },
 
+    /** The add-to-cart button clicked last, as {id, at}: block events don't say which product was added. */
+    wc_atc_clicked: null,
+
+    /**
+     * The product an add-to-cart was for: the button WooCommerce passed, else the one just clicked.
+     *
+     * @param {jQuery} [$button]
+     *
+     * @returns {int|null}
+     */
+    wc_atc_product_id: function ($button) {
+        var id = null;
+
+        if ($button && $button.length) {
+            id = $button.data('product_id') || $button.attr('value');
+        }
+
+        if (!id && this.wc_atc_clicked && new Date().getTime() - this.wc_atc_clicked.at < 10000) {
+            id = this.wc_atc_clicked.id;
+        }
+
+        id = parseInt(id, 10);
+
+        return isNaN(id) ? null : id;
+    },
+
+    wc_atc_track_clicks: function () {
+        var _this = this;
+        if (!document.addEventListener) return;
+
+        document.addEventListener('click', function (e) {
+            var el = e.target && e.target.closest ? e.target.closest('[data-product_id]') : null;
+            // A mini cart's remove link carries the id too; it isn't an add.
+            if (el && !/(^|\s)remove_from_cart_button(\s|$)/.test(el.className || '')) _this.wc_atc_clicked = {id: el.getAttribute('data-product_id'), at: new Date().getTime()};
+        }, true);
+    },
+
     /**
      * Check if value is defined
      *
@@ -1627,6 +1686,7 @@ var mailoptin_optin = {
         // don't wait for dom to be loaded first. start tracking asap.
         _this.track_page_views();
         _this.set_visitor_cookies();
+        _this.wc_atc_track_clicks();
         $(function () {
             _this.eventSubscription();
             _this.mailoptin_jq_plugin();
