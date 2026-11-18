@@ -28,6 +28,19 @@ $.MailOptin = {
      * Counts a click on a message's button. Sent as the page unloads (sendBeacon), so it never holds
      * the visitor up.
      */
+    track_twostep_yes: function (optin_uuid, stage) {
+        var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_twostep_yes');
+        stage = stage === 'done' ? 'done' : 'yes';
+
+        if (navigator.sendBeacon) {
+            var data = new FormData();
+            data.append('stat_data[optin_uuid]', optin_uuid);
+            data.append('stat_data[stage]', stage);
+            if (navigator.sendBeacon(url, data)) return;
+        }
+
+        $.post(url, {stat_data: {optin_uuid: optin_uuid, stage: stage}});
+    },
     track_message_click: function (optin_uuid) {
         var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_message_click');
 
@@ -1811,6 +1824,132 @@ var mailoptin_optin = {
      * Initialize class
      */
     /**
+     * Two steps: a yes-or-no question first, then the form. It uses what every email form has (its
+     * headline, text, fields and submit button), so templates need nothing of their own: the question
+     * goes in the headline and text, the fields and note are hidden, and a copy of the submit button is
+     * the Yes button. Yes brings the form back as it was, with a progress bar on top.
+     */
+    init_twostep: function () {
+        var self = this;
+
+        $('.moOptinForm').each(function () {
+            var uuid = $(this).attr('id'), config = self.optin_js_config(uuid);
+
+            if (config && config.twostep) self.add_twostep($(this), uuid, config);
+        });
+    },
+
+    add_twostep: function ($optin, uuid, config) {
+        var t = config.twostep, preview = $.MailOptin.is_customize_preview === true;
+
+        if ($optin.data('mo-twostep')) return;
+
+        var $form = $optin.find('form.mo-optin-form').first(),
+            $fields = $form.find('.mo-optin-fields-wrapper').first(),
+            $submit = $form.find('.mo-optin-form-submit-button').first();
+
+        // Not a form this knows how to split: leave it as it is.
+        if (!$form.length || !$fields.length || !$submit.length) return;
+
+        $optin.data('mo-twostep', true);
+
+        if (!document.getElementById('mo-twostep-css')) {
+            $('head').append('<style id="mo-twostep-css">' +
+                '.mo-twostep-hidden{display:none!important}' +
+                '.mo-twostep-question{display:flex;flex-direction:column;align-items:center;gap:12px;margin:18px auto 6px;max-width:380px;width:100%;box-sizing:border-box}' +
+                '.mo-twostep-yes-holder{display:block!important;width:100%;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}' +
+                '.mo-twostep-yes-holder .mo-optin-form-submit-button{display:block!important;width:100%!important;max-width:none!important;margin:0!important;float:none!important}' +
+                '.mo-twostep-no{font-size:14px;opacity:.7;text-decoration:underline!important;color:inherit;cursor:pointer;box-shadow:none!important}' +
+                '.mo-twostep-progress{margin:0 0 16px;font-size:13px;font-weight:600;line-height:1.3;text-align:left;color:inherit}' +
+                '.mo-twostep-progress-labels{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;opacity:.75}' +
+                '.mo-twostep-progress-track{height:8px;border-radius:999px;background:rgba(127,127,127,.22);overflow:hidden}' +
+                '.mo-twostep-progress-fill{height:100%;width:50%;border-radius:999px}' +
+                '</style>');
+        }
+
+        var $headline = $form.find('.mo-optin-form-headline').first(),
+            $text = $form.find('.mo-optin-form-description').first(),
+            $hide = $fields.add($form.find('.mo-optin-form-note, .mo-optin-form-cta-button').not($fields.find('*'))),
+            saved = {headline: $headline.html(), text: $text.html()},
+            created_headline = false;
+
+        // Step 1: the question in the template's own headline and text.
+        if (!$headline.length) {
+            $headline = $('<div class="mo-optin-form-headline mo-twostep-title"></div>').prependTo($form);
+            created_headline = true;
+        }
+        $headline.text(t.question);
+        if ($text.length) {
+            if (t.text) $text.text(t.text); else $text.addClass('mo-twostep-hidden');
+        }
+        $hide.addClass('mo-twostep-hidden');
+
+        // Yes: the template's submit button, so it looks the same. Its class stays for the styling; the
+        // click stops here, so it never submits.
+        var holder_class = ($fields.attr('class') || '').split(/\s+/).filter(function (c) {
+            return c && c !== 'mo-optin-fields-wrapper' && c !== 'mo-twostep-hidden';
+        }).join(' ');
+        var $yes = $submit.clone(false).removeAttr('id').removeAttr('name').attr('type', 'button').addClass('mo-twostep-yes');
+        if ($yes.is('input')) $yes.val(t.yes); else $yes.text(t.yes);
+
+        var $question = $('<div class="mo-twostep-question"></div>')
+            .append($('<div class="mo-twostep-yes-holder"></div>').addClass(holder_class).append($yes));
+
+        if (t.no) {
+            $question.append($('<a href="#" rel="moOptin:close" class="mo-twostep-no"></a>').text(t.no));
+        }
+
+        if ($text.length) $text.after($question); else $headline.after($question);
+
+        var to_form = function () {
+            $question.remove();
+            if (created_headline) $headline.remove(); else $headline.html(saved.headline);
+            if ($text.length) $text.html(saved.text).removeClass('mo-twostep-hidden');
+            $hide.removeClass('mo-twostep-hidden');
+
+            if (t.progress) {
+                var fill = window.getComputedStyle($submit[0]).backgroundColor;
+                if (!fill || fill === 'transparent' || fill === 'rgba(0, 0, 0, 0)') fill = '#1f7a4d';
+
+                var $bar = $('<div class="mo-twostep-progress" role="progressbar" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1"></div>')
+                    .append($('<div class="mo-twostep-progress-labels"></div>').append($('<span></span>').text(t.almost), $('<span></span>').text(t.step)))
+                    .append($('<div class="mo-twostep-progress-track"></div>').append($('<div class="mo-twostep-progress-fill"></div>').css('background', fill)));
+                $form.prepend($bar);
+            }
+
+            // A pop-up re-centres for its new height.
+            $(window).trigger('resize');
+
+            setTimeout(function () {
+                var $email = $form.find('.mo-optin-form-email-field:visible').first();
+                if (!$email.length) $email = $form.find('input:visible').not('[type=hidden]').first();
+                $email.trigger('focus');
+            }, 60);
+        };
+
+        $yes.on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $optin.data('mo-twostep-said-yes', true);
+            to_form();
+
+            if (!preview) $.MailOptin.track_twostep_yes(uuid, 'yes');
+
+            $(document.body).trigger('moOptinTwoStepYes', [uuid, config]);
+        });
+
+        // A subscription after Yes: counted, for "said yes; subscribed".
+        $(document.body).on('moOptinConversion', function (e, container) {
+            if (preview || !$optin.data('mo-twostep-said-yes')) return;
+            if ($(container).is('#' + uuid) || $(container).closest('#' + uuid).length) {
+                $optin.data('mo-twostep-said-yes', false);
+                $.MailOptin.track_twostep_yes(uuid, 'done');
+            }
+        });
+    },
+
+    /**
      * Floating tabs: a button or tab that opens its campaign (pop-up, slide-in or bar). It hides while
      * the campaign is open, comes back when it closes, and goes once they subscribe.
      */
@@ -1946,6 +2085,8 @@ var mailoptin_optin = {
             _this.eventSubscription();
             _this.mailoptin_jq_plugin();
             _this.is_scheduled_for_display();
+            // Before they show: a two-step campaign opens on its question.
+            _this.init_twostep();
             _this.initOptinForms();
             _this.init_launchers();
             _this.optin_conversion();

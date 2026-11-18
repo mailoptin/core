@@ -815,6 +815,41 @@ class CustomizerSettings extends AbstractCustomizer
                     'type'      => 'option',
                     'transport' => 'postMessage',
                 ),
+                // Two steps: a yes-or-no question first, then the form (Premium).
+                'twostep_status'                  => array(
+                    'default'   => apply_filters('mo_optin_form_twostep_status', false),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'twostep_question'                => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_question', __('Want our best posts in your inbox?', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_text'                    => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_text', __('One email a week. Unsubscribe any time.', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_yes'                     => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_yes', __('Yes, sign me up', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_no'                      => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_no', __('No thanks', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_progress'                => array(
+                    'default'   => apply_filters('mo_optin_form_twostep_progress', true),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
                 // Show when the visitor goes idle (Premium: Display Rules).
                 'idle_status'                     => array(
                     'default'   => apply_filters('mo_optin_form_idle_status', false),
