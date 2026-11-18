@@ -133,27 +133,27 @@ class Wheel
         return [
             'garden'  => [
                 'label' => __('Garden', 'mailoptin'),
-                'colors' => ['wheel_side_bg' => '#f3ead8', 'form_background_color' => '#fbf8f2', 'headline_font_color' => '#1f2a24', 'description_font_color' => '#3d4741', 'submit_button_background' => '#2f6b4f', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#c8643b', 'wheel_ring_color' => '#1f2a24', 'wheel_heading_font' => 'serif'],
+                'colors' => ['wheel_side_bg' => '#f3ead8', 'form_background_color' => '#fbf8f2', 'headline_font_color' => '#1f2a24', 'description_font_color' => '#3d4741', 'submit_button_background' => '#2f6b4f', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#c8643b', 'wheel_ring_color' => '#1f2a24', 'wheel_heading_font' => 'serif', 'email_field_background' => '#ffffff', 'email_field_color' => '#1f2a24'],
                 'slices' => [['#2f6b4f', '#ffffff'], ['#f3ead8', '#1f2a24'], ['#c8643b', '#ffffff'], ['#fbf8f2', '#6b756f'], ['#21503a', '#ffffff'], ['#f6e3d9', '#1f2a24']],
             ],
             'bold'    => [
                 'label' => __('Bold', 'mailoptin'),
-                'colors' => ['wheel_side_bg' => '#fde68a', 'form_background_color' => '#ffffff', 'headline_font_color' => '#111827', 'description_font_color' => '#374151', 'submit_button_background' => '#111827', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#dc2626', 'wheel_ring_color' => '#111827', 'wheel_heading_font' => 'sans'],
+                'colors' => ['wheel_side_bg' => '#fde68a', 'form_background_color' => '#ffffff', 'headline_font_color' => '#111827', 'description_font_color' => '#374151', 'submit_button_background' => '#111827', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#dc2626', 'wheel_ring_color' => '#111827', 'wheel_heading_font' => 'sans', 'email_field_background' => '#ffffff', 'email_field_color' => '#111827'],
                 'slices' => [['#1d4ed8', '#ffffff'], ['#facc15', '#111827'], ['#dc2626', '#ffffff'], ['#ffffff', '#6b7280'], ['#16a34a', '#ffffff'], ['#f97316', '#ffffff']],
             ],
             'minimal' => [
                 'label' => __('Minimal', 'mailoptin'),
-                'colors' => ['wheel_side_bg' => '#f4f4f5', 'form_background_color' => '#ffffff', 'headline_font_color' => '#18181b', 'description_font_color' => '#52525b', 'submit_button_background' => '#18181b', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#0f766e', 'wheel_ring_color' => '#18181b', 'wheel_heading_font' => 'sans'],
+                'colors' => ['wheel_side_bg' => '#f4f4f5', 'form_background_color' => '#ffffff', 'headline_font_color' => '#18181b', 'description_font_color' => '#52525b', 'submit_button_background' => '#18181b', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#0f766e', 'wheel_ring_color' => '#18181b', 'wheel_heading_font' => 'sans', 'email_field_background' => '#ffffff', 'email_field_color' => '#18181b'],
                 'slices' => [['#0f766e', '#ffffff'], ['#ffffff', '#27272a'], ['#e4e4e7', '#27272a'], ['#fafafa', '#71717a'], ['#27272a', '#ffffff'], ['#f4f4f5', '#27272a']],
             ],
             'night'   => [
                 'label' => __('Night', 'mailoptin'),
-                'colors' => ['wheel_side_bg' => '#0b1220', 'form_background_color' => '#111827', 'headline_font_color' => '#f9fafb', 'description_font_color' => '#d1d5db', 'submit_button_background' => '#f59e0b', 'submit_button_color' => '#1f1300', 'wheel_eyebrow_color' => '#2dd4bf', 'wheel_ring_color' => '#f9fafb', 'wheel_heading_font' => 'sans'],
+                'colors' => ['wheel_side_bg' => '#0b1220', 'form_background_color' => '#111827', 'headline_font_color' => '#f9fafb', 'description_font_color' => '#d1d5db', 'submit_button_background' => '#f59e0b', 'submit_button_color' => '#1f1300', 'wheel_eyebrow_color' => '#2dd4bf', 'wheel_ring_color' => '#f9fafb', 'wheel_heading_font' => 'sans', 'email_field_background' => '#1f2937', 'email_field_color' => '#f9fafb'],
                 'slices' => [['#14b8a6', '#04201d'], ['#1f2937', '#e5e7eb'], ['#f59e0b', '#1f1300'], ['#111827', '#9ca3af'], ['#38bdf8', '#04131c'], ['#374151', '#e5e7eb']],
             ],
             'holiday' => [
                 'label' => __('Holiday', 'mailoptin'),
-                'colors' => ['wheel_side_bg' => '#fef2f2', 'form_background_color' => '#fffbeb', 'headline_font_color' => '#450a0a', 'description_font_color' => '#57534e', 'submit_button_background' => '#b91c1c', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#166534', 'wheel_ring_color' => '#450a0a', 'wheel_heading_font' => 'serif'],
+                'colors' => ['wheel_side_bg' => '#fef2f2', 'form_background_color' => '#fffbeb', 'headline_font_color' => '#450a0a', 'description_font_color' => '#57534e', 'submit_button_background' => '#b91c1c', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#166534', 'wheel_ring_color' => '#450a0a', 'wheel_heading_font' => 'serif', 'email_field_background' => '#ffffff', 'email_field_color' => '#450a0a'],
                 'slices' => [['#b91c1c', '#ffffff'], ['#fef2f2', '#7f1d1d'], ['#166534', '#ffffff'], ['#fffbeb', '#78716c'], ['#7f1d1d', '#ffffff'], ['#ecfccb', '#14532d']],
             ],
         ];

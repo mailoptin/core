@@ -341,7 +341,7 @@ $c .mo-wheel-prize { display: flex; align-items: center; gap: 12px; background: 
 $c .mo-wheel-code { flex: 1; font: 700 22px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .04em; color: #1f2a24; word-break: break-all; }
 $c .mo-wheel-copy, $c .mo-wheel-action { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 8px; font-weight: 700; cursor: pointer; text-decoration: none !important; }
 $c .mo-wheel-copy { border: 1px solid var(--mo-w-btn); background: #fff; color: var(--mo-w-btn); }
-$c .mo-wheel-action { width: 100%; min-height: 52px; border: 0; background: var(--mo-w-btn); color: var(--mo-w-btntext) !important; font-size: 16px; }
+$c .mo-wheel-action { width: 100%; min-height: 52px; margin: 4px 0 14px; border: 0; background: var(--mo-w-btn); color: var(--mo-w-btntext) !important; font-size: 16px; }
 $c .mo-wheel-check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
 $c .mo-wheel-check:before { content: "\\2713"; flex: none; width: 20px; height: 20px; border-radius: 50%; background: rgba(127,127,127,.18); color: var(--mo-w-title); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-top: 1px; }
 @media (prefers-reduced-motion: reduce) { $c .mo-wheel-rotor { transition-duration: .4s !important; } }
@@ -354,9 +354,13 @@ CSS;
      */
     protected function phone_sheet_css($c)
     {
+        // The pop-up's container is placed by script (an inline top); on phones it's pinned to the bottom.
+        $box = "html div#{$this->optin_campaign_uuid}.moModal div#{$this->optin_css_id}_container";
+
         return <<<CSS
 @media only screen and (max-width: 575px) {
-    $c { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100% !important; max-width: none !important; max-height: 94vh; overflow-y: auto;
+    $box { position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important; top: auto !important; width: 100% !important; max-width: none !important; margin: 0 !important; transform: none !important; }
+    $c { width: 100% !important; max-width: none !important; max-height: 94vh; overflow-y: auto;
         border-radius: 18px 18px 0 0; display: block !important; box-shadow: 0 -10px 40px rgba(0,0,0,.25); }
     $c .mo-wheel-side { padding: 18px 20px 6px !important; background: var(--mo-w-card) !important; }
     $c .mo-wheel-dial { max-width: 230px !important; margin: 0 auto; }
