@@ -13,6 +13,9 @@ class OptinThemesRepository extends AbstractRepository
     /** Banners, notices and pop-ups that don't ask for an email (Messages). */
     const OBJECTIVE_MESSAGES = 'messages';
 
+    /** Prize wheels (Wheel). */
+    const OBJECTIVE_WHEEL = 'spin_to_win';
+
     private static $optin_themes;
 
     /**
@@ -23,7 +26,7 @@ class OptinThemesRepository extends AbstractRepository
      */
     public static function objectives()
     {
-        $objectives = [self::OBJECTIVE_DEFAULT => __('Collect emails', 'mailoptin'), self::OBJECTIVE_MESSAGES => __('Announcements', 'mailoptin')];
+        $objectives = [self::OBJECTIVE_DEFAULT => __('Collect emails', 'mailoptin'), self::OBJECTIVE_MESSAGES => __('Announcements', 'mailoptin'), self::OBJECTIVE_WHEEL => __('Spin to win', 'mailoptin')];
 
         if (class_exists('WooCommerce')) {
             $objectives[self::OBJECTIVE_PRODUCT_OFFERS] = __('WooCommerce product offers', 'mailoptin');
@@ -113,7 +116,7 @@ class OptinThemesRepository extends AbstractRepository
         if (is_null(self::$optin_themes)) {
             self::$optin_themes = apply_filters(
                 'mailoptin_registered_optin_themes',
-                array_merge(self::free_themes(), self::message_themes(), self::premium_themes(), self::locked_product_offer_themes())
+                array_merge(self::free_themes(), self::message_themes(), self::wheel_themes(), self::premium_themes(), self::locked_product_offer_themes())
             );
         }
     }
@@ -258,6 +261,56 @@ class OptinThemesRepository extends AbstractRepository
         }
 
         return $cache = $themes;
+    }
+
+    /**
+     * The prize-wheel templates (Spin to win). Split, Stacked and Inline are in core; Edge and Corner come
+     * with Premium and show locked on free sites (except the slide-in: free sites have no slide-ins).
+     */
+    public static function wheel_themes()
+    {
+        static $cache = null;
+        if (null !== $cache) return $cache;
+
+        $premium_active = defined('MAILOPTIN_DETACH_LIBSODIUM');
+
+        $templates = [
+            ['Split Wheel', 'WheelSplit', 'lightbox', false],
+            ['Stacked Wheel', 'WheelStacked', 'lightbox', false],
+            ['Edge Wheel', 'WheelEdge', 'lightbox', true],
+            ['Inline Wheel', 'WheelInline', 'inpost', false],
+            ['Corner Wheel', 'WheelCorner', 'slidein', true],
+        ];
+
+        $themes = [];
+        foreach ($templates as $t) {
+            $theme = [
+                'name'        => $t[0],
+                'optin_class' => $t[1],
+                'optin_type'  => $t[2],
+                'objective'   => self::OBJECTIVE_WHEEL,
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/wheel/' . sanitize_title($t[0]) . '-' . $t[2] . '.png',
+            ];
+            if ($t[3]) {
+                $theme['flag'] = 'premium';
+
+                if ($premium_active) {
+                    if ( ! class_exists('\\MailOptin\\Libsodium\\PremiumTemplates\\OptinForms\\' . ucfirst($t[2]) . '\\' . $t[1])) continue;
+                } elseif ('slidein' === $t[2]) {
+                    continue;
+                }
+            }
+
+            $themes[] = $theme;
+        }
+
+        return $cache = $themes;
+    }
+
+    /** The Premium wheel templates, for Premium to find their classes. */
+    public static function premium_wheel_themes()
+    {
+        return array_values(array_filter(self::wheel_themes(), function ($t) { return 'premium' === ($t['flag'] ?? ''); }));
     }
 
     /** The Premium message templates, for Premium to find their classes. */

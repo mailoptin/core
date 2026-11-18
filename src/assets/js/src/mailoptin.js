@@ -1253,6 +1253,93 @@ var mailoptin_optin = {
      * overlay over optin lighbox/modal that shows spinner and success message.
      *
      */
+    /**
+     * Spin to win: turn the wheel to the slice the site drew (never chosen here), then put the prize where
+     * the form was. Text goes in with .text(), so nothing from the response is read as HTML.
+     *
+     * @param {object} container the campaign
+     * @param {object} wheel the prize: slice, type, label, code, url, button, text, cart_token, emailed, already
+     */
+    wheel_result: function (container, wheel) {
+        var self = this, $c = $(container), $dial = $c.find('.mo-wheel-dial').first(), $rotor = $dial.find('.mo-wheel-rotor');
+        var $form = $c.find('.mo-wheel-form').first(), $result = $c.find('.mo-wheel-result').first();
+
+        var show = function () {
+            $result.empty().append(self.wheel_result_html(wheel, $c)).prop('hidden', false);
+            $form.hide();
+            $result.find('a, button').first().trigger('focus');
+            if (wheel.cart_token) self.wheel_apply(wheel.cart_token, $result);
+        };
+
+        if (wheel.already || wheel.slice === null || wheel.slice === undefined || !$rotor.length) return show();
+
+        var n = parseInt($dial.data('slices'), 10) || 1, pointer = parseInt($dial.data('pointer'), 10) || 0, step = 360 / n;
+        // Five full turns, then the slice's middle under the pointer, a little off-centre so it looks natural.
+        var jitter = (Math.random() - 0.5) * step * 0.6;
+        var target = 360 * 5 + pointer - wheel.slice * step + jitter;
+        var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var duration = reduced ? 400 : 4800;
+
+        $c.find('.mo-optin-form-submit-button').prop('disabled', true);
+        $rotor.css({transition: 'transform ' + duration + 'ms cubic-bezier(.12,.75,.15,1)', transform: 'rotate(' + target + 'deg)'});
+
+        setTimeout(show, duration + 350);
+    },
+
+    wheel_result_html: function (wheel, $c) {
+        var $box = $('<div class="mo-wheel-result-inner"></div>');
+        var add = function (tag, cls, text) {
+            if (!text) return null;
+            return $('<' + tag + '>').addClass(cls).text(text).appendTo($box);
+        };
+
+        if (wheel.already) {
+            add('div', 'mo-wheel-result-title', wheel.message);
+            return $box;
+        }
+
+        if (wheel.type === 'none' || !wheel.type) {
+            add('div', 'mo-wheel-result-title', wheel.title);
+            add('p', '', wheel.text);
+            return $box;
+        }
+
+        add('div', 'mo-wheel-eyebrow', wheel.win_label);
+        add('div', 'mo-wheel-result-title', wheel.type === 'link' ? wheel.title : wheel.label);
+        add('p', '', wheel.text);
+
+        if (wheel.code) {
+            var $prize = $('<div class="mo-wheel-prize"></div>').appendTo($box);
+            $('<span class="mo-wheel-code"></span>').text(wheel.code).appendTo($prize);
+            $('<button type="button" class="mo-wheel-copy"></button>').text(mailoptin_globals.wheel_copy || 'Copy')
+                .attr('data-code', wheel.code).attr('data-copied', mailoptin_globals.wheel_copied || 'Copied').appendTo($prize);
+        }
+
+        if (wheel.url && /^https?:\/\//i.test(wheel.url)) {
+            $('<a class="mo-wheel-action" target="_blank" rel="noopener"></a>').attr('href', wheel.url).text(wheel.button || wheel.url).appendTo($box);
+        }
+
+        var lines = [];
+        if (wheel.cart_token) lines.push(mailoptin_globals.wheel_in_cart || '');
+        if (wheel.emailed) lines.push(mailoptin_globals.wheel_emailed || '');
+        lines = $.grep(lines, function (l) { return l !== ''; });
+        if (lines.length) add('p', 'mo-wheel-check', lines.join(' ')).css('margin-top', '14px');
+
+        return $box;
+    },
+
+    /** Puts a won shop coupon (and a free product) in the cart, then refreshes the mini cart. */
+    wheel_apply: function (token, $result) {
+        $.post(mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'wheel_apply'), {token: token}, function (res) {
+            if (res && res.success && res.data && res.data.applied) {
+                $(document.body).trigger('wc_fragment_refresh');
+            } else {
+                // Not in the cart after all: say so, rather than claim it is.
+                $result.find('.mo-wheel-check').text(mailoptin_globals.wheel_not_in_cart || '');
+            }
+        }, 'json');
+    },
+
     displaySuccessContent: function () {
         // display the success container div.
         this.find('.mo-optin-success-msg').show();
@@ -1325,10 +1412,18 @@ var mailoptin_optin = {
                 if (!$.isEmptyObject(response) && 'success' in response) {
                     if (response.success === true) {
 
-                        $(document.body).trigger('moOptinConversion', [optin_container, optin_js_config, optin_data]);
+                        $(document.body).trigger('moOptinConversion', [optin_container, optin_js_config, optin_data, response]);
 
                         // set cookie for this option conversion
                         self.set_cookie('success', optin_data.optin_uuid, optin_js_config);
+
+                        // A prize wheel: turn it to the prize the site drew, then show the prize.
+                        if (optin_js_config.is_wheel === true && response.wheel) {
+                            self.removeProcessingOverlay.call(optin_container);
+                            self.removeSpinner.call(optin_container);
+                            self.wheel_result(optin_container, response.wheel);
+                            return;
+                        }
 
                         // do not include success icon if icon_close (close icon automatically attached to lightbox) is set to true.
                         // icon_close config is always false for none lightbox optin forms. see ./Core/src/OptinForms/AbstractOptinForm.php LN497
@@ -2169,6 +2264,23 @@ mailoptin_optin.init();
 
 // Message templates: the Copy button next to a discount code.
 $(function () {
+    $(document).on('click', '.mo-wheel-copy', function (e) {
+        e.preventDefault();
+        var button = $(this), code = String(button.attr('data-code') || ''), label = button.text();
+        var done = function () {
+            button.text(button.attr('data-copied') || label);
+            setTimeout(function () { button.text(label); }, 2000);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(done, function () {});
+        } else {
+            var $t = $('<textarea readonly style="position:absolute;left:-9999px"></textarea>').val(code).appendTo('body');
+            $t[0].select();
+            try { document.execCommand('copy'); done(); } catch (err) {}
+            $t.remove();
+        }
+    });
+
     $(document).on('click', '.mo-msg-copy', function (e) {
         e.preventDefault();
         var button = $(this), code = String(button.data('mo-msg-copy') || ''), label = button.text();
