@@ -574,13 +574,19 @@ body.mailoptin-admin .mailoptin-log-listing .add-new-h2:hover {
         max-width: 100%;
     }
 
+    /* Long labels wrap, with normal line spacing rather than WordPress's tall single-line height. */
     body.mailoptin-admin #wpbody-content .button {
         height: auto;
+        line-height: 1.4;
         max-width: 100%;
+        padding-bottom: var(--mo-sp-2);
+        padding-top: var(--mo-sp-2);
         white-space: normal;
     }
 
-    body.mailoptin-admin #wpbody-content table.widefat:not(.table-view-list),
+    /* WordPress's own list tables carry a table-view-* class (list or excerpt) and fold into rows on
+       phones; only the hand-made tables, which don't, scroll. */
+    body.mailoptin-admin #wpbody-content table.widefat:not([class*="table-view-"]),
     body.mailoptin-admin #wpbody-content table.mo-api-table {
         display: block;
         max-width: 100%;

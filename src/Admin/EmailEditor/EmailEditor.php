@@ -208,7 +208,8 @@ class EmailEditor
         echo '<p><a href="' . esc_url(MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE) . '">&larr; ' . esc_html__('Broadcasts', 'mailoptin') . '</a></p>';
         echo '<h1>' . esc_html__('New broadcast', 'mailoptin') . '</h1>';
         echo '<p class="mo-ee-new-lede">' . esc_html__('Name it and pick a template. The editor opens next; you choose who gets it and when after that.', 'mailoptin') . '</p>';
-        if ('' !== $error) echo '<div class="notice notice-error"><p>' . esc_html($error) . '</p></div>';
+        // "inline": WordPress leaves it here, next to the form it's about, rather than moving it under the page header.
+        if ('' !== $error) echo '<div class="notice notice-error inline"><p>' . esc_html($error) . '</p></div>';
         echo self::picker_html('broadcast', [], $fields);
         echo '</div>';
     }

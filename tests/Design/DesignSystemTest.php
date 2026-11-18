@@ -89,9 +89,10 @@ class DesignSystemTest extends \WP_UnitTestCase
         $this->assertSame(1, substr_count($html, 'wp-header-end'));
         $this->assertGreaterThan(strpos($html, 'mailoptin-admin-wrap'), strpos($html, 'wp-header-end'), 'After the header, not before it.');
 
-        foreach (glob(dirname(__DIR__, 2) . '/src/Admin/SettingsPage/*.php') as $file) {
-            if (basename($file) === 'AbstractSettingsPage.php') continue;
-            $this->assertStringNotContainsString('wp-header-end', file_get_contents($file), basename($file) . ' prints its own marker.');
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(dirname(__DIR__, 2) . '/src', \FilesystemIterator::SKIP_DOTS));
+        foreach ($files as $file) {
+            if ('php' !== $file->getExtension() || 'AbstractSettingsPage.php' === $file->getFilename()) continue;
+            $this->assertDoesNotMatchRegularExpression('/class=[\'"][^\'"]*\bwp-header-end\b/', file_get_contents($file->getPathname()), $file->getFilename() . ' prints its own marker.');
         }
     }
 }

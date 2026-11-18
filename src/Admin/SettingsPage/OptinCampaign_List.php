@@ -475,7 +475,7 @@ class OptinCampaign_List extends \WP_List_Table
             'test_mode' => "<a href=\"$url\">$label</a>"
         );
 
-        $name = '<strong><a href="' . $customize_url . '">' . $item['name'] . '</a> <span class="mo-optin-type-state post-state"> — ' . $optin_type . '</span></strong>';
+        $name = '<strong><a href="' . $customize_url . '">' . $item['name'] . '</a> <span class="mo-optin-type-state post-state"> — ' . esc_html($optin_type) . '</span></strong>';
 
         if (OptinCampaignsRepository::is_split_test_parent($optin_campaign_id)) {
             $name .= '<div class="mo-has-split-test-variant">' . __('A/B', 'mailoptin') . '</div>';
