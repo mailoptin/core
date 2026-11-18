@@ -95,7 +95,9 @@ class AdvanceAnalytics extends AbstractSettingsPage
     public function settings_admin_page_callback()
     {
         if (apply_filters('mailoptin_enable_advance_analytics', false)) {
-            $this->settingsInstance->sidebar(SettingsPage::get_instance()->analytic_chart_sidebar());
+            // The Statistics page now uses the full width; older versions of the add-on still have a sidebar.
+            $sidebar = SettingsPage::get_instance()->analytic_chart_sidebar();
+            if ( ! empty($sidebar)) $this->settingsInstance->sidebar($sidebar);
             SettingsPage::get_instance()->process_actions();
         }
 

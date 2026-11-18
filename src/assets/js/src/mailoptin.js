@@ -30,16 +30,36 @@ $.MailOptin = {
      */
     track_twostep_yes: function (optin_uuid, stage) {
         var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_twostep_yes');
-        stage = stage === 'done' ? 'done' : 'yes';
+        var stat_data = $.extend({optin_uuid: optin_uuid, stage: stage === 'done' ? 'done' : 'yes'}, $.MailOptin.visit_data());
 
+        $.MailOptin.send_beacon(url, stat_data);
+    },
+
+    /**
+     * The page, the site the visitor came from and their time zone, sent with views and conversions for
+     * the statistics (the time zone stands in for their country where nothing better is available).
+     */
+    visit_data: function () {
+        var tz = '';
+        try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        } catch (e) {
+        }
+
+        return {conversion_page: window.location.href, referrer: document.referrer || '', tz: tz};
+    },
+
+    /** Posts stat_data without holding the visitor up: sendBeacon, else a normal request. */
+    send_beacon: function (url, stat_data) {
         if (navigator.sendBeacon) {
             var data = new FormData();
-            data.append('stat_data[optin_uuid]', optin_uuid);
-            data.append('stat_data[stage]', stage);
+            $.each(stat_data, function (key, value) {
+                data.append('stat_data[' + key + ']', value);
+            });
             if (navigator.sendBeacon(url, data)) return;
         }
 
-        $.post(url, {stat_data: {optin_uuid: optin_uuid, stage: stage}});
+        $.post(url, {stat_data: stat_data});
     },
 
     /**
@@ -49,13 +69,7 @@ $.MailOptin = {
     track_message_click: function (optin_uuid) {
         var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_message_click');
 
-        if (navigator.sendBeacon) {
-            var data = new FormData();
-            data.append('stat_data[optin_uuid]', optin_uuid);
-            if (navigator.sendBeacon(url, data)) return;
-        }
-
-        $.post(url, {stat_data: {optin_uuid: optin_uuid}});
+        $.MailOptin.send_beacon(url, $.extend({optin_uuid: optin_uuid}, $.MailOptin.visit_data()));
     },
     /**
      * Track optin conversion and impression.
@@ -66,11 +80,7 @@ $.MailOptin = {
         // bail if this is customizer preview
         if ($.MailOptin.is_customize_preview === true || mailoptin_globals.disable_impression_tracking === 'true') return;
 
-        var stat_data = {
-            optin_uuid: optin_uuid,
-            conversion_page: window.location.href,
-            referrer: document.referrer || ""
-        };
+        var stat_data = $.extend({optin_uuid: optin_uuid}, $.MailOptin.visit_data());
 
         $.post(mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_optin_impression'), {stat_data: stat_data});
     }
@@ -1193,7 +1203,8 @@ var mailoptin_optin = {
                     _mo_timestamp: $('input#' + $optin_css_id + '_honeypot_timestamp').val(),
                     user_agent: navigator.userAgent,
                     conversion_page: window.location.href,
-                    referrer: document.referrer || ""
+                    referrer: document.referrer || "",
+                    _mo_tz: $.MailOptin.visit_data().tz
                 });
 
                 self.addProcessingOverlay.call(optin_container);
