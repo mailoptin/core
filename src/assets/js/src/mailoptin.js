@@ -25,6 +25,24 @@ $.MailOptin = {
     is_customize_preview: (mailoptin_globals.is_customize_preview === 'true'),
 
     /**
+     * Two steps: counts a Yes, or ("done") a subscription after one. Sent with sendBeacon, so it never
+     * holds the visitor up.
+     */
+    track_twostep_yes: function (optin_uuid, stage) {
+        var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_twostep_yes');
+        stage = stage === 'done' ? 'done' : 'yes';
+
+        if (navigator.sendBeacon) {
+            var data = new FormData();
+            data.append('stat_data[optin_uuid]', optin_uuid);
+            data.append('stat_data[stage]', stage);
+            if (navigator.sendBeacon(url, data)) return;
+        }
+
+        $.post(url, {stat_data: {optin_uuid: optin_uuid, stage: stage}});
+    },
+
+    /**
      * Counts a click on a message's button. Sent as the page unloads (sendBeacon), so it never holds
      * the visitor up.
      */
@@ -1808,8 +1826,176 @@ var mailoptin_optin = {
     },
 
     /**
-     * Initialize class
+     * Two steps: a yes-or-no question first, then the form. It uses what every email form has (its
+     * headline, text, fields and submit button), so templates need nothing of their own: the question
+     * goes in the headline and text, the fields and note are hidden, and a copy of the submit button is
+     * the Yes button. Yes brings the form back as it was, with a progress bar on top.
      */
+    init_twostep: function () {
+        var self = this;
+
+        $('.moOptinForm').each(function () {
+            var uuid = $(this).attr('id'), config = self.optin_js_config(uuid);
+
+            if (config && config.twostep) self.add_twostep($(this), uuid, config);
+        });
+    },
+
+    add_twostep: function ($optin, uuid, config) {
+        var t = config.twostep, preview = $.MailOptin.is_customize_preview === true;
+
+        if ($optin.data('mo-twostep')) return;
+
+        var $form = $optin.find('form.mo-optin-form').first(),
+            $fields = $form.find('.mo-optin-fields-wrapper').first(),
+            $submit = $form.find('.mo-optin-form-submit-button').first();
+
+        // Not a form this knows how to split: leave it as it is.
+        if (!$form.length || !$fields.length || !$submit.length) return;
+
+        $optin.data('mo-twostep', true);
+
+        if (!document.getElementById('mo-twostep-css')) {
+            $('head').append('<style id="mo-twostep-css">' +
+                '.mo-twostep-hidden{display:none!important}' +
+                '.mo-twostep-question{display:flex;flex-direction:column;align-items:center;gap:12px;margin:18px auto 6px;max-width:380px;width:100%;box-sizing:border-box}' +
+                '.mo-twostep-yes-holder{display:block!important;width:100%;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}' +
+                '.mo-twostep-yes-holder .mo-twostep-yes{display:block!important;width:100%!important;max-width:none!important;margin:0!important;float:none!important;position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;box-sizing:border-box;text-align:center;-webkit-appearance:none;appearance:none}' +
+                // The No link: quieter than Yes, still readable (4.5:1 on the template's own text colour), with a
+                // 44px tap target and a visible focus ring.
+                '.mo-twostep-no{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;box-sizing:border-box;font-size:14px;opacity:.8;text-decoration:underline!important;color:inherit;cursor:pointer;box-shadow:none!important}' +
+                '.mo-twostep-no:focus-visible{outline:2px solid currentColor;outline-offset:2px;opacity:1}' +
+                '.mo-twostep-yes:focus-visible{outline:2px solid var(--mo-twostep-ring,currentColor)!important;outline-offset:3px!important}' +
+                '.mo-twostep-progress{margin:0 0 16px;font-size:13px;font-weight:600;line-height:1.3;text-align:left;color:inherit}' +
+                '.mo-twostep-progress-labels{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;opacity:.8}' +
+                '.mo-twostep-progress-track{height:8px;border-radius:999px;background:rgba(127,127,127,.22);overflow:hidden}' +
+                '.mo-twostep-progress-fill{height:100%;width:50%;border-radius:999px}' +
+                '</style>');
+        }
+
+        // Computed colours resolve while a pop-up is still hidden, so this works before it shows.
+        var text_colour = function ($el) {
+            return $el.length ? window.getComputedStyle($el[0]).color : '';
+        };
+        var $headline = $form.find('.mo-optin-form-headline').first(),
+            $text = $form.find('.mo-optin-form-description').first(),
+            $hide = $fields.add($form.find('.mo-optin-form-note, .mo-optin-form-cta-button').not($fields.find('*'))),
+            // The template's own nodes, moved aside and put back on Yes, so their handlers and state survive.
+            saved = {headline: $headline.contents().detach(), text: $text.contents().detach()},
+            // The template's own text colour, for the No link and the progress labels: the form's colour
+            // can be dark on a dark template.
+            ink = text_colour($form.find('.mo-optin-form-description').first()) || text_colour($form.find('.mo-optin-form-headline').first()),
+            created_headline = false;
+
+        // Step 1: the question in the template's own headline and text.
+        if (!$headline.length) {
+            $headline = $('<div class="mo-optin-form-headline mo-twostep-title"></div>').prependTo($form);
+            created_headline = true;
+        }
+        $headline.text(t.question);
+        if ($text.length) {
+            if (t.text) $text.text(t.text); else $text.addClass('mo-twostep-hidden');
+        }
+
+        // Yes: a copy of the template's submit button, wearing its look. Many templates style the button by
+        // its id or its place in the form, which a copy can't keep, so the look is copied from the real one.
+        // The copy drops the submit button's class, so nothing that binds to submit buttons (reCAPTCHA v3,
+        // the Customizer's label preview) treats Yes as one. The click stops at Yes, so it never submits.
+        var look = {}, cs = window.getComputedStyle($submit[0]);
+        $.each(['background-color', 'background-image', 'color', 'font-family', 'font-size', 'font-weight', 'font-style',
+            'text-transform', 'letter-spacing', 'line-height', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+            'border-top', 'border-right', 'border-bottom', 'border-left', 'border-radius', 'box-shadow', 'text-shadow', 'height', 'min-height'], function (i, prop) {
+            look[prop] = cs.getPropertyValue(prop);
+        });
+
+        $hide.addClass('mo-twostep-hidden');
+
+        var $yes = $submit.clone(false).removeAttr('id').removeAttr('name').removeAttr('style').attr('type', 'button')
+            .removeClass('mo-optin-form-submit-button').addClass('mo-twostep-yes');
+        if ($yes.is('input')) $yes.val(t.yes); else $yes.text(t.yes);
+        $.each(look, function (prop, value) {
+            if (value !== '') $yes[0].style.setProperty(prop, value, 'important');
+        });
+        $yes[0].style.setProperty('cursor', 'pointer', 'important');
+        // At least a 44px tap target.
+        if (!(parseFloat(look['min-height']) >= 44)) $yes[0].style.setProperty('min-height', '44px', 'important');
+
+        // The focus ring takes the button's own colour, so it shows against the background around it.
+        var $question = $('<div class="mo-twostep-question"></div>').css('--mo-twostep-ring', look['background-color'] || '')
+            .append($('<div class="mo-twostep-yes-holder"></div>').append($yes));
+
+        if (t.no) {
+            $question.append($('<a href="#" rel="moOptin:close" class="mo-twostep-no"></a>').text(t.no).css('color', ink || ''));
+        }
+
+        // Where the form sits: every template already places its fields in the right column or row.
+        $fields.before($question);
+
+        var observer = null;
+
+        // keep_current: the Customizer preview changed the headline or text, so keep that, not the saved copy.
+        var to_form = function (keep_current) {
+            if (observer) observer.disconnect();
+            $question.remove();
+            if (keep_current !== true) {
+                if (created_headline) $headline.remove(); else $headline.empty().append(saved.headline);
+                if ($text.length) $text.empty().append(saved.text);
+            }
+            if ($text.length) $text.removeClass('mo-twostep-hidden');
+            $hide.removeClass('mo-twostep-hidden');
+
+            if (t.progress) {
+                var fill = window.getComputedStyle($submit[0]).backgroundColor;
+                if (!fill || fill === 'transparent' || fill === 'rgba(0, 0, 0, 0)') fill = '#1f7a4d';
+
+                var $bar = $('<div class="mo-twostep-progress" role="progressbar" aria-valuemin="0" aria-valuemax="2" aria-valuenow="2"></div>').attr('aria-valuetext', t.step).css('color', ink || '')
+                    .append($('<div class="mo-twostep-progress-labels"></div>').append($('<span></span>').text(t.almost), $('<span></span>').text(t.step)))
+                    .append($('<div class="mo-twostep-progress-track"></div>').append($('<div class="mo-twostep-progress-fill"></div>').css('background', fill)));
+                $form.prepend($bar);
+            }
+
+            // A pop-up re-centres for its new height.
+            $(window).trigger('resize');
+
+            setTimeout(function () {
+                var $email = $form.find('.mo-optin-form-email-field:visible').first();
+                if (!$email.length) $email = $form.find('input:visible').not('[type=hidden]').first();
+                $email.trigger('focus');
+            }, 60);
+        };
+
+        // In the Customizer preview, editing the headline or text shows the form, with the edit in place.
+        if (preview && window.MutationObserver) {
+            observer = new MutationObserver(function () {
+                to_form(true);
+            });
+            $headline.add($text).each(function () {
+                observer.observe(this, {childList: true, characterData: true, subtree: true});
+            });
+        }
+
+        $yes.on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $optin.data('mo-twostep-said-yes', true);
+            to_form();
+
+            if (!preview) $.MailOptin.track_twostep_yes(uuid, 'yes');
+
+            $(document.body).trigger('moOptinTwoStepYes', [uuid, config]);
+        });
+
+        // A subscription after Yes: counted, for "said yes; subscribed".
+        $(document.body).on('moOptinConversion', function (e, container) {
+            if (preview || !$optin.data('mo-twostep-said-yes')) return;
+            if ($(container).is('#' + uuid) || $(container).closest('#' + uuid).length) {
+                $optin.data('mo-twostep-said-yes', false);
+                $.MailOptin.track_twostep_yes(uuid, 'done');
+            }
+        });
+    },
+
     /**
      * Floating tabs: a button or tab that opens its campaign (pop-up, slide-in or bar). It hides while
      * the campaign is open, comes back when it closes, and goes once they subscribe.
@@ -1937,6 +2123,9 @@ var mailoptin_optin = {
         refresh();
     },
 
+    /**
+     * Initialize class
+     */
     init: function () {
         var _this = this;
         // don't wait for dom to be loaded first. start tracking asap.
@@ -1946,6 +2135,8 @@ var mailoptin_optin = {
             _this.eventSubscription();
             _this.mailoptin_jq_plugin();
             _this.is_scheduled_for_display();
+            // Before they show: a two-step campaign opens on its question.
+            _this.init_twostep();
             _this.initOptinForms();
             _this.init_launchers();
             _this.optin_conversion();

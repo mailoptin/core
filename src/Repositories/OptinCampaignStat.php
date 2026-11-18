@@ -82,6 +82,7 @@ class OptinCampaignStat extends OptinCampaignMeta
     {
         $this->update_campaign_meta($this->optin_campaign_id, $this->impression, (int)0);
         $this->update_campaign_meta($this->optin_campaign_id, $this->conversion, (int)0);
+        \MailOptin\Core\OptinForms\TwoStep::clear_counts($this->optin_campaign_id);
     }
 
     /**

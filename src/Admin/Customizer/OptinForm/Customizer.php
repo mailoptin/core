@@ -78,6 +78,8 @@ class Customizer
 
     public $launcher_display_rule_section_id = 'mo_wp_launcher_display_rule_section';
 
+    public $twostep_section_id = 'mo_twostep_section';
+
     /** @var string ID of "WordPress page filter display rule" customizer section. */
     public $page_filter_display_rule_section_id = 'mo_wp_page_filter_display_rule_section';
 
@@ -490,6 +492,7 @@ class Customizer
                 $this->x_scroll_display_rule_section_id,
                 $this->idle_display_rule_section_id,
                 $this->launcher_display_rule_section_id,
+                $this->twostep_section_id,
                 $this->x_page_views_display_rule_section_id,
                 $this->page_filter_display_rule_section_id,
                 $this->query_filter_display_rule_section_id,

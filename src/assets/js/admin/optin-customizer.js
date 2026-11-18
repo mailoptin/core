@@ -128,7 +128,8 @@
 
     wp.customize(mailoptin_optin_option_prefix + '[' + mailoptin_optin_campaign_id + '][hide_close_button]', function (value) {
         value.bind(function (to) {
-                $('a[rel="moOptin:close"]').toggle(!to);
+                // Two steps' "No" link stays: it is an answer, not the close button.
+                $('a[rel="moOptin:close"]').not('.mo-twostep-no').toggle(!to);
         });
     });
 
