@@ -299,6 +299,20 @@ class Subscribers_List extends \WP_List_Table
         if (empty($_REQUEST['s']) && ! $this->has_items()) return;
 
         $input_id .= '-search-input';
+
+        // Keep the current sort when searching or jumping to a page, as WordPress's own box does.
+        if ( ! empty($_REQUEST['orderby'])) {
+            foreach ((array)$_REQUEST['orderby'] as $key => $value) {
+                if (is_array($_REQUEST['orderby'])) {
+                    printf('<input type="hidden" name="orderby[%s]" value="%s" />', esc_attr($key), esc_attr(wp_unslash($value)));
+                } else {
+                    printf('<input type="hidden" name="orderby" value="%s" />', esc_attr(wp_unslash($value)));
+                }
+            }
+        }
+        if ( ! empty($_REQUEST['order'])) {
+            printf('<input type="hidden" name="order" value="%s" />', esc_attr(wp_unslash($_REQUEST['order'])));
+        }
         ?>
         <p class="search-box">
             <label class="screen-reader-text" for="<?php echo esc_attr($input_id); ?>"><?php echo esc_html(sprintf(__('Search subscribers: %s', 'mailoptin'), $text)); ?></label>

@@ -835,7 +835,7 @@ body.mailoptin-admin .mo-actions-col {
     white-space: nowrap;
 }
 
-body.mailoptin-admin .mo-actions-col .button.button-small {
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]) {
     background: none;
     border: 0;
     box-shadow: none;
@@ -848,8 +848,8 @@ body.mailoptin-admin .mo-actions-col .button.button-small {
     text-decoration-color: transparent;
 }
 
-body.mailoptin-admin .mo-actions-col .button.button-small:hover,
-body.mailoptin-admin .mo-actions-col .button.button-small:focus {
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]):hover,
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]):focus {
     background: none;
     color: var(--mo-blue-dark);
     text-decoration-color: currentColor;
@@ -857,6 +857,13 @@ body.mailoptin-admin .mo-actions-col .button.button-small:focus {
 
 body.mailoptin-admin .mo-actions-col .button.button-small.mo-button-danger {
     color: var(--mo-bad);
+}
+
+/* A clear keyboard focus ring on the links. */
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]):focus-visible {
+    border-radius: 2px;
+    box-shadow: 0 0 0 2px var(--mo-blue);
+    outline: 2px solid transparent;
 }
 
 /* Can't be deleted yet (the title says why): readable, but plainly not a link. */
@@ -917,7 +924,7 @@ body.mailoptin-admin .wp-list-table .column-email {
         white-space: normal;
     }
 
-    body.mailoptin-admin .mo-actions-col .button.button-small {
+    body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]) {
         line-height: 44px;
     }
 
