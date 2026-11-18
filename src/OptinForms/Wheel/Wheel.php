@@ -490,6 +490,15 @@ class Wheel
 
         Spins::update($spin->id, ['applied' => 1]);
 
+        // A code only for the winner's address (Premium) is accepted once WooCommerce knows the address. The
+        // browser sends the address it typed; it's used only if it is the one that spun. Logged-in customers'
+        // accounts are never changed.
+        $email = isset($_REQUEST['email']) ? sanitize_email(wp_unslash($_REQUEST['email'])) : '';
+        if ('' !== $email && hash_equals($spin->email_hash, Spins::email_hash($email)) && ! is_user_logged_in() && WC()->customer) {
+            WC()->customer->set_billing_email($email);
+            WC()->customer->save();
+        }
+
         if ('product' === $spin->prize_type) {
             $slices = self::slices($spin->optin_id);
             $index  = self::index_of($slices, $spin->slice_id);

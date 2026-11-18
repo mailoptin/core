@@ -1260,7 +1260,7 @@ var mailoptin_optin = {
      * @param {object} container the campaign
      * @param {object} wheel the prize: slice, type, label, code, url, button, text, cart_token, emailed, already
      */
-    wheel_result: function (container, wheel) {
+    wheel_result: function (container, wheel, email) {
         var self = this, $c = $(container), $dial = $c.find('.mo-wheel-dial').first(), $rotor = $dial.find('.mo-wheel-rotor');
         var $form = $c.find('.mo-wheel-form').first(), $result = $c.find('.mo-wheel-result').first();
 
@@ -1268,7 +1268,7 @@ var mailoptin_optin = {
             $result.empty().append(self.wheel_result_html(wheel, $c)).prop('hidden', false);
             $form.hide();
             $result.find('a, button').first().trigger('focus');
-            if (wheel.cart_token) self.wheel_apply(wheel.cart_token, $result);
+            if (wheel.cart_token) self.wheel_apply(wheel.cart_token, $result, email);
         };
 
         if (wheel.already || wheel.slice === null || wheel.slice === undefined || !$rotor.length) return show();
@@ -1329,8 +1329,8 @@ var mailoptin_optin = {
     },
 
     /** Puts a won shop coupon (and a free product) in the cart, then refreshes the mini cart. */
-    wheel_apply: function (token, $result) {
-        $.post(mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'wheel_apply'), {token: token}, function (res) {
+    wheel_apply: function (token, $result, email) {
+        $.post(mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'wheel_apply'), {token: token, email: email || ''}, function (res) {
             if (res && res.success && res.data && res.data.applied) {
                 $(document.body).trigger('wc_fragment_refresh');
             } else {
@@ -1421,7 +1421,7 @@ var mailoptin_optin = {
                         if (optin_js_config.is_wheel === true && response.wheel) {
                             self.removeProcessingOverlay.call(optin_container);
                             self.removeSpinner.call(optin_container);
-                            self.wheel_result(optin_container, response.wheel);
+                            self.wheel_result(optin_container, response.wheel, optin_data.email);
                             return;
                         }
 
