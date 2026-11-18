@@ -1860,10 +1860,14 @@ var mailoptin_optin = {
                 '.mo-twostep-hidden{display:none!important}' +
                 '.mo-twostep-question{display:flex;flex-direction:column;align-items:center;gap:12px;margin:18px auto 6px;max-width:380px;width:100%;box-sizing:border-box}' +
                 '.mo-twostep-yes-holder{display:block!important;width:100%;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}' +
-                '.mo-twostep-yes-holder .mo-twostep-yes{display:block!important;width:100%!important;max-width:none!important;margin:0!important;float:none!important;box-sizing:border-box;text-align:center;-webkit-appearance:none;appearance:none}' +
-                '.mo-twostep-no{font-size:14px;opacity:.7;text-decoration:underline!important;color:inherit;cursor:pointer;box-shadow:none!important}' +
+                '.mo-twostep-yes-holder .mo-twostep-yes{display:block!important;width:100%!important;max-width:none!important;margin:0!important;float:none!important;position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;box-sizing:border-box;text-align:center;-webkit-appearance:none;appearance:none}' +
+                // The No link: quieter than Yes, still readable (4.5:1 on the template's own text colour), with a
+                // 44px tap target and a visible focus ring.
+                '.mo-twostep-no{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;box-sizing:border-box;font-size:14px;opacity:.8;text-decoration:underline!important;color:inherit;cursor:pointer;box-shadow:none!important}' +
+                '.mo-twostep-no:focus-visible{outline:2px solid currentColor;outline-offset:2px;opacity:1}' +
+                '.mo-twostep-yes:focus-visible{outline:2px solid var(--mo-twostep-ring,currentColor)!important;outline-offset:3px!important}' +
                 '.mo-twostep-progress{margin:0 0 16px;font-size:13px;font-weight:600;line-height:1.3;text-align:left;color:inherit}' +
-                '.mo-twostep-progress-labels{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;opacity:.75}' +
+                '.mo-twostep-progress-labels{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;opacity:.8}' +
                 '.mo-twostep-progress-track{height:8px;border-radius:999px;background:rgba(127,127,127,.22);overflow:hidden}' +
                 '.mo-twostep-progress-fill{height:100%;width:50%;border-radius:999px}' +
                 '</style>');
@@ -1913,8 +1917,11 @@ var mailoptin_optin = {
             if (value !== '') $yes[0].style.setProperty(prop, value, 'important');
         });
         $yes[0].style.setProperty('cursor', 'pointer', 'important');
+        // At least a 44px tap target.
+        if (!(parseFloat(look['min-height']) >= 44)) $yes[0].style.setProperty('min-height', '44px', 'important');
 
-        var $question = $('<div class="mo-twostep-question"></div>')
+        // The focus ring takes the button's own colour, so it shows against the background around it.
+        var $question = $('<div class="mo-twostep-question"></div>').css('--mo-twostep-ring', look['background-color'] || '')
             .append($('<div class="mo-twostep-yes-holder"></div>').append($yes));
 
         if (t.no) {
