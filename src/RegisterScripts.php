@@ -209,6 +209,12 @@ class RegisterScripts
             'custom_field_label'                => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                           => 0,
             'js_required_title'                 => __('Title is required.', 'mailoptin'),
+            // Spin to win: the prize, after the spin.
+            'wheel_copy'                        => __('Copy', 'mailoptin'),
+            'wheel_copied'                      => __('Copied', 'mailoptin'),
+            'wheel_in_cart'                     => __('It\'s in your cart already.', 'mailoptin'),
+            'wheel_emailed'                     => __('We\'ve emailed it to you too.', 'mailoptin'),
+            'wheel_not_in_cart'                 => __('Enter the code at checkout.', 'mailoptin'),
             'is_new_returning_visitors_cookies' => defined('MAILOPTIN_DETACH_LIBSODIUM') && $enable_init_js_cookies_filter === true ? 'true' : 'false'
         );
 

@@ -964,6 +964,7 @@ class OptinCampaignsRepository extends AbstractRepository
 
         OptinCampaignMeta::delete_campaign_meta($optin_campaign_id, 'split_test_parent');
         \MailOptin\Core\OptinForms\TwoStep::clear_counts($optin_campaign_id);
+        \MailOptin\Core\OptinForms\Wheel\Spins::delete_campaign($optin_campaign_id);
     }
 
 

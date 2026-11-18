@@ -743,6 +743,12 @@ class AjaxHandler
 
         $response = self::do_optin_conversion($builder);
 
+        /**
+         * The response to the form, after the subscription: a prize wheel adds its prize here
+         * (Wheel::respond), drawn only once the subscription has gone through.
+         */
+        $response = apply_filters('mailoptin_optin_subscription_response', $response, $optin_campaign_id, $payload);
+
         wp_send_json($response);
     }
 
