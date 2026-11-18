@@ -414,7 +414,7 @@ class OptinCampaign_List extends \WP_List_Table
         ?>
         <tr class="mo-split-test-actions">
             <td></td>
-            <td colspan="<?php echo max(1, $this->get_column_count() - 1); ?>">
+            <td class="colspanchange" colspan="<?php echo max(1, $this->get_column_count() - 1); ?>">
                 <div class="mo-split-test-buttons">
                     <a href="#" class="mo-split-test-add-variant mo-split-test-action-button" data-parent-optin-id="<?php echo $optin_campaign_id; ?>"><?php _e('Add Variant', 'mailoptin'); ?></a>
                     <a href="#" class="mo-split-test-pause-start mo-split-test-action-button<?php echo $pause_class; ?>" data-split-test-action="<?php echo $pause_start_action; ?>" data-parent-id="<?php echo $optin_campaign_id; ?>"><?php echo $pause_start_label; ?></a>
@@ -445,6 +445,12 @@ class OptinCampaign_List extends \WP_List_Table
         );
 
         return $columns;
+    }
+
+    /** A class that doesn't depend on a translated string, for styling. */
+    protected function get_table_classes()
+    {
+        return array_merge(parent::get_table_classes(), ['mo-optin-list']);
     }
 
     /** The name WordPress folds the row under on phones. */
@@ -481,8 +487,8 @@ class OptinCampaign_List extends \WP_List_Table
 
         // What it is, in muted text under the name: type, template and its ID for shortcodes.
         $meta = array_filter([
-            UI::optin_type_label(OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id)),
-            self::template_name(OptinCampaignsRepository::get_optin_campaign_class($optin_campaign_id)),
+            UI::optin_type_label(isset($item['optin_type']) ? $item['optin_type'] : OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id)),
+            self::template_name(isset($item['optin_class']) ? $item['optin_class'] : OptinCampaignsRepository::get_optin_campaign_class($optin_campaign_id)),
             sprintf(__('ID %s', 'mailoptin'), $item['uuid']),
         ]);
 
@@ -552,12 +558,6 @@ class OptinCampaign_List extends \WP_List_Table
         $stats = new OptinCampaignStat($optin_campaign_id);
 
         switch ($column_name) {
-            case 'uuid' :
-                $value = $item['uuid'];
-                if (OptinCampaignsRepository::is_test_mode($optin_campaign_id)) {
-                    $value .= '<br/><span class="mo-test-mode-title">' . __('Test Mode', 'mailoptin') . '</span>';
-                }
-                break;
             case 'impression' :
                 $value = $stats->get_impressions();
                 break;
@@ -719,7 +719,9 @@ class OptinCampaign_List extends \WP_List_Table
         $this->process_actions();
         $per_page     = $this->get_items_per_page('optin_forms_per_page', 15);
         $current_page = $this->get_pagenum();
-        $total_items  = self::record_count($optin_type);
+        // The same count the type tabs show, so the total and pages match what the list can list (Lite included).
+        $counts      = $this->type_counts();
+        $total_items = isset($counts[$optin_type]) ? $counts[$optin_type] : 0;
         $this->set_pagination_args(array(
                 'total_items' => $total_items, //WE have to calculate the total number of items
                 'per_page'    => $per_page //WE have to determine how many items to show on a page

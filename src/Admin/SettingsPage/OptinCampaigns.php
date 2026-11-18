@@ -100,8 +100,7 @@ class OptinCampaigns extends AbstractSettingsPage
                 'slidein'  => [$slide_in, $slide_in_menu_active],
             ];
 
-            global $wpdb;
-            $counts = (new OptinCampaign_List($wpdb))->type_counts();
+            $counts = OptinCampaign_List::get_instance()->type_counts();
             ?>
             <div id="mailoptin-sub-bar">
                 <div class="mailoptin-new-toolbar mailoptin-clear">

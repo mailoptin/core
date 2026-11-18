@@ -97,6 +97,13 @@ class OptinCampaignListTest extends \WP_UnitTestCase
             $this->assertSame($before[''] + 3, $after['']);
         }
         $this->assertSame(($before['inpost'] ?? 0) + 1, $after['inpost']);
+
+        // The list's total and pages use the same count.
+        $_GET['page']       = MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG;
+        $_GET['optin-type'] = 'lightbox';
+        $table->prepare_items();
+        unset($_GET['optin-type'], $_GET['page']);
+        $this->assertSame($after['lightbox'], (int)$table->get_pagination_arg('total_items'));
     }
 
     public function test_split_test_row_spans_every_column()
@@ -109,7 +116,7 @@ class OptinCampaignListTest extends \WP_UnitTestCase
         $table->split_test_actions_row($id);
         $html = ob_get_clean();
 
-        $this->assertStringContainsString('colspan="' . ($table->get_column_count() - 1) . '"', $html);
+        $this->assertStringContainsString('class="colspanchange" colspan="' . ($table->get_column_count() - 1) . '"', $html, 'WordPress widens it when columns are shown or hidden.');
         $this->assertSame(2, substr_count($html, '<td'), 'The checkbox cell, then one cell for the buttons.');
     }
 }

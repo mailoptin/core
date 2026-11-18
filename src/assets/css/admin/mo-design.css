@@ -543,43 +543,43 @@ body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a .mo-ui-co
     margin-left: var(--mo-sp-1);
 }
 
-body.mailoptin-admin table.optin_forms .mo-optin-meta {
+body.mailoptin-admin table.mo-optin-list .mo-optin-meta {
     color: var(--mo-muted);
     font-size: var(--mo-fs-sm);
     margin-top: 2px;
 }
 
-body.mailoptin-admin table.optin_forms .row-title {
+body.mailoptin-admin table.mo-optin-list .row-title {
     font-size: var(--mo-fs-base);
 }
 
-body.mailoptin-admin table.optin_forms .mo-ui-badge {
+body.mailoptin-admin table.mo-optin-list .mo-ui-badge {
     vertical-align: 1px;
 }
 
 /* Delete reads as the destructive one, without shouting on every row. */
-body.mailoptin-admin table.optin_forms .row-actions .delete a {
+body.mailoptin-admin table.mo-optin-list .row-actions .delete a {
     color: var(--mo-bad);
 }
 
-body.mailoptin-admin table.optin_forms .column-activated {
+body.mailoptin-admin table.mo-optin-list .column-activated {
     width: 72px;
 }
 
 /* Room for the name, its details line and all row actions on one line. */
-body.mailoptin-admin table.optin_forms th#name {
+body.mailoptin-admin table.mo-optin-list th#name {
     width: 40%;
 }
 
-body.mailoptin-admin table.optin_forms .column-impression,
-body.mailoptin-admin table.optin_forms .column-conversion,
-body.mailoptin-admin table.optin_forms .column-percent {
+body.mailoptin-admin table.mo-optin-list .column-impression,
+body.mailoptin-admin table.mo-optin-list .column-conversion,
+body.mailoptin-admin table.mo-optin-list .column-percent {
     font-variant-numeric: tabular-nums;
     text-align: right;
     width: 104px;
 }
 
-body.mailoptin-admin table.optin_forms .mo-split-test-buttons {
+body.mailoptin-admin table.mo-optin-list .mo-split-test-buttons {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
@@ -588,20 +588,20 @@ body.mailoptin-admin table.optin_forms .mo-split-test-buttons {
 
 @media screen and (max-width: 782px) {
     /* WordPress folds rows on phones; folded values sit left, under their labels. */
-    body.mailoptin-admin table.optin_forms .column-impression,
-    body.mailoptin-admin table.optin_forms .column-conversion,
-    body.mailoptin-admin table.optin_forms .column-percent,
-    body.mailoptin-admin table.optin_forms .column-activated {
+    body.mailoptin-admin table.mo-optin-list .column-impression,
+    body.mailoptin-admin table.mo-optin-list .column-conversion,
+    body.mailoptin-admin table.mo-optin-list .column-percent,
+    body.mailoptin-admin table.mo-optin-list .column-activated {
         text-align: left;
         width: auto;
     }
 
     /* WordPress gives the main column the full width on phones; the old 22% rule (an id selector) outranked it. */
-    body.mailoptin-admin table.optin_forms th#name {
+    body.mailoptin-admin table.mo-optin-list th#name {
         width: 100%;
     }
 
-    body.mailoptin-admin table.optin_forms .row-actions a {
+    body.mailoptin-admin table.mo-optin-list .row-actions a {
         display: inline-block;
         min-height: 44px;
         line-height: 44px;

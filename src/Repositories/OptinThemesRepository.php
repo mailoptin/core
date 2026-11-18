@@ -565,7 +565,7 @@ class OptinThemesRepository extends AbstractRepository
                         <?php endif; ?>
                         <h3 class="mailoptin-optin-theme-name"><?php echo esc_html($theme_name); ?></h3>
                         <div class="mailoptin-optin-theme-actions">
-                            <a <?= $url_target; ?> href="<?= $url; ?>" class="button button-primary mailoptin-theme-select" data-optin-theme="<?php echo $theme_class; ?>" data-optin-type="<?php echo $optin_type; ?>" aria-label="<?php echo esc_attr(sprintf(__('Use the %s template', 'mailoptin'), $theme_name)); ?>">
+                            <a <?= $url_target; ?> href="<?= $url; ?>" class="button button-primary mailoptin-theme-select" data-optin-theme="<?php echo $theme_class; ?>" data-optin-type="<?php echo $optin_type; ?>" aria-label="<?php echo esc_attr(sprintf($is_premium_theme_disallowed ? __('See Premium for the %s template', 'mailoptin') : __('Use the %s template', 'mailoptin'), $theme_name)); ?>">
                                 <?php echo $is_premium_theme_disallowed ? esc_html__('See Premium', 'mailoptin') : esc_html__('Use template', 'mailoptin'); ?>
                             </a>
                         </div>
