@@ -78,7 +78,8 @@ class TwoStep
 
     /**
      * A Yes, or ("done") a subscription after a Yes: each counted once per visitor (IP address) per
-     * campaign per day, as the endpoint is public. Sent by mailoptin.js with navigator.sendBeacon.
+     * campaign per day, as the endpoint is public. Sent by mailoptin.js with navigator.sendBeacon. Only
+     * campaigns with two steps turned on are counted.
      */
     public function track_yes()
     {
@@ -86,11 +87,14 @@ class TwoStep
         $uuid    = isset($payload['optin_uuid']) && is_string($payload['optin_uuid']) ? $payload['optin_uuid'] : '';
         $id      = '' !== $uuid ? absint(OCR::get_optin_campaign_id_by_uuid($uuid)) : 0;
 
-        if ( ! $id || ! self::supported($id) || ! OCR::is_activated($id)) wp_die('', '', ['response' => 400]);
+        if ( ! $id || ! self::supported($id) || ! OCR::is_activated($id) || OCR::get_customizer_value($id, 'twostep_status') !== true) {
+            wp_die('', '', ['response' => 400]);
+        }
 
         $stage = isset($payload['stage']) && 'done' === $payload['stage'] ? 'done' : 'yes';
 
-        $ip  = function_exists('MailOptin\Core\get_ip_address') ? (string)\MailOptin\Core\get_ip_address() : (string)($_SERVER['REMOTE_ADDR'] ?? '');
+        // The connecting address, not a forwarded-for header a script could change on every request.
+        $ip  = isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : '';
         $key = 'mo_twostep_' . $stage . '_' . md5($id . '|' . $ip);
         if (get_transient($key)) wp_die('', '', ['response' => 204]);
         set_transient($key, 1, DAY_IN_SECONDS);
@@ -102,20 +106,49 @@ class TwoStep
         wp_die('', '', ['response' => 204]);
     }
 
-    /** One more, counted in SQL so two at once aren't lost. */
+    /**
+     * One more, counted in SQL so two at once aren't lost: the first count inserts the row only if none
+     * exists, in one statement, so two first counts can't make two rows.
+     */
     public static function add_count($optin_campaign_id, $meta_key)
     {
         global $wpdb;
 
+        $table   = $wpdb->optin_campaignmeta;
         $updated = $wpdb->query($wpdb->prepare(
-            "UPDATE {$wpdb->optin_campaignmeta} SET meta_value = meta_value + 1 WHERE optin_campaign_id = %d AND meta_key = %s",
+            "UPDATE $table SET meta_value = meta_value + 1 WHERE optin_campaign_id = %d AND meta_key = %s",
             $optin_campaign_id,
             $meta_key
         ));
 
-        if ( ! $updated) OptinCampaignMeta::add_campaign_meta($optin_campaign_id, $meta_key, 1, true);
+        if ( ! $updated) {
+            $inserted = $wpdb->query($wpdb->prepare(
+                "INSERT INTO $table (optin_campaign_id, meta_key, meta_value) SELECT %d, %s, '1' FROM DUAL
+                 WHERE NOT EXISTS (SELECT 1 FROM (SELECT meta_id FROM $table WHERE optin_campaign_id = %d AND meta_key = %s) AS existing)",
+                $optin_campaign_id,
+                $meta_key,
+                $optin_campaign_id,
+                $meta_key
+            ));
+
+            // Another request inserted it first: count on that row.
+            if ( ! $inserted) {
+                $wpdb->query($wpdb->prepare(
+                    "UPDATE $table SET meta_value = meta_value + 1 WHERE optin_campaign_id = %d AND meta_key = %s",
+                    $optin_campaign_id,
+                    $meta_key
+                ));
+            }
+        }
 
         wp_cache_delete($optin_campaign_id, 'optin_campaign_meta');
+    }
+
+    /** Clears both counts: when a campaign's stats are reset or it is deleted. */
+    public static function clear_counts($optin_campaign_id)
+    {
+        OptinCampaignMeta::delete_campaign_meta(absint($optin_campaign_id), self::YES_META);
+        OptinCampaignMeta::delete_campaign_meta(absint($optin_campaign_id), self::DONE_META);
     }
 
     public static function yes_count($optin_campaign_id)

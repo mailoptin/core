@@ -170,6 +170,6 @@ class AbstractCustomizer
         $defaults['twostep_no']       = apply_filters('mo_optin_form_twostep_no', __('No thanks', 'mailoptin'));
         $defaults['twostep_progress'] = apply_filters('mo_optin_form_twostep_progress', true);
 
-                return apply_filters('mo_optin_form_customizer_defaults', $defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        return apply_filters('mo_optin_form_customizer_defaults', $defaults, $this->optin_campaign_type, $this->optin_campaign_class);
     }
 }

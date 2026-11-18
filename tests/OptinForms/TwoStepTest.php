@@ -141,4 +141,56 @@ class TwoStepTest extends WP_UnitTestCase
         $this->send($uuid);
         $this->assertSame(2, TwoStep::yes_count($id));
     }
+
+    public function test_campaigns_without_two_steps_count_nothing()
+    {
+        $id = $this->campaign('BareMetal', 'lightbox');
+        Repository::activate_campaign($id);
+        Repository::flush_saved_customizer_data_cache();
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.20';
+
+        $this->send(Repository::get_optin_campaign_uuid($id));
+
+        $this->assertSame(0, TwoStep::yes_count($id), 'Two steps is off: a beacon to it is ignored.');
+    }
+
+    public function test_a_forwarded_for_header_does_not_make_a_new_visitor()
+    {
+        $id   = $this->campaign('BareMetal', 'lightbox', ['twostep_status' => true]);
+        $uuid = Repository::get_optin_campaign_uuid($id);
+        Repository::activate_campaign($id);
+        Repository::flush_saved_customizer_data_cache();
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.30';
+
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '198.51.100.1';
+        $this->send($uuid);
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '198.51.100.2';
+        $this->send($uuid);
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+
+        $this->assertSame(1, TwoStep::yes_count($id));
+    }
+
+    public function test_the_first_count_makes_one_row_and_resets_clear_it()
+    {
+        global $wpdb;
+        $id = $this->campaign('BareMetal', 'lightbox', ['twostep_status' => true]);
+
+        TwoStep::add_count($id, TwoStep::YES_META);
+        TwoStep::add_count($id, TwoStep::YES_META);
+
+        $rows = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->optin_campaignmeta} WHERE optin_campaign_id = %d AND meta_key = %s", $id, TwoStep::YES_META));
+        $this->assertSame(1, $rows);
+        $this->assertSame(2, TwoStep::yes_count($id));
+
+        TwoStep::add_count($id, TwoStep::DONE_META);
+        (new \MailOptin\Core\Repositories\OptinCampaignStat($id))->reset_stat();
+        $this->assertSame(0, TwoStep::yes_count($id), 'Resetting the stats resets both counts.');
+        $this->assertSame(0, TwoStep::done_count($id));
+
+        TwoStep::add_count($id, TwoStep::YES_META);
+        Repository::delete_optin_campaign($id);
+        $rows = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->optin_campaignmeta} WHERE optin_campaign_id = %d AND meta_key LIKE 'twostep_%%'", $id));
+        $this->assertSame(0, $rows, 'Deleting the campaign removes its counts.');
+    }
 }
