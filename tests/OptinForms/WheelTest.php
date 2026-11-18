@@ -203,4 +203,38 @@ class WheelTest extends WP_UnitTestCase
 
         $this->assertSame(0, Spins::counts($id)['spins']);
     }
+
+    public function test_one_spin_is_reserved_per_address_and_pending_spins_are_not_counted()
+    {
+        $id = $this->campaign(['wheel_slices' => $this->slices([['chance' => 100], ['chance' => 0]])]);
+
+        $first = Spins::reserve($id, 'h@example.com', true);
+        $this->assertGreaterThan(0, $first);
+        $this->assertSame(0, Spins::reserve($id, 'H@example.com ', true), 'A second request for the same address is refused, even at the same moment.');
+        $this->assertGreaterThan(0, Spins::reserve($id, 'h@example.com', false), 'Without one spin per address, it isn\'t.');
+
+        $this->assertSame(0, Spins::counts($id)['spins'], 'Spins still being drawn aren\'t counted.');
+        $this->assertNull(Spins::find($id, 'h@example.com'));
+        $this->assertSame([], Spins::totals([$id]));
+
+        // The address that already holds a reservation doesn't get a prize shown.
+        $again = Wheel::spin($id, 'h@example.com');
+        $this->assertTrue($again['already']);
+        $this->assertArrayNotHasKey('code', $again);
+    }
+
+    public function test_a_prize_whose_code_comes_back_empty_is_drawn_again()
+    {
+        $id = $this->campaign(['wheel_slices' => $this->slices([['label' => 'Gone', 'code' => 'GONE', 'chance' => 90], ['label' => 'Kept', 'code' => 'KEPT', 'chance' => 10]])]);
+        $empty = function ($code) { return 'GONE' === $code ? '' : $code; };
+        add_filter('mailoptin_wheel_prize_code', $empty);
+
+        for ($i = 0; $i < 5; $i++) {
+            $r = Wheel::spin($id, "r$i@example.com");
+            $this->assertSame('KEPT', $r['code'], 'Never an empty code.');
+            $this->assertSame(1, $r['slice']);
+        }
+
+        remove_filter('mailoptin_wheel_prize_code', $empty);
+    }
 }

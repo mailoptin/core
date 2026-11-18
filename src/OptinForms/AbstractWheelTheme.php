@@ -263,7 +263,7 @@ $odds
 $terms
 $no_thanks
 </div>
-<div class="mo-wheel-result" aria-live="polite" hidden></div>
+<div class="mo-wheel-result" role="status" aria-live="polite" tabindex="-1"></div>
 HTML;
     }
 
@@ -328,13 +328,14 @@ $c .mo-optin-fields-wrapper input.mo-optin-field { width: 100% !important; heigh
 $c .mo-optin-fields-wrapper .mo-optin-form-submit-button { width: 100%; min-height: 52px; border: 0; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; margin: 0; }
 $c .mo-optin-fields-wrapper .mo-optin-form-submit-button:focus-visible { outline: 2px solid var(--mo-w-ring); outline-offset: 3px; }
 $c .mo-wheel-note { color: var(--mo-w-note); margin: 14px 0 0; }
-$c .mo-wheel-terms { display: inline-block; margin-top: 6px; font-size: 13px; color: var(--mo-w-note); }
+$c .mo-wheel-terms { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; color: var(--mo-w-note); }
 $c .mo-wheel-no-thanks { display: block; text-align: center; min-height: 44px; line-height: 44px; margin-top: 6px; color: var(--mo-w-note); font-size: 14px; text-decoration: underline !important; cursor: pointer; }
 $c .mo-wheel-close { position: absolute; top: 10px; right: 10px; z-index: 3; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px;
     color: var(--mo-w-note); font-size: 24px; line-height: 1; cursor: pointer; text-decoration: none !important; }
 $c .mo-wheel-close:hover, $c .mo-wheel-close:focus-visible { color: var(--mo-w-title); }
 /* The prize, after the spin (filled in by mailoptin.js). */
-$c .mo-wheel-result[hidden] { display: none; }
+$c .mo-wheel-result:not(.mo-wheel-result-on) { display: none; }
+$c .mo-wheel-result:focus { outline: none; }
 $c .mo-wheel-result .mo-wheel-result-title { font-family: $font; font-size: 28px; font-weight: 700; line-height: 1.2; color: var(--mo-w-title); margin: 0 0 12px; }
 $c .mo-wheel-result p { margin: 0 0 14px; color: var(--mo-w-text); }
 $c .mo-wheel-prize { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px dashed var(--mo-w-eyebrow); border-radius: 10px; padding: 12px 12px 12px 16px; margin: 4px 0 16px; }

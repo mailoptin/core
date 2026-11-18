@@ -1265,9 +1265,10 @@ var mailoptin_optin = {
         var $form = $c.find('.mo-wheel-form').first(), $result = $c.find('.mo-wheel-result').first();
 
         var show = function () {
-            $result.empty().append(self.wheel_result_html(wheel, $c)).prop('hidden', false);
+            // The box is a live region that was always there, so its new text is read out; focus moves to it.
+            $result.empty().append(self.wheel_result_html(wheel, $c)).addClass('mo-wheel-result-on');
             $form.hide();
-            $result.find('a, button').first().trigger('focus');
+            $result.trigger('focus');
             if (wheel.cart_token) self.wheel_apply(wheel.cart_token, $result, email);
         };
 

@@ -47,7 +47,9 @@
     };
 
     function esc(s) {
-        return $('<div>').text(s === undefined || s === null ? '' : String(s)).html();
+        return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+        });
     }
 
     function Editor($control) {

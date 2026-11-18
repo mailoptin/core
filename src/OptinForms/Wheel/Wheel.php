@@ -39,6 +39,8 @@ class Wheel
         add_action('admin_init', [Spins::class, 'maybe_install']);
         add_filter('mo_drop_database_tables', function ($sql) {
             $sql[] = 'DROP TABLE IF EXISTS ' . Spins::table();
+            // So a reinstall creates the table again.
+            delete_option(Spins::DB_OPTION);
 
             return $sql;
         });
@@ -242,9 +244,20 @@ class Wheel
             case 'coupon':
             case 'product':
                 if ( ! self::woocommerce() || ! ($slice['coupon'] ?? 0)) return false;
-                if ('' === (string)wc_get_coupon_code_by_id($slice['coupon'])) return false;
+                if ('publish' !== get_post_status($slice['coupon'])) return false;
 
-                return 'coupon' === $slice['type'] || (($slice['product'] ?? 0) && function_exists('wc_get_product') && wc_get_product($slice['product']));
+                $coupon = new \WC_Coupon((int)$slice['coupon']);
+                if ( ! $coupon->get_id()) return false;
+                // Not one that's expired or used up: the winner couldn't use it.
+                $expires = $coupon->get_date_expires();
+                if ($expires && $expires->getTimestamp() < time()) return false;
+                if ($coupon->get_usage_limit() > 0 && $coupon->get_usage_count() >= $coupon->get_usage_limit()) return false;
+
+                if ('coupon' === $slice['type']) return true;
+
+                $product = ($slice['product'] ?? 0) && function_exists('wc_get_product') ? wc_get_product($slice['product']) : null;
+
+                return $product && $product->is_purchasable() && $product->is_in_stock();
             case 'code':
                 return '' !== (string)($slice['code'] ?? '');
             case 'link':
@@ -284,11 +297,11 @@ class Wheel
      *
      * @return int|null The slice's index, or null when no slice can come up.
      */
-    public static function draw($slices)
+    public static function draw($slices, $exclude = [])
     {
         $pool = [];
         foreach ($slices as $i => $s) {
-            if ($s['chance'] > 0 && self::can_give($s)) $pool[$i] = (int)$s['chance'];
+            if ($s['chance'] > 0 && ! in_array($i, $exclude, true) && self::can_give($s)) $pool[$i] = (int)$s['chance'];
         }
 
         $total = array_sum($pool);
@@ -320,42 +333,77 @@ class Wheel
         return $response;
     }
 
+    /** Spins one IP address may make per hour on one campaign (filterable). */
+    protected static function under_ip_cap($optin_campaign_id)
+    {
+        $cap = (int)apply_filters('mailoptin_wheel_spins_per_ip_per_hour', 10, $optin_campaign_id);
+        if ($cap <= 0) return true;
+
+        $ip  = function_exists('MailOptin\Core\get_ip_address') ? (string)\MailOptin\Core\get_ip_address() : (string)($_SERVER['REMOTE_ADDR'] ?? '');
+        $key = 'mo_wheel_ip_' . md5($optin_campaign_id . '|' . $ip);
+        $n   = (int)get_transient($key);
+
+        if ($n >= $cap) return false;
+        set_transient($key, $n + 1, HOUR_IN_SECONDS);
+
+        return true;
+    }
+
+    protected static function lose($optin_campaign_id)
+    {
+        return ['already' => false, 'slice' => null, 'type' => 'none', 'title' => (string)self::value($optin_campaign_id, 'wheel_lose_title'), 'text' => (string)self::value($optin_campaign_id, 'wheel_lose_text')];
+    }
+
     /** @return array What mailoptin.js needs to show the result. */
     public static function spin($optin_campaign_id, $email)
     {
         $slices = self::slices($optin_campaign_id);
+        $once   = self::on(self::value($optin_campaign_id, 'wheel_once'));
 
-        // One spin per address: the same address again gets its prize emailed again, not shown here, so
-        // typing someone else's address reveals nothing.
-        if (self::on(self::value($optin_campaign_id, 'wheel_once'))) {
+        // One spin per address, reserved before the draw, so two requests at once can't both spin. The same
+        // address again gets one neutral message, whether or not it won (and its prize, if any, emailed again
+        // at most once a day), so typing someone else's address reveals nothing.
+        $id = Spins::reserve($optin_campaign_id, $email, $once);
+
+        if ( ! $id) {
             $previous = Spins::find($optin_campaign_id, $email);
-            if ($previous) {
-                $resent = false;
-                if ('none' !== $previous->prize_type && (empty($previous->emailed_at) || strtotime($previous->emailed_at . ' UTC') < time() - DAY_IN_SECONDS)) {
-                    $index = self::index_of($slices, $previous->slice_id);
-                    $slice = null !== $index ? $slices[$index] : ['label' => $previous->slice_label, 'type' => $previous->prize_type];
-                    $resent = self::email_prize($optin_campaign_id, $email, $slice, $previous->code);
-                    if ($resent) Spins::update($previous->id, ['emailed_at' => current_time('mysql', true)]);
+            if ($previous && 'none' !== $previous->prize_type && (empty($previous->emailed_at) || strtotime($previous->emailed_at . ' UTC') < time() - DAY_IN_SECONDS)) {
+                $index = self::index_of($slices, $previous->slice_id);
+                $slice = null !== $index ? $slices[$index] : ['label' => $previous->slice_label, 'type' => $previous->prize_type];
+                if (self::email_prize($optin_campaign_id, $email, $slice, $previous->code)) {
+                    Spins::update($previous->id, ['emailed_at' => current_time('mysql', true)]);
                 }
-
-                return [
-                    'already' => true,
-                    'message' => 'none' === $previous->prize_type
-                        ? __('This email address has already had its spin.', 'mailoptin')
-                        : ($resent ? __('This email address has already spun the wheel. We\'ve sent its prize to it again.', 'mailoptin') : __('This email address has already spun the wheel, and its prize was sent to it.', 'mailoptin')),
-                ];
             }
+
+            return ['already' => true, 'message' => __('This email address has already spun the wheel. If it won a prize, the prize is in that inbox.', 'mailoptin')];
         }
 
-        $index = self::draw($slices);
+        if ( ! self::under_ip_cap($optin_campaign_id)) {
+            Spins::complete_empty($id);
+
+            return ['already' => true, 'message' => __('There have been a lot of spins from here. Please try again later.', 'mailoptin')];
+        }
+
+        // A slice whose prize can't be given after all (no single-use code could be made) is left out and the
+        // wheel drawn again among the others, so nobody gets a code that doesn't work, or a shared one.
+        $tried = [];
+        $index = null;
+        $code  = '';
+        while (null !== ($index = self::draw($slices, $tried))) {
+            $code = self::prize_code($optin_campaign_id, $slices[$index], $email);
+            if ( ! in_array($slices[$index]['type'], ['coupon', 'product', 'code'], true) || '' !== $code) break;
+            $tried[] = $index;
+        }
+
         if (null === $index) {
-            return ['already' => false, 'slice' => null, 'type' => 'none', 'title' => (string)self::value($optin_campaign_id, 'wheel_lose_title'), 'text' => (string)self::value($optin_campaign_id, 'wheel_lose_text')];
+            Spins::complete_empty($id);
+
+            return self::lose($optin_campaign_id);
         }
 
         $slice = $slices[$index];
-        $code  = self::prize_code($optin_campaign_id, $slice, $email);
         $token = bin2hex(random_bytes(16));
-        $id    = Spins::add($optin_campaign_id, $email, $slice, $code, $token);
+        Spins::complete($id, $slice, $code, $token);
 
         do_action('mailoptin_wheel_spun', $optin_campaign_id, $slice, $id);
 
@@ -366,12 +414,7 @@ class Wheel
             'label'   => $slice['label'],
         ];
 
-        if ('none' === $slice['type']) {
-            $result['title'] = (string)self::value($optin_campaign_id, 'wheel_lose_title');
-            $result['text']  = (string)self::value($optin_campaign_id, 'wheel_lose_text');
-
-            return $result;
-        }
+        if ('none' === $slice['type']) return array_merge($result, array_intersect_key(self::lose($optin_campaign_id), ['title' => 1, 'text' => 1]));
 
         $result['win_label'] = (string)self::value($optin_campaign_id, 'wheel_win_label');
 
@@ -401,7 +444,7 @@ class Wheel
                 break;
         }
 
-        if (self::on(self::value($optin_campaign_id, 'wheel_email')) && $id) {
+        if (self::on(self::value($optin_campaign_id, 'wheel_email'))) {
             $result['emailed'] = self::email_prize($optin_campaign_id, $email, $slice, $code);
             if ($result['emailed']) Spins::update($id, ['emailed_at' => current_time('mysql', true)]);
         }
@@ -442,6 +485,8 @@ class Wheel
 
         $body = '';
         if ('link' === $slice['type']) {
+            // A slice deleted since its spin has no link left: just what was won.
+            if (empty($slice['url'])) return false;
             $title = ! empty($slice['title']) ? $slice['title'] : $slice['label'];
             $body  .= '<p><strong>' . esc_html($title) . '</strong></p>';
             if ( ! empty($slice['text'])) $body .= '<p>' . esc_html($slice['text']) . '</p>';
@@ -475,6 +520,8 @@ class Wheel
      */
     public function apply_to_cart()
     {
+        global $wpdb;
+
         $token = isset($_REQUEST['token']) ? sanitize_key(wp_unslash($_REQUEST['token'])) : '';
         $spin  = Spins::by_token($token);
 
@@ -484,11 +531,13 @@ class Wheel
 
         if ( ! self::woocommerce() || ! function_exists('WC')) wp_send_json_error(null, 400);
 
+        // Once: only the request that flips "applied" goes on.
+        $wpdb->query($wpdb->prepare('UPDATE ' . Spins::table() . ' SET applied = 1 WHERE id = %d AND applied = 0', $spin->id));
+        if ((int)$wpdb->rows_affected < 1) wp_send_json_error(null, 400);
+
         if (function_exists('wc_load_cart')) wc_load_cart();
         if ( ! WC()->cart) wp_send_json_error(null, 400);
         if (WC()->session && ! WC()->session->has_session()) WC()->session->set_customer_session_cookie(true);
-
-        Spins::update($spin->id, ['applied' => 1]);
 
         // A code only for the winner's address (Premium) is accepted once WooCommerce knows the address. The
         // browser sends the address it typed; it's used only if it is the one that spun. Logged-in customers'
@@ -499,13 +548,24 @@ class Wheel
             WC()->customer->save();
         }
 
+        // A free product first, so the coupon has something to apply to; taken out again if the coupon fails,
+        // so nobody is left with it at full price.
+        $cart_key = '';
         if ('product' === $spin->prize_type) {
             $slices = self::slices($spin->optin_id);
             $index  = self::index_of($slices, $spin->slice_id);
-            if (null !== $index && ! empty($slices[$index]['product'])) WC()->cart->add_to_cart($slices[$index]['product'], 1);
+            if (null === $index || empty($slices[$index]['product'])) wp_send_json_success(['applied' => false]);
+
+            $cart_key = WC()->cart->add_to_cart($slices[$index]['product'], 1);
+            if ( ! $cart_key) {
+                wc_clear_notices();
+                wp_send_json_success(['applied' => false]);
+            }
         }
 
         $applied = WC()->cart->has_discount($spin->code) || WC()->cart->apply_coupon($spin->code);
+        if ( ! $applied && $cart_key) WC()->cart->remove_cart_item($cart_key);
+
         // WooCommerce's own notices would show on the next page as well.
         wc_clear_notices();
         WC()->cart->calculate_totals();
@@ -530,7 +590,8 @@ class Wheel
 
         foreach ($codes as $code) {
             $wpdb->query($wpdb->prepare(
-                'UPDATE ' . Spins::table() . ' SET used_order = %d, used_total = %f WHERE used_order = 0 AND email_hash = %s AND LOWER(code) = %s',
+                // The latest unused spin of this address with this code: one, so the order is counted once.
+                'UPDATE ' . Spins::table() . ' SET used_order = %d, used_total = %f WHERE email_hash = %s AND used_order = 0 AND LOWER(code) = %s ORDER BY id DESC LIMIT 1',
                 $order_id,
                 (float)$order->get_total(),
                 $hash,
@@ -733,7 +794,12 @@ class Wheel
     {
         $id = isset($form->optin_campaign_id) ? $form->optin_campaign_id : 0;
 
-        if ($id && self::is_campaign($id)) $data['is_wheel'] = true;
+        if ($id && self::is_campaign($id)) {
+            $data['is_wheel'] = true;
+            // The prize is the "after conversion": a closing, redirecting or reloading success action saved
+            // from another template would cut the spin short.
+            $data['success_action'] = 'success_message';
+        }
 
         return $data;
     }
