@@ -1882,18 +1882,28 @@ var mailoptin_optin = {
         if ($text.length) {
             if (t.text) $text.text(t.text); else $text.addClass('mo-twostep-hidden');
         }
+
+        // Yes: a copy of the template's submit button, wearing its look. Many templates style the button by
+        // its id or its place in the form, which a copy can't keep, so the look is copied from the real one
+        // (read now, while it shows). The click stops at Yes, so it never submits.
+        var look = {}, cs = window.getComputedStyle($submit[0]);
+        $.each(['background-color', 'background-image', 'color', 'font-family', 'font-size', 'font-weight', 'font-style',
+            'text-transform', 'letter-spacing', 'line-height', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+            'border-top', 'border-right', 'border-bottom', 'border-left', 'border-radius', 'box-shadow', 'text-shadow', 'height', 'min-height'], function (i, prop) {
+            look[prop] = cs.getPropertyValue(prop);
+        });
+
         $hide.addClass('mo-twostep-hidden');
 
-        // Yes: the template's submit button, so it looks the same. Its class stays for the styling; the
-        // click stops here, so it never submits.
-        var holder_class = ($fields.attr('class') || '').split(/\s+/).filter(function (c) {
-            return c && c !== 'mo-optin-fields-wrapper' && c !== 'mo-twostep-hidden';
-        }).join(' ');
-        var $yes = $submit.clone(false).removeAttr('id').removeAttr('name').attr('type', 'button').addClass('mo-twostep-yes');
+        var $yes = $submit.clone(false).removeAttr('id').removeAttr('name').removeAttr('style').attr('type', 'button').addClass('mo-twostep-yes');
         if ($yes.is('input')) $yes.val(t.yes); else $yes.text(t.yes);
+        $.each(look, function (prop, value) {
+            if (value !== '') $yes[0].style.setProperty(prop, value, 'important');
+        });
+        $yes[0].style.setProperty('cursor', 'pointer', 'important');
 
         var $question = $('<div class="mo-twostep-question"></div>')
-            .append($('<div class="mo-twostep-yes-holder"></div>').addClass(holder_class).append($yes));
+            .append($('<div class="mo-twostep-yes-holder"></div>').append($yes));
 
         if (t.no) {
             $question.append($('<a href="#" rel="moOptin:close" class="mo-twostep-no"></a>').text(t.no));

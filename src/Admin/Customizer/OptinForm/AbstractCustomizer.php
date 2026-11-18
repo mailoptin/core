@@ -163,6 +163,13 @@ class AbstractCustomizer
         $defaults['integrations'] = apply_filters('mo_optin_form_integrations_default', [], $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
         $defaults['fields']       = apply_filters('mo_optin_form_fields_default', [], $this->customizer_defaults, $this->optin_campaign_type, $this->optin_campaign_class);
 
-        return apply_filters('mo_optin_form_customizer_defaults', $defaults, $this->optin_campaign_type, $this->optin_campaign_class);
+        // Two steps (Premium): what the Customizer shows until changed, which it doesn't save.
+        $defaults['twostep_question'] = apply_filters('mo_optin_form_twostep_question', __('Want our best posts in your inbox?', 'mailoptin'));
+        $defaults['twostep_text']     = apply_filters('mo_optin_form_twostep_text', __('One email a week. Unsubscribe any time.', 'mailoptin'));
+        $defaults['twostep_yes']      = apply_filters('mo_optin_form_twostep_yes', __('Yes, sign me up', 'mailoptin'));
+        $defaults['twostep_no']       = apply_filters('mo_optin_form_twostep_no', __('No thanks', 'mailoptin'));
+        $defaults['twostep_progress'] = apply_filters('mo_optin_form_twostep_progress', true);
+
+                return apply_filters('mo_optin_form_customizer_defaults', $defaults, $this->optin_campaign_type, $this->optin_campaign_class);
     }
 }
