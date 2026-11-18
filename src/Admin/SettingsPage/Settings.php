@@ -128,13 +128,11 @@ class Settings extends AbstractSettingsPage
                         'type'        => 'custom_field_block',
                         'label'       => __('Design cache', 'mailoptin'),
                         'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear cache', 'mailoptin') . '</a>',
-                        'description' => '<p class="description">' .
-                                         sprintf(
+                        'description' => sprintf(
                                              __('MailOptin saves each %scampaign%s\'s design so pages load fast. Clear it if a change you made, or a new list in your email service, isn\'t showing on the site.', 'mailoptin'),
                                              '<a href="' . MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE . '">',
                                              '</a>'
-                                         ) .
-                                         '</p>',
+                                         ),
                     ],
                     'switch_customizer_loader'  => [
                         'type'           => 'checkbox',
@@ -161,7 +159,7 @@ class Settings extends AbstractSettingsPage
                         'type'  => 'custom_field_block',
                         'label' => __('Database tables', 'mailoptin'),
                         'data'  => "<a href='$fix_db_url' class='button action ppress-confirm-delete'>" . __('Repair tables', 'mailoptin') . '</a>',
-                        'description' => '<p class="description">' . __('Creates any MailOptin table that\'s missing. Use it if support asks you to, or after a failed update.', 'mailoptin') . '</p>',
+                        'description' => __('Creates any MailOptin table that\'s missing. Use it if support asks you to, or after a failed update.', 'mailoptin'),
                     ]
                 ]
             ),
@@ -210,7 +208,7 @@ class Settings extends AbstractSettingsPage
             ),
             'email_campaign_settings' => apply_filters('mailoptin_settings_email_campaign_settings_page', [
                     'tab_title'         => __('Emails', 'mailoptin'),
-                    'section_title'     => __('Sender and footer details', 'mailoptin'),
+                    'section_title'     => __('Email Campaign Settings', 'mailoptin'),
                     'from_name'         => [
                         'type'        => 'text',
                         'label'       => __('From Name', 'mailoptin'),

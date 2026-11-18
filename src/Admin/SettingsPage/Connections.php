@@ -225,8 +225,8 @@ class Connections extends AbstractSettingsPage
         usort($connection_args, function ($a, $b) {
 
             // First check if an integration is connected
-            $a_connected = strpos($a["section_title"] ?? '', '(Connected)') !== false;
-            $b_connected = strpos($b["section_title"] ?? '', '(Connected)') !== false;
+            $a_connected = self::is_connected_title($a["section_title"] ?? '');
+            $b_connected = self::is_connected_title($b["section_title"] ?? '');
 
             // Prioritize connected integrations
             if ($a_connected && ! $b_connected) {
@@ -364,6 +364,17 @@ class Connections extends AbstractSettingsPage
     }
 
     /**
+     * Whether a connection's title says it's connected. Connections write the status with
+     * __('Connected', 'mailoptin'), so on a translated site it reads e.g. "(Verbunden)".
+     */
+    public static function is_connected_title($section_title)
+    {
+        $section_title = (string)$section_title;
+
+        return false !== strpos($section_title, '(' . __('Connected', 'mailoptin') . ')') || false !== strpos($section_title, '(Connected)');
+    }
+
+    /**
      * A tile's title: the integration's plain name, and a "Connected" badge when it is. Connections write
      * their title as "Name Connection <span style=…>(Connected)</span>"; the inline-styled status is dropped.
      *
@@ -373,7 +384,7 @@ class Connections extends AbstractSettingsPage
      */
     public static function tile_title($section_title)
     {
-        $is_connected = false !== strpos((string)$section_title, '(Connected)');
+        $is_connected = self::is_connected_title($section_title);
         $plain_name   = trim(wp_strip_all_tags(str_replace(__('Connection', 'mailoptin'), '', preg_replace('#<span[^>]*>.*?</span>#s', '', (string)$section_title))));
 
         return esc_html($plain_name) . ($is_connected ? ' ' . \MailOptin\Core\Admin\UI::badge(__('Connected', 'mailoptin'), 'ok') : '');

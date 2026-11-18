@@ -18,6 +18,13 @@ class SettingsScreensTest extends \WP_UnitTestCase
         $this->assertSame('Mailchimp', Connections::tile_title('Mailchimp Connection'), 'Not connected: no badge, no "Connection".');
         $this->assertSame('x', Connections::tile_title('<b>x</b>'), 'Tags are stripped.');
         $this->assertSame('A &amp; B', Connections::tile_title('A & B'), 'The rest is escaped.');
+
+        // On a translated site the status is in that language; it still counts as connected.
+        add_filter('gettext', $de = function ($t, $text) { return 'Connected' === $text ? 'Verbunden' : $t; }, 10, 2);
+        $this->assertStringContainsString('Verbunden', Connections::tile_title('Kit <span style="color:#008000">(Verbunden)</span>'));
+        $this->assertTrue(Connections::is_connected_title('Kit <span>(Verbunden)</span>'));
+        remove_filter('gettext', $de, 10);
+        $this->assertFalse(Connections::is_connected_title('Mailchimp Connection'));
     }
 
     public function test_settings_say_what_each_option_does()
@@ -29,7 +36,7 @@ class SettingsScreensTest extends \WP_UnitTestCase
         }
 
         // Every checkbox says what ticking it does, not just "Enable" or "Disable".
-        preg_match_all("/'checkbox_label'\s*=>\s*__\('([^']*)'/", $source, $m);
+        preg_match_all("/'checkbox_label'\s*=>\s*__\('((?:[^'\\\\]|\\\\.)*)'/", $source, $m);
         $this->assertNotEmpty($m[1]);
         foreach ($m[1] as $label) {
             $this->assertNotContains($label, ['Enable', 'Disable', 'Activate'], 'A checkbox labelled only "' . $label . '".');
