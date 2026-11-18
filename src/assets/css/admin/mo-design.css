@@ -828,6 +828,59 @@ body.mailoptin-admin .mailoptin-integration-title .mo-ui-badge {
     margin: var(--mo-sp-1) 0 0;
 }
 
+/* ---------- Subscribers area: Tags, Custom fields, Segments ---------- */
+
+/* Row actions read as quiet text links, not a row of bordered buttons; Delete is the red one. */
+body.mailoptin-admin .mo-actions-col {
+    white-space: nowrap;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: var(--mo-blue);
+    font-size: var(--mo-fs-sm);
+    line-height: 24px;
+    min-height: 0;
+    padding: 0 var(--mo-sp-1);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small:hover,
+body.mailoptin-admin .mo-actions-col .button.button-small:focus {
+    background: none;
+    color: var(--mo-blue-dark);
+    text-decoration-color: currentColor;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small.mo-button-danger {
+    color: var(--mo-bad);
+}
+
+/* Can't be deleted yet (the title says why): readable, but plainly not a link. */
+body.mailoptin-admin .mo-actions-col .button.button-small[disabled] {
+    background: none !important;
+    color: var(--mo-muted) !important;
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small + .button.button-small::before {
+    color: var(--mo-line);
+    content: "|";
+    margin-right: var(--mo-sp-2);
+    pointer-events: none;
+}
+
+/* Long addresses wrap between parts, not one letter at a time. */
+body.mailoptin-admin .wp-list-table .column-email {
+    overflow-wrap: anywhere;
+    width: 26%;
+    word-break: normal;
+}
+
 /* ---------- Small screens ---------- */
 
 @media screen and (max-width: 782px) {
@@ -857,6 +910,37 @@ body.mailoptin-admin .mailoptin-integration-title .mo-ui-badge {
 
     body.mailoptin-admin .mo-header-notices {
         padding: 0 16px;
+    }
+
+    /* Row action links are full-size tap targets on phones. */
+    body.mailoptin-admin .mo-actions-col {
+        white-space: normal;
+    }
+
+    body.mailoptin-admin .mo-actions-col .button.button-small {
+        line-height: 44px;
+    }
+
+    /* "Add filter" takes its own line and opens in place, so it fits the screen. */
+    body.mailoptin-admin .mo-filter-bar {
+        clear: both;
+        width: 100%;
+    }
+
+    /* WordPress gives the folded main column the full width on phones. */
+    body.mailoptin-admin .wp-list-table .column-email {
+        width: auto;
+    }
+
+    body.mailoptin-admin .mo-add-filter summary {
+        line-height: 44px;
+    }
+
+    body.mailoptin-admin .mo-add-filter-body {
+        box-sizing: border-box;
+        min-width: 0;
+        position: static;
+        width: 100%;
     }
 
     /* Settings: the tab list becomes a scrolling row above the settings. */

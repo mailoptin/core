@@ -1273,7 +1273,7 @@ class Subscribers_Tags_Fields
 .mo-actions-col{text-align:right;white-space:nowrap}
 .mo-button-danger,.mo-button-danger:hover{color:#b32d2e!important;border-color:#b32d2e!important}
 .mo-handle-col{width:56px}
-.mo-handle{display:none;color:#a7aaad;cursor:grab;letter-spacing:-3px;padding-right:4px;user-select:none}
+.mo-handle{display:none;color:#646970;cursor:grab;letter-spacing:-3px;padding-right:4px;user-select:none}
 .mo-js .mo-handle{display:inline}
 .mo-js .mo-move{display:none}
 .mo-move a{text-decoration:none;padding:0 3px}

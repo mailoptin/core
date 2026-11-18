@@ -279,7 +279,7 @@ class Subscribers_Page extends AbstractSettingsPage
                 <input type="hidden" name="status" value="<?php echo esc_attr(sanitize_key($_GET['status'])); ?>">
             <?php endif; ?>
             <?php echo Subscriber_Filters::hidden_inputs($this->list_table->filters); ?>
-            <?php $this->list_table->search_box(Subscribers_Tags_Fields::is_ready() ? __('Search name, email or any field', 'mailoptin') : __('Search email or name', 'mailoptin'), 'mo-subscriber-search'); ?>
+            <?php $this->list_table->search_box(Subscribers_Tags_Fields::is_ready() ? __('Name, email or any field', 'mailoptin') : __('Email or name', 'mailoptin'), 'mo-subscriber-search'); ?>
             <?php $this->list_table->display(); ?>
         </form>
         <?php // Outside the table's form: the dialogs have forms of their own, and browsers drop nested forms. ?>
