@@ -90,41 +90,31 @@ class OptinCampaigns extends AbstractSettingsPage
             $before_after_post_menu_active = isset($_GET['optin-type']) && $_GET['optin-type'] == 'inpost' ? 'mailoptin-type-active' : null;
             $notification_bar_menu_active  = isset($_GET['optin-type']) && $_GET['optin-type'] == 'bar' ? 'mailoptin-type-active' : null;
             $slide_in_menu_active          = isset($_GET['optin-type']) && $_GET['optin-type'] == 'slidein' ? 'mailoptin-type-active' : null;
+
+            $tabs = [
+                ''         => [MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE, $all_menu_active],
+                'lightbox' => [$lightbox_url, $lightbox_menu_active],
+                'inpost'   => [$in_post, $before_after_post_menu_active],
+                'sidebar'  => [$sidebar_url, $sidebar_menu_active],
+                'bar'      => [$notification_bar, $notification_bar_menu_active],
+                'slidein'  => [$slide_in, $slide_in_menu_active],
+            ];
+
+            global $wpdb;
+            $counts = (new OptinCampaign_List($wpdb))->type_counts();
             ?>
             <div id="mailoptin-sub-bar">
                 <div class="mailoptin-new-toolbar mailoptin-clear">
-                    <h4><?php _e('Filter By:', 'mailoptin'); ?></h4>
+                    <h4 class="screen-reader-text"><?php _e('Show campaigns of type', 'mailoptin'); ?></h4>
                     <ul class="mailoptin-design-options">
-                        <li>
-                            <a href="<?php echo MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE; ?>" class="<?php echo $all_menu_active; ?>">
-                                <?php _e('All', 'mailoptin'); ?>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $lightbox_url; ?>" class="<?php echo $lightbox_menu_active; ?>">
-                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('lightbox')); ?>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $in_post; ?>" class="<?php echo $before_after_post_menu_active; ?>">
-                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('inpost')); ?>
-                            </a>
-                        </li>
-                        <li>
-                        <li>
-                            <a href="<?php echo $sidebar_url; ?>" class="<?php echo $sidebar_menu_active; ?>">
-                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('sidebar')); ?>
-                            </a></li>
-                        <li>
-                            <a href="<?php echo $notification_bar; ?>" class="<?php echo $notification_bar_menu_active; ?>">
-                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('bar')); ?>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $slide_in; ?>" class="<?php echo $slide_in_menu_active; ?>">
-                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('slidein')); ?>
-                            </a>
-                        </li>
+                        <?php foreach ($tabs as $type => $tab) : ?>
+                            <li>
+                                <a href="<?php echo esc_url($tab[0]); ?>" class="<?php echo esc_attr($tab[1]); ?>"<?php echo $tab[1] ? ' aria-current="page"' : ''; ?>>
+                                    <?php echo esc_html('' === $type ? __('All', 'mailoptin') : \MailOptin\Core\Admin\UI::optin_type_label($type)); ?>
+                                    <span class="mo-ui-count"><?php echo esc_html(number_format_i18n(isset($counts[$type]) ? $counts[$type] : 0)); ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
             </div>

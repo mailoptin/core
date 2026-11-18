@@ -535,6 +535,151 @@ body.mailoptin-admin .mailoptin-log-listing .add-new-h2:hover {
 }
 
 
+/* ---------- Optin Campaigns list ---------- */
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a .mo-ui-count {
+    color: var(--mo-muted);
+    font-weight: 400;
+    margin-left: var(--mo-sp-1);
+}
+
+body.mailoptin-admin table.optin_forms .mo-optin-meta {
+    color: var(--mo-muted);
+    font-size: var(--mo-fs-sm);
+    margin-top: 2px;
+}
+
+body.mailoptin-admin table.optin_forms .row-title {
+    font-size: var(--mo-fs-base);
+}
+
+body.mailoptin-admin table.optin_forms .mo-ui-badge {
+    vertical-align: 1px;
+}
+
+/* Delete reads as the destructive one, without shouting on every row. */
+body.mailoptin-admin table.optin_forms .row-actions .delete a {
+    color: var(--mo-bad);
+}
+
+body.mailoptin-admin table.optin_forms .column-activated {
+    width: 72px;
+}
+
+/* Room for the name, its details line and all row actions on one line. */
+body.mailoptin-admin table.optin_forms th#name {
+    width: 40%;
+}
+
+body.mailoptin-admin table.optin_forms .column-impression,
+body.mailoptin-admin table.optin_forms .column-conversion,
+body.mailoptin-admin table.optin_forms .column-percent {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    width: 104px;
+}
+
+body.mailoptin-admin table.optin_forms .mo-split-test-buttons {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mo-sp-2);
+}
+
+@media screen and (max-width: 782px) {
+    /* WordPress folds rows on phones; folded values sit left, under their labels. */
+    body.mailoptin-admin table.optin_forms .column-impression,
+    body.mailoptin-admin table.optin_forms .column-conversion,
+    body.mailoptin-admin table.optin_forms .column-percent,
+    body.mailoptin-admin table.optin_forms .column-activated {
+        text-align: left;
+        width: auto;
+    }
+
+    /* WordPress gives the main column the full width on phones; the old 22% rule (an id selector) outranked it. */
+    body.mailoptin-admin table.optin_forms th#name {
+        width: 100%;
+    }
+
+    body.mailoptin-admin table.optin_forms .row-actions a {
+        display: inline-block;
+        min-height: 44px;
+        line-height: 44px;
+    }
+}
+
+/* ---------- Add New optin campaign ---------- */
+
+body.mailoptin-admin .mailoptin-optin-new-list {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    height: auto;
+    flex-wrap: wrap;
+    gap: var(--mo-sp-2) var(--mo-sp-3);
+    padding: var(--mo-sp-4) var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-optin-new-list label {
+    color: var(--mo-ink);
+    font-size: var(--mo-fs-base);
+    font-weight: 600;
+}
+
+body.mailoptin-admin .mailoptin-optin-new-list input#mailoptin-add-optin-campaign-title {
+    box-sizing: border-box;
+    flex: 0 1 360px;
+    margin: 0;
+    max-width: 100%;
+}
+
+body.mailoptin-admin .mailoptin-optin-new-list .mo-optin-new-help {
+    color: var(--mo-muted);
+    font-size: var(--mo-fs-sm);
+}
+
+/* An even grid however many templates the objective filter hides (the old floats reset every third margin). */
+body.mailoptin-admin .mailoptin-optin-themes {
+    display: grid;
+    gap: var(--mo-sp-5);
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+body.mailoptin-admin .mailoptin-optin-themes::after {
+    display: none;
+}
+
+/* The objective filter and any notes above the cards take a whole row. */
+body.mailoptin-admin .mailoptin-optin-themes > :not(.mailoptin-optin-theme) {
+    grid-column: 1 / -1;
+}
+
+body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme {
+    border-radius: var(--mo-radius-sm);
+    float: none;
+    margin: 0;
+    overflow: hidden;
+    width: auto;
+}
+
+body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme .mailoptin-optin-theme-name {
+    font-size: var(--mo-fs-base);
+    height: auto;
+    line-height: 20px;
+    padding: var(--mo-sp-3) var(--mo-sp-4);
+    padding-right: 130px;
+}
+
+body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme .mailoptin-optin-theme-actions {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    display: flex;
+    height: 100%;
+    max-height: 44px;
+    padding: 0 var(--mo-sp-3);
+}
+
 /* ---------- Small screens ---------- */
 
 @media screen and (max-width: 782px) {
@@ -564,6 +709,11 @@ body.mailoptin-admin .mailoptin-log-listing .add-new-h2:hover {
 
     body.mailoptin-admin .mo-header-notices {
         padding: 0 16px;
+    }
+
+    /* WordPress's Screen Options button sits over the header's top right; on phones the header starts below it. */
+    body.mailoptin-admin:has(#screen-meta-links) .mailoptin-admin-wrap {
+        padding-top: 40px;
     }
 
     /* Nothing pushes the page wider than the screen: fields shrink, long buttons wrap, and simple

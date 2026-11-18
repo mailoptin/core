@@ -558,15 +558,15 @@ class OptinThemesRepository extends AbstractRepository
                 <div id="mailoptin-optin-theme-list" class="mailoptin-optin-theme<?= $extra_class; ?> mailoptin-optin-theme-<?php echo $theme_class; ?>" data-optin-theme="<?php echo $theme_class; ?>" data-optin-type="<?php echo $optin_type; ?>">
                     <a <?= $url_target; ?> href="<?= $url; ?>">
                         <div class="mailoptin-optin-theme-screenshot">
-                            <img src="<?php echo $screenshot; ?>" alt="<?php echo $theme_name; ?>">
+                            <img src="<?php echo esc_url($screenshot); ?>" alt="<?php echo esc_attr($theme_name); ?>" loading="lazy">
                         </div>
                         <?php if ($is_premium_theme_disallowed) : ?>
                             <div class="mo-premium-flag"></div>
                         <?php endif; ?>
-                        <h3 class="mailoptin-optin-theme-name"><?php echo $theme_name; ?></h3>
+                        <h3 class="mailoptin-optin-theme-name"><?php echo esc_html($theme_name); ?></h3>
                         <div class="mailoptin-optin-theme-actions">
-                            <a <?= $url_target; ?> href="<?= $url; ?>" class="button button-primary mailoptin-theme-select" data-optin-theme="<?php echo $theme_class; ?>" data-optin-type="<?php echo $optin_type; ?>" title="<?php _e('Select this theme', 'mailoptin'); ?>">
-                                <?php _e('Select Theme', 'mailoptin'); ?>
+                            <a <?= $url_target; ?> href="<?= $url; ?>" class="button button-primary mailoptin-theme-select" data-optin-theme="<?php echo $theme_class; ?>" data-optin-type="<?php echo $optin_type; ?>" aria-label="<?php echo esc_attr(sprintf(__('Use the %s template', 'mailoptin'), $theme_name)); ?>">
+                                <?php echo $is_premium_theme_disallowed ? esc_html__('See Premium', 'mailoptin') : esc_html__('Use template', 'mailoptin'); ?>
                             </a>
                         </div>
                     </a>

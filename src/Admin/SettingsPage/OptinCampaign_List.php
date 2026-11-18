@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core\Admin\SettingsPage;
 
+use MailOptin\Core\Admin\UI;
+
 use MailOptin\Core\Core;
 use MailOptin\Core\Repositories\OptinCampaignMeta;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
@@ -121,6 +123,27 @@ class OptinCampaign_List extends \WP_List_Table
             $this->wpdb->prepare($sql, $args),
             'ARRAY_A'
         );
+    }
+
+    /**
+     * How many campaigns each type tab lists, counted the way get_optin_campaign() lists them
+     * (on Lite, only campaigns on Lite templates). One query for all tabs.
+     *
+     * @return int[] ['' => all, 'lightbox' => n, ...]
+     */
+    public function type_counts()
+    {
+        $rows = (array)$this->wpdb->get_results("SELECT optin_type, optin_class, COUNT(*) AS n FROM $this->table GROUP BY optin_type, optin_class", 'ARRAY_A');
+
+        $counts = ['' => 0];
+        foreach ($rows as $row) {
+            if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && ! in_array($row['optin_type'] . '/' . $row['optin_class'], $this->fqn_lite_themes, true)) continue;
+
+            $counts['']                 += (int)$row['n'];
+            $counts[$row['optin_type']] = (isset($counts[$row['optin_type']]) ? $counts[$row['optin_type']] : 0) + (int)$row['n'];
+        }
+
+        return $counts;
     }
 
     /**
@@ -391,21 +414,15 @@ class OptinCampaign_List extends \WP_List_Table
         ?>
         <tr class="mo-split-test-actions">
             <td></td>
-            <td>
-                <a href="#" class="mo-split-test-add-variant mo-split-test-action-button" data-parent-optin-id="<?php echo $optin_campaign_id; ?>"><?php _e('Add Variant', 'mailoptin'); ?></a>
+            <td colspan="<?php echo max(1, $this->get_column_count() - 1); ?>">
+                <div class="mo-split-test-buttons">
+                    <a href="#" class="mo-split-test-add-variant mo-split-test-action-button" data-parent-optin-id="<?php echo $optin_campaign_id; ?>"><?php _e('Add Variant', 'mailoptin'); ?></a>
+                    <a href="#" class="mo-split-test-pause-start mo-split-test-action-button<?php echo $pause_class; ?>" data-split-test-action="<?php echo $pause_start_action; ?>" data-parent-id="<?php echo $optin_campaign_id; ?>"><?php echo $pause_start_label; ?></a>
+                    <img class="mo-spinner" id="mo-split-pause-spinner" style="display:none" alt="" src="<?php echo admin_url('images/spinner.gif'); ?>"/>
+                    <a href="#" class="mo-split-test-end-select-winner mo-split-test-action-button" data-parent-id="<?php echo $optin_campaign_id; ?>"><?php _e('End & Pick Winner', 'mailoptin'); ?></a>
+                    <img class="mo-spinner" id="mo-split-end-winner-spinner" style="display:none" alt="" src="<?php echo admin_url('images/spinner.gif'); ?>"/>
+                </div>
             </td>
-            <td>
-                <a href="#" class="mo-split-test-pause-start mo-split-test-action-button<?php echo $pause_class; ?>" data-split-test-action="<?php echo $pause_start_action; ?>" data-parent-id="<?php echo $optin_campaign_id; ?>"><?php echo $pause_start_label; ?></a>
-                <img class="mo-spinner" id="mo-split-pause-spinner" style="margin-left:10px;display:none" src="<?php echo admin_url('images/spinner.gif'); ?>"/>
-            </td>
-            <td>
-                <a href="#" class="mo-split-test-end-select-winner mo-split-test-action-button" data-parent-id="<?php echo $optin_campaign_id; ?>"><?php _e('End & Pick Winner', 'mailoptin'); ?></a>
-                <img class="mo-spinner" id="mo-split-end-winner-spinner" style="margin-left:10px;display:none" src="<?php echo admin_url('images/spinner.gif'); ?>"/>
-            </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
         </tr>
         <?php
     }
@@ -417,18 +434,23 @@ class OptinCampaign_List extends \WP_List_Table
      */
     public function get_columns()
     {
+        // The keys stay as they were, so add-ons that add or read columns keep working.
         $columns = array(
             'cb'         => '<input type="checkbox" />',
-            'name'       => __('Name', 'mailoptin'),
-            'uuid'       => __('Unique ID', 'mailoptin'),
-            'actions'    => __('Actions', 'mailoptin'),
-            'activated'  => __('Activated', 'mailoptin'),
-            'impression' => __('Impression', 'mailoptin'),
+            'name'       => __('Campaign', 'mailoptin'),
+            'activated'  => __('Status', 'mailoptin'),
+            'impression' => __('Views', 'mailoptin'),
             'conversion' => __('Subscribers', 'mailoptin'),
-            'percent'    => __('Conversion', 'mailoptin'),
+            'percent'    => __('Rate', 'mailoptin'),
         );
 
         return $columns;
+    }
+
+    /** The name WordPress folds the row under on phones. */
+    protected function get_default_primary_column_name()
+    {
+        return 'name';
     }
 
     /**
@@ -456,32 +478,71 @@ class OptinCampaign_List extends \WP_List_Table
     {
         $optin_campaign_id = absint($item['id']);
         $customize_url     = $this->_optin_campaign_customize_url($optin_campaign_id);
-        $delete_url        = $this->_optin_campaign_delete_url($optin_campaign_id);
 
-        if (OptinCampaignsRepository::is_test_mode($optin_campaign_id)) {
-            $url   = $this->_optin_campaign_disable_test_mode($optin_campaign_id);
-            $label = esc_attr__('Disable Test Mode', 'mailoptin');
-        } else {
-            $url   = $this->_optin_campaign_enable_test_mode($optin_campaign_id);
-            $label = esc_attr__('Enable Test Mode', 'mailoptin');
-        }
+        // What it is, in muted text under the name: type, template and its ID for shortcodes.
+        $meta = array_filter([
+            UI::optin_type_label(OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id)),
+            self::template_name(OptinCampaignsRepository::get_optin_campaign_class($optin_campaign_id)),
+            sprintf(__('ID %s', 'mailoptin'), $item['uuid']),
+        ]);
 
-        $optin_type = OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id);
-
-        $optin_type = \MailOptin\Core\Admin\UI::optin_type_label($optin_type);
-
-        $actions = array(
-            'delete'    => sprintf("<a class='mo-delete-prompt' href='%s'>%s</a>", $delete_url, esc_attr__('Delete', 'mailoptin')),
-            'test_mode' => "<a href=\"$url\">$label</a>"
-        );
-
-        $name = '<strong><a href="' . $customize_url . '">' . $item['name'] . '</a> <span class="mo-optin-type-state post-state"> — ' . esc_html($optin_type) . '</span></strong>';
+        $html = sprintf('<strong><a class="row-title" href="%s">%s</a></strong>', esc_url($customize_url), esc_html($item['name']));
 
         if (OptinCampaignsRepository::is_split_test_parent($optin_campaign_id)) {
-            $name .= '<div class="mo-has-split-test-variant">' . __('A/B', 'mailoptin') . '</div>';
+            $html .= ' ' . UI::badge(__('A/B test', 'mailoptin'), 'info');
         }
 
-        return $name . $this->row_actions($actions);
+        if (OptinCampaignsRepository::is_test_mode($optin_campaign_id)) {
+            $html .= ' ' . UI::badge(__('Test mode', 'mailoptin'), 'warn');
+        }
+
+        $html .= '<div class="mo-optin-meta">' . esc_html(implode(' · ', $meta)) . '</div>';
+
+        return $html . $this->row_actions($this->row_action_links($optin_campaign_id, $customize_url));
+    }
+
+    /**
+     * Edit first, Delete last; everything else from the old "…" menu in between, so the
+     * mo_optin_popover_actions filter still adds to it.
+     */
+    protected function row_action_links($optin_campaign_id, $customize_url)
+    {
+        $links = ['edit' => sprintf('<a href="%s">%s</a>', esc_url($customize_url), esc_html__('Edit', 'mailoptin'))];
+
+        foreach ($this->popover_actions($optin_campaign_id) as $key => $action) {
+            $links[$key] = sprintf(
+                '<a href="%s" class="%s" target="%s" data-optin-id="%d"%s>%s</a>',
+                esc_url($action['href'], ['http', 'https', 'javascript']),
+                esc_attr($action['class']),
+                esc_attr($action['target']),
+                $optin_campaign_id,
+                '' !== $action['title'] ? ' title="' . esc_attr($action['title']) . '"' : '',
+                esc_html($action['label'])
+            );
+        }
+
+        $links['delete'] = sprintf(
+            '<a class="mo-delete-prompt" href="%s">%s</a>',
+            esc_url($this->_optin_campaign_delete_url($optin_campaign_id)),
+            esc_html__('Delete', 'mailoptin')
+        );
+
+        return $links;
+    }
+
+    /** A template's display name from its class, e.g. "Hosta". */
+    public static function template_name($optin_class)
+    {
+        static $names = null;
+
+        if (null === $names) {
+            $names = [];
+            foreach ((array)OptinThemesRepository::get_all() as $theme) {
+                if ( ! empty($theme['optin_class'])) $names[$theme['optin_class']] = $theme['name'];
+            }
+        }
+
+        return isset($names[$optin_class]) ? $names[$optin_class] : '';
     }
 
     public function column_default($item, $column_name)
@@ -539,88 +600,50 @@ class OptinCampaign_List extends \WP_List_Table
         );
 
         $switch .= sprintf(
-            '<label for="mo-optin-activate-switch-%1$s" style="margin:auto;" class="tgl-btn"></label>',
-            $optin_campaign_id
+            '<label for="mo-optin-activate-switch-%1$s" style="margin:auto;" class="tgl-btn"><span class="screen-reader-text">%2$s</span></label>',
+            $optin_campaign_id,
+            esc_html(sprintf(__('Show "%s" on the site', 'mailoptin'), $item['name']))
         );
 
         return $switch;
     }
 
-    /**
-     * Render a column when no column specific method exist.
-     *
-     * @param array $item
-     *
-     * @return mixed
-     */
-    public function column_actions($item)
-    {
-        $optin_campaign_id = absint($item['id']);
-
-        $delete_url    = $this->_optin_campaign_delete_url($optin_campaign_id);
-        $customize_url = $this->_optin_campaign_customize_url($optin_campaign_id);
-
-        $action = sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-blue" href="%s" title="%s">%s</a> &nbsp;',
-            esc_url_raw($customize_url),
-            __('Customize', 'mailoptin'),
-            '<span class="dashicons dashicons-edit mo-action-icon"></span>'
-        );
-
-        $action .= sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-red mo-delete-prompt" href="%s" title="%s">%s</a> &nbsp;',
-            $delete_url,
-            __('Delete', 'mailoptin'),
-            '<span class="dashicons dashicons-trash mo-action-icon"></span>'
-        );
-
-        $action .= '<span class="mo-ellipsis-action">';
-        $action .= '<a class="mo-ellipsis-tooltipster button action"><span class="mo-action-icon hellip">&hellip;</span></a>';
-        $action .= "<div style='display: none'>";
-        $action .= "<div class='mo-popover-content'>";
-        $action .= $this->popover_action_links($optin_campaign_id);
-        $action .= '</div>';
-        $action .= '</div>';
-        $action .= '</span>';
-
-        return $action;
-    }
-
-    public function popover_action_links($optin_campaign_id)
+    /** The "more" actions for a campaign, after the mo_optin_popover_actions filter. */
+    public function popover_actions($optin_campaign_id)
     {
         if (OptinCampaignsRepository::is_test_mode($optin_campaign_id)) {
             $test_mode_url   = $this->_optin_campaign_disable_test_mode($optin_campaign_id);
-            $test_mode_label = esc_attr__('Disable Test Mode', 'mailoptin');
+            $test_mode_label = __('Turn off test mode', 'mailoptin');
         } else {
             $test_mode_url   = $this->_optin_campaign_enable_test_mode($optin_campaign_id);
-            $test_mode_label = esc_attr__('Enable Test Mode', 'mailoptin');
+            $test_mode_label = __('Test mode', 'mailoptin');
         }
 
         $actions = apply_filters('mo_optin_popover_actions', [
-            'split_test'    => [
-                'title' => __('Create new split variation', 'mailoptin'),
-                'href'  => 'javascript:;',
-                'label' => __('A/B Split Test', 'mailoptin'),
-                'class' => 'mo-split-test'
-            ],
             'clone'         => [
-                'title' => __('Duplicate optin', 'mailoptin'),
                 'href'  => self::_optin_campaign_clone_url($optin_campaign_id),
                 'label' => __('Duplicate', 'mailoptin')
             ],
+            'split_test'    => [
+                'title' => __('Test another version against this one', 'mailoptin'),
+                'href'  => 'javascript:;',
+                'label' => __('A/B test', 'mailoptin'),
+                'class' => 'mo-split-test'
+            ],
             'test_mode'     => [
+                'title' => __('Only logged-in admins see it', 'mailoptin'),
                 'href'  => $test_mode_url,
                 'label' => $test_mode_label
             ],
             'reset_stat'    => [
-                'title' => __('Reset optin campaign statistics', 'mailoptin'),
+                'title' => __('Set views and subscribers back to zero', 'mailoptin'),
                 'href'  => self::_optin_campaign_reset_stat_url($optin_campaign_id),
-                'label' => __('Reset Analytics', 'mailoptin')
+                'label' => __('Reset stats', 'mailoptin')
             ],
             'clear_cookies' => [
-                'title' => __('Clear local cookies of this optin'),
+                'title' => __('Show it again in this browser, as if you had never closed it', 'mailoptin'),
                 'href'  => self::_optin_campaign_clear_cookies_url($optin_campaign_id),
-                'label' => __('Clear Local Cookies', 'mailoptin')
+                'label' => __('Clear cookies', 'mailoptin')
             ],
         ], $optin_campaign_id);
 
@@ -629,26 +652,28 @@ class OptinCampaign_List extends \WP_List_Table
             unset($actions['clone']);
         }
 
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && isset($actions['split_test'])) {
             $actions['split_test'] = [
-                'title'  => __('This is a premium feature. Upgrade now!', 'mailoptin'),
+                'title'  => __('A/B tests are part of MailOptin Premium', 'mailoptin'),
                 'href'   => 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=ab_test_popover',
-                'label'  => __('A/B Split Test', 'mailoptin'),
+                'label'  => __('A/B test', 'mailoptin'),
                 'target' => '_blank',
                 'class'  => 'mo-split-test-upgrade'
             ];
         }
 
-        $structure = '<ul>';
-        foreach ($actions as $action) {
-            $action = wp_parse_args($action, [
-                'href'   => '',
-                'title'  => '',
-                'target' => '_self',
-                'label'  => '',
-                'class'  => '',
-            ]);
+        foreach ($actions as $key => $action) {
+            $actions[$key] = wp_parse_args($action, ['href' => '', 'title' => '', 'target' => '_self', 'label' => '', 'class' => '']);
+        }
 
+        return $actions;
+    }
+
+    /** @deprecated The list shows these as row actions now; kept for add-ons that call it. */
+    public function popover_action_links($optin_campaign_id)
+    {
+        $structure = '<ul>';
+        foreach ($this->popover_actions($optin_campaign_id) as $action) {
             $structure .= sprintf(
                 '<li><a href="%s" class="%s" target="%s" data-optin-id="%d" title="%s">%s</a></li>',
                 esc_attr($action['href']),
@@ -656,13 +681,11 @@ class OptinCampaign_List extends \WP_List_Table
                 esc_attr($action['target']),
                 $optin_campaign_id,
                 esc_attr($action['title']),
-                esc_attr($action['label'])
+                esc_html($action['label'])
             );
-
         }
-        $structure .= '</ul>';
 
-        return $structure;
+        return $structure . '</ul>';
     }
 
     /**
