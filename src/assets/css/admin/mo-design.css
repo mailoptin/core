@@ -680,6 +680,154 @@ body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme .mailoptin-o
     padding: 0 var(--mo-sp-3);
 }
 
+/* ---------- Settings (tabbed settings pages) ---------- */
+
+body.mailoptin-admin .mailoptin-settings-wrap {
+    align-items: flex-start;
+    border: 0;
+    gap: var(--mo-sp-6);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper {
+    background: transparent;
+    border: 0;
+    display: flex;
+    flex: 0 0 200px;
+    flex-direction: column;
+    gap: 2px;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a,
+body.mailoptin-admin #poststuff .mailoptin-settings-wrap h2.nav-tab-wrapper a {
+    background: transparent;
+    border: 0;
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-text);
+    font-size: var(--mo-fs-base);
+    font-weight: 400;
+    padding: var(--mo-sp-2) var(--mo-sp-3);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a:hover {
+    background: var(--mo-line-soft);
+    color: var(--mo-ink);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a.nav-tab-active {
+    background: #fff !important;
+    border: 0;
+    box-shadow: inset 3px 0 0 var(--mo-blue), 0 0 0 1px var(--mo-line);
+    color: var(--mo-ink);
+    font-weight: 600;
+    width: auto;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder {
+    background: #fff;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-sizing: border-box;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder .postbox {
+    margin: 0;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder h3.hndle {
+    border-top: 1px solid var(--mo-line-soft);
+    border-bottom: 1px solid var(--mo-line-soft);
+    color: var(--mo-ink);
+    font-size: var(--mo-fs-md);
+    padding: var(--mo-sp-4) var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder .inside {
+    margin: 0;
+    padding: 0 var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder p.submit,
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder > form > p {
+    padding: 0 var(--mo-sp-5) var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table th {
+    color: var(--mo-ink);
+    width: 220px;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table .description {
+    color: var(--mo-muted);
+    max-width: 60ch;
+}
+
+/* The checkbox before its label, as everywhere else in WordPress; the renderer prints it after. */
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) {
+    align-items: center;
+    column-gap: var(--mo-sp-2);
+    display: flex;
+    flex-wrap: wrap;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) > input[type="checkbox"] {
+    margin: 0;
+    order: -1;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) > strong {
+    font-weight: 400;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) > :not(input):not(strong) {
+    flex-basis: 100%;
+}
+
+/* ---------- Integrations ---------- */
+
+/* An even grid at any width, in place of fixed 20% tiles. */
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections {
+    display: grid;
+    gap: var(--mo-sp-4);
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper {
+    max-width: none;
+    padding: 0;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper > div {
+    border-color: var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-shadow: 0 1px 2px rgba(29, 35, 39, .06);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    padding: var(--mo-sp-5) var(--mo-sp-4) var(--mo-sp-4);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-upper {
+    flex: 1;
+    min-height: 0;
+}
+
+body.mailoptin-admin .mailoptin-integration-title {
+    color: var(--mo-ink);
+    font-size: var(--mo-fs-base);
+    margin: var(--mo-sp-3) 0;
+}
+
+/* The older rule shows any span in the title as a red block; the badge keeps its own look. */
+body.mailoptin-admin .mailoptin-integration-title .mo-ui-badge {
+    color: var(--mo-ok);
+    display: inline-flex;
+    margin: var(--mo-sp-1) 0 0;
+}
+
 /* ---------- Small screens ---------- */
 
 @media screen and (max-width: 782px) {
@@ -709,6 +857,39 @@ body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme .mailoptin-o
 
     body.mailoptin-admin .mo-header-notices {
         padding: 0 16px;
+    }
+
+    /* Settings: the tab list becomes a scrolling row above the settings. */
+    body.mailoptin-admin .mailoptin-settings-wrap {
+        flex-direction: column;
+        gap: var(--mo-sp-3);
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper {
+        flex: none;
+        flex-direction: row;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a,
+    body.mailoptin-admin #poststuff .mailoptin-settings-wrap h2.nav-tab-wrapper a {
+        line-height: 28px;
+        white-space: nowrap;
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a.nav-tab-active {
+        box-shadow: inset 0 -3px 0 var(--mo-blue), 0 0 0 1px var(--mo-line);
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder {
+        width: 100%;
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder h3.hndle,
+    body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder .inside {
+        padding-left: var(--mo-sp-4);
+        padding-right: var(--mo-sp-4);
     }
 
     /* WordPress's Screen Options button sits over the header's top right; on phones the header starts below it. */
