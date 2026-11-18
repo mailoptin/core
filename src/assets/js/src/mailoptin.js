@@ -1867,10 +1867,16 @@ var mailoptin_optin = {
                 '</style>');
         }
 
+        var text_colour = function ($el) {
+            return $el.length && $el.is(':visible') ? window.getComputedStyle($el[0]).color : '';
+        };
         var $headline = $form.find('.mo-optin-form-headline').first(),
             $text = $form.find('.mo-optin-form-description').first(),
             $hide = $fields.add($form.find('.mo-optin-form-note, .mo-optin-form-cta-button').not($fields.find('*'))),
             saved = {headline: $headline.html(), text: $text.html()},
+            // The template's own text colour, for the No link and the progress labels: the form's colour
+            // can be dark on a dark template.
+            ink = text_colour($form.find('.mo-optin-form-description').first()) || text_colour($form.find('.mo-optin-form-headline').first()),
             created_headline = false;
 
         // Step 1: the question in the template's own headline and text.
@@ -1906,10 +1912,11 @@ var mailoptin_optin = {
             .append($('<div class="mo-twostep-yes-holder"></div>').append($yes));
 
         if (t.no) {
-            $question.append($('<a href="#" rel="moOptin:close" class="mo-twostep-no"></a>').text(t.no));
+            $question.append($('<a href="#" rel="moOptin:close" class="mo-twostep-no"></a>').text(t.no).css('color', ink || ''));
         }
 
-        if ($text.length) $text.after($question); else $headline.after($question);
+        // Where the form sits: every template already places its fields in the right column or row.
+        $fields.before($question);
 
         var to_form = function () {
             $question.remove();
@@ -1921,7 +1928,7 @@ var mailoptin_optin = {
                 var fill = window.getComputedStyle($submit[0]).backgroundColor;
                 if (!fill || fill === 'transparent' || fill === 'rgba(0, 0, 0, 0)') fill = '#1f7a4d';
 
-                var $bar = $('<div class="mo-twostep-progress" role="progressbar" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1"></div>')
+                var $bar = $('<div class="mo-twostep-progress" role="progressbar" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1"></div>').css('color', ink || '')
                     .append($('<div class="mo-twostep-progress-labels"></div>').append($('<span></span>').text(t.almost), $('<span></span>').text(t.step)))
                     .append($('<div class="mo-twostep-progress-track"></div>').append($('<div class="mo-twostep-progress-fill"></div>').css('background', fill)));
                 $form.prepend($bar);
