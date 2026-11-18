@@ -1204,7 +1204,7 @@ var mailoptin_optin = {
                     user_agent: navigator.userAgent,
                     conversion_page: window.location.href,
                     referrer: document.referrer || "",
-                    tz: $.MailOptin.visit_data().tz
+                    _mo_tz: $.MailOptin.visit_data().tz
                 });
 
                 self.addProcessingOverlay.call(optin_container);
