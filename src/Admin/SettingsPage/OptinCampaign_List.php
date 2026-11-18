@@ -335,16 +335,13 @@ class OptinCampaign_List extends \WP_List_Table
             return;
         }
 
-        if ($optin_type == 'bar')
-            $optin_type = 'Notification Bar';
-
-        if ($optin_type == 'slidein')
-            $optin_type = 'Slide In';
+        $optin_type = \MailOptin\Core\Admin\UI::optin_type_label($optin_type);
 
         printf(
-            __('Upgrade to %s for %s support', 'mailoptin'),
-            '<a href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=optin_themes_not_found" target="_blank">MailOptin Premium</a>',
-            esc_html($optin_type)
+            /* translators: 1: a campaign type, e.g. "Slide-in", 2: link to MailOptin Premium */
+            __('%1$s campaigns need %2$s.', 'mailoptin'),
+            esc_html($optin_type),
+            '<a href="https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=optin_themes_not_found" target="_blank">MailOptin Premium</a>'
         );
     }
 
@@ -471,10 +468,7 @@ class OptinCampaign_List extends \WP_List_Table
 
         $optin_type = OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id);
 
-        if ($optin_type == 'bar') $optin_type = __('Notification Bar', 'mailoptin');
-        if ($optin_type == 'sidebar') $optin_type = __('Sidebar / Widget', 'mailoptin');
-
-        $optin_type = ucwords($optin_type);
+        $optin_type = \MailOptin\Core\Admin\UI::optin_type_label($optin_type);
 
         $actions = array(
             'delete'    => sprintf("<a class='mo-delete-prompt' href='%s'>%s</a>", $delete_url, esc_attr__('Delete', 'mailoptin')),

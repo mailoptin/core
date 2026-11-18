@@ -76,7 +76,6 @@ class AudienceSourcesSettings
 
         echo '<div class="mo-ui-page mo-sources-settings">';
         echo '<div class="mo-ui-heading"><h1>' . esc_html__('Customers and members', 'mailoptin') . '</h1><span class="mo-ui-sub">' . esc_html__('Who among your customers, users and members can be picked as a broadcast audience. Nothing here copies them into MailOptin: each is asked of its plugin when an email goes.', 'mailoptin') . '</span></div>';
-        echo '<hr class="wp-header-end">';
 
         if ( ! empty($_GET['saved'])) echo UI::note(esc_html__('Settings saved.', 'mailoptin'), 'ok');
 

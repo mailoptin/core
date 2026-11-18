@@ -213,7 +213,6 @@ class Automations_Page
         <?php if (self::has_cart_automation($all)) : ?>
             <a href="<?php echo esc_url(self::url(['screen' => 'carts'])); ?>" class="page-title-action"><?php esc_html_e('Abandoned carts', 'mailoptin'); ?></a>
         <?php endif; ?>
-        <hr class="wp-header-end">
 
         <?php if (empty($all)) : ?>
             <div class="mo-auto-empty">
@@ -350,7 +349,6 @@ class Automations_Page
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('New automation', 'mailoptin'); ?></h1>
         <a href="<?php echo esc_url(self::url()); ?>" class="page-title-action"><?php esc_html_e('Back to Automations', 'mailoptin'); ?></a>
-        <hr class="wp-header-end">
 
         <?php $recipes = Recipes::all(); if ( ! empty($recipes)) : ?>
             <h2 class="mo-auto-h"><?php esc_html_e('Start from a recipe', 'mailoptin'); ?></h2>
@@ -414,7 +412,6 @@ class Automations_Page
         ?>
         <p class="mo-back"><a href="<?php echo esc_url(self::url()); ?>">&larr; <?php esc_html_e('Automations', 'mailoptin'); ?></a></p>
         <h1 class="screen-reader-text"><?php esc_html_e('Edit automation', 'mailoptin'); ?></h1>
-        <hr class="wp-header-end">
         <form method="post" action="<?php echo esc_url(self::edit_url($automation_id)); ?>" id="mo-auto-form">
             <?php wp_nonce_field(self::nonce_action($automation_id)); ?>
             <input type="hidden" name="id" value="<?php echo absint($automation_id); ?>">
@@ -1086,7 +1083,6 @@ class Automations_Page
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('Abandoned carts', 'mailoptin'); ?></h1>
         <a href="<?php echo esc_url(self::url()); ?>" class="page-title-action"><?php esc_html_e('Back to Automations', 'mailoptin'); ?></a>
-        <hr class="wp-header-end">
         <ul class="subsubsub">
             <?php
             $links = [];

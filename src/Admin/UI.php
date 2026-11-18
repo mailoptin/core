@@ -14,6 +14,30 @@ class UI
     const BUTTON_VARIANTS = ['primary', 'ghost', 'danger'];
 
     /**
+     * What a campaign type is called on screen. The stored values (lightbox, inpost, sidebar, bar, slidein)
+     * stay as they are; only what people read changes.
+     *
+     * @param string $type
+     */
+    public static function optin_type_label($type)
+    {
+        switch ($type) {
+            case 'lightbox':
+                return __('Pop-up', 'mailoptin');
+            case 'inpost':
+                return __('In-post', 'mailoptin');
+            case 'sidebar':
+                return __('Sidebar', 'mailoptin');
+            case 'bar':
+                return __('Bar', 'mailoptin');
+            case 'slidein':
+                return __('Slide-in', 'mailoptin');
+            default:
+                return ucfirst((string)$type);
+        }
+    }
+
+    /**
      * A status badge with a coloured dot, e.g. "Subscribed".
      *
      * @param string $label

@@ -320,6 +320,7 @@ class Custom_Settings_Page_Api
         }
 
         .remove_white_styling #post-body-content input.regular-text {
+            box-sizing: border-box;
             width: 100% !important;
             max-width: 900px !important;
         }
