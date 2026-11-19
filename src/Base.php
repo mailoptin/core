@@ -191,6 +191,7 @@ class Base
         Admin\SettingsPage\CampaignLog::get_instance();
         Admin\SettingsPage\Campaign_Report::get_instance();
         Admin\SettingsPage\OptinCampaigns::get_instance();
+        Admin\SettingsPage\OptinCampaignImport::get_instance();
         Admin\SettingsPage\LeadBank::get_instance();
         Admin\SettingsPage\Subscribers_Page::get_instance();
         Admin\SettingsPage\SendingSettings::get_instance();

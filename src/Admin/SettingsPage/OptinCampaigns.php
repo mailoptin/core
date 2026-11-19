@@ -22,7 +22,7 @@ class OptinCampaigns extends AbstractSettingsPage
     {
         add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
 
-            if (in_array($active_menu, ['optin-campaigns', 'add-new-optin'])) {
+            if (in_array($active_menu, ['optin-campaigns', 'add-new-optin', 'import-optins'])) {
 
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
 
@@ -46,6 +46,7 @@ class OptinCampaigns extends AbstractSettingsPage
         add_action('mailoptin_register_menu_page', array($this, 'register_settings_page'), 25);
         add_action('mailoptin_admin_settings_submenu_page_optin-campaigns', [$this, 'settings_admin_page_callback']);
         add_action('mailoptin_admin_settings_submenu_page_add-new-optin', [$this, 'settings_admin_page_callback']);
+        add_action('mailoptin_admin_settings_submenu_page_import-optins', [$this, 'settings_admin_page_callback']);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
@@ -165,6 +166,8 @@ class OptinCampaigns extends AbstractSettingsPage
     {
         if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new-optin') {
             AddOptinCampaign::get_instance()->settings_admin_page();
+        } elseif ( ! empty($_GET['view']) && $_GET['view'] == 'import-optins') {
+            OptinCampaignImport::get_instance()->settings_admin_page();
         } else {
             echo '<div class="mailoptin-data-listing">';
             $this->settingsInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
@@ -209,6 +212,7 @@ class OptinCampaigns extends AbstractSettingsPage
     {
         $url = add_query_arg('view', 'add-new-optin', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE);
         echo "<a class=\"add-new-h2\" href=\"$url\">" . __('Add New', 'mailoptin') . '</a>';
+        echo '<a class="add-new-h2" href="' . esc_url(OptinCampaignImport::url()) . '">' . esc_html__('Import', 'mailoptin') . '</a>';
     }
 
     /**
