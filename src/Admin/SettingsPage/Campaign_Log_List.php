@@ -183,8 +183,7 @@ class Campaign_Log_List extends \WP_List_Table
         $columns = array(
             'cb'             => '<input type="checkbox" />',
             'subject'        => __('Subject', 'mailoptin'),
-            'content_html'   => __('HTML', 'mailoptin'),
-            'content_text'   => __('Plain Text', 'mailoptin'),
+            'content_html'   => __('Preview', 'mailoptin'),
             'status'         => __('Status', 'mailoptin'),
             'engagement'     => __('Engagement', 'mailoptin'),
             'email_campaign' => __('Campaign', 'mailoptin'),
@@ -284,12 +283,17 @@ class Campaign_Log_List extends \WP_List_Table
     public function column_content_html($item)
     {
         $campaign_id = intval($item['id']);
-        $preview_url = add_query_arg(
-            ['mailoptin' => 'preview-campaign', 'type' => 'html', 'id' => $campaign_id],
-            home_url()
-        );
 
-        return "<a class=\"mo-open-link-fancybox\" target='_blank' href=\"$preview_url\"><span class=\"dashicons dashicons-visibility\"></span></a>";
+        // Both versions as labelled links (they were two columns of unlabelled eye icons).
+        $link = function ($type, $label) use ($campaign_id) {
+            return sprintf(
+                '<a class="mo-open-link-fancybox" target="_blank" href="%s">%s</a>',
+                esc_url(add_query_arg(['mailoptin' => 'preview-campaign', 'type' => $type, 'id' => $campaign_id], home_url())),
+                esc_html($label)
+            );
+        };
+
+        return $link('html', __('HTML', 'mailoptin')) . ' <span class="mo-muted" aria-hidden="true">·</span> ' . $link('text', __('Plain text', 'mailoptin'));
     }
 
     /**
@@ -336,7 +340,7 @@ class Campaign_Log_List extends \WP_List_Table
 
         $customize_url = Email_Campaign_List::_campaign_customize_url($email_campaign_id);
 
-        return "<a href=\"$customize_url\">$email_campaign_title</span></a>";
+        return sprintf('<a href="%s">%s</a>', esc_url($customize_url), esc_html($email_campaign_title));
     }
 
     /**
@@ -362,7 +366,7 @@ class Campaign_Log_List extends \WP_List_Table
         $err_log = '';
         // only display the link to error log if error content isn't empty.
         if (file_exists($log_file) && file_get_contents($log_file) != '') {
-            $err_log .= "<div><a target='_blank' class=\"mo-open-link-fancybox\" href=\"$preview_url\">" . __('Error logs', 'mailoptin') . "</span></a></div>";
+            $err_log .= "<div><a target='_blank' class=\"mo-open-link-fancybox\" href=\"" . esc_url($preview_url) . "\">" . esc_html__('Error logs', 'mailoptin') . "</a></div>";
         }
 
         return $this->queue_progress_html($item) . $err_log;
@@ -411,7 +415,12 @@ class Campaign_Log_List extends \WP_List_Table
         $counts = SendQueueRepository::counts(absint($item['id']));
         $total  = array_sum($counts);
 
-        if (0 === $total) return esc_html($item['status']);
+        // Nothing queued (older logs): the stored status, in words.
+        if (0 === $total) {
+            $words = ['processed' => __('Completed', 'mailoptin'), 'failed' => __('Failed', 'mailoptin'), 'draft' => __('Draft', 'mailoptin')];
+
+            return esc_html(isset($words[$item['status']]) ? $words[$item['status']] : ucfirst((string)$item['status']));
+        }
 
         $done    = $counts['sent'] + $counts['failed'] + $counts['skipped'];
         $percent = (int)floor($done / $total * 100);

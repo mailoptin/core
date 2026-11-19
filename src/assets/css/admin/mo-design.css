@@ -888,6 +888,27 @@ body.mailoptin-admin .wp-list-table .column-email {
     word-break: normal;
 }
 
+/* ---------- Emails: Post notifications list and Logs ---------- */
+
+body.mailoptin-admin .wp-list-table .column-content_html {
+    white-space: nowrap;
+    width: 140px;
+}
+
+body.mailoptin-admin .wp-list-table.campaign_logs .column-subject,
+body.mailoptin-admin .wp-list-table .column-subject {
+    width: 28%;
+}
+
+body.mailoptin-admin .wp-list-table .column-campaign_type {
+    color: var(--mo-muted);
+    text-align: left;
+}
+
+body.mailoptin-admin .wp-list-table .column-activated {
+    width: 80px;
+}
+
 /* ---------- Small screens ---------- */
 
 @media screen and (max-width: 782px) {
@@ -935,7 +956,8 @@ body.mailoptin-admin .wp-list-table .column-email {
     }
 
     /* WordPress gives the folded main column the full width on phones. */
-    body.mailoptin-admin .wp-list-table .column-email {
+    body.mailoptin-admin .wp-list-table .column-email,
+    body.mailoptin-admin .wp-list-table .column-subject {
         width: auto;
     }
 
