@@ -56,6 +56,9 @@ class PostsEmailDigest extends AbstractTriggers
 
         $parameters['post_type'] = $custom_post_type;
 
+        // The post type the digest's filters were chosen for.
+        $filtered_post_type = empty($custom_post_type) ? 'post' : $custom_post_type;
+
         $custom_post_type_settings = ER::get_merged_customizer_value($email_campaign_id, 'custom_post_type_settings');
 
         if ( ! empty($custom_post_type_settings)) {
@@ -67,7 +70,9 @@ class PostsEmailDigest extends AbstractTriggers
                 $parameters['tax_query'] = [];
 
                 foreach ($custom_post_type_settings as $taxonomy => $digest_terms) {
-                    if ( ! empty($digest_terms) && taxonomy_exists($taxonomy)) {
+                    // Only the chosen post type's own taxonomies: a filter left over from another post
+                    // type can never match, and would leave every digest empty.
+                    if ( ! empty($digest_terms) && is_object_in_taxonomy($filtered_post_type, $taxonomy)) {
                         $parameters['tax_query'][] = [
                             'taxonomy' => $taxonomy,
                             'field'    => 'term_id',
@@ -81,11 +86,12 @@ class PostsEmailDigest extends AbstractTriggers
         $categories = ER::get_merged_customizer_value($email_campaign_id, 'post_categories');
         $tags       = ER::get_merged_customizer_value($email_campaign_id, 'post_tags');
 
-        if ( ! empty($categories)) {
+        // Post categories and tags are kept when the post type changes to one without them.
+        if ( ! empty($categories) && is_object_in_taxonomy($filtered_post_type, 'category')) {
             $parameters['category'] = implode(',', array_map('trim', $categories));
         }
 
-        if ( ! empty($tags)) {
+        if ( ! empty($tags) && is_object_in_taxonomy($filtered_post_type, 'post_tag')) {
             $parameters['tag_id'] = implode(',', array_map('trim', $tags));
         }
 
