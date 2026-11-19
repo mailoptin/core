@@ -11,23 +11,16 @@ src/BlockEditor/node_modules/*
 !tests/Admin/Customizer/
 !tests/Admin/Customizer/OptinForm/
 !tests/Admin/Customizer/OptinForm/CustomizerSettingsTest.php
-<<<<<<< HEAD
 !tests/SendQueue/
 !tests/Audience/
 !tests/Submissions/
 !tests/Design/
 !tests/Api/
 !tests/Repositories/
-<<<<<<< HEAD
-<<<<<<< HEAD
 !tests/Automations/
 !tests/EmailBlocks/
 bin/email-blocks/node_modules/
-=======
->>>>>>> origin/claude/post-meta-selector
-=======
->>>>>>> origin/claude/kit-label-and-list-fix
 !tests/EmailCampaigns/
-=======
 !tests/OptinForms/
->>>>>>> origin/claude/related-posts-slidein
+!tests/OptinTransfer/
+!tests/Functions/
