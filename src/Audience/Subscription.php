@@ -99,9 +99,9 @@ class Subscription
 
         $suppression = SuppressionRepository::get_reason($email);
 
-        // Bounced and complained addresses are never emailed, not even to confirm.
+        // Bounced, complained and admin-suppressed addresses are never emailed, not even to confirm.
         if (
-            in_array($suppression, [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED], true) ||
+            in_array($suppression, SuppressionRepository::HARD_REASONS, true) ||
             in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)
         ) {
             return ['subscriber_id' => $subscriber_id, 'result' => self::RESULT_REFUSED];
@@ -318,7 +318,7 @@ class Subscription
         $suppressed = SuppressionRepository::get_reason($subscriber['email']);
 
         if (in_array($subscriber['status'], [Subscribers::STATUS_BOUNCED, Subscribers::STATUS_COMPLAINED], true)
-            || in_array($suppressed, [SuppressionRepository::REASON_BOUNCED, SuppressionRepository::REASON_COMPLAINED, SuppressionRepository::REASON_ERASED], true)
+            || in_array($suppressed, array_merge(SuppressionRepository::HARD_REASONS, [SuppressionRepository::REASON_ERASED]), true)
             || ($by_admin && $suppressed)) {
             return false;
         }

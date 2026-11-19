@@ -747,6 +747,7 @@ class SubscriberImport
             $why = [
                 SuppressionRepository::REASON_BOUNCED    => __('Their address bounced, so it\'s never emailed.', 'mailoptin'),
                 SuppressionRepository::REASON_COMPLAINED => __('They marked an email as spam, so they\'re never emailed.', 'mailoptin'),
+                SuppressionRepository::REASON_MANUAL     => __('The address is on the suppression list, so it\'s never emailed.', 'mailoptin'),
             ];
             $reason = $suppressed ?: $subscriber['status'];
             self::problem($job, $cells, $email, self::PROBLEM_SUPPRESSED, $why[$reason] ?? __('They unsubscribed. They can only sign up again themselves.', 'mailoptin'));

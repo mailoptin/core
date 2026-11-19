@@ -262,6 +262,7 @@ class SubscriberService
         $messages = [
             SuppressionRepository::REASON_BOUNCED    => __('Emails to this address bounced, so it can\'t be added to lists.', 'mailoptin'),
             SuppressionRepository::REASON_COMPLAINED => __('This address marked our email as spam, so it can\'t be added to lists.', 'mailoptin'),
+            SuppressionRepository::REASON_MANUAL     => __('This address is on the suppression list, so it can\'t be added to lists.', 'mailoptin'),
         ];
 
         return self::error('mo_subscriber_refused', $messages[$reason] ?? __('This address unsubscribed. Only they can sign up again, through a form.', 'mailoptin'), 409, ['reason' => $reason]);
