@@ -85,7 +85,8 @@
         $.post(ajaxurl, {
             action: 'mailoptin_toggle_' + activation_type + '_activated',
             id: id,
-            status: status
+            status: status,
+            nonce: mailoptin_globals.nonce
         }, function () {
             optin_automation_activation_locked = false;
             optin_automation_activation_queue_checker();
