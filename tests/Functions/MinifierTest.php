@@ -30,6 +30,11 @@ class MinifierTest extends \WP_UnitTestCase
             'quoted data URL stays quoted'           => ["a { filter: url(\"data:image/svg+xml;utf9,<svg%20version='1.1'></svg>#blur\") }", "a{filter:url(\"data:image/svg+xml;utf9,<svg%20version='1.1'></svg>#blur\")}"],
             'strings are left alone'                 => ['a::before { content: "a  ;  b" }', 'a::before{content:"a  ;  b"}'],
             'important comments stay'                => ['/*! keep */ a { b: c }', '/*! keep */ a{b:c}'],
+            'a stray quote ends at the line break'   => ["// don't\na{color:red}\nb{color:blue}", "// don't\na{color:red}b{color:blue}"],
+            'an open string does not pair quotes'    => ["a{content:\"x\n}\nb{content:\"a ; b\"}", "a{content:\"x\n}b{content:\"a ; b\"}"],
+            'unquoted url with /* is not a comment'  => ['a{background:url(http://x.com/a/*/b.png) no-repeat}', 'a{background:url(http://x.com/a/*/b.png) no-repeat}'],
+            'escapes keep the space after them'      => ['.a\\, .b{x:y} .\\31  .c{x:y}', '.a\\, .b{x:y}.\\31  .c{x:y}'],
+            'an empty custom property keeps a space' => [':root{--x: ;--y: red}', ':root{--x: ;--y:red}'],
         ];
     }
 
@@ -41,17 +46,40 @@ class MinifierTest extends \WP_UnitTestCase
         $this->assertSame($out, mo_minify_css($in));
     }
 
-    public function test_html_collapses_text_but_keeps_tags_and_kept_blocks()
+    public function html_cases()
     {
-        $in = "<div  class=\"a  b\" data-x='{\"t\": \"two  spaces\"}'>\n   Hello\n\n   <b>world</b>  !<!-- gone --><!--[if mso]><p>x</p><![endif]-->"
-              . "<pre>  keep\n  this </pre><script>var  a = 1;\n</script><textarea>  t  </textarea></div>";
+        return [
+            'text collapses, attributes stay'     => ["<div  class=\"a  b\" data-x='{\"t\": \"two  spaces\"}'>\n   Hello\n\n   <b>world</b>  !</div>", "<div  class=\"a  b\" data-x='{\"t\": \"two  spaces\"}'>\nHello\n<b>world</b> !</div>"],
+            'kept blocks stay as written'         => ["<pre>  keep\n  this </pre><script>var  a = 1;\n</script><textarea>  t  </textarea>", "<pre>  keep\n  this </pre><script>var  a = 1;\n</script><textarea>  t  </textarea>"],
+            'plain comments go'                   => ['<p>a</p><!-- gone --><p>b</p>', '<p>a</p><p>b</p>'],
+            'conditional comments stay, both ends'=> ['<!--[if !mso]><!--><p>a</p><!--<![endif]-->', '<!--[if !mso]><!--><p>a</p><!--<![endif]-->'],
+            '<!-- in an attribute is not a comment' => ['<div data-x="<!--">keep  me</div><p>more</p>', '<div data-x="<!--">keep me</div><p>more</p>'],
+            'an abrupt comment only drops itself' => ['<!-->hello<!-- x --> world', 'hello world'],
+            '> in an attribute keeps the tag whole' => ["<input title=\"a >\n  b\" placeholder=\"x  y<z\">  text", "<input title=\"a >\n  b\" placeholder=\"x  y<z\"> text"],
+            'pre styling leaves the markup alone' => ['<div style="white-space:pre">a    b</div>', '<div style="white-space:pre">a    b</div>'],
+        ];
+    }
 
-        $out = mo_minify_html($in);
+    /**
+     * @dataProvider html_cases
+     */
+    public function test_html_keeps_its_meaning($in, $out)
+    {
+        $this->assertSame($out, mo_minify_html($in));
+    }
 
-        $this->assertStringContainsString("<div  class=\"a  b\" data-x='{\"t\": \"two  spaces\"}'>", $out, 'Attributes are untouched.');
-        $this->assertStringContainsString("\nHello\n<b>world</b> !", $out, 'Text runs collapse; a run with a line break keeps one.');
-        $this->assertStringNotContainsString('gone', $out, 'Plain comments go.');
-        $this->assertStringContainsString('<!--[if mso]><p>x</p><![endif]-->', $out, 'Conditional comments stay.');
-        $this->assertStringContainsString("<pre>  keep\n  this </pre><script>var  a = 1;\n</script><textarea>  t  </textarea>", $out);
+    public function test_input_past_the_backtracking_limit_comes_back_whole()
+    {
+        // A kept block or comment over PCRE's backtracking limit (1,000,000) used to make the whole optin vanish.
+        $big = str_repeat('x', 1100000);
+
+        $html = mo_minify_html("<div><script>$big</script><form>  f  </form></div>");
+        $this->assertStringEndsWith('<form> f </form></div>', $html);
+        $this->assertSame(1100000 + 44, strlen($html));
+
+        $this->assertSame('<div><b> k </b></div>', mo_minify_html("<div><!--$big--><b>  k </b></div>"));
+
+        $css = "a { background: url('data:image/png;base64,$big') }";
+        $this->assertSame("a{background:url('data:image/png;base64,$big')}", mo_minify_css($css));
     }
 }
