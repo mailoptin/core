@@ -287,4 +287,38 @@ class Subscribers_List extends \WP_List_Table
     {
         return esc_html(get_date_from_gmt($item['created_at'], get_option('date_format')));
     }
+
+    /**
+     * WordPress's search box, with a short button label and the hint of what's searched in the field.
+     *
+     * @param string $text The hint, e.g. "Name, email or any field".
+     * @param string $input_id
+     */
+    public function search_box($text, $input_id)
+    {
+        if (empty($_REQUEST['s']) && ! $this->has_items()) return;
+
+        $input_id .= '-search-input';
+
+        // Keep the current sort when searching or jumping to a page, as WordPress's own box does.
+        if ( ! empty($_REQUEST['orderby'])) {
+            foreach ((array)$_REQUEST['orderby'] as $key => $value) {
+                if (is_array($_REQUEST['orderby'])) {
+                    printf('<input type="hidden" name="orderby[%s]" value="%s" />', esc_attr($key), esc_attr(wp_unslash($value)));
+                } else {
+                    printf('<input type="hidden" name="orderby" value="%s" />', esc_attr(wp_unslash($value)));
+                }
+            }
+        }
+        if ( ! empty($_REQUEST['order'])) {
+            printf('<input type="hidden" name="order" value="%s" />', esc_attr(wp_unslash($_REQUEST['order'])));
+        }
+        ?>
+        <p class="search-box">
+            <label class="screen-reader-text" for="<?php echo esc_attr($input_id); ?>"><?php echo esc_html(sprintf(__('Search subscribers: %s', 'mailoptin'), $text)); ?></label>
+            <input type="search" id="<?php echo esc_attr($input_id); ?>" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php echo esc_attr($text); ?>"/>
+            <?php submit_button(__('Search', 'mailoptin'), '', '', false, ['id' => 'search-submit']); ?>
+        </p>
+        <?php
+    }
 }
