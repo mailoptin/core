@@ -35,7 +35,8 @@ class EmailCampaigns extends AbstractSettingsPage
                             'create-broadcast',
                             Broadcast_Page::VIEW,
                             Automations_Page::VIEW,
-                            \MailOptin\Core\Admin\EmailEditor\EmailEditor::VIEW
+                            \MailOptin\Core\Admin\EmailEditor\EmailEditor::VIEW,
+                            Digest_Send_Page::VIEW
                     ])) {
 
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
@@ -43,7 +44,7 @@ class EmailCampaigns extends AbstractSettingsPage
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
                 $this->settingsInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
                 $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
-                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast', Broadcast_Page::VIEW, Automations_Page::VIEW, \MailOptin\Core\Admin\EmailEditor\EmailEditor::VIEW])) {
+                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast', Broadcast_Page::VIEW, Automations_Page::VIEW, \MailOptin\Core\Admin\EmailEditor\EmailEditor::VIEW, Digest_Send_Page::VIEW])) {
                     $this->settingsInstance->sidebar($this->sidebar_args());
                 }
 
@@ -68,6 +69,9 @@ class EmailCampaigns extends AbstractSettingsPage
         add_action('mailoptin_admin_settings_submenu_page_create-broadcast', [$this, 'settings_admin_page_callback']);
         add_action('mailoptin_admin_settings_submenu_page_' . Broadcast_Page::VIEW, function () {
             echo Broadcast_Page::html();
+        });
+        add_action('mailoptin_admin_settings_submenu_page_' . Digest_Send_Page::VIEW, function () {
+            echo Digest_Send_Page::html();
         });
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
@@ -216,7 +220,7 @@ class EmailCampaigns extends AbstractSettingsPage
     {
         if (
                 isset($_GET['view']) &&
-                in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast', 'campaign-log', Broadcast_Page::VIEW])
+                in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast', 'campaign-log', Broadcast_Page::VIEW, Digest_Send_Page::VIEW])
         ) {
             return;
         }

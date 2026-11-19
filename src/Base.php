@@ -188,6 +188,7 @@ class Base
         Admin\SettingsPage\Broadcast_Page::get_instance();
         Admin\SettingsPage\Automations_Page::get_instance();
         Admin\EmailEditor\EmailEditor::get_instance();
+        Admin\SettingsPage\Digest_Send_Page::get_instance();
         Admin\PostListMenu\PostPreview::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
         Admin\SettingsPage\Campaign_Report::get_instance();
