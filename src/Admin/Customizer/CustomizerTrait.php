@@ -286,6 +286,7 @@ trait CustomizerTrait
             'WordPressUserRegistrationConnect' => __('Select User Role (Required)', 'mailoptin'),
             'SalesforceConnect'                => __('Select Salesforce Object', 'mailoptin'),
             'ConvertKitConnect'                => __('Select Kit (ConvertKit) Form', 'mailoptin'),
+            'KitConnect'                       => __('Select Kit Form', 'mailoptin'),
             'BeehiivConnect'                   => __('Select beehiiv Tier', 'mailoptin'),
             'CopperConnect'                   => __('Select Record Type', 'mailoptin'),
             'ZohoCRMConnect'                   => __('Select ZohoCRM Module', 'mailoptin'),

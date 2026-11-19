@@ -17,9 +17,12 @@ src/BlockEditor/node_modules/*
 !tests/Api/
 !tests/Repositories/
 <<<<<<< HEAD
+<<<<<<< HEAD
 !tests/Automations/
 !tests/EmailBlocks/
 bin/email-blocks/node_modules/
 =======
 >>>>>>> origin/claude/post-meta-selector
+=======
+>>>>>>> origin/claude/kit-label-and-list-fix
 !tests/EmailCampaigns/

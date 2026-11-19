@@ -85,10 +85,14 @@ jobs:
         run: |
           status=0
 <<<<<<< HEAD
+<<<<<<< HEAD
           for suite in tests/SendQueue tests/Audience tests/Submissions tests/Repositories/CampaignSettingsStorageTest.php tests/Design tests/Api tests/Automations tests/EmailBlocks tests/EmailCampaigns; do
 =======
           for suite in tests/SendQueue tests/Audience tests/Submissions tests/Repositories/CampaignSettingsStorageTest.php tests/Design tests/Api tests/EmailCampaigns; do
 >>>>>>> origin/claude/post-meta-selector
+=======
+          for suite in tests/SendQueue tests/Audience tests/Submissions tests/Repositories/CampaignSettingsStorageTest.php tests/Design tests/Api tests/EmailCampaigns; do
+>>>>>>> origin/claude/kit-label-and-list-fix
             echo "::group::$suite"
             "$RUNNER_TEMP/wptest/vendor/bin/phpunit" --no-configuration --bootstrap tests/bootstrap.php "$suite" || status=1
             echo "::endgroup::"
