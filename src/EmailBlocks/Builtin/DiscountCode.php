@@ -146,7 +146,7 @@ class DiscountCode extends ShopBlock
         }
 
         $pad = Mjml::padding($settings['block_padding'] ?? []);
-        $box = '<div style="text-align:center;"><div style="display:inline-block;border:2px dashed ' . esc_attr($settings['button_background_color'] ?: '#dc4d2f') . ';border-radius:6px;padding:14px 26px;">'
+        $box = '<div style="text-align:center;"><div style="display:inline-block;border:2px dashed ' . esc_attr($settings['button_background_color'] ?: '#d54324') . ';border-radius:6px;padding:14px 26px;">'
                . '<div style="font-family:Menlo,Consolas,monospace;font-size:24px;letter-spacing:2px;font-weight:bold;">' . esc_html($code) . '</div>'
                . ('' !== $terms ? '<div style="font-size:13px;color:#666666;margin-top:4px;">' . esc_html($terms) . '</div>' : '')
                . '</div></div>';

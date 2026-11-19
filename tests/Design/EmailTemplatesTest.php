@@ -50,11 +50,31 @@ class EmailTemplatesTest extends \WP_UnitTestCase
      */
     public function test_lucid_images_shrink_on_phones($type, $ns)
     {
-        $source = file_get_contents(MAILOPTIN_SRC . "EmailCampaigns/$ns/Templates/Lucid.php");
+        $html = $this->forge($type, $ns);
 
-        // A fixed 500px image forced the new-post email to 570px wide on a 320px screen.
-        $this->assertDoesNotMatchRegularExpression('/style="max-width:(500|<\?= \$width \?>)px/', $source, 'Inline image styles start with width:100%.');
-        $this->assertDoesNotMatchRegularExpression('/^\s*width: 500px;/m', $source, 'Code blocks are not fixed at 500px.');
-        $this->assertMatchesRegularExpression('/\.email-body img \{\s*max-width: 100%;/', $source);
+        // Media queries are ignored by some clients, so what fits a phone has to be in the inlined styles.
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($html);
+        $images = (new \DOMXPath($dom))->query('//img[contains(@class,"mo-imgix")]');
+        if ($type !== ER::NEWSLETTER) {
+            $this->assertGreaterThan(0, $images->length, 'The post image is in the email.');
+        }
+
+        foreach ($images as $img) {
+            $style = $img->getAttribute('style');
+            $this->assertMatchesRegularExpression('/(^|;)\s*max-width:\s*100%/', $style, "A post image can shrink below its column: $style");
+            $this->assertDoesNotMatchRegularExpression('/(^|;)\s*width:\s*\d+px/', $style, "No fixed pixel width in the inlined style: $style");
+            if ($type === ER::NEW_PUBLISH_POST) {
+                $this->assertDoesNotMatchRegularExpression('/(^|;)\s*width:\s*100%/', $style, 'Small images keep their own size.');
+            }
+            $this->assertNotSame('', $img->getAttribute('width'), 'Outlook sizes images by the width attribute.');
+        }
+
+        // The content cell carries width:570px inline; on phones the media query lets it shrink.
+        if ($type !== ER::NEWSLETTER) {
+            $this->assertMatchesRegularExpression('/@media only screen and \(max-width: ?600px\)\s*\{[^{]*\.content-cell\s*\{\s*width:\s*100% !important;/', $html);
+        }
+
+        $this->assertDoesNotMatchRegularExpression('/(^|[;"\s])width:\s*500px/', $html, 'Nothing is fixed at 500px.');
     }
 }

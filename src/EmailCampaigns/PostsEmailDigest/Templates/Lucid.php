@@ -237,7 +237,7 @@ class Lucid extends AbstractTemplate
                         </a>
                         {{post.meta}}
                         <a href="{{post.url}}">
-                            <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="width:100%;max-width:<?= $width ?>px;margin:0 auto;">
+                            <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
                         </a>
                     <?php endif;
 
@@ -245,7 +245,7 @@ class Lucid extends AbstractTemplate
                         <h1 class="mo-content-title-font-size mo-content-headline-color" style="margin-top:0;">
                             {{post.title}}</h1>
                         {{post.meta}}
-                        <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="width:100%;max-width:<?= $width ?>px;margin:0 auto;">
+                        <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
                     <?php endif;
                     do_action('mailoptin_email_campaign_lucid_before_post_content');
                     ?>
@@ -607,7 +607,8 @@ HTML;
     /*Media Queries ------------------------------ */
     @media only screen and (max-width: 600px) {
       .email-body_inner,
-      .email-footer {
+      .email-footer,
+      .content-cell {
         width: 100% !important;
       }
     }

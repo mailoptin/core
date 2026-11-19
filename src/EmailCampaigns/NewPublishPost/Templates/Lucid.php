@@ -176,7 +176,7 @@ class Lucid extends AbstractTemplate
             </a>
             {{post.meta}}
             <a href="{{post.url}}">
-                <img class="mo-imgix" src="{{post.feature.image}}" alt="{{post.feature.image.alt}}" width="500" style="width:100%;max-width:500px;height:auto;display:block;margin:0 auto;">
+                <img class="mo-imgix" src="{{post.feature.image}}" alt="{{post.feature.image.alt}}" width="500" style="max-width:100%;height:auto;display:block;margin:0 auto;">
             </a>
         <?php endif;
 
@@ -184,7 +184,7 @@ class Lucid extends AbstractTemplate
 
             <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
             {{post.meta}}
-            <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="width:100%;max-width:500px;height:auto;display:block;margin:0 auto;">
+            <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="max-width:100%;height:auto;display:block;margin:0 auto;">
         <?php endif;
 
         return ob_get_clean();
@@ -516,7 +516,8 @@ HTML;
     /*Media Queries ------------------------------ */
     @media only screen and (max-width: 600px) {
       .email-body_inner,
-      .email-footer {
+      .email-footer,
+      .content-cell {
         width: 100% !important;
       }
     }
