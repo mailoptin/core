@@ -138,7 +138,7 @@ abstract class ShopBlock extends AbstractBlock implements DynamicBlock
     {
         return [
             'button_text'             => ['type' => 'text', 'label' => __('Button text', 'mailoptin'), 'description' => __('Empty: no button.', 'mailoptin'), 'default' => $text, 'tab' => 'content'],
-            'button_background_color' => ['type' => 'color_picker', 'label' => __('Button colour', 'mailoptin'), 'default' => '#dc4d2f', 'tab' => 'style'],
+            'button_background_color' => ['type' => 'color_picker', 'label' => __('Button colour', 'mailoptin'), 'default' => '#d54324', 'tab' => 'style'],
             'button_color'            => ['type' => 'color_picker', 'label' => __('Button text colour', 'mailoptin'), 'default' => '#ffffff', 'tab' => 'style'],
             'block_padding'           => ['type' => 'dimension', 'label' => __('Padding', 'mailoptin'), 'default' => ['top' => '10', 'right' => '25', 'bottom' => '10', 'left' => '25'], 'tab' => 'style'],
         ];

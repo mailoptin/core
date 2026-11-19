@@ -187,7 +187,7 @@ class BlocksTest extends \WP_UnitTestCase
 
         $defaults = $this->blocks()->get('button')->defaults($this->email);
 
-        $this->assertSame('#dc4d2f', $defaults['button_background_color'], "Lucid's button colour.");
+        $this->assertSame('#d54324', $defaults['button_background_color'], "Lucid's button colour.");
         $this->assertSame('16', $this->blocks()->get('text')->defaults($this->email)['text_font_size']);
     }
 
