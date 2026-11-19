@@ -4,7 +4,7 @@ namespace MailOptin\MailOptinConnect;
 
 use MailOptin\Core\Audience\Sources\Sources;
 use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Custom_Content;
-use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Multiple_Checkbox;
+use MailOptin\Core\Admin\Customizer\CustomControls\WP_Customize_Tags_Select_Control;
 use MailOptin\Core\Admin\SettingsPage\Subscribers_Page;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Core\Repositories\SegmentsRepository as Segments;
@@ -135,7 +135,7 @@ class CampaignAudience
         $tags = TagsRepository::names();
 
         if ( ! empty($tags)) {
-            $controls[Segments::EXCLUDE_TAGS_SETTING] = new WP_Customize_Multiple_Checkbox($wp_customize, $option_prefix . '[' . Segments::EXCLUDE_TAGS_SETTING . ']', [
+            $controls[Segments::EXCLUDE_TAGS_SETTING] = new WP_Customize_Tags_Select_Control($wp_customize, $option_prefix . '[' . Segments::EXCLUDE_TAGS_SETTING . ']', [
                 'label'    => __('Leave out people tagged', 'mailoptin'),
                 'section'  => $section,
                 'settings' => $option_prefix . '[' . Segments::EXCLUDE_TAGS_SETTING . ']',

@@ -66,34 +66,30 @@ class Broadcast_Page
 
         // The design is the email editor's: nothing to load here for it.
 
-        // The "Leave out people tagged" picker, as on the Automations page.
-        wp_enqueue_style('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.min.css');
-        wp_enqueue_script('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', ['jquery'], null, true);
-        wp_add_inline_script('mailoptin-chosen', self::tag_select_script());
-    }
-
-    /**
-     * A searchable multi-select. It saves once the dropdown closes, or straight away when a tag is
-     * removed with its x, so picking several tags doesn't reload the page after each one.
-     */
-    protected static function tag_select_script()
-    {
-        return "jQuery(function ($) {
-    var select = $('#mo-exclude-tags');
-    if (!select.length || !$.fn.chosen) return;
-    var changed = false, open = false;
-    var save = function () {
-        if (!changed) return;
-        changed = false;
-        var form = select.closest('form');
-        $('<input type=\"hidden\" name=\"mo_broadcast_action\" value=\"save\">').appendTo(form);
-        form[0].submit();
-    };
-    select.chosen({width: '100%', search_contains: true, hide_results_on_select: false, no_results_text: " . wp_json_encode(__('No tag matches', 'mailoptin')) . "})
-        .on('chosen:showing_dropdown', function () { open = true; })
-        .on('chosen:hiding_dropdown', function () { open = false; save(); })
-        .on('change', function () { changed = true; if (!open) setTimeout(function () { if (!open) save(); }, 0); });
-});";
+        // A searchable tag picker; without JavaScript it's a plain multi-select.
+        wp_enqueue_style('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.min.css', [], MAILOPTIN_VERSION_NUMBER);
+        wp_enqueue_script('mailoptin-chosen', MAILOPTIN_ASSETS_URL . 'chosen/chosen.jquery.min.js', ['jquery'], MAILOPTIN_VERSION_NUMBER, true);
+        wp_add_inline_script('mailoptin-chosen', "jQuery(function ($) {
+            $('select.mo-tags-select').each(function () {
+                var select = this, changed = false, pending = null;
+                $(select).chosen({width: '100%', search_contains: true, hide_results_on_select: false})
+                    .on('change', function (e, params) {
+                        if (!params) return;
+                        // Removing a tag with its × doesn't open the list: save it now.
+                        if (params.deselected && !$(select).data('chosen').results_showing) return select.dispatchEvent(new Event('change'));
+                        changed = true;
+                    })
+                    // Saved once the list closes, not on every pick (each save reloads the page). Not when the
+                    // list closed because a button was clicked: that button's own submit saves the tags too, and
+                    // an autosave in between would replace its action (Review, Send test) with Save.
+                    .on('chosen:hiding_dropdown', function () {
+                        if (!changed) return;
+                        changed = false;
+                        pending = setTimeout(function () { select.dispatchEvent(new Event('change')); }, 300);
+                    });
+                if (select.form) select.form.addEventListener('submit', function () { clearTimeout(pending); });
+            });
+        });");
     }
 
     /* ---------------------------------------------------------------------------------------------
@@ -402,8 +398,7 @@ class Broadcast_Page
                     <label for="mo-exclude-tags"><?php esc_html_e('Leave out people tagged', 'mailoptin'); ?></label>
                     <div class="mo-tag-select-wrap">
                         <input type="hidden" name="exclude_tags[]" value="">
-                        <?php // Saved when its dropdown closes (see the page script), not on every pick. ?>
-                        <select id="mo-exclude-tags" class="mo-tag-select" name="exclude_tags[]" multiple data-placeholder="<?php esc_attr_e('Choose tags…', 'mailoptin'); ?>">
+                        <select id="mo-exclude-tags" name="exclude_tags[]" class="mo-tags-select" multiple data-autosave data-placeholder="<?php esc_attr_e('Choose tags…', 'mailoptin'); ?>">
                             <?php foreach ($tags as $id => $name) : ?>
                                 <option value="<?php echo absint($id); ?>" <?php selected(in_array((int)$id, $excluded, true)); ?>><?php echo esc_html($name); ?></option>
                             <?php endforeach; ?>
@@ -412,7 +407,7 @@ class Broadcast_Page
                 </div>
             <?php endif; ?>
             <?php if ( ! $available) : ?>
-                <p class="mo-count"><?php printf(esc_html__('Segments and leaving out tags need %sMailOptin Premium%s. Choose "Everyone in the list" and untick the tags to send this broadcast.', 'mailoptin'), '<a target="_blank" href="' . esc_url(CampaignAudience::upsell_url('builtin_segments_broadcast')) . '">', '</a>'); ?></p>
+                <p class="mo-count"><?php printf(esc_html__('Segments and leaving out tags need %sMailOptin Premium%s. Choose "Everyone in the list" and remove the tags to send this broadcast.', 'mailoptin'), '<a target="_blank" href="' . esc_url(CampaignAudience::upsell_url('builtin_segments_broadcast')) . '">', '</a>'); ?></p>
             <?php endif; ?>
         <?php else : ?>
             <p class="mo-count mo-upsell"><?php printf(
@@ -799,7 +794,8 @@ class Broadcast_Page
 .mo-broadcast .mo-inline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0}
 .mo-js .mo-no-js{display:none}
 .mo-tag-select-wrap{max-width:560px}
-.mo-tag-select-wrap select{width:100%;min-height:90px}
+.mo-tag-select-wrap select{width:100%;min-height:32px}
+.mo-broadcast .chosen-container-multi .chosen-choices{min-height:32px;border-radius:4px;border-color:#8c8f94}
 .mo-broadcast .mo-count{background:#f0f6fc;border:1px solid #c5d9ed;border-radius:4px;padding:8px 12px;margin:6px 0 0;max-width:560px}
 .mo-broadcast .mo-upsell{border-left:4px solid #7e3bd0}
 .mo-design{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
