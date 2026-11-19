@@ -96,7 +96,7 @@ class AddOptinCampaign extends AbstractSettingsPage
         $optin_type = self::chosen_type();
 
         echo '<div class="mailoptin-optin-themes mailoptin-optin-clear">';
-        OptinThemesRepository::listing_display_template($optin_type);
+        OptinThemesRepository::listing_display_template($optin_type, true);
         echo '</div>';
     }
 

@@ -144,6 +144,9 @@ class Base
         FrontEndOutput::get_instance();
         \MailOptin\Core\OptinForms\RelatedPosts::get_instance();
         InPost::get_instance();
+        \MailOptin\Core\OptinForms\Messages::get_instance();
+        \MailOptin\Core\OptinForms\TwoStep::get_instance();
+        \MailOptin\Core\OptinForms\Wheel\Wheel::get_instance();
         Shortcodes::get_instance();
         Recaptcha::get_instance();
         //Turnstile initialization

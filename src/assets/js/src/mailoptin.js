@@ -25,6 +25,53 @@ $.MailOptin = {
     is_customize_preview: (mailoptin_globals.is_customize_preview === 'true'),
 
     /**
+     * Two steps: counts a Yes, or ("done") a subscription after one. Sent with sendBeacon, so it never
+     * holds the visitor up.
+     */
+    track_twostep_yes: function (optin_uuid, stage) {
+        var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_twostep_yes');
+        var stat_data = $.extend({optin_uuid: optin_uuid, stage: stage === 'done' ? 'done' : 'yes'}, $.MailOptin.visit_data());
+
+        $.MailOptin.send_beacon(url, stat_data);
+    },
+
+    /**
+     * The page, the site the visitor came from and their time zone, sent with views and conversions for
+     * the statistics (the time zone stands in for their country where nothing better is available).
+     */
+    visit_data: function () {
+        var tz = '';
+        try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        } catch (e) {
+        }
+
+        return {conversion_page: window.location.href, referrer: document.referrer || '', tz: tz};
+    },
+
+    /** Posts stat_data without holding the visitor up: sendBeacon, else a normal request. */
+    send_beacon: function (url, stat_data) {
+        if (navigator.sendBeacon) {
+            var data = new FormData();
+            $.each(stat_data, function (key, value) {
+                data.append('stat_data[' + key + ']', value);
+            });
+            if (navigator.sendBeacon(url, data)) return;
+        }
+
+        $.post(url, {stat_data: stat_data});
+    },
+
+    /**
+     * Counts a click on a message's button. Sent as the page unloads (sendBeacon), so it never holds
+     * the visitor up.
+     */
+    track_message_click: function (optin_uuid) {
+        var url = mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_message_click');
+
+        $.MailOptin.send_beacon(url, $.extend({optin_uuid: optin_uuid}, $.MailOptin.visit_data()));
+    },
+    /**
      * Track optin conversion and impression.
      *
      * @param {string} optin_uuid
@@ -33,11 +80,7 @@ $.MailOptin = {
         // bail if this is customizer preview
         if ($.MailOptin.is_customize_preview === true || mailoptin_globals.disable_impression_tracking === 'true') return;
 
-        var stat_data = {
-            optin_uuid: optin_uuid,
-            conversion_page: window.location.href,
-            referrer: document.referrer || ""
-        };
+        var stat_data = $.extend({optin_uuid: optin_uuid}, $.MailOptin.visit_data());
 
         $.post(mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'track_optin_impression'), {stat_data: stat_data});
     }
@@ -69,14 +112,11 @@ var mailoptin_optin = {
             test_mode = ($.MailOptin.is_customize_preview === true) ? true : optin_js_config.test_mode;
 
             // add the close-optin event handler. modal/lightbox has its own so skip.
-            if (this.hasClass('mo-optin-form-lightbox') === false) {
-                $(document).on('click.moOptin', 'a[rel~="moOptin:close"], .mo-close-optin', {
-                        'optin_uuid': $optin_uuid,
-                        'optin_type': $optin_type,
-                        'optin_js_config': optin_js_config,
-                        'self': self
-                    }, self.close_optin
-                );
+            // close_optin works out the campaign from the clicked link, so one handler serves every
+            // campaign; binding it again (each reopen, each campaign) would close the same one twice.
+            if (this.hasClass('mo-optin-form-lightbox') === false && $.MailOptin.closeHandlerBound !== true) {
+                $.MailOptin.closeHandlerBound = true;
+                $(document).on('click.moOptin', 'a[rel~="moOptin:close"], .mo-close-optin', self.close_optin);
             }
 
             // remove the close optin event if we're in customizer.
@@ -139,8 +179,8 @@ var mailoptin_optin = {
                 self.process_optin_form_display.call(this, optin_js_config, 'inpost', skip_display_checks);
             }
 
-            // custom html conversion tracker
-            $(document).on('click', '.mo-trigger-conversion', function () {
+            // custom html conversion tracker (once per campaign: a reopen doesn't bind it again)
+            $(document).off('click.moConv' + $optin_uuid).on('click.moConv' + $optin_uuid, '.mo-trigger-conversion', function () {
                 // set cookie for this option conversion when button is clicked.
                 self.set_cookie('success', $optin_uuid, optin_js_config);
 
@@ -151,7 +191,35 @@ var mailoptin_optin = {
             // handle CTA button click if activated
             if (self.is_var_defined(optin_js_config, 'cta_display') && optin_js_config.cta_display === true && self.is_var_defined(optin_js_config, 'cta_action')) {
                 // if cta action is to navigate
-                $(document).on('click', '#' + $optin_css_id + '_cta_button', function (e) {
+                // Bound once per button: this runs again on every click-launch.
+                $(document).off('click.moCta', '#' + $optin_css_id + '_cta_button').on('click.moCta', '#' + $optin_css_id + '_cta_button', function (e) {
+                    // A message's button is a link: it goes where it points (a new tab included) by itself.
+                    // The click counts as the campaign's conversion and hides it with the success cookie.
+                    if (optin_js_config.is_message === true) {
+                        if ($.MailOptin.is_customize_preview === true) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        self.set_cookie('success', $optin_uuid, optin_js_config);
+                        optin_js_config.mo_email = 'CTA';
+                        self.ga_event_tracking('conversion', optin_js_config);
+                        $.MailOptin.track_message_click($optin_uuid);
+
+                        // A link opened in a new tab leaves this page as it is: close the message here.
+                        if ($(this).attr('target') === '_blank') {
+                            var message = $(this).parents('.moOptinForm');
+                            setTimeout(function () {
+                                if (optin_js_config.optin_type === 'lightbox') {
+                                    $.MoModalBox.close();
+                                } else {
+                                    self._close_optin(message);
+                                }
+                                self.flag_optin_type_close(optin_js_config, optin_js_config.optin_type);
+                            }, 0);
+                        }
+                        return true;
+                    }
+
                     e.preventDefault();
                     var optin_container = $(this).parents('.moOptinForm');
 
@@ -178,7 +246,8 @@ var mailoptin_optin = {
                             window.location.reload();
                         }
                     } else {
-                        console.warn('something went wrong.');
+                        // An action added by an add-on (Premium: "Add product to cart") is theirs to run.
+                        $(document.body).trigger('moOptinCtaAction', [optin_js_config.cta_action, optin_container, optin_js_config, $optin_uuid]);
                     }
                     return false;
                 });
@@ -233,6 +302,60 @@ var mailoptin_optin = {
         return optin_config.x_page_views_status === true &&
             optin_config.x_page_views_condition !== undefined &&
             optin_config.x_page_views_value !== undefined;
+    },
+
+    /**
+     * Is the "when the visitor goes idle" rule active?
+     *
+     * @param {object} optin_config
+     * @returns {boolean}
+     */
+    is_idle_active: function (optin_config) {
+        return optin_config.idle_status === true && optin_config.idle_value > 0;
+    },
+
+    /**
+     * Call back once the visitor has done nothing (no mouse, scroll, key or touch) for the given seconds.
+     * Time with the tab in the background doesn't count: they aren't there to see it.
+     *
+     * @param {number} seconds
+     * @param {function} callback
+     */
+    on_idle: function (seconds, callback) {
+        // Each watcher has its own event namespace, so stopping one leaves the others listening.
+        $.MailOptin.idleWatchers = ($.MailOptin.idleWatchers || 0) + 1;
+        var ns = '.moIdle' + $.MailOptin.idleWatchers, timer = null, done = false, last = Date.now();
+        var stop = function () {
+            done = true;
+            clearTimeout(timer);
+            $(window).off(ns);
+            $(document).off(ns);
+        };
+        // Activity only notes the time (cheap on every mousemove); the timer checks it when it fires.
+        var arm = function (ms) {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                if (done || document.hidden) return;
+                var idle_for = Date.now() - last;
+                if (idle_for >= seconds * 1000) {
+                    stop();
+                    callback();
+                } else {
+                    arm(seconds * 1000 - idle_for);
+                }
+            }, ms);
+        };
+
+        $(window).on(['mousemove', 'keydown', 'scroll', 'touchstart', 'wheel'].join(ns + ' ') + ns, function () {
+            last = Date.now();
+        });
+        // Time in a background tab doesn't count: start again when they come back.
+        $(document).on('visibilitychange' + ns, function () {
+            if (done) return;
+            last = Date.now();
+            if (!document.hidden) arm(seconds * 1000);
+        });
+        arm(seconds * 1000);
     },
 
     /**
@@ -381,28 +504,14 @@ var mailoptin_optin = {
     },
 
     /**
-     * Run through display ruleset and determine which to display
+     * The visitor targeting rules (page views, cookie, referrer, new or returning, ad blocker, device):
+     * whether this campaign is for this visitor. Used before showing it, and for its floating tab.
      *
-     * @param {object} optin_config for lightbox, this is modal_options.  others is optin_js_config
-     * @param {string} optin_type type of optin
-     * @param {boolean} skip_display_checks skip any display/cookie check
+     * @param {object} optin_config
+     * @returns {boolean}
      */
-    rule_base_show_optin_form: function (optin_config, optin_type, skip_display_checks) {
+    passes_targeting: function (optin_config) {
         var self = mailoptin_optin;
-        // we did this becos 'this' inside setTimeout() will be wrong.
-        var _this = this;
-
-        // if customizer, display immediately.
-        if ($.MailOptin.is_customize_preview === true || optin_config.test_mode === true || skip_display_checks === true) {
-            return self.display_optin_form.call(_this, optin_config, optin_type, skip_display_checks);
-        }
-
-        // return if click launch status is activated for optin but the trigger isn't it.
-        if (self.is_var_defined(optin_config, 'click_launch_status') && optin_config.click_launch_status === true && skip_display_checks === false) return;
-
-        if (self.is_optin_visible(optin_config) === false) return;
-
-        if (self.split_test_cookie_test(optin_config) === false) return;
 
         if (self.is_after_x_page_views_active(optin_config)) {
             var x_page_views_condition = optin_config.x_page_views_condition;
@@ -411,19 +520,19 @@ var mailoptin_optin = {
             switch (x_page_views_condition) {
                 // for each condition, do the inverse return false if comparison is true.
                 case 'equals':
-                    if (self.get_page_views() !== x_page_views_value) return;
+                    if (self.get_page_views() !== x_page_views_value) return false;
                     break;
                 case 'more_than':
-                    if (self.get_page_views() <= x_page_views_value) return;
+                    if (self.get_page_views() <= x_page_views_value) return false;
                     break;
                 case 'less_than':
-                    if (self.get_page_views() >= x_page_views_value) return;
+                    if (self.get_page_views() >= x_page_views_value) return false;
                     break;
                 case 'at_least':
-                    if (self.get_page_views() < x_page_views_value) return;
+                    if (self.get_page_views() < x_page_views_value) return false;
                     break;
                 case 'not_more_than':
-                    if (self.get_page_views() > x_page_views_value) return;
+                    if (self.get_page_views() > x_page_views_value) return false;
                     break;
             }
         }
@@ -463,7 +572,7 @@ var mailoptin_optin = {
                 }
             }
 
-            if (!cookie_is_display) return;
+            if (!cookie_is_display) return false;
         }
 
         if (self.is_referrer_detection_rule_active(optin_config) === true) {
@@ -473,7 +582,7 @@ var mailoptin_optin = {
 
             var actual_referrer_url = document.referrer.toLowerCase() || false;
 
-            if (!actual_referrer_url) return;
+            if (!actual_referrer_url) return false;
 
             var display_type = optin_config.referrer_detection_settings;
             var referrers = optin_config.referrer_detection_values;
@@ -504,17 +613,17 @@ var mailoptin_optin = {
                 });
             }
 
-            if (!is_display) return;
+            if (!is_display) return false;
         }
 
         if (self.is_newvsreturn_rule_active(optin_config) === true) {
-            if (optin_config.newvsreturn_settings === "is_new" && self.visitor_is_returning()) return;
-            if (optin_config.newvsreturn_settings === "is_returning" && self.visitor_is_new()) return;
+            if (optin_config.newvsreturn_settings === "is_new" && self.visitor_is_returning()) return false;
+            if (optin_config.newvsreturn_settings === "is_returning" && self.visitor_is_new()) return false;
         }
 
         if (self.is_adblock_rule_active(optin_config) === true) {
-            if (optin_config.adblock_settings === "adblock_enabled" && self.isAdblockDisabled()) return;
-            if (optin_config.adblock_settings === "adblock_disabled" && self.isAdblockEnabled()) return;
+            if (optin_config.adblock_settings === "adblock_enabled" && self.isAdblockDisabled()) return false;
+            if (optin_config.adblock_settings === "adblock_disabled" && self.isAdblockEnabled()) return false;
         }
 
         // device detection rule
@@ -522,17 +631,49 @@ var mailoptin_optin = {
             var mdInstance = new MobileDetect(window.navigator.userAgent);
 
             if (optin_config.device_targeting_hide_mobile === true) {
-                if (mdInstance.phone()) return;
+                if (mdInstance.phone()) return false;
             }
 
             if (optin_config.device_targeting_hide_tablet === true) {
-                if (mdInstance.tablet()) return;
+                if (mdInstance.tablet()) return false;
             }
 
             if (optin_config.device_targeting_hide_desktop === true) {
-                if (!mdInstance.mobile()) return;
+                if (!mdInstance.mobile()) return false;
             }
         }
+
+        return true;
+    },
+
+    /**
+     * Run through display ruleset and determine which to display
+     *
+     * @param {object} optin_config for lightbox, this is modal_options.  others is optin_js_config
+     * @param {string} optin_type type of optin
+     * @param {boolean} skip_display_checks skip any display/cookie check
+     */
+    rule_base_show_optin_form: function (optin_config, optin_type, skip_display_checks) {
+        var self = mailoptin_optin;
+        // we did this becos 'this' inside setTimeout() will be wrong.
+        var _this = this;
+
+        // if customizer, display immediately.
+        if ($.MailOptin.is_customize_preview === true || optin_config.test_mode === true || skip_display_checks === true) {
+            return self.display_optin_form.call(_this, optin_config, optin_type, skip_display_checks);
+        }
+
+        // return if click launch status is activated for optin but the trigger isn't it.
+        if (self.is_var_defined(optin_config, 'click_launch_status') && optin_config.click_launch_status === true && skip_display_checks === false) return;
+
+        // A campaign opened only from its floating tab doesn't open on its own.
+        if (self.is_var_defined(optin_config, 'launcher') && optin_config.launcher.only === true && skip_display_checks === false) return;
+
+        if (self.is_optin_visible(optin_config) === false) return;
+
+        if (self.split_test_cookie_test(optin_config) === false) return;
+
+        if (self.passes_targeting(optin_config) === false) return;
 
         // WooCommerce added to cart
         if (self.is_var_defined(optin_config, 'wc_atc_activate_rule') && optin_config.wc_atc_activate_rule === true) {
@@ -590,6 +731,25 @@ var mailoptin_optin = {
             return;
         }
 
+        // When the visitor goes idle: on its own, or as well as the other rules (whichever comes first).
+        // Every rule then shows it through auto_show, once per page, and never after it was closed or
+        // they subscribed.
+        var auto_show = null;
+        if (self.is_idle_active(optin_config)) {
+            auto_show = function () {
+                if (_this.data('mo-auto-shown') === true || self.is_optin_visible(optin_config) === false) return;
+                _this.data('mo-auto-shown', true);
+
+                return self.display_optin_form.call(_this, optin_config, optin_type);
+            };
+
+            self.on_idle(optin_config.idle_value, auto_show);
+
+            if (self.is_after_x_seconds_active(optin_config) === false &&
+                self.is_after_x_scroll_active(optin_config) === false &&
+                self.is_exit_intent_active(optin_config) === false) return;
+        }
+
         var wait_seconds = optin_config.x_seconds_value * 1000;
         var optin_scroll_percent = optin_config.x_scroll_value;
 
@@ -603,7 +763,7 @@ var mailoptin_optin = {
                     if (pctScrolled >= optin_scroll_percent) {
                         $.moExitIntent('enable');
                         $(document).on("moExitIntent", function () {
-                            return self.display_optin_form.call(_this, optin_config, optin_type);
+                            return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
                         });
                     }
                 });
@@ -622,7 +782,7 @@ var mailoptin_optin = {
                 if (pctScrolled >= optin_scroll_percent) {
                     $.moExitIntent('enable');
                     $(document).on("moExitIntent", function () {
-                        return self.display_optin_form.call(_this, optin_config, optin_type);
+                        return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
                     });
                 }
             });
@@ -640,7 +800,7 @@ var mailoptin_optin = {
                     if (_this.hasClass('si-open') === false) {
                         if (pctScrolled >= optin_scroll_percent) {
                             _this.addClass('si-open');
-                            return self.display_optin_form.call(_this, optin_config, optin_type);
+                            return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
                         }
                     }
                 });
@@ -656,7 +816,7 @@ var mailoptin_optin = {
             setTimeout(function () {
                 $.moExitIntent('enable');
                 $(document).on("moExitIntent", function () {
-                    return self.display_optin_form.call(_this, optin_config, optin_type);
+                    return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
                 });
 
             }, wait_seconds);
@@ -667,7 +827,7 @@ var mailoptin_optin = {
         // If only "after_x_seconds" rules is active, run the below shebang
         if (self.is_after_x_seconds_active(optin_config) === true) {
             setTimeout(function () {
-                return self.display_optin_form.call(_this, optin_config, optin_type);
+                return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
             }, wait_seconds);
 
             return;
@@ -680,7 +840,7 @@ var mailoptin_optin = {
                 if (_this.hasClass('si-open') === false) {
                     if (pctScrolled >= optin_scroll_percent) {
                         _this.addClass('si-open');
-                        return self.display_optin_form.call(_this, optin_config, optin_type);
+                        return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
                     }
                 }
             });
@@ -692,13 +852,13 @@ var mailoptin_optin = {
         if (self.is_exit_intent_active(optin_config)) {
             $.moExitIntent('enable');
             $(document).on("moExitIntent", function () {
-                return self.display_optin_form.call(_this, optin_config, optin_type);
+                return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
             });
 
             return;
         }
 
-        return self.display_optin_form.call(_this, optin_config, optin_type);
+        return auto_show ? auto_show() : self.display_optin_form.call(_this, optin_config, optin_type);
     },
 
     /**
@@ -708,22 +868,40 @@ var mailoptin_optin = {
      * @param {string} optin_type
      * @param {boolean} skip_display_checks
      */
-    display_optin_form: function (optin_config, optin_type, skip_display_checks) {
+    display_optin_form: function (optin_config, optin_type, skip_display_checks, gates_passed) {
         // bail if required parameter is undefined
         if (typeof optin_type === 'undefined' || typeof optin_type === 'undefined') return;
 
         var self = mailoptin_optin;
+        var _this = this;
 
         // do cookie checking if we are not in customizer mode and not test mode is active.
         if ($.MailOptin.is_customize_preview === false && optin_config.test_mode === false && skip_display_checks !== true) {
             if (self.is_optin_visible(optin_config) === false) return;
 
             if (self.split_test_cookie_test(optin_config) === false) return;
+
+            // Add-ons' last say, e.g. checks that need the visitor's cart on a cached page.
+            if (gates_passed === true) {
+                // While the gate waited, another bar or slide-in may have taken this position.
+                if ((optin_type === 'bar' || optin_type === 'slidein') && self.is_flag_optin_type_active(optin_config, optin_type)) return;
+            } else {
+                var gate = self.display_gate(optin_config, optin_type);
+
+                if (gate === false) return;
+
+                if (gate !== true) {
+                    gate.done(function (show) {
+                        if (show === true) self.display_optin_form.call(_this, optin_config, optin_type, skip_display_checks, true);
+                    });
+                    return;
+                }
+            }
         }
 
         if (optin_type !== undefined && optin_type === 'lightbox') {
             // trigger optin show event.
-            $(document.body).on($.MoModalBox.OPEN, function (e, elm, optin_config) {
+            $(document.body).off($.MoModalBox.OPEN + '.moShow').on($.MoModalBox.OPEN + '.moShow', function (e, elm, optin_config) {
                 $(this).trigger('moOptin:show', [optin_config.optin_uuid, optin_config, optin_type]);
             });
 
@@ -828,6 +1006,44 @@ var mailoptin_optin = {
             var slidein_position = optin_config.slidein_position;
             $.MailOptin['isActiveMOSlidein_' + slidein_position] = false;
         }
+    },
+
+    /**
+     * Ask the display gates add-ons register whether a campaign may show. A gate is a function
+     * (optin_config, optin_type) returning true, false or a jQuery promise of true/false. Add-ons push
+     * gates onto window.mailoptin_display_gates, so the order the scripts load in doesn't matter.
+     *
+     * @returns {boolean|object} true, false, or a promise of true/false when a gate needs to wait.
+     */
+    display_gate: function (optin_config, optin_type) {
+        var gates = window.mailoptin_display_gates || [], pending = [], i, result;
+
+        for (i = 0; i < gates.length; i++) {
+            if (typeof gates[i] !== 'function') continue;
+
+            try {
+                result = gates[i](optin_config, optin_type);
+            } catch (e) {
+                // A broken gate never hides a campaign.
+                continue;
+            }
+
+            if (result === false) return false;
+            if (result && typeof result.then === 'function') pending.push(result);
+        }
+
+        if (pending.length === 0) return true;
+
+        var deferred = $.Deferred();
+
+        $.when.apply($, pending).then(function () {
+            deferred.resolve($.inArray(false, Array.prototype.slice.call(arguments)) === -1);
+        }, function () {
+            // A gate that failed (a network error, say) doesn't hide the campaign.
+            deferred.resolve(true);
+        });
+
+        return deferred.promise();
     },
 
     is_flag_optin_type_active: function (optin_config, optin_type) {
@@ -1009,7 +1225,8 @@ var mailoptin_optin = {
                     _mo_timestamp: $('input#' + $optin_css_id + '_honeypot_timestamp').val(),
                     user_agent: navigator.userAgent,
                     conversion_page: window.location.href,
-                    referrer: document.referrer || ""
+                    referrer: document.referrer || "",
+                    _mo_tz: $.MailOptin.visit_data().tz
                 });
 
                 self.addProcessingOverlay.call(optin_container);
@@ -1058,6 +1275,94 @@ var mailoptin_optin = {
      * overlay over optin lighbox/modal that shows spinner and success message.
      *
      */
+    /**
+     * Spin to win: turn the wheel to the slice the site drew (never chosen here), then put the prize where
+     * the form was. Text goes in with .text(), so nothing from the response is read as HTML.
+     *
+     * @param {object} container the campaign
+     * @param {object} wheel the prize: slice, type, label, code, url, button, text, cart_token, emailed, already
+     */
+    wheel_result: function (container, wheel, email) {
+        var self = this, $c = $(container), $dial = $c.find('.mo-wheel-dial').first(), $rotor = $dial.find('.mo-wheel-rotor');
+        var $form = $c.find('.mo-wheel-form').first(), $result = $c.find('.mo-wheel-result').first();
+
+        var show = function () {
+            // The box is a live region that was always there, so its new text is read out; focus moves to it.
+            $result.empty().append(self.wheel_result_html(wheel, $c)).addClass('mo-wheel-result-on');
+            $form.hide();
+            $result.trigger('focus');
+            if (wheel.cart_token) self.wheel_apply(wheel.cart_token, $result, email);
+        };
+
+        if (wheel.already || wheel.slice === null || wheel.slice === undefined || !$rotor.length) return show();
+
+        var n = parseInt($dial.data('slices'), 10) || 1, pointer = parseInt($dial.data('pointer'), 10) || 0, step = 360 / n;
+        // Five full turns, then the slice's middle under the pointer, a little off-centre so it looks natural.
+        var jitter = (Math.random() - 0.5) * step * 0.6;
+        var target = 360 * 5 + pointer - wheel.slice * step + jitter;
+        var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var duration = reduced ? 400 : 4800;
+
+        $c.find('.mo-optin-form-submit-button').prop('disabled', true);
+        $rotor.css({transition: 'transform ' + duration + 'ms cubic-bezier(.12,.75,.15,1)', transform: 'rotate(' + target + 'deg)'});
+
+        setTimeout(show, duration + 350);
+    },
+
+    wheel_result_html: function (wheel, $c) {
+        var $box = $('<div class="mo-wheel-result-inner"></div>');
+        var add = function (tag, cls, text) {
+            if (!text) return null;
+            return $('<' + tag + '>').addClass(cls).text(text).appendTo($box);
+        };
+
+        if (wheel.already) {
+            add('div', 'mo-wheel-result-title', wheel.message);
+            return $box;
+        }
+
+        if (wheel.type === 'none' || !wheel.type) {
+            add('div', 'mo-wheel-result-title', wheel.title);
+            add('p', '', wheel.text);
+            return $box;
+        }
+
+        add('div', 'mo-wheel-eyebrow', wheel.win_label);
+        add('div', 'mo-wheel-result-title', wheel.type === 'link' ? wheel.title : wheel.label);
+        add('p', '', wheel.text);
+
+        if (wheel.code) {
+            var $prize = $('<div class="mo-wheel-prize"></div>').appendTo($box);
+            $('<span class="mo-wheel-code"></span>').text(wheel.code).appendTo($prize);
+            $('<button type="button" class="mo-wheel-copy"></button>').text(mailoptin_globals.wheel_copy || 'Copy')
+                .attr('data-code', wheel.code).attr('data-copied', mailoptin_globals.wheel_copied || 'Copied').appendTo($prize);
+        }
+
+        if (wheel.url && /^https?:\/\//i.test(wheel.url)) {
+            $('<a class="mo-wheel-action" target="_blank" rel="noopener"></a>').attr('href', wheel.url).text(wheel.button || wheel.url).appendTo($box);
+        }
+
+        var lines = [];
+        if (wheel.cart_token) lines.push(mailoptin_globals.wheel_in_cart || '');
+        if (wheel.emailed) lines.push(mailoptin_globals.wheel_emailed || '');
+        lines = $.grep(lines, function (l) { return l !== ''; });
+        if (lines.length) add('p', 'mo-wheel-check', lines.join(' ')).css('margin-top', '14px');
+
+        return $box;
+    },
+
+    /** Puts a won shop coupon (and a free product) in the cart, then refreshes the mini cart. */
+    wheel_apply: function (token, $result, email) {
+        $.post(mailoptin_globals.mailoptin_ajaxurl.toString().replace('%%endpoint%%', 'wheel_apply'), {token: token, email: email || ''}, function (res) {
+            if (res && res.success && res.data && res.data.applied) {
+                $(document.body).trigger('wc_fragment_refresh');
+            } else {
+                // Not in the cart after all: say so, rather than claim it is.
+                $result.find('.mo-wheel-check').text(mailoptin_globals.wheel_not_in_cart || '');
+            }
+        }, 'json');
+    },
+
     displaySuccessContent: function () {
         // display the success container div.
         this.find('.mo-optin-success-msg').show();
@@ -1130,10 +1435,18 @@ var mailoptin_optin = {
                 if (!$.isEmptyObject(response) && 'success' in response) {
                     if (response.success === true) {
 
-                        $(document.body).trigger('moOptinConversion', [optin_container, optin_js_config, optin_data]);
+                        $(document.body).trigger('moOptinConversion', [optin_container, optin_js_config, optin_data, response]);
 
                         // set cookie for this option conversion
                         self.set_cookie('success', optin_data.optin_uuid, optin_js_config);
+
+                        // A prize wheel: turn it to the prize the site drew, then show the prize.
+                        if (optin_js_config.is_wheel === true && response.wheel) {
+                            self.removeProcessingOverlay.call(optin_container);
+                            self.removeSpinner.call(optin_container);
+                            self.wheel_result(optin_container, response.wheel, optin_data.email);
+                            return;
+                        }
 
                         // do not include success icon if icon_close (close icon automatically attached to lightbox) is set to true.
                         // icon_close config is always false for none lightbox optin forms. see ./Core/src/OptinForms/AbstractOptinForm.php LN497
@@ -1679,6 +1992,304 @@ var mailoptin_optin = {
     },
 
     /**
+     * Two steps: a yes-or-no question first, then the form. It uses what every email form has (its
+     * headline, text, fields and submit button), so templates need nothing of their own: the question
+     * goes in the headline and text, the fields and note are hidden, and a copy of the submit button is
+     * the Yes button. Yes brings the form back as it was, with a progress bar on top.
+     */
+    init_twostep: function () {
+        var self = this;
+
+        $('.moOptinForm').each(function () {
+            var uuid = $(this).attr('id'), config = self.optin_js_config(uuid);
+
+            if (config && config.twostep) self.add_twostep($(this), uuid, config);
+        });
+    },
+
+    add_twostep: function ($optin, uuid, config) {
+        var t = config.twostep, preview = $.MailOptin.is_customize_preview === true;
+
+        if ($optin.data('mo-twostep')) return;
+
+        var $form = $optin.find('form.mo-optin-form').first(),
+            $fields = $form.find('.mo-optin-fields-wrapper').first(),
+            $submit = $form.find('.mo-optin-form-submit-button').first();
+
+        // Not a form this knows how to split: leave it as it is.
+        if (!$form.length || !$fields.length || !$submit.length) return;
+
+        $optin.data('mo-twostep', true);
+
+        if (!document.getElementById('mo-twostep-css')) {
+            $('head').append('<style id="mo-twostep-css">' +
+                '.mo-twostep-hidden{display:none!important}' +
+                '.mo-twostep-question{display:flex;flex-direction:column;align-items:center;gap:12px;margin:18px auto 6px;max-width:380px;width:100%;box-sizing:border-box}' +
+                '.mo-twostep-yes-holder{display:block!important;width:100%;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}' +
+                '.mo-twostep-yes-holder .mo-twostep-yes{display:block!important;width:100%!important;max-width:none!important;margin:0!important;float:none!important;position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;box-sizing:border-box;text-align:center;-webkit-appearance:none;appearance:none}' +
+                // The No link: quieter than Yes, still readable (4.5:1 on the template's own text colour), with a
+                // 44px tap target and a visible focus ring.
+                '.mo-twostep-no{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;box-sizing:border-box;font-size:14px;opacity:.8;text-decoration:underline!important;color:inherit;cursor:pointer;box-shadow:none!important}' +
+                '.mo-twostep-no:focus-visible{outline:2px solid currentColor;outline-offset:2px;opacity:1}' +
+                '.mo-twostep-yes:focus-visible{outline:2px solid var(--mo-twostep-ring,currentColor)!important;outline-offset:3px!important}' +
+                '.mo-twostep-progress{margin:0 0 16px;font-size:13px;font-weight:600;line-height:1.3;text-align:left;color:inherit}' +
+                '.mo-twostep-progress-labels{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;opacity:.8}' +
+                '.mo-twostep-progress-track{height:8px;border-radius:999px;background:rgba(127,127,127,.22);overflow:hidden}' +
+                '.mo-twostep-progress-fill{height:100%;width:50%;border-radius:999px}' +
+                '</style>');
+        }
+
+        // Computed colours resolve while a pop-up is still hidden, so this works before it shows.
+        var text_colour = function ($el) {
+            return $el.length ? window.getComputedStyle($el[0]).color : '';
+        };
+        var $headline = $form.find('.mo-optin-form-headline').first(),
+            $text = $form.find('.mo-optin-form-description').first(),
+            $hide = $fields.add($form.find('.mo-optin-form-note, .mo-optin-form-cta-button').not($fields.find('*'))),
+            // The template's own nodes, moved aside and put back on Yes, so their handlers and state survive.
+            saved = {headline: $headline.contents().detach(), text: $text.contents().detach()},
+            // The template's own text colour, for the No link and the progress labels: the form's colour
+            // can be dark on a dark template.
+            ink = text_colour($form.find('.mo-optin-form-description').first()) || text_colour($form.find('.mo-optin-form-headline').first()),
+            created_headline = false;
+
+        // Step 1: the question in the template's own headline and text.
+        if (!$headline.length) {
+            $headline = $('<div class="mo-optin-form-headline mo-twostep-title"></div>').prependTo($form);
+            created_headline = true;
+        }
+        $headline.text(t.question);
+        if ($text.length) {
+            if (t.text) $text.text(t.text); else $text.addClass('mo-twostep-hidden');
+        }
+
+        // Yes: a copy of the template's submit button, wearing its look. Many templates style the button by
+        // its id or its place in the form, which a copy can't keep, so the look is copied from the real one.
+        // The copy drops the submit button's class, so nothing that binds to submit buttons (reCAPTCHA v3,
+        // the Customizer's label preview) treats Yes as one. The click stops at Yes, so it never submits.
+        var look = {}, cs = window.getComputedStyle($submit[0]);
+        $.each(['background-color', 'background-image', 'color', 'font-family', 'font-size', 'font-weight', 'font-style',
+            'text-transform', 'letter-spacing', 'line-height', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+            'border-top', 'border-right', 'border-bottom', 'border-left', 'border-radius', 'box-shadow', 'text-shadow', 'height', 'min-height'], function (i, prop) {
+            look[prop] = cs.getPropertyValue(prop);
+        });
+
+        $hide.addClass('mo-twostep-hidden');
+
+        var $yes = $submit.clone(false).removeAttr('id').removeAttr('name').removeAttr('style').attr('type', 'button')
+            .removeClass('mo-optin-form-submit-button').addClass('mo-twostep-yes');
+        if ($yes.is('input')) $yes.val(t.yes); else $yes.text(t.yes);
+        $.each(look, function (prop, value) {
+            if (value !== '') $yes[0].style.setProperty(prop, value, 'important');
+        });
+        $yes[0].style.setProperty('cursor', 'pointer', 'important');
+        // At least a 44px tap target.
+        if (!(parseFloat(look['min-height']) >= 44)) $yes[0].style.setProperty('min-height', '44px', 'important');
+
+        // The focus ring takes the button's own colour, so it shows against the background around it.
+        var $question = $('<div class="mo-twostep-question"></div>').css('--mo-twostep-ring', look['background-color'] || '')
+            .append($('<div class="mo-twostep-yes-holder"></div>').append($yes));
+
+        if (t.no) {
+            $question.append($('<a href="#" rel="moOptin:close" class="mo-twostep-no"></a>').text(t.no).css('color', ink || ''));
+        }
+
+        // Where the form sits: every template already places its fields in the right column or row.
+        $fields.before($question);
+
+        var observer = null;
+
+        // keep_current: the Customizer preview changed the headline or text, so keep that, not the saved copy.
+        var to_form = function (keep_current) {
+            if (observer) observer.disconnect();
+            $question.remove();
+            if (keep_current !== true) {
+                if (created_headline) $headline.remove(); else $headline.empty().append(saved.headline);
+                if ($text.length) $text.empty().append(saved.text);
+            }
+            if ($text.length) $text.removeClass('mo-twostep-hidden');
+            $hide.removeClass('mo-twostep-hidden');
+
+            if (t.progress) {
+                var fill = window.getComputedStyle($submit[0]).backgroundColor;
+                if (!fill || fill === 'transparent' || fill === 'rgba(0, 0, 0, 0)') fill = '#1f7a4d';
+
+                var $bar = $('<div class="mo-twostep-progress" role="progressbar" aria-valuemin="0" aria-valuemax="2" aria-valuenow="2"></div>').attr('aria-valuetext', t.step).css('color', ink || '')
+                    .append($('<div class="mo-twostep-progress-labels"></div>').append($('<span></span>').text(t.almost), $('<span></span>').text(t.step)))
+                    .append($('<div class="mo-twostep-progress-track"></div>').append($('<div class="mo-twostep-progress-fill"></div>').css('background', fill)));
+                $form.prepend($bar);
+            }
+
+            // A pop-up re-centres for its new height.
+            $(window).trigger('resize');
+
+            setTimeout(function () {
+                var $email = $form.find('.mo-optin-form-email-field:visible').first();
+                if (!$email.length) $email = $form.find('input:visible').not('[type=hidden]').first();
+                $email.trigger('focus');
+            }, 60);
+        };
+
+        // In the Customizer preview, editing the headline or text shows the form, with the edit in place.
+        if (preview && window.MutationObserver) {
+            observer = new MutationObserver(function () {
+                to_form(true);
+            });
+            $headline.add($text).each(function () {
+                observer.observe(this, {childList: true, characterData: true, subtree: true});
+            });
+        }
+
+        $yes.on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $optin.data('mo-twostep-said-yes', true);
+            to_form();
+
+            if (!preview) $.MailOptin.track_twostep_yes(uuid, 'yes');
+
+            $(document.body).trigger('moOptinTwoStepYes', [uuid, config]);
+        });
+
+        // A subscription after Yes: counted, for "said yes; subscribed".
+        $(document.body).on('moOptinConversion', function (e, container) {
+            if (preview || !$optin.data('mo-twostep-said-yes')) return;
+            if ($(container).is('#' + uuid) || $(container).closest('#' + uuid).length) {
+                $optin.data('mo-twostep-said-yes', false);
+                $.MailOptin.track_twostep_yes(uuid, 'done');
+            }
+        });
+    },
+
+    /**
+     * Floating tabs: a button or tab that opens its campaign (pop-up, slide-in or bar). It hides while
+     * the campaign is open, comes back when it closes, and goes once they subscribe.
+     */
+    init_launchers: function () {
+        var self = this;
+
+        $('.moOptinForm').each(function () {
+            var uuid = $(this).attr('id'), config = self.optin_js_config(uuid);
+
+            if (config && config.launcher && $.inArray(config.optin_type, ['lightbox', 'slidein', 'bar']) !== -1) {
+                self.add_launcher($(this), uuid, config);
+            }
+        });
+    },
+
+    add_launcher: function ($optin, uuid, config) {
+        var self = this, l = config.launcher, preview = $.MailOptin.is_customize_preview === true;
+
+        if ($('.mo-launcher[data-optin-uuid="' + uuid + '"]').length) return;
+
+        if (!document.getElementById('mo-launcher-css')) {
+            $('head').append('<style id="mo-launcher-css">' +
+                '.mo-launcher{position:fixed;z-index:99998;margin:0;border:0;cursor:pointer;font:600 15px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:0;text-transform:none;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .2s,visibility .2s;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}' +
+                '.mo-launcher:focus-visible{outline:3px solid #2271b1;outline-offset:2px}' +
+                '.mo-launcher-hidden{opacity:0;visibility:hidden;pointer-events:none}' +
+                '.mo-launcher-button{padding:12px 20px;border-radius:999px}' +
+                '.mo-launcher-button.mo-launcher-bottom-right{right:24px;bottom:24px}.mo-launcher-button.mo-launcher-bottom-left{left:24px;bottom:24px}' +
+                '.mo-launcher-button.mo-launcher-right{right:24px;top:50%;transform:translateY(-50%)}.mo-launcher-button.mo-launcher-left{left:24px;top:50%;transform:translateY(-50%)}' +
+                '.mo-launcher-tab{padding:10px 18px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.15)}' +
+                '.mo-launcher-tab.mo-launcher-bottom-right{right:24px;bottom:0;border-radius:6px 6px 0 0}.mo-launcher-tab.mo-launcher-bottom-left{left:24px;bottom:0;border-radius:6px 6px 0 0}' +
+                '.mo-launcher-tab.mo-launcher-right,.mo-launcher-tab.mo-launcher-left{top:50%;writing-mode:vertical-rl;transform:translateY(-50%) rotate(180deg);max-height:calc(100vh - 32px);max-width:none}' +
+                '.mo-launcher-tab.mo-launcher-right{right:0;border-radius:0 6px 6px 0}.mo-launcher-tab.mo-launcher-left{left:0;border-radius:6px 0 0 6px}' +
+                '.mo-launcher-bar-top,.mo-launcher-bar-bottom{right:24px;padding:8px 16px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.15)}' +
+                '.mo-launcher-bar-top{top:0;border-radius:0 0 6px 6px}.mo-launcher-bar-bottom{bottom:0;border-radius:6px 6px 0 0}' +
+                '.admin-bar .mo-launcher-bar-top{top:32px}' +
+                '@media (max-width:782px){.admin-bar .mo-launcher-bar-top{top:46px}}' +
+                '@media (max-width:600px){.admin-bar .mo-launcher-bar-top{top:0}}' +
+                '@media (max-width:767px){.mo-launcher-no-mobile{display:none!important}.mo-launcher-button.mo-launcher-bottom-right{right:16px;bottom:16px}.mo-launcher-button.mo-launcher-bottom-left{left:16px;bottom:16px}}' +
+                '</style>');
+        }
+
+        var place = config.optin_type === 'bar' ? 'mo-launcher-bar-' + (config.bar_position === 'bottom' ? 'bottom' : 'top') :
+            'mo-launcher-' + (l.style === 'tab' ? 'tab' : 'button') + ' mo-launcher-' + String(l.position || 'bottom_right').replace('_', '-');
+
+        // Only where the campaign itself could show: the same visitor targeting rules.
+        if (!preview && self.passes_targeting(config) === false) return;
+
+        var $tab = $('<button type="button"></button>')
+            .addClass('mo-launcher mo-launcher-hidden ' + place + (l.mobile === false ? ' mo-launcher-no-mobile' : ''))
+            .attr('data-optin-uuid', uuid)
+            .attr('aria-haspopup', config.optin_type === 'lightbox' ? 'dialog' : null)
+            .attr('aria-controls', uuid)
+            .attr('aria-expanded', 'false')
+            .text(l.text)
+            .css({background: l.background, color: l.color});
+
+        $tab.appendTo(document.body);
+
+        // In the Customizer the campaign stays open: the tab sits on top to be seen, and a bar's tab
+        // just past the bar so it doesn't cover the bar's close button.
+        if (preview) {
+            $tab.css('z-index', 2147483647);
+            if (config.optin_type === 'bar') $tab.css(config.bar_position === 'bottom' ? 'bottom' : 'top', $optin.find('.mo-optin-form-wrapper').first().outerHeight() || 0);
+        }
+
+        // Campaigns that open on load are already showing when their tab is made.
+        var open = $optin.is(':visible'), closed_here = false;
+        var subscribed = function () {
+            if (config.global_success_cookie > 0 && Cookies.get('mo_global_success_cookie')) return true;
+            if (Cookies.get('mo_success_' + uuid)) return true;
+            // A split test: subscribing to any variant counts.
+            var found = false;
+            $.each(config.split_test_variants || {}, function (id, variant) {
+                if (variant && variant.optin_uuid && Cookies.get('mo_success_' + variant.optin_uuid)) found = true;
+            });
+            return found;
+        };
+        var refresh = function () {
+            // The Customizer shows it, so its look can be set.
+            var show = preview || (!open && !subscribed() && (l.when !== 'after_close' || closed_here || !!Cookies.get('mo_' + uuid)));
+            $tab.toggleClass('mo-launcher-hidden', !show).attr('aria-expanded', open ? 'true' : 'false');
+        };
+
+        var opened_from_tab = false;
+
+        $tab.on('click', function (e) {
+            e.preventDefault();
+            if (preview) return;
+            opened_from_tab = true;
+            $('#' + uuid + '.mo-optin-form-lightbox, #' + uuid + '.mo-optin-form-bar, #' + uuid + '.mo-optin-form-slidein').mailoptin(true);
+        });
+
+        // Slide-ins and bars say moOptin:show on the campaign; pop-ups say moOptin:open there.
+        $optin.on('moOptin:show moOptin:open', function () {
+            open = true;
+            refresh();
+            // Opened from the tab: move the keyboard into it.
+            if (opened_from_tab) {
+                setTimeout(function () {
+                    var target = $optin.find('input:visible, a[href]:visible, button:visible').first();
+                    if (target.length) target.trigger('focus');
+                }, 450);
+            }
+        });
+
+        $optin.on('moOptin:close', function () {
+            open = false;
+            closed_here = true;
+            // Closing sets its cookies just after: look again then, and give the keyboard back to the tab.
+            setTimeout(refresh, 50);
+            // After the pop-up has finished closing (it moves focus itself as it goes).
+            if (opened_from_tab) {
+                setTimeout(function () {
+                    if (!$tab.hasClass('mo-launcher-hidden')) $tab.trigger('focus');
+                }, 450);
+            }
+            opened_from_tab = false;
+        });
+
+        $(document.body).on('moOptinConversion', function (e, container) {
+            if ($(container).is('#' + uuid) || $(container).closest('#' + uuid).length) $tab.remove();
+        });
+
+        refresh();
+    },
+
+    /**
      * Initialize class
      */
     init: function () {
@@ -1691,7 +2302,10 @@ var mailoptin_optin = {
             _this.eventSubscription();
             _this.mailoptin_jq_plugin();
             _this.is_scheduled_for_display();
+            // Before they show: a two-step campaign opens on its question.
+            _this.init_twostep();
             _this.initOptinForms();
+            _this.init_launchers();
             _this.optin_conversion();
             _this.init_date_picker();
 
@@ -1707,3 +2321,52 @@ mcGroupsValidation();
 recaptcha();
 
 mailoptin_optin.init();
+
+
+// Message templates: the Copy button next to a discount code.
+$(function () {
+    $(document).on('click', '.mo-wheel-copy', function (e) {
+        e.preventDefault();
+        var button = $(this), code = String(button.attr('data-code') || ''), label = button.text();
+        var done = function () {
+            button.text(button.attr('data-copied') || label);
+            setTimeout(function () { button.text(label); }, 2000);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(done, function () {});
+        } else {
+            var $t = $('<textarea readonly style="position:absolute;left:-9999px"></textarea>').val(code).appendTo('body');
+            $t[0].select();
+            try { document.execCommand('copy'); done(); } catch (err) {}
+            $t.remove();
+        }
+    });
+
+    $(document).on('click', '.mo-msg-copy', function (e) {
+        e.preventDefault();
+        var button = $(this), code = String(button.data('mo-msg-copy') || ''), label = button.text();
+
+        // On a code template, copying the code is the click: counted once per message per page.
+        var message = button.parents('.moOptinForm'), uuid = message.attr('id');
+        if (uuid && !message.data('mo-msg-counted') && !$.MailOptin.is_customize_preview) {
+            message.data('mo-msg-counted', true);
+            var config = mailoptin_optin.optin_js_config(uuid);
+            if (config) mailoptin_optin.set_cookie('success', uuid, config);
+            $.MailOptin.track_message_click(uuid);
+        }
+
+        var done = function () {
+            button.text(button.data('copied') || label);
+            setTimeout(function () { button.text(label); }, 2000);
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(done, function () {});
+        } else {
+            var field = $('<input type="text">').val(code).css({position: 'fixed', top: '-100px'}).appendTo('body');
+            field[0].select();
+            try { document.execCommand('copy'); done(); } catch (err) {}
+            field.remove();
+        }
+    });
+});

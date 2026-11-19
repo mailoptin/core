@@ -919,7 +919,9 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                  $this->is_cookie_targeting_rule_active() ||
                  $this->is_device_targeting_active() ||
                  $this->is_x_page_views_rule_active() ||
-                 OCR::is_split_test_optin($this->optin_campaign_id)
+                 OCR::is_split_test_optin($this->optin_campaign_id) ||
+                 // An add-on that decides in the browser whether it shows (a display gate in mailoptin.js).
+                 apply_filters('mailoptin_optin_starts_hidden', false, $this->optin_campaign_id, $this->optin_campaign_type)
              )
         ) {
             $is_hidden_style = 'display: none';
@@ -1274,6 +1276,35 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         /** exit intent display rule */
         if ($exit_intent_status === true && ! empty($exit_intent_status)) {
             $data['exit_intent_status'] = $exit_intent_status;
+        }
+
+        // Premium display rules: when the visitor goes idle, and a floating tab that opens the campaign.
+        if (apply_filters('mailoptin_premium_display_rules', defined('MAILOPTIN_DETACH_LIBSODIUM'))) {
+            // An untouched slider isn't saved: its 30 seconds.
+            $idle_value = $this->get_customizer_value('idle_value');
+            $idle_value = '' === (string)$idle_value || null === $idle_value ? 30 : absint($idle_value);
+
+            if ($this->get_customizer_value('idle_status') === true && $idle_value > 0) {
+                $data['idle_status'] = true;
+                $data['idle_value']  = min(600, max(5, $idle_value));
+            }
+
+            if ($this->get_customizer_value('launcher_status') === true && in_array($data['optin_type'], ['lightbox', 'slidein', 'bar'], true)) {
+                $text = trim(sanitize_text_field((string)$this->get_customizer_value('launcher_text')));
+
+                $data['launcher'] = [
+                    'text'       => '' !== $text ? $text : __('Get 10% off', 'mailoptin'),
+                    'style'      => 'tab' === $this->get_customizer_value('launcher_style') ? 'tab' : 'button',
+                    'position'   => in_array($this->get_customizer_value('launcher_position'), ['bottom_right', 'bottom_left', 'right', 'left'], true) ? $this->get_customizer_value('launcher_position') : 'bottom_right',
+                    'background' => sanitize_hex_color((string)$this->get_customizer_value('launcher_background')) ?: '#1f7a4d',
+                    'color'      => sanitize_hex_color((string)$this->get_customizer_value('launcher_color')) ?: '#ffffff',
+                    'only'       => $this->get_customizer_value('launcher_only') === true,
+                    'mobile'     => $this->get_customizer_value('launcher_mobile') !== false,
+                ];
+
+                // Opened only from the tab: the tab is always there, or nothing could open it.
+                $data['launcher']['when'] = ! $data['launcher']['only'] && 'after_close' === $this->get_customizer_value('launcher_when') ? 'after_close' : 'always';
+            }
         }
 
         /** after conversion / success actions */

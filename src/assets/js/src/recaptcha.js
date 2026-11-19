@@ -10,7 +10,7 @@ export default function () {
             if ($(el).attr('data-type') === 'v3') {
                 var $form = $(this).parents('form.mo-optin-form');
 
-                $form.find('input.mo-optin-form-submit-button').on('click', function (e) {
+                $form.find('input.mo-optin-form-submit-button').not('.mo-twostep-yes').on('click', function (e) {
                     e.preventDefault();
                     recaptchaApi.ready(function () {
                         recaptchaApi.execute($site_key, {action: 'form'}).then(function (token) {
