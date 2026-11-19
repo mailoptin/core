@@ -213,6 +213,7 @@ class Automations_Page
         <?php if (self::has_cart_automation($all)) : ?>
             <a href="<?php echo esc_url(self::url(['screen' => 'carts'])); ?>" class="page-title-action"><?php esc_html_e('Abandoned carts', 'mailoptin'); ?></a>
         <?php endif; ?>
+        <br class="clear">
 
         <?php if (empty($all)) : ?>
             <div class="mo-auto-empty">
@@ -349,6 +350,7 @@ class Automations_Page
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('New automation', 'mailoptin'); ?></h1>
         <a href="<?php echo esc_url(self::url()); ?>" class="page-title-action"><?php esc_html_e('Back to Automations', 'mailoptin'); ?></a>
+        <br class="clear">
 
         <?php $recipes = Recipes::all(); if ( ! empty($recipes)) : ?>
             <h2 class="mo-auto-h"><?php esc_html_e('Start from a recipe', 'mailoptin'); ?></h2>
@@ -1083,6 +1085,7 @@ class Automations_Page
         ?>
         <h1 class="wp-heading-inline"><?php esc_html_e('Abandoned carts', 'mailoptin'); ?></h1>
         <a href="<?php echo esc_url(self::url()); ?>" class="page-title-action"><?php esc_html_e('Back to Automations', 'mailoptin'); ?></a>
+        <br class="clear">
         <ul class="subsubsub">
             <?php
             $links = [];
