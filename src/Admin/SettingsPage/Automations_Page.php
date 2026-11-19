@@ -401,6 +401,8 @@ class Automations_Page
         $live    = Repo::STATUS_LIVE === $automation['status'];
         $steps   = Repo::steps($automation_id);
         $reasons = Repo::stop_reasons($automation_id);
+        $stats   = Repo::automation_stats($automation_id);
+        $locked  = $live || ! empty($stats['active']);
 
         self::$email_info = [];
 
@@ -429,9 +431,11 @@ class Automations_Page
                                 <tr>
                                     <th scope="row"><label for="mo-auto-trigger"><?php esc_html_e('Trigger', 'mailoptin'); ?></label></th>
                                     <td>
-                                        <?php if ($live) : ?>
+                                        <?php if ($locked) : ?>
                                             <strong><?php echo esc_html($trigger ? $trigger->label() : $automation['trigger_id']); ?></strong>
-                                            <p class="description"><?php esc_html_e('Stop the automation to choose another trigger.', 'mailoptin'); ?></p>
+                                            <p class="description"><?php echo $live
+                                                    ? esc_html__('Stop the automation to choose another trigger.', 'mailoptin')
+                                                    : esc_html__('People are still part-way through it, so the trigger can\'t change. Duplicate it to use another trigger.', 'mailoptin'); ?></p>
                                         <?php else : ?>
                                             <select id="mo-auto-trigger" name="trigger_id" data-autosave>
                                                 <?php if ( ! $trigger || ! $trigger->is_available()) : // Kept as it is until another is chosen. ?>
@@ -481,9 +485,9 @@ class Automations_Page
                         <div class="inside">
                             <p><?php echo $live ? UI::badge(__('Live', 'mailoptin'), 'ok') : UI::badge(__('Draft', 'mailoptin')); ?></p>
                             <p class="description"><?php echo $live
-                                    ? esc_html__('Changes apply straight away, also to people part-way through. Emails already sent are never sent again.', 'mailoptin')
+                                    ? esc_html__('Changes apply to people part-way through from their next step; someone already in a wait keeps the time it was set for. Emails already sent are never sent again.', 'mailoptin')
                                     : esc_html__('Nothing is sent while it is a draft.', 'mailoptin'); ?></p>
-                            <?php echo self::report_html($automation, $reasons); ?>
+                            <?php echo self::report_html($automation, $reasons, $stats); ?>
                             <?php if (WooCartAbandoned::ID === $automation['trigger_id']) echo self::recovery_html($automation['id']); ?>
                         </div>
                         <div class="mo-auto-actions">
@@ -794,7 +798,7 @@ class Automations_Page
         }
 
         echo '</ol>';
-        echo '<div class="mo-auto-adds">';
+        echo '<div class="mo-auto-adds" id="mo-auto-steps-end">';
         echo '<button class="button" name="mo_automation_action" value="add_wait">' . esc_html__('+ Wait', 'mailoptin') . '</button> ';
         // With more than one template, it asks which first (a dialog below the form).
         echo '<button class="button" name="mo_automation_action" value="add_email" data-new-email>' . esc_html__('+ Email', 'mailoptin') . '</button> ';
@@ -832,9 +836,9 @@ class Automations_Page
                . '</div>';
     }
 
-    protected static function report_html($automation, $reasons = [])
+    protected static function report_html($automation, $reasons = [], $stats = null)
     {
-        $stats = Repo::automation_stats($automation['id']);
+        $stats = null === $stats ? Repo::automation_stats($automation['id']) : $stats;
 
         if ( ! $stats['active'] && ! $stats['sent_30'] && empty($reasons)) return '';
 
@@ -899,7 +903,8 @@ class Automations_Page
                     if ( ! empty($step['settings']['paused'])) {
                         $sentence = sprintf(__('%1$s%2$s, they pass by email %3$d, which is paused.', 'mailoptin'), $when, $cond, $n);
                     } elseif ( ! $exists) {
-                        $sentence = sprintf(__('%1$s%2$s, they reach email %3$d, which was deleted, and leave the automation.', 'mailoptin'), $when, $cond, $n);
+                        $sentences[] = self::sentence_case(sprintf(__('%1$s%2$s, they reach email %3$d, which was deleted, and leave the automation.', 'mailoptin'), $when, $cond, $n));
+                        break 2;
                     } else {
                         $sentence = sprintf(__('%1$s%2$s, they get %3$s.', 'mailoptin'), $when, $cond, $email);
                     }
@@ -1276,6 +1281,8 @@ class Automations_Page
 
         switch ($action) {
             case 'stop':
+                // Saved first, as every builder button does, so nothing typed is lost.
+                if (isset($_POST['name'])) self::save_form($automation);
                 Repo::update($automation_id, ['status' => Repo::STATUS_DRAFT]);
                 self::redirect(self::edit_url($automation_id, ['mo_notice' => 'stopped']));
 
@@ -1411,6 +1418,11 @@ class Automations_Page
     /**
      * Save the builder form: name, trigger and its settings, audience, sending hours and steps.
      */
+    protected static function active_runs($automation_id)
+    {
+        return (int)(Repo::automation_stats($automation_id)['active'] ?? 0);
+    }
+
     protected static function save_form($automation)
     {
         $automation_id = $automation['id'];
@@ -1421,7 +1433,10 @@ class Automations_Page
         if (Repo::STATUS_LIVE !== $automation['status'] && isset($_POST['trigger_id'])) {
             $new = Triggers::get_instance()->get(sanitize_key(wp_unslash($_POST['trigger_id'])));
 
-            if ($new && $new->is_available() && $new->id() !== $automation['trigger_id']) {
+            if ($new && $new->id() !== $automation['trigger_id'] && self::active_runs($automation_id)) {
+                // Their saved details belong to the old trigger; its checks and placeholders would misread them.
+                self::warn(__('People are still part-way through this automation, so its trigger can\'t change. Duplicate it to start one with another trigger.', 'mailoptin'));
+            } elseif ($new && $new->is_available() && $new->id() !== $automation['trigger_id']) {
                 $data['trigger_id'] = $new->id();
                 $trigger            = $new;
                 $_POST['trigger']   = [];
@@ -1580,7 +1595,7 @@ class Automations_Page
                 return __('Choose what each "Only if" step checks first.', 'mailoptin');
             }
 
-            if (Repo::STEP_EMAIL !== $step['type']) continue;
+            if (Repo::STEP_EMAIL !== $step['type'] || ! empty($step['settings']['paused'])) continue;
 
             $email_id = absint($step['settings']['email_campaign_id'] ?? 0);
 
@@ -1797,6 +1812,12 @@ jQuery(function ($) {
     $(document).on('click', '[data-confirm]', function (e) {
         if (!window.confirm(this.getAttribute('data-confirm'))) e.preventDefault();
     });
+    // A second click while the first is on its way would add a second email or copy.
+    $('form[method="post"]').on('submit', function (e) {
+        if (this.getAttribute('data-sent')) { e.preventDefault(); return; }
+        this.setAttribute('data-sent', '1');
+    });
+    $(window).on('pageshow', function () { $('[data-sent]').removeAttr('data-sent'); });
     $('[data-toggle]').each(function () {
         var box = this, target = $(this.getAttribute('data-toggle'));
         var sync = function () { target.toggle(box.checked); };

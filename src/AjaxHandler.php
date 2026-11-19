@@ -677,6 +677,9 @@ class AjaxHandler
             exit;
         }
 
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
+
         $optin_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);
 
@@ -694,6 +697,9 @@ class AjaxHandler
         if ( ! current_user_has_privilege()) {
             exit;
         }
+
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
 
         $email_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);

@@ -901,6 +901,14 @@ class Engine
             return __('The automation stopped for this person.', 'mailoptin');
         }
 
+        // Its plugin is off (WooCommerce deactivated): its checks can't be answered, so this one email
+        // is skipped and the run carries on, as process() waits rather than ending it.
+        if ( ! $context['trigger']->is_available()) {
+            Repo::update_run_step($context['run_step']['id'], ['status' => Repo::RUN_STEP_SKIPPED]);
+
+            return __("Skipped: the plugin this automation's trigger needs is not active.", 'mailoptin');
+        }
+
         try {
             $stop = self::stop_reason($run, $context['trigger']);
         } catch (\Throwable $e) {
@@ -949,11 +957,13 @@ class Engine
             '{{preferences}}' => $subscriber ? PreferenceCentre::url($subscriber) : '',
         ];
 
+        // The trigger's values (what a customer typed, such as a billing name) go in last, so a value
+        // that looks like a tag is never expanded.
         $fill = function ($text, $escape) use ($context, $person, $fields, $links) {
-            $text = self::replace_placeholders($text, $context['trigger'], $context['run'], $escape);
             $text = CampaignRenderer::replace_fallback_tags($text, $person, $escape, $fields);
+            $text = CampaignRenderer::replace_tags($text, $links, $escape);
 
-            return CampaignRenderer::replace_tags($text, $links, $escape);
+            return self::replace_placeholders($text, $context['trigger'], $context['run'], $escape);
         };
 
         // This person's cart, order or discount code (blocks drawn per person).
@@ -1080,28 +1090,49 @@ class Engine
     {
         if ($subscriber) return Tokens::unsubscribe_url($subscriber, 0, $campaign_log_id);
 
+        // Signed over the address, not the run: runs are pruned after 90 days, the link must keep working.
+        $email = strtolower(trim($run['email']));
+
         return add_query_arg([
-            'mo_auto_unsub' => $run['id'],
-            'mo_token'      => Tokens::make('automation_unsubscribe', [$run['id'], $run['email']]),
+            'mo_auto_unsub_e' => rtrim(strtr(base64_encode($email), '+/', '-_'), '='),
+            'mo_token'        => Tokens::make('automation_unsubscribe_email', [$email]),
         ], home_url('/'));
+    }
+
+    /**
+     * The address an unsubscribe link is for, or '' when the link isn't valid. Links sent before
+     * this change name the run instead, and work while the run exists.
+     */
+    protected static function unsubscribe_link_email()
+    {
+        $token = sanitize_text_field(wp_unslash($_GET['mo_token'] ?? ''));
+
+        if (isset($_GET['mo_auto_unsub_e'])) {
+            $email = strtolower(trim((string)base64_decode(strtr(sanitize_text_field(wp_unslash($_GET['mo_auto_unsub_e'])), '-_', '+/'), true)));
+
+            return is_email($email) && Tokens::check('automation_unsubscribe_email', [$email], $token) ? $email : '';
+        }
+
+        $run = Repo::get_run(absint($_GET['mo_auto_unsub'] ?? 0));
+
+        return $run && Tokens::check('automation_unsubscribe', [$run['id'], $run['email']], $token) ? $run['email'] : '';
     }
 
     public function unsubscribe_request()
     {
-        if ( ! isset($_GET['mo_auto_unsub'], $_GET['mo_token'])) return;
+        if ( ! isset($_GET['mo_token']) || ! (isset($_GET['mo_auto_unsub']) || isset($_GET['mo_auto_unsub_e']))) return;
 
-        $run   = Repo::get_run(absint($_GET['mo_auto_unsub']));
-        $token = sanitize_text_field(wp_unslash($_GET['mo_token']));
+        $email = self::unsubscribe_link_email();
 
-        if ( ! $run || ! Tokens::check('automation_unsubscribe', [$run['id'], $run['email']], $token)) {
+        if ('' === $email) {
             wp_die(esc_html__('This link is not valid. It may have been copied incompletely.', 'mailoptin'), esc_html__('Invalid link', 'mailoptin'), ['response' => 404]);
         }
 
-        $masked = PreferenceCentre::masked_email($run['email']);
+        $masked = PreferenceCentre::masked_email($email);
 
         if ('POST' === strtoupper($_SERVER['REQUEST_METHOD'] ?? '')) {
-            SuppressionRepository::add($run['email'], SuppressionRepository::REASON_UNSUBSCRIBED, 'automation');
-            Repo::stop_runs(['email' => $run['email']], 'unsubscribed');
+            SuppressionRepository::add($email, SuppressionRepository::REASON_UNSUBSCRIBED, 'automation');
+            Repo::stop_runs(['email' => $email], 'unsubscribed');
 
             wp_die(
                 sprintf(esc_html__('%s will no longer receive these emails.', 'mailoptin'), '<strong>' . esc_html($masked) . '</strong>'),

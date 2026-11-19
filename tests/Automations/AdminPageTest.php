@@ -490,7 +490,7 @@ class AdminPageTest extends EngineTest
         $this->assertStringContainsString('value="edit_email:' . $steps[1]['id'] . '"', $edit, 'The other email keeps its buttons');
         $this->assertStringNotContainsString('(no subject)', $edit);
         $this->assertStringContainsString('they reach email 1, which was deleted, and leave the automation.', $edit);
-        $this->assertStringContainsString('they get email 2 (&quot;Kept&quot;).', $edit);
+        $this->assertStringNotContainsString('they get email 2 (&quot;Kept&quot;).', $edit, 'Nobody reaches it: the engine stops them at the deleted one');
     }
 
     public function test_a_send_time_outside_sending_hours_is_pointed_out()
@@ -558,5 +558,100 @@ class AdminPageTest extends EngineTest
         $html = $this->render(['screen' => 'edit', 'id' => $dead]);
         $this->assertStringContainsString('everyone stops at an &quot;Only if&quot; step', $html);
         $this->assertStringNotContainsString('they get email 1 (&quot;Never&quot;)', $html);
+    }
+
+    public function test_the_trigger_cannot_change_while_people_are_part_way_through()
+    {
+        $id = $this->automation([['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days']], $this->email_step('A')]);
+        self::$trigger->fire('inflight@example.org', 'r1', ['number' => '1']);
+
+        $this->post($id, 'stop', ['name' => 'Renamed on stop']);
+        $this->assertSame(Repo::STATUS_DRAFT, Repo::get($id)['status']);
+        $this->assertSame('Renamed on stop', Repo::get($id)['name'], 'Stop keeps what was typed');
+
+        $this->post($id, 'save', ['name' => 'Renamed on stop', 'trigger_id' => 'list_joined']);
+        $this->assertSame('test_event', Repo::get($id)['trigger_id']);
+
+        $edit = $this->render(['screen' => 'edit', 'id' => $id]);
+        $this->assertStringContainsString('People are still part-way through it, so the trigger can', $edit);
+        $this->assertStringNotContainsString('id="mo-auto-trigger"', $edit);
+    }
+
+    public function test_a_paused_step_whose_email_was_deleted_does_not_block_going_live()
+    {
+        $id    = $this->automation([$this->email_step('Gone'), $this->email_step('Kept')]);
+        Repo::update($id, ['status' => Repo::STATUS_DRAFT]);
+        $steps = Repo::steps($id);
+        ER::delete_campaign_by_id($steps[0]['settings']['email_campaign_id']);
+        $steps[0]['settings']['paused'] = true;
+        Repo::save_steps($id, $steps);
+
+        $this->post($id, 'go_live', ['name' => 'Test']);
+        $this->assertSame(Repo::STATUS_LIVE, Repo::get($id)['status']);
+
+        // Every email paused: nothing would be sent, so it can't go live.
+        $only = $this->automation([$this->email_step('Only')]);
+        Repo::update($only, ['status' => Repo::STATUS_DRAFT]);
+        $s = Repo::steps($only);
+        $s[0]['settings']['paused'] = true;
+        Repo::save_steps($only, $s);
+        $this->post($only, 'go_live', ['name' => 'Test']);
+        $this->assertSame(Repo::STATUS_DRAFT, Repo::get($only)['status']);
+    }
+
+    public function test_the_summary_stops_at_a_deleted_email_and_add_buttons_have_their_anchor()
+    {
+        $id    = $this->automation([$this->email_step('Gone'), $this->email_step('Later')]);
+        $steps = Repo::steps($id);
+        ER::delete_campaign_by_id($steps[0]['settings']['email_campaign_id']);
+
+        $edit = $this->render(['screen' => 'edit', 'id' => $id]);
+        $this->assertStringContainsString('which was deleted, and leave the automation.', $edit);
+        $this->assertStringNotContainsString('they get email 2', $edit);
+        $this->assertStringContainsString('id="mo-auto-steps-end"', $edit);
+    }
+
+    public function test_the_old_toggle_endpoints_need_a_nonce()
+    {
+        $handler = \MailOptin\Core\AjaxHandler::get_instance();
+        $_POST   = $_REQUEST = ['id' => 1, 'status' => 'true'];
+        // Outside an AJAX request a failed nonce check calls die() itself.
+        add_filter('wp_doing_ajax', '__return_true');
+
+        foreach (['toggle_automation_activated', 'toggle_optin_activated'] as $method) {
+            add_filter('wp_die_ajax_handler', $h = function () { return function () { throw new \RuntimeException('died'); }; });
+            try {
+                $handler->$method();
+                $this->fail($method . ' ran without a nonce');
+            } catch (\RuntimeException $e) {
+                $this->assertSame('died', $e->getMessage());
+            } finally {
+                remove_filter('wp_die_ajax_handler', $h);
+            }
+        }
+
+        remove_filter('wp_doing_ajax', '__return_true');
+    }
+
+    public function test_the_old_toggle_endpoints_work_with_the_nonce_the_list_sends()
+    {
+        $handler = \MailOptin\Core\AjaxHandler::get_instance();
+        $id      = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign('abcdefghij', 'Toggle me', 'BareMetal', 'sidebar');
+        \MailOptin\Core\Repositories\OptinCampaignsRepository::deactivate_campaign($id);
+
+        // What the lists' switch posts (admin-script.js): the admin nonce from mailoptin_globals.
+        $_POST = $_REQUEST = ['id' => $id, 'status' => 'true', 'nonce' => wp_create_nonce('mailoptin-admin-nonce')];
+        add_filter('wp_doing_ajax', '__return_true');
+        add_filter('wp_die_ajax_handler', $h = function () { return function () { throw new \RuntimeException('done'); }; });
+        try {
+            $handler->toggle_optin_activated();
+        } catch (\RuntimeException $e) {
+            $this->assertSame('done', $e->getMessage());
+        } finally {
+            remove_filter('wp_die_ajax_handler', $h);
+            remove_filter('wp_doing_ajax', '__return_true');
+        }
+
+        $this->assertTrue(\MailOptin\Core\Repositories\OptinCampaignsRepository::is_activated($id));
     }
 }
