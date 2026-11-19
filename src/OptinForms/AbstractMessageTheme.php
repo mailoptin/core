@@ -211,7 +211,7 @@ $c { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
 $c .mo-optin-form-headline { color: $title; font-weight: 700; margin: 0; }
 $c .mo-optin-form-description { color: $text; margin: 0; }
 $c .mo-optin-form-headline:empty, $c .mo-optin-form-description:empty { display: none; }
-$c .mo-msg-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: $accent; }
+$c .mo-msg-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: $accent; }
 $c .mo-msg-image { overflow: hidden; background: rgba(127,127,127,.12); }
 $c .mo-msg-image img { display: block; width: 100%; height: 100%; max-width: none; margin: 0; object-fit: cover; }
 $c .mo-msg-icon { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
