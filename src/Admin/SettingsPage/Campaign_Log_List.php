@@ -166,6 +166,31 @@ class Campaign_Log_List extends \WP_List_Table
         return $this->wpdb->get_var($sql);
     }
 
+    /**
+     * Whether the list shows its first screen instead of the table: nothing in it at all.
+     */
+    public function shows_empty_state()
+    {
+        return 0 === (int)$this->record_count();
+    }
+
+    /**
+     * Before anything has been sent: what this screen will show.
+     */
+    public function display()
+    {
+        if ($this->shows_empty_state()) {
+            echo \MailOptin\Core\Admin\EmptyState::render([
+                'title' => __('Nothing sent yet', 'mailoptin'),
+                'text'  => __('Every email MailOptin sends shows here with its progress, opens and clicks, and any errors.', 'mailoptin'),
+            ]);
+
+            return;
+        }
+
+        parent::display();
+    }
+
     /** Text displayed when no campaign log is available */
     public function no_items()
     {
