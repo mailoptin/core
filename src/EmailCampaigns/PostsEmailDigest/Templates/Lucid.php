@@ -483,15 +483,18 @@ HTML;
 
     .email-body img {
       max-width: 100%;
-      max-height: 500px;
-      width: 100%;
       height: auto;
       padding-bottom: 10px;
       display: block;
       margin: 0 auto;
       border: 0;
       outline: none;
-      object-fit: cover;
+    }
+
+    /* Post images fill their column; images inside post content keep their own size. No max-height:
+       clients that ignore object-fit (Gmail, Outlook.com) would squash tall images to fit it. */
+    .email-body img.mo-imgix {
+      width: 100%;
     }
     
     .mo-post-cell tr td:only-child img {

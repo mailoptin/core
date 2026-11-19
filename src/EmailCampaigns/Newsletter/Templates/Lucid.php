@@ -328,14 +328,13 @@ HTML;
       margin-bottom: 10px;
     }
 
+    /* No max-height: clients that ignore object-fit (Gmail, Outlook.com) would squash tall images to fit it. */
     .email-body img {
       max-width: 100%;
-      max-height: 500px;
       height: auto;
       padding-bottom: 10px;
       display: block;
       margin: 0 auto;
-      object-fit: cover;
     }
 
     .email-body figure {

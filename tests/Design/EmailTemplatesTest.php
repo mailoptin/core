@@ -21,7 +21,7 @@ class EmailTemplatesTest extends \WP_UnitTestCase
 
     protected function forge($type, $ns)
     {
-        $post = self::factory()->post->create_and_get(['post_title' => 'Spring planting', 'post_content' => 'Bulbs go in now.']);
+        $post = self::factory()->post->create_and_get(['post_title' => 'Spring planting', 'post_content' => 'Bulbs go in now. <img src="https://example.com/icon.png" width="40" alt="">']);
         $id   = ER::add_email_campaign('Lucid ' . $type . wp_generate_password(6, false), $type, 'Lucid');
         $cls  = "\\MailOptin\\Core\\EmailCampaigns\\$ns\\Templatify";
 
@@ -76,5 +76,11 @@ class EmailTemplatesTest extends \WP_UnitTestCase
         }
 
         $this->assertDoesNotMatchRegularExpression('/(^|[;"\s])width:\s*500px/', $html, 'Nothing is fixed at 500px.');
+        $this->assertDoesNotMatchRegularExpression('/max-height:\s*500px/', $html, 'Clients that ignore object-fit would squash tall images to a max-height.');
+
+        // Images that aren't the post image (in post content, say) keep their own size.
+        foreach ((new \DOMXPath($dom))->query('//img[not(contains(@class,"mo-imgix"))]') as $img) {
+            $this->assertDoesNotMatchRegularExpression('/(^|;)\s*width:\s*100%/', $img->getAttribute('style'), 'A small content image is not stretched.');
+        }
     }
 }
