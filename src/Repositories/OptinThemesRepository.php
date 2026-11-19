@@ -118,6 +118,13 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/mimosa-slidein.png'
             ],
             [
+                'name'        => 'Read Next',
+                'optin_class' => 'ReadNext',
+                'flag'        => 'premium',
+                'optin_type'  => 'slidein',
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/readnext-slidein.png'
+            ],
+            [
                 'name'        => 'Letter Box',
                 'optin_class' => 'LetterBox',
                 'flag'        => 'premium',
