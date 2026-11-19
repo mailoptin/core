@@ -74,6 +74,7 @@ class Importer
             'terms'     => is_array($data['terms'] ?? null) ? $data['terms'] : [],
             'tags'      => is_array($data['tags'] ?? null) ? array_map('sanitize_text_field', array_filter($data['tags'], 'is_scalar')) : [],
             'fields'    => is_array($data['fields'] ?? null) ? $data['fields'] : [],
+            'services'  => is_array($data['services'] ?? null) ? array_map('sanitize_text_field', array_filter($data['services'], 'is_string')) : [],
         ];
     }
 
@@ -202,7 +203,7 @@ class Importer
                 if ('' !== $service && ! self::is_connected($integration['connection_service'])) {
                     $issues[] = sprintf(
                         __("Sends subscribers to %s, which isn't connected here. Until you connect it, subscribers are saved to MailOptin only.", 'mailoptin'),
-                        self::service_label($integration['connection_service'])
+                        self::service_label($integration['connection_service'], $export['services'] ?? [])
                     );
                 }
 
@@ -398,10 +399,13 @@ class Importer
         return class_exists($class) && method_exists($class, 'is_connected') && $class::is_connected();
     }
 
-    protected static function service_label($service)
+    /** The service's name as the old site showed it, else as this site knows it, else from its class name. */
+    protected static function service_label($service, array $from_file = [])
     {
         $service = preg_replace('/[^A-Za-z0-9_]/', '', (string)$service);
-        $labels  = apply_filters('mailoptin_registered_connections', []);
+        if ( ! empty($from_file[$service])) return $from_file[$service];
+
+        $labels = apply_filters('mailoptin_registered_connections', []);
         if ( ! empty($labels[$service]) && is_string($labels[$service])) return wp_strip_all_tags($labels[$service]);
 
         return preg_replace('/Connect$/', '', $service) ?: __('an email service', 'mailoptin');

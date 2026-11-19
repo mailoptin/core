@@ -62,13 +62,18 @@ class OptinTransferTest extends \WP_UnitTestCase
             'form_custom_css'      => "#$uuid .x{color:red}",
             'integrations'         => wp_json_encode([
                 ['connection_service' => 'MailOptinConnect', 'MailOptinConnect_lead_tags' => [$tag], 'custom_field_mappings' => [$key => 'field_abc']],
+                ['connection_service' => 'MailChimpConnect', 'connection_email_list' => 'a1b2c3'],
             ]),
         ]);
 
+        // The old site has the Mailchimp connection registered; this one doesn't.
+        $label = function ($c) { return $c + ['MailChimpConnect' => 'Mailchimp']; };
+        add_filter('mailoptin_registered_connections', $label);
         $file = Exporter::build([$id]);
         $this->assertArrayNotHasKey('activate_optin', $file['campaigns'][0]['settings'], 'Whether it was live stays on the old site.');
 
         $export = $this->roundtrip([$id]);
+        remove_filter('mailoptin_registered_connections', $label);
 
         // Now make this "another site": the guide is a new page at the same address; the rest is gone.
         wp_delete_post($guide, true);
@@ -85,6 +90,7 @@ class OptinTransferTest extends \WP_UnitTestCase
         $this->assertStringContainsString('Creates the tag “' . $tag_name . '”', $issues);
         $this->assertStringContainsString('Creates the custom field “Company”', $issues);
         $this->assertStringContainsString('already exists', $issues);
+        $this->assertStringContainsString("Sends subscribers to Mailchimp, which isn't connected here", $issues, "The service's name comes from the file.");
 
         $result = Importer::run($export, [$id], false);
         $this->assertCount(1, $result['imported']);

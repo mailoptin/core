@@ -47,7 +47,11 @@ class Exporter
             'terms'     => [],
             'tags'      => [],
             'fields'    => [],
+            // Display names of the email services used, e.g. "Mailchimp", for the importing site to show.
+            'services'  => [],
         ];
+
+        $service_labels = apply_filters('mailoptin_registered_connections', []);
 
         $tag_names = TagsRepository::is_ready() ? TagsRepository::names() : [];
 
@@ -84,6 +88,10 @@ class Exporter
             }
 
             foreach (References::integrations($settings) as $integration) {
+                $service = (string)($integration['connection_service'] ?? '');
+                if ('' !== $service && ! empty($service_labels[$service]) && is_string($service_labels[$service])) {
+                    $export['services'][$service] = wp_strip_all_tags($service_labels[$service]);
+                }
                 foreach (References::ids($integration['MailOptinConnect_lead_tags'] ?? null) as $tag_id) {
                     if (isset($tag_names[$tag_id])) $export['tags'][$tag_id] = $tag_names[$tag_id];
                 }
