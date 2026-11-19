@@ -120,100 +120,94 @@ class Settings extends AbstractSettingsPage
                     'section_title'             => __('General Settings', 'mailoptin'),
                     'remove_plugin_data'        => [
                         'type'        => 'checkbox',
-                        'label'       => __('Remove Data on Uninstall', 'mailoptin'),
-                        'description' => __('Check this box if you would like MailOptin to completely remove all of its data when uninstalled.', 'mailoptin'),
+                        'label'          => __('When MailOptin is deleted', 'mailoptin'),
+                        'checkbox_label' => __('Delete all MailOptin data too', 'mailoptin'),
+                        'description'    => __('Campaigns, subscribers, emails and settings are removed for good. Leave this off if you might reinstall.', 'mailoptin'),
                     ],
                     'clear_optin_cache'         => [
                         'type'        => 'custom_field_block',
-                        'label'       => __('Clear Cache', 'mailoptin'),
-                        'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear Cache', 'mailoptin') . '</a>',
-                        'description' => '<p class="description">' .
-                                         sprintf(
-                                             __('Each time you create and make changes to your %soptin campaigns%s, MailOptin caches the designs so it does not hurt your website speed and performance. If updates to your connected email marketing list or changes to your campaigns are not reflected on your website frontend, use this button to clear the cache.', 'mailoptin'),
+                        'label'       => __('Design cache', 'mailoptin'),
+                        'data'        => "<a href='$clear_optin_cache_url' class='button action'>" . __('Clear cache', 'mailoptin') . '</a>',
+                        'description' => sprintf(
+                                             __('MailOptin saves each %scampaign%s\'s design so pages load fast. Clear it if a change you made, or a new list in your email service, isn\'t showing on the site.', 'mailoptin'),
                                              '<a href="' . MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE . '">',
                                              '</a>'
-                                         ) .
-                                         '</p>',
+                                         ),
                     ],
                     'switch_customizer_loader'  => [
                         'type'           => 'checkbox',
-                        'checkbox_label' => __('Enable', 'mailoptin'),
-                        'label'          => __('Switch Customizer Loader Method', 'mailoptin'),
-                        'description'    => __('Check this if you are having problem with Customizer not loading properly.', 'mailoptin'),
+                        'checkbox_label' => __('Use the backup loader', 'mailoptin'),
+                        'label'          => __('Customizer loading', 'mailoptin'),
+                        'description'    => __('Turn this on if the campaign Customizer doesn\'t open or stays blank.', 'mailoptin'),
                     ],
                     'enable_safe_mode'          => [
                         'type'           => 'checkbox',
-                        'checkbox_label' => __('Enable', 'mailoptin'),
-                        'label'          => __('Safe Mode', 'mailoptin'),
-                        'description'    => __('Check this if you are having problem with Customizer and enabling "Switch Customizer Loader Method" did not fix the issue.', 'mailoptin'),
+                        'checkbox_label' => __('Load the Customizer without other plugins\' scripts', 'mailoptin'),
+                        'label'          => __('Safe mode', 'mailoptin'),
+                        'description'    => __('Try this if the backup loader above didn\'t fix the Customizer.', 'mailoptin'),
                     ],
                     'mailoptin_affiliate_url'   => [
                         'type'        => 'text',
-                        'label'       => __('MailOptin Affiliate Link', 'mailoptin'),
+                        'label'       => __('Affiliate link', 'mailoptin'),
                         'description' => sprintf(
-                            __('You can earn money by promoting MailOptin! %1$sJoin our affiliate program%2$s, and paste your %1$saffiliate link here%2$s. Once entered, it will replace the default MailOptin branding link on your optins.', 'mailoptin'),
+                            __('Earn a commission when people buy MailOptin through your link. %1$sJoin the affiliate program%2$s, then paste your link here: it replaces the "Powered by MailOptin" link on your campaigns.', 'mailoptin'),
                             '<a href="https://mailoptin.io/affiliates/" target="_blank">',
                             '</a>'
                         ),
                     ],
                     'install_missing_db_tables' => [
                         'type'  => 'custom_field_block',
-                        'label' => __('Install Missing DB Tables', 'mailoptin'),
-                        'data'  => "<a href='$fix_db_url' class='button action ppress-confirm-delete'>" . __('Fix Database', 'mailoptin') . '</a>',
+                        'label' => __('Database tables', 'mailoptin'),
+                        'data'  => "<a href='$fix_db_url' class='button action ppress-confirm-delete'>" . __('Repair tables', 'mailoptin') . '</a>',
+                        'description' => __('Creates any MailOptin table that\'s missing. Use it if support asks you to, or after a failed update.', 'mailoptin'),
                     ]
                 ]
             ),
             'optin_campaign_settings' => apply_filters('mailoptin_settings_optin_campaign_settings_page', [
-                    'tab_title' => __('Optin Campaign', 'mailoptin'),
+                    'tab_title' => __('Optin campaigns', 'mailoptin'),
                     [
-                        'section_title'               => __('Optin Campaign Settings', 'mailoptin'),
+                        'section_title'               => __('Optin campaigns', 'mailoptin'),
                         'disable_impression_tracking' => [
                             'type'           => 'checkbox',
-                            'label'          => __('Disable Impression Tracking', 'mailoptin'),
-                            'checkbox_label' => __('Disable', 'mailoptin')
+                            'label'          => __('Counting views', 'mailoptin'),
+                            'checkbox_label' => __('Don\'t count views', 'mailoptin'),
+                            'description'    => esc_html__('Saves a request per page view. Views and conversion rates stop updating.', 'mailoptin')
                         ],
                         'dequeue_google_font'         => [
                             'type'           => 'checkbox',
-                            'label'          => __('Disable Google Fonts', 'mailoptin'),
-                            'checkbox_label' => __('Disable', 'mailoptin'),
-                            'description'    => esc_html__('Check to stop us from loading Google Fonts on your site.', 'mailoptin')
+                            'label'          => __('Google Fonts', 'mailoptin'),
+                            'checkbox_label' => __('Don\'t load Google Fonts', 'mailoptin'),
+                            'description'    => esc_html__('Campaigns then use your theme\'s fonts.', 'mailoptin')
                         ],
                         'disable_optin_error_emails' => [
                             'type' => 'checkbox',
-                            'label' => __('Disable Optin Error Emails', 'mailoptin'),
-                            'checkbox_label' => __('Disable', 'mailoptin'),
-                            'description' => esc_html__('Check to disable sending optin error notification emails.', 'mailoptin')
+                            'label' => __('Error emails', 'mailoptin'),
+                            'checkbox_label' => __('Don\'t email me when a signup fails', 'mailoptin'),
+                            'description' => esc_html__('Failed signups are still kept under Submissions.', 'mailoptin')
                         ],
                         'enable_async_optin' => [
                                 'type'           => 'checkbox',
-                                'label'          => __('Optin Background Processing', 'mailoptin'),
-                                'checkbox_label' => __('Enable', 'mailoptin'),
-                                'description' => esc_html__('Enable background processing of optin for non-form integrations such as optin after user registration, WooCommerce checkout etc. This is useful e.g for WooCommerce so customer subscription does not slow down the checkout.', 'mailoptin')
+                                'label'          => __('Background signups', 'mailoptin'),
+                                'checkbox_label' => __('Add subscribers in the background', 'mailoptin'),
+                                'description' => esc_html__('For signups that come with something else, like registering an account or a WooCommerce checkout, so sending them to your email service doesn\'t slow that down.', 'mailoptin')
                         ],
                         'global_cookie'               => [
                             'type'        => 'number',
                             'value'       => 0,
-                            'label'       => __('Global Interaction Cookie', 'mailoptin'),
-                            'description' => __(
-                                'Entering a number of days (e.g. 30) will set a global cookie once any optin is closed by a user or visitor.
-                            This global cookie will prevent any other optins from loading on your site for that visitor until the cookie expires. Defaults to 0 (no global interaction cookie).',
-                                'mailoptin'
-                            ),
+                            'label'       => __('After a visitor closes one', 'mailoptin'),
+                            'description' => __('Days to show them no campaigns at all after they close any campaign, e.g. 30. 0 shows the others as usual.', 'mailoptin'),
                         ],
                         'global_success_cookie'       => [
                             'type'        => 'number',
                             'value'       => 0,
-                            'label'       => __('Global Success Cookie', 'mailoptin'),
-                            'description' => __(
-                                'Entering a number of days (e.g. 30) will set a global cookie once any optin has resulted in a successful conversion. This global cookie will prevent any other optins from loading on your site for that visitor until the cookie expires. Defaults to 0 (no global success cookie).',
-                                'mailoptin'
-                            ),
+                            'label'       => __('After a visitor subscribes', 'mailoptin'),
+                            'description' => __('Days to show them no campaigns at all after they subscribe through any campaign, e.g. 30. 0 shows the others as usual.', 'mailoptin'),
                         ],
                     ]
                 ]
             ),
             'email_campaign_settings' => apply_filters('mailoptin_settings_email_campaign_settings_page', [
-                    'tab_title'         => __('Email Campaign', 'mailoptin'),
+                    'tab_title'         => __('Emails', 'mailoptin'),
                     'section_title'     => __('Email Campaign Settings', 'mailoptin'),
                     'from_name'         => [
                         'type'        => 'text',
