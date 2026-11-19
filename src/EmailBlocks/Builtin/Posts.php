@@ -94,10 +94,16 @@ class Posts extends ElementBlock
             $url, $title_c, esc_html($template->post_title($post))
         ));
 
-        $metas = array_intersect((array)($settings['post_metas'] ?? []), ['author', 'date', 'category']);
-        if ($metas) $html .= $line(0, 8, 12, 22, $text, $template->post_meta($post, $metas));
+        // The details row (any of the post details the site owner picked), under the title or under the image.
+        $metas      = array_values(array_filter((array)($settings['post_metas'] ?? []), 'is_string'));
+        $show_image = true !== ($settings['remove_feature_image'] ?? false);
+        $meta_row   = $metas ? (string)$template->post_meta($post, $metas) : '';
+        $meta_row   = '' === $meta_row ? '' : $line(0, 8, 12, 22, $text, $meta_row);
+        $below_img  = $show_image && \MailOptin\Core\EmailCampaigns\PostMetaFields::POSITION_BELOW_IMAGE === ($settings['post_meta_position'] ?? '');
 
-        if (true !== ($settings['remove_feature_image'] ?? false)) {
+        if ( ! $below_img) $html .= $meta_row;
+
+        if ($show_image) {
             $room = max(1, $style->width - $pad['pad_l'] - $pad['pad_r']);
             $html .= Mjml::fill('image-link', ['pad_t' => 8, 'pad_b' => 8] + $side + [
                     'width' => $room,
@@ -108,9 +114,11 @@ class Posts extends ElementBlock
                 ]);
         }
 
+        if ($below_img) $html .= $meta_row;
+
         if (true !== ($settings['remove_post_content'] ?? false)) {
             // The post's own HTML, trimmed by the template (as before).
-            $html .= $line(8, 8, 14, 24, $text, $template->post_content($post, $settings['post_content_length'] ?? null));
+            $html .= $line(8, 8, 14, 24, $text, $template->post_content($post, $settings['post_content_length'] ?? null, $metas));
 
             if (true !== ($settings['remove_read_more_link'] ?? false)) {
                 $html .= $line(0, 0, 14, 24, $text, sprintf('<a href="%s" style="color:%s;text-decoration:underline;">%s</a>', $url, $more_c, esc_html($settings['read_more_text'] ?? '')));

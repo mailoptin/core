@@ -3,6 +3,7 @@
 namespace MailOptin\Core\EmailCampaigns\Newsletter\Templates;
 
 use MailOptin\Core\EmailCampaigns\Newsletter\AbstractTemplate;
+use MailOptin\Core\EmailCampaigns\PostMetaFields;
 
 class Lucid extends AbstractTemplate
 {
