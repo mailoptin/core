@@ -673,11 +673,12 @@ class AjaxHandler
      */
     public function toggle_optin_activated()
     {
-        check_ajax_referer('customizer-fetch-email-list', 'security');
-
         if ( ! current_user_has_privilege()) {
             exit;
         }
+
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
 
         $optin_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);
@@ -693,11 +694,12 @@ class AjaxHandler
 
     public function toggle_automation_activated()
     {
-        check_ajax_referer('customizer-fetch-email-list', 'security');
-
         if ( ! current_user_has_privilege()) {
             exit;
         }
+
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
 
         $email_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);
