@@ -124,6 +124,12 @@ class Settings extends AbstractSettingsPage
                         'checkbox_label' => __('Delete all MailOptin data too', 'mailoptin'),
                         'description'    => __('Campaigns, subscribers, emails and settings are removed for good. Leave this off if you might reinstall.', 'mailoptin'),
                     ],
+                    'run_setup_wizard'          => [
+                        'type'        => 'custom_field_block',
+                        'label'       => __('Setup Wizard', 'mailoptin'),
+                        'data'        => '<a href="' . esc_url(\MailOptin\Core\Admin\SetupWizard::url()) . '" class="button action">' . esc_html__('Run setup wizard', 'mailoptin') . '</a>',
+                        'description' => '<p class="description">' . esc_html__('Walks you through creating a list, connecting a form, your sender details and a test email. Nothing is changed until you save a step.', 'mailoptin') . '</p>',
+                    ],
                     'clear_optin_cache'         => [
                         'type'        => 'custom_field_block',
                         'label'       => __('Design cache', 'mailoptin'),
