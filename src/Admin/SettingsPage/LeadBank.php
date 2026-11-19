@@ -97,32 +97,26 @@ class LeadBank extends AbstractSettingsPage
 
         $url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=leadbank_btn';
 
-        ob_start();
-        ?>
-        <div class="mo-settings-page-disabled">
-            <div class="mo-upgrade-plan">
-                <div class="mo-text-center">
-                    <div class="mo-lock-icon"></div>
-                    <h1><?php _e('Submissions are Locked', 'mailoptin'); ?></h1>
-                    <p>
-                        <?php _e('Every form submission is saved here as a backup, with whether it reached your email service, and you can resend any that failed. (Previously called Leads.)', 'mailoptin'); ?>
-                    </p>
-                    <p>
-                        <?php _e('Your current plan does not include this feature.', 'mailoptin');
-                        ?>
-                    </p>
-                    <div class="moBtncontainer mobtnUpgrade">
-                        <a target="_blank" href="<?= $url; ?>" class="mobutton mobtnPush mobtnGreen">
-                            <?php _e('Upgrade to Unlock', 'mailoptin'); ?>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <img src="<?php echo MAILOPTIN_ASSETS_URL; ?>images/leadbankscreenshot.png">
-        </div>
-        <?php
+        $preview = '<div class="mo-ui-preview-title">' . esc_html__('Submissions', 'mailoptin') . '</div>'
+                   . \MailOptin\Core\Admin\UI::preview_rows([
+                    ['maya@example.com', __('Footer form', 'mailoptin'), ['badge' => __('Sent', 'mailoptin'), 'tone' => 'ok']],
+                    ['jonas@example.com', __('Exit popup', 'mailoptin'), ['badge' => __('Not sent: API key expired', 'mailoptin'), 'tone' => 'bad']],
+                    ['priya@example.com', __('Footer form', 'mailoptin'), ['badge' => __('Sent', 'mailoptin'), 'tone' => 'ok']],
+                    ['tom@example.com', __('Sidebar form', 'mailoptin'), ['badge' => __('Resent', 'mailoptin'), 'tone' => 'info']],
+                ]);
 
-        return ob_get_clean();
+        return '<div class="mo-ui-page">' . \MailOptin\Core\Admin\UI::locked_feature([
+                'title'     => __('Never lose a signup, even when your email service is down', 'mailoptin'),
+                'intro'     => __('Every form submission is saved on your site as a backup, with whether it reached your email service. (Previously called Leads.)', 'mailoptin'),
+                'bullets'   => [
+                    __('See which signups failed to reach Mailchimp, ConvertKit or any other service, and why', 'mailoptin'),
+                    __('Resend failed signups in one click once the problem is fixed', 'mailoptin'),
+                    __('Search, filter and export every submission as CSV', 'mailoptin'),
+                ],
+                'cta_url'   => $url,
+                'learn_url' => 'https://mailoptin.io/docs/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=leadbank_learn',
+                'preview'   => $preview,
+            ]) . '</div>';
     }
 
     /**

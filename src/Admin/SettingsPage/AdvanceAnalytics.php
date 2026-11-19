@@ -58,35 +58,26 @@ class AdvanceAnalytics extends AbstractSettingsPage
 
         $url = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=advanceanalytics_btn';
 
-        ob_start();
-        ?>
-        <div class="mo-settings-page-disabled">
-            <div class="mo-upgrade-plan">
-                <div class="mo-text-center">
-                    <div class="mo-lock-icon"></div>
-                    <h1><?php _e('Advance Analytics Locked', 'mailoptin'); ?></h1>
-                    <p>
-                        <?php printf(
-                                __('Get important metrics and insights to improve your lead-generation strategy and make data-driven decisions.', 'mailoptin'),
-                                '<strong>',
-                                '</strong>'
-                        ); ?>
-                    </p>
-                    <p>
-                        <?php _e('Your current plan does not include it.', 'mailoptin'); ?>
-                    </p>
-                    <div class="moBtncontainer mobtnUpgrade">
-                        <a target="_blank" href="<?= $url; ?>" class="mobutton mobtnPush mobtnGreen">
-                            <?php _e('Upgrade to Unlock', 'mailoptin'); ?>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <img src="<?php echo MAILOPTIN_ASSETS_URL; ?>images/advanceanalytics.png">
-        </div>
-        <?php
+        $preview = '<div class="mo-ui-preview-title">' . esc_html__('Last 30 days', 'mailoptin') . '</div>'
+                   . '<div class="mo-ui-preview-stats">'
+                   . '<div><b>18,240</b><span>' . esc_html__('Impressions', 'mailoptin') . '</span></div>'
+                   . '<div><b>912</b><span>' . esc_html__('Signups', 'mailoptin') . '</span></div>'
+                   . '<div><b>5.0%</b><span>' . esc_html__('Conversion rate', 'mailoptin') . '</span></div>'
+                   . '</div>'
+                   . '<div class="mo-ui-preview-chart"><i style="height:35%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:61%"></i><i style="height:58%"></i><i style="height:73%"></i><i style="height:66%"></i><i style="height:80%"></i><i style="height:71%"></i><i style="height:88%"></i></div>';
 
-        return ob_get_clean();
+        return '<div class="mo-ui-page">' . \MailOptin\Core\Admin\UI::locked_feature([
+                'title'     => __('See which forms bring in subscribers', 'mailoptin'),
+                'intro'     => __('Impressions, signups and conversion rate for every optin form, so you know what to keep and what to change.', 'mailoptin'),
+                'bullets'   => [
+                    __('Compare forms, pages and date ranges side by side', 'mailoptin'),
+                    __('Find the pages where your forms convert best', 'mailoptin'),
+                    __('Check how A/B split tests are doing before you pick a winner', 'mailoptin'),
+                ],
+                'cta_url'   => $url,
+                'learn_url' => 'https://mailoptin.io/docs/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=advanceanalytics_learn',
+                'preview'   => $preview,
+            ]) . '</div>';
     }
 
     /**
