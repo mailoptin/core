@@ -32,15 +32,15 @@ class Lucid extends AbstractTemplate
     {
         return [
                 'page_background_color'                    => '#f2f4f6',
-                'header_text_color'                        => '#bbbfc3',
-                'header_web_version_link_color'            => '#74787e',
+                'header_text_color'                        => '#868d94',
+                'header_web_version_link_color'            => '#6d7076',
                 'content_background_color'                 => '#ffffff',
                 'content_headline_color'                   => '#2F3133',
-                'content_text_color'                       => '#74787e',
-                'content_ellipsis_button_background_color' => '#dc4d2f',
+                'content_text_color'                       => '#6d7076',
+                'content_ellipsis_button_background_color' => '#d54324',
                 'content_ellipsis_button_text_color'       => '#ffffff',
-                'footer_text_color'                        => '#aeaeae',
-                'footer_unsubscribe_link_color'            => '#74787e',
+                'footer_text_color'                        => '#6d7076',
+                'footer_unsubscribe_link_color'            => '#6d7076',
         ];
     }
 
@@ -176,7 +176,7 @@ class Lucid extends AbstractTemplate
             </a>
             {{post.meta}}
             <a href="{{post.url}}">
-                <img class="mo-imgix" src="{{post.feature.image}}" alt="{{post.feature.image.alt}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+                <img class="mo-imgix" src="{{post.feature.image}}" alt="{{post.feature.image.alt}}" width="500" style="width:100%;max-width:500px;height:auto;display:block;margin:0 auto;">
             </a>
         <?php endif;
 
@@ -184,7 +184,7 @@ class Lucid extends AbstractTemplate
 
             <h1 class="mo-content-title-font-size mo-content-headline-color">{{post.title}}</h1>
             {{post.meta}}
-            <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="max-width:500px;height:auto;display:block;margin:0 auto;">
+            <img class="mo-imgix" src="{{post.feature.image}}" width="500" style="width:100%;max-width:500px;height:auto;display:block;margin:0 auto;">
         <?php endif;
 
         return ob_get_clean();
@@ -330,7 +330,7 @@ HTML;
       height: 100%;
       margin: 0;
       line-height: 1.4;
-      color: #74787E;
+      color: #6d7076;
       -webkit-text-size-adjust: none;
       mso-line-height-rule: exactly;
     }
@@ -370,7 +370,9 @@ HTML;
       text-align: center;
     }
     .email-masthead a {
-     font-size: 10px;
+      font-size: 12px;
+      display: inline-block;
+      padding: 12px 0;
     }
 
     .email-masthead_logo {
@@ -399,7 +401,7 @@ HTML;
     }
 
     .email-body img {
-      max-width: 500px;
+      max-width: 100%;
       width: auto;
       height: auto;
       padding-bottom: 10px;
@@ -525,7 +527,7 @@ HTML;
         padding: 5px 10px;
         margin: 0;
         text-align: left;
-        width: 500px;                          /* specify width  */
+        max-width: 500px;                          /* specify width  */
         white-space: pre-wrap;                 /* CSS3 browsers  */
         white-space: -moz-pre-wrap !important; /* 1999+ Mozilla  */
         white-space: -pre-wrap;                /* Opera 4 thru 6 */

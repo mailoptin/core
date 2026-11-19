@@ -44,14 +44,14 @@ class Lucid extends AbstractTemplate
     {
         return [
                 'page_background_color'                    => '#f2f4f6',
-                'header_text_color'                        => '#bbbfc3',
-                'header_web_version_link_color'            => '#74787e',
+                'header_text_color'                        => '#868d94',
+                'header_web_version_link_color'            => '#6d7076',
                 'content_background_color'                 => '#ffffff',
-                'content_text_color'                       => '#74787e',
-                'content_ellipsis_button_background_color' => '#dc4d2f',
+                'content_text_color'                       => '#6d7076',
+                'content_ellipsis_button_background_color' => '#d54324',
                 'content_ellipsis_button_text_color'       => '#ffffff',
-                'footer_text_color'                        => '#aeaeae',
-                'footer_unsubscribe_link_color'            => '#74787e',
+                'footer_text_color'                        => '#6d7076',
+                'footer_unsubscribe_link_color'            => '#6d7076',
         ];
     }
 
@@ -263,7 +263,7 @@ HTML;
       height: 100%;
       margin: 0;
       line-height: 1.4;
-      color: #74787E;
+      color: #6d7076;
       padding: 0;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
@@ -298,7 +298,9 @@ HTML;
       text-align: center;
     }
     .email-masthead a {
-     font-size: 10px;
+      font-size: 12px;
+      display: inline-block;
+      padding: 12px 0;
     }
 
     .email-masthead_logo {
@@ -327,7 +329,7 @@ HTML;
     }
 
     .email-body img {
-      max-width:500px;
+      max-width: 100%;
       max-height: 500px;
       height: auto;
       padding-bottom: 10px;
@@ -419,7 +421,7 @@ HTML;
       line-height: 45px;
       text-align: center;
       text-decoration: none;
-      background-color: #dc4d2f;
+      background-color: #d54324;
       -webkit-text-size-adjust: none;
     }
 
@@ -448,7 +450,7 @@ HTML;
         padding: 5px 10px;
         margin: 0;
         text-align: left;
-        width: 500px;                          /* specify width  */
+        max-width: 500px;                          /* specify width  */
         white-space: pre-wrap;                 /* CSS3 browsers  */
         white-space: -moz-pre-wrap !important; /* 1999+ Mozilla  */
         white-space: -pre-wrap;                /* Opera 4 thru 6 */
@@ -526,7 +528,7 @@ CSS;
 
         $defaults['button']['button_font_family']      = 'Arial';
         $defaults['button']['button_width']            = '100';
-        $defaults['button']['button_background_color'] = '#dc4d2f';
+        $defaults['button']['button_background_color'] = '#d54324';
         $defaults['button']['button_color']            = '#ffffff';
         $defaults['button']['button_font_size']        = '16';
         $defaults['button']['button_border_radius']    = '3';
