@@ -38,37 +38,59 @@ class References
         ]);
     }
 
+    /** Settings holding an attachment ID, such as the form's image. */
+    public static function attachment_settings()
+    {
+        return apply_filters('mailoptin_transfer_attachment_settings', ['form_image']);
+    }
+
     /** Settings holding a WooCommerce coupon code. Codes are kept as written; a missing one is flagged. */
     public static function coupon_settings()
     {
         return apply_filters('mailoptin_transfer_coupon_settings', ['po_coupon']);
     }
 
+    /** A setting's entries as a list, whether stored as an array, a single value or comma separated text. */
+    protected static function entries($value)
+    {
+        if (is_array($value)) return array_values(array_filter($value, 'is_scalar'));
+        if (is_scalar($value) && '' !== trim((string)$value)) return array_map('trim', explode(',', (string)$value));
+
+        return [];
+    }
+
     /**
-     * A setting's IDs as a list, whether stored as an array, a single ID or comma separated text.
+     * The IDs in a setting. Entries that aren't IDs are left out here and kept by reshape().
      *
      * @return int[]
      */
     public static function ids($value)
     {
-        if (is_array($value)) {
-            $list = $value;
-        } elseif (is_scalar($value) && '' !== (string)$value) {
-            $list = explode(',', (string)$value);
-        } else {
-            return [];
+        $ids = [];
+        foreach (self::entries($value) as $entry) {
+            if (preg_match('/^\d+$/', (string)$entry) && (int)$entry > 0) $ids[] = (int)$entry;
         }
 
-        return array_values(array_filter(array_map('absint', array_filter($list, 'is_scalar'))));
+        return $ids;
     }
 
-    /** Put mapped IDs back in the shape the setting had. */
+    /**
+     * Put mapped IDs back in the shape the setting had. Entries that weren't IDs (a slug, a keyword) stay as they were.
+     *
+     * @param int[] $ids
+     */
     public static function reshape($original, array $ids)
     {
-        if (is_array($original)) return array_values($ids);
-        if (is_string($original) && false !== strpos($original, ',')) return implode(',', $ids);
+        $others = array_values(array_filter(self::entries($original), function ($entry) {
+            return ! preg_match('/^\d+$/', (string)$entry);
+        }));
+        $all = array_merge(array_values($ids), $others);
 
-        return empty($ids) ? '' : (is_int($original) ? (int)$ids[0] : (string)$ids[0]);
+        if (is_array($original)) return $all;
+        if (is_string($original) && false !== strpos($original, ',')) return implode(',', $all);
+        if (empty($all)) return '';
+
+        return is_int($original) ? (int)$all[0] : (string)$all[0];
     }
 
     /** The integrations list, decoded. */
@@ -80,13 +102,27 @@ class References
         return is_array($list) ? array_values(array_filter($list, 'is_array')) : [];
     }
 
-    /** Merge key => form field, from an integration's mappings. */
-    public static function field_mappings($integration)
+    /**
+     * The form's custom field mappings: integration position => [merge key => form field].
+     * Kept per integration because each email service has its own fields.
+     */
+    public static function field_mappings($settings)
     {
-        $value = $integration['custom_field_mappings'] ?? '';
+        $value = $settings['custom_field_mappings'] ?? '';
         $map   = is_string($value) ? json_decode($value, true) : $value;
 
         return is_array($map) ? $map : [];
+    }
+
+    /** Positions of the integrations that save to MailOptin's own subscribers, whose fields are MailOptin custom fields. */
+    public static function mailoptin_positions($settings)
+    {
+        $positions = [];
+        foreach (self::integrations($settings) as $i => $integration) {
+            if ('MailOptinConnect' === ($integration['connection_service'] ?? '')) $positions[] = $i;
+        }
+
+        return $positions;
     }
 
     /** How a post is found again: its type, path, title, and SKU for products. */
@@ -159,22 +195,39 @@ class References
         return ['label' => $field['label'], 'type' => $field['type'], 'options' => is_array($options) ? $options : []];
     }
 
-    /** Uploaded images on this site that a campaign's settings use. */
-    public static function images($settings)
+    /**
+     * Image URLs a campaign's settings use, as written in them (JSON-encoded settings included).
+     *
+     * @param string $host only URLs on this host, e.g. the site the file came from; '' for this site's uploads
+     */
+    public static function images($settings, $host = '')
     {
-        $uploads = wp_get_upload_dir();
-        $base    = set_url_scheme($uploads['baseurl'] ?? '', 'https');
-        if ('' === $base) return [];
+        if ('' === $host) {
+            $uploads = wp_get_upload_dir();
+            $base    = set_url_scheme($uploads['baseurl'] ?? '', 'https');
+            if ('' === $base) return [];
+        }
 
         $found = [];
-        array_walk_recursive($settings, function ($value) use (&$found, $base) {
-            if ( ! is_string($value) || '' === $value) return;
-            if (preg_match_all('#https?://[^\s"\'()<>]+\.(?:jpe?g|png|gif|webp|svg|avif)#i', $value, $m)) {
-                foreach ($m[0] as $url) {
-                    if (0 === strpos(set_url_scheme($url, 'https'), $base)) $found[$url] = true;
-                }
+        $scan  = function ($value) use (&$found, &$scan, $host, &$base) {
+            if (is_array($value)) {
+                array_walk($value, $scan);
+
+                return;
             }
-        });
+            if ( ! is_string($value) || '' === $value) return;
+            if (in_array($value[0], ['[', '{'], true) && is_array($decoded = json_decode($value, true))) {
+                $scan($decoded);
+
+                return;
+            }
+            if ( ! preg_match_all('#https?://[^\s"\'()<>,]+\.(?:jpe?g|png|gif|webp|svg|avif)#i', $value, $m)) return;
+            foreach ($m[0] as $url) {
+                $ok = '' === $host ? 0 === strpos(set_url_scheme($url, 'https'), $base) : strtolower((string)wp_parse_url($url, PHP_URL_HOST)) === strtolower($host);
+                if ($ok) $found[$url] = true;
+            }
+        };
+        $scan($settings);
 
         return array_keys($found);
     }

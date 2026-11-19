@@ -106,7 +106,10 @@ class OptinCampaignImport
 
         $export['file'] = sanitize_file_name((string)$file['name']);
         $token          = wp_generate_password(20, false);
-        set_transient(self::key($token), $export, self::TTL);
+        if ( ! set_transient(self::key($token), $export, self::TTL) || ! is_array(get_transient(self::key($token)))) {
+            // An object cache with a small item limit can refuse a large export.
+            $this->fail(__("This file is too large to review on this site. Export fewer campaigns at a time and try again.", 'mailoptin'));
+        }
 
         \MailOptin\Core\do_admin_redirect(esc_url_raw(self::url(['review' => $token])));
     }
@@ -127,8 +130,9 @@ class OptinCampaignImport
             \MailOptin\Core\do_admin_redirect(esc_url_raw(self::url(['review' => $token, 'none' => 1])));
         }
 
-        $result = Importer::run($export, $selected, ! empty($_POST['mo_import_copy_images']));
+        // Used once: a second press, or a retry after a timeout, can't import the same campaigns again.
         delete_transient(self::key($token));
+        $result = Importer::run($export, $selected, ! empty($_POST['mo_import_copy_images']));
         set_transient(self::key('result'), $result, 5 * MINUTE_IN_SECONDS);
 
         \MailOptin\Core\do_admin_redirect(esc_url_raw(add_query_arg('imported', 1, MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE)));
@@ -145,6 +149,12 @@ class OptinCampaignImport
         $count = count($result['imported']);
         $html  = '<p><strong>' . esc_html(sprintf(_n('Imported %d campaign as a draft.', 'Imported %d campaigns as drafts.', $count, 'mailoptin'), $count)) . '</strong> ';
         $html  .= esc_html__('Open each one to check it, then turn it on.', 'mailoptin') . '</p>';
+        if ( ! empty($result['premium'])) {
+            $html .= '<p>' . esc_html(sprintf(
+                    _n('%d of them uses a Premium template, so it shows in this list once MailOptin Premium is active.', '%d of them use Premium templates, so they show in this list once MailOptin Premium is active.', $result['premium'], 'mailoptin'),
+                    $result['premium']
+                )) . '</p>';
+        }
         if ( ! empty($result['skipped'])) {
             $html .= '<p>' . esc_html(sprintf(__('Not imported: %s.', 'mailoptin'), implode(', ', $result['skipped']))) . '</p>';
         }
@@ -219,7 +229,7 @@ class OptinCampaignImport
         $rows      = Importer::review($export);
         $parents   = array_filter($rows, function ($r) { return ! $r['variant_of']; });
         $attention = count(array_filter($parents, function ($r) { return 'ready' !== $r['status']; }));
-        $images    = count(array_unique(array_merge([], ...array_values(array_map(function ($c) { return $c['images']; }, $export['campaigns'])))));
+        $images    = array_sum(array_column($rows, 'images'));
         $date      = $export['exported'] ? mysql2date(get_option('date_format'), $export['exported']) : '';
 
         $summary = sprintf(_n('%d campaign in %s', '%d campaigns in %s', count($parents), 'mailoptin'), count($parents), $export['file'] ?? 'the file');
@@ -295,7 +305,7 @@ class OptinCampaignImport
                             <strong><?php esc_html_e("Copy images into this site's Media Library", 'mailoptin'); ?></strong>
                         </label><br>
                         <span class="description"><?php echo esc_html(sprintf(
-                                _n('%1$d image. If you leave this off, it keeps loading from %2$s.', '%1$d images. If you leave this off, they keep loading from %2$s.', $images, 'mailoptin'),
+                                _n('%1$d image. If you leave this off, images keep loading from %2$s and a form image shows the template\'s default.', '%1$d images. If you leave this off, images keep loading from %2$s and a form image shows the template\'s default.', $images, 'mailoptin'),
                                 $images,
                                 $export['site'] ?: __('the old site', 'mailoptin')
                             )); ?></span>

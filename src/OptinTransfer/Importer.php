@@ -18,6 +18,10 @@ class Importer
 {
     const MAX_BYTES = 5242880; // 5MB; a campaign is usually a few kilobytes.
 
+    const MAX_IMAGES = 30; // per import
+
+    const MAX_IMAGE_BYTES = 5242880;
+
     const TYPES = ['lightbox', 'inpost', 'sidebar', 'bar', 'slidein'];
 
     /**
@@ -47,15 +51,16 @@ class Importer
         $campaigns = [];
         foreach ($data['campaigns'] as $c) {
             if ( ! is_array($c) || empty($c['id']) || empty($c['name']) || ! is_array($c['settings'] ?? null)) continue;
+            $uuid                       = (string)($c['uuid'] ?? '');
             $campaigns[(int)$c['id']] = [
                 'id'         => (int)$c['id'],
                 'name'       => sanitize_text_field((string)$c['name']),
                 'type'       => sanitize_key((string)($c['type'] ?? '')),
                 'template'   => preg_replace('/[^A-Za-z0-9_]/', '', (string)($c['template'] ?? '')),
-                'uuid'       => preg_replace('/[^A-Za-z0-9]/', '', (string)($c['uuid'] ?? '')),
+                // Campaign IDs are 10 letters; anything else isn't replaced, so it can't rewrite unrelated CSS.
+                'uuid'       => preg_match('/^[A-Za-z]{10}$/', $uuid) ? $uuid : '',
                 'variant_of' => empty($c['variant_of']) ? null : (int)$c['variant_of'],
                 'settings'   => self::clean_settings($c['settings']),
-                'images'     => array_values(array_filter(array_map('esc_url_raw', array_filter((array)($c['images'] ?? []), 'is_string')))),
             ];
         }
 
@@ -66,15 +71,21 @@ class Importer
             if ($c['variant_of'] && ! isset($campaigns[$c['variant_of']])) $campaigns[$id]['variant_of'] = null;
         }
 
+        $attachments = [];
+        foreach ((array)($data['attachments'] ?? []) as $id => $url) {
+            if (is_string($url) && ($url = esc_url_raw($url))) $attachments[(int)$id] = $url;
+        }
+
         return [
-            'site'      => sanitize_text_field((string)($data['site'] ?? '')),
-            'exported'  => sanitize_text_field((string)($data['exported'] ?? '')),
-            'campaigns' => $campaigns,
-            'posts'     => is_array($data['posts'] ?? null) ? $data['posts'] : [],
-            'terms'     => is_array($data['terms'] ?? null) ? $data['terms'] : [],
-            'tags'      => is_array($data['tags'] ?? null) ? array_map('sanitize_text_field', array_filter($data['tags'], 'is_scalar')) : [],
-            'fields'    => is_array($data['fields'] ?? null) ? $data['fields'] : [],
-            'services'  => is_array($data['services'] ?? null) ? array_map('sanitize_text_field', array_filter($data['services'], 'is_string')) : [],
+            'site'        => strtolower(preg_replace('/[^A-Za-z0-9.\-:]/', '', (string)($data['site'] ?? ''))),
+            'exported'    => sanitize_text_field((string)($data['exported'] ?? '')),
+            'campaigns'   => $campaigns,
+            'posts'       => is_array($data['posts'] ?? null) ? $data['posts'] : [],
+            'terms'       => is_array($data['terms'] ?? null) ? $data['terms'] : [],
+            'tags'        => is_array($data['tags'] ?? null) ? array_map('sanitize_text_field', array_filter($data['tags'], 'is_scalar')) : [],
+            'fields'      => is_array($data['fields'] ?? null) ? $data['fields'] : [],
+            'services'    => is_array($data['services'] ?? null) ? array_map('sanitize_text_field', array_filter($data['services'], 'is_string')) : [],
+            'attachments' => $attachments,
         ];
     }
 
@@ -115,14 +126,46 @@ class Importer
     {
         if ( ! in_array($type, self::TYPES, true) || '' === $template) return 'missing';
 
+        // Template filters look at the class and type only, not the campaign.
         $class = apply_filters('mailoptin_register_optin_class', '\\MailOptin\\Core\\OptinForms\\' . ucfirst($type) . '\\' . $template, 0, $template, ucfirst($type));
         if (class_exists($class)) return 'ok';
 
-        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM') && in_array($template, wp_list_pluck(OptinThemesRepository::premium_themes(), 'optin_class'), true)) {
-            return 'premium';
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+            $themes = OptinThemesRepository::premium_themes();
+            foreach (['premium_message_themes', 'premium_wheel_themes'] as $more) {
+                if (method_exists(OptinThemesRepository::class, $more)) $themes = array_merge($themes, OptinThemesRepository::$more());
+            }
+            foreach ($themes as $theme) {
+                $types = array_map('trim', explode(',', (string)($theme['optin_type'] ?? '')));
+                if (($theme['optin_class'] ?? '') === $template && in_array($type, $types, true)) return 'premium';
+            }
         }
 
         return 'missing';
+    }
+
+    /** Can a custom field described in the file be created here? */
+    protected static function field_is_creatable($key, $def)
+    {
+        if ( ! is_array($def) || '' === trim((string)($def['label'] ?? ''))) return false;
+        if ( ! isset(CustomFieldsRepository::types()[$def['type'] ?? ''])) return false;
+        if ( ! CustomFieldsRepository::is_valid_key($key) || in_array($key, CustomFieldsRepository::reserved_keys(), true)) return false;
+        if (CustomFieldsRepository::has_options($def['type']) && empty(CustomFieldsRepository::sanitize_options($def['options'] ?? []))) return false;
+
+        return true;
+    }
+
+    /** Images this campaign uses from the site the file came from: URLs in its settings, and its attachments. */
+    protected static function campaign_images(array $c, array $export)
+    {
+        $urls = '' === $export['site'] ? [] : References::images($c['settings'], $export['site']);
+        foreach (References::attachment_settings() as $key) {
+            foreach (References::ids($c['settings'][$key] ?? null) as $id) {
+                if (isset($export['attachments'][$id])) $urls[] = $export['attachments'][$id];
+            }
+        }
+
+        return array_values(array_unique($urls));
     }
 
     /**
@@ -130,7 +173,7 @@ class Importer
      *
      * @param array $taken names already used, including ones this import is about to use
      */
-    public static function plan(array $c, array $export, array $taken)
+    public static function plan(array $c, array $export, array $taken, $copy_images = true)
     {
         $settings = $c['settings'];
         $issues   = [];
@@ -144,12 +187,15 @@ class Importer
             $issues[] = __('Uses a Premium template. It comes in now and shows in your list once MailOptin Premium is active.', 'mailoptin');
         }
 
+        $emptied = false;
+
         // Posts and products.
         $missing_posts = $missing_products = [];
         foreach (References::post_settings() as $key) {
             if ( ! array_key_exists($key, $settings)) continue;
-            $mapped = [];
-            foreach (References::ids($settings[$key]) as $old) {
+            $old_ids = References::ids($settings[$key]);
+            $mapped  = [];
+            foreach ($old_ids as $old) {
                 $ref = $export['posts'][$old] ?? null;
                 $new = is_array($ref) ? References::find_post($ref) : 0;
                 if ($new) {
@@ -159,29 +205,35 @@ class Importer
                     if ('product' === ($ref['type'] ?? '')) $missing_products[] = $title ?: '#' . $old; else $missing_posts[] = $title ?: '#' . $old;
                 }
             }
+            if ($old_ids && ! $mapped) $emptied = true;
             $settings[$key] = References::reshape($settings[$key], $mapped);
         }
         if ($missing_posts) {
             $issues[] = sprintf(__("These pages aren't on this site, so they're left out of where it shows: %s.", 'mailoptin'), self::quote_list($missing_posts));
         }
         if ($missing_products) {
-            $issues[] = sprintf(__('No product here has the same SKU as these, so they\'re left out: %s.', 'mailoptin'), self::quote_list($missing_products));
+            $issues[] = sprintf(__("No product here has the same SKU as these, so they're left out: %s.", 'mailoptin'), self::quote_list($missing_products));
         }
 
         // Categories and tags.
         $missing_terms = [];
         foreach (References::term_settings() as $key => $taxonomy) {
             if ( ! array_key_exists($key, $settings)) continue;
-            $mapped = [];
-            foreach (References::ids($settings[$key]) as $old) {
+            $old_ids = References::ids($settings[$key]);
+            $mapped  = [];
+            foreach ($old_ids as $old) {
                 $ref = $export['terms'][$taxonomy . ':' . $old] ?? null;
                 $new = is_array($ref) ? References::find_term($ref) : 0;
                 if ($new) $mapped[] = $new; else $missing_terms[] = is_array($ref) ? sanitize_text_field((string)($ref['name'] ?? '')) : '#' . $old;
             }
+            if ($old_ids && ! $mapped) $emptied = true;
             $settings[$key] = References::reshape($settings[$key], $mapped);
         }
         if ($missing_terms) {
             $issues[] = sprintf(__("These categories or tags aren't on this site, so they're left out of where it shows: %s.", 'mailoptin'), self::quote_list($missing_terms));
+        }
+        if ($emptied) {
+            $issues[] = __("None of the pages, products or categories in one of its display rules are here, so that rule is now empty. Check where it shows before you turn it on.", 'mailoptin');
         }
 
         // Coupons.
@@ -194,47 +246,70 @@ class Importer
             }
         }
 
-        // Integrations: services, MailOptin tags and custom fields.
+        // The form's image and other attachments: copied in run(), or left at the template's default.
+        foreach (References::attachment_settings() as $key) {
+            if (empty(References::ids($settings[$key] ?? null))) continue;
+            if ( ! $copy_images) {
+                $settings[$key] = '';
+                $issues[]       = __("Its image isn't copied, so the template's default image shows. Turn on copying images, or pick an image in the Customizer.", 'mailoptin');
+            }
+        }
+
+        // Integrations: services and MailOptin tags.
         $integrations = References::integrations($settings);
         if ($integrations) {
-            $tag_names = TagsRepository::is_ready() ? array_map('strtolower', TagsRepository::names()) : [];
+            $tags_ready = TagsRepository::is_ready();
+            $tag_names  = $tags_ready ? array_map('strtolower', TagsRepository::names()) : [];
+            $unnamed    = false;
             foreach ($integrations as $i => $integration) {
-                $service = sanitize_key((string)($integration['connection_service'] ?? ''));
-                if ('' !== $service && ! self::is_connected($integration['connection_service'])) {
+                $service = (string)($integration['connection_service'] ?? '');
+                if ('' !== $service && ! self::is_connected($service)) {
                     $issues[] = sprintf(
                         __("Sends subscribers to %s, which isn't connected here. Until you connect it, subscribers are saved to MailOptin only.", 'mailoptin'),
-                        self::service_label($integration['connection_service'], $export['services'] ?? [])
+                        self::service_label($service, $export['services'] ?? [])
                     );
                 }
 
-                if (isset($integration['MailOptinConnect_lead_tags'])) {
-                    $names = [];
-                    foreach (References::ids($integration['MailOptinConnect_lead_tags']) as $old) {
-                        if (isset($export['tags'][$old])) $names[] = $export['tags'][$old];
-                    }
-                    // Tag names travel in place of IDs; run() turns them back into this site's IDs.
-                    $integrations[$i]['MailOptinConnect_lead_tags'] = $names;
-                    foreach ($names as $name) {
-                        if ( ! in_array(strtolower($name), $tag_names, true)) $creates['tags'][$name] = true;
-                    }
-                }
+                if ( ! isset($integration['MailOptinConnect_lead_tags'])) continue;
 
-                $mappings = References::field_mappings($integration);
-                foreach (array_keys($mappings) as $key) {
-                    if (CustomFieldsRepository::get_by_key($key)) continue;
-                    $def = $export['fields'][$key] ?? null;
-                    if (is_array($def) && ! empty($def['label']) && isset(CustomFieldsRepository::types()[$def['type'] ?? ''])) {
-                        $creates['fields'][$key] = $def;
-                    } else {
-                        unset($mappings[$key]);
-                        $issues[] = sprintf(__("Saves to the custom field %s, which isn't on this site, so that field isn't saved.", 'mailoptin'), $key);
-                    }
+                $names = [];
+                foreach (References::ids($integration['MailOptinConnect_lead_tags']) as $old) {
+                    if (isset($export['tags'][$old]) && '' !== $export['tags'][$old]) $names[] = $export['tags'][$old]; else $unnamed = true;
                 }
-                if (isset($integration['custom_field_mappings'])) {
-                    $integrations[$i]['custom_field_mappings'] = is_string($integration['custom_field_mappings']) ? wp_json_encode($mappings) : $mappings;
+                if ( ! $tags_ready) {
+                    // Tag names in place of IDs would break the form, so they wait for the database update.
+                    $integrations[$i]['MailOptinConnect_lead_tags'] = [];
+                    if ($names) $issues[] = __("MailOptin tags aren't set up on this site yet, so its tags are left out.", 'mailoptin');
+                    continue;
+                }
+                // Tag names travel in place of IDs; run() turns them back into this site's IDs.
+                $integrations[$i]['MailOptinConnect_lead_tags'] = $names;
+                foreach ($names as $name) {
+                    if ( ! in_array(strtolower($name), $tag_names, true)) $creates['tags'][$name] = true;
                 }
             }
+            if ($unnamed) $issues[] = __("A tag it adds isn't named in the file, so that tag is left out.", 'mailoptin');
             $settings['integrations'] = is_string($c['settings']['integrations']) ? wp_json_encode($integrations) : $integrations;
+        }
+
+        // Custom fields mapped by integrations that save to MailOptin.
+        $mappings = References::field_mappings($settings);
+        if ($mappings) {
+            foreach (References::mailoptin_positions($settings) as $i) {
+                if ( ! isset($mappings[$i]) || ! is_array($mappings[$i])) continue;
+                foreach (array_keys($mappings[$i]) as $key) {
+                    $key = (string)$key;
+                    if (CustomFieldsRepository::get_by_key($key) || isset($creates['fields'][$key])) continue;
+                    $def = $export['fields'][$key] ?? null;
+                    if (self::field_is_creatable($key, $def)) {
+                        $creates['fields'][$key] = $def;
+                    } else {
+                        unset($mappings[$i][$key]);
+                        $issues[] = sprintf(__("Saves to the custom field %s, which isn't on this site and can't be created from the file, so that field isn't saved.", 'mailoptin'), $key);
+                    }
+                }
+            }
+            $settings['custom_field_mappings'] = is_string($c['settings']['custom_field_mappings'] ?? null) ? wp_json_encode($mappings) : $mappings;
         }
 
         if ($creates['tags']) {
@@ -244,12 +319,32 @@ class Importer
             $issues[] = sprintf(__('Creates the custom field %s.', 'mailoptin'), '“' . sanitize_text_field((string)$def['label']) . '”');
         }
 
+        // Links must be web addresses; what runs or shows from the file is named, since the file may come from someone else.
+        foreach ($settings as $key => $value) {
+            if ( ! is_string($value) || '' === trim($value)) continue;
+            if (preg_match('/_url(_value)?$/', $key)) {
+                $clean = esc_url_raw($value, ['http', 'https']);
+                if ('' === $clean) $issues[] = sprintf(__('A link in it (%s) isn\'t a web address, so it was removed.', 'mailoptin'), $key);
+                $settings[$key] = $clean;
+            }
+        }
+        if ( ! empty($settings['success_js_script']) && is_string($settings['success_js_script']) && '' !== trim($settings['success_js_script'])) {
+            $issues[] = __('Runs its own JavaScript after someone signs up. Check it in the Customizer if you didn\'t write it.', 'mailoptin');
+        }
+        foreach ($settings as $key => $value) {
+            if (false !== strpos($key, 'custom_html') && is_string($value) && '' !== trim($value)) {
+                $issues[] = __("Shows custom HTML. Check it in the Customizer if you didn't write it.", 'mailoptin');
+                break;
+            }
+        }
+
         // A name that's already used gets a number.
         $name = $c['name'];
         if (in_array(strtolower($name), $taken, true)) {
-            $n = 2;
-            while (in_array(strtolower($c['name'] . " ($n)"), $taken, true)) $n++;
-            $name     = $c['name'] . " ($n)";
+            $base = preg_replace('/ \(\d+\)$/', '', $c['name']);
+            $n    = 2;
+            while (in_array(strtolower($base . " ($n)"), $taken, true)) $n++;
+            $name     = $base . " ($n)";
             $issues[] = sprintf(__('A campaign called %1$s already exists. This one comes in as %2$s.', 'mailoptin'), '“' . $c['name'] . '”', '“' . $name . '”');
         }
 
@@ -265,17 +360,27 @@ class Importer
     }
 
     /**
-     * The review screen's rows, parents first with their variants after.
+     * The review screen's rows, parents first with their variants after. Assumes every campaign stays ticked
+     * and images are copied, which is how the screen opens.
      */
     public static function review(array $export)
     {
-        $taken = self::existing_names();
-        $rows  = [];
+        $taken    = self::existing_names();
+        $rows     = [];
+        $skipped  = [];
 
         foreach (self::ordered($export) as $c) {
-            $plan    = self::plan($c, $export, $taken);
-            $taken[] = strtolower($plan['name']);
-            $rows[]  = [
+            if ($c['variant_of'] && isset($skipped[$c['variant_of']])) {
+                $plan = ['status' => 'skip', 'issues' => [__("Its A/B test can't be imported, so this version isn't either.", 'mailoptin')], 'name' => $c['name']];
+            } else {
+                $plan = self::plan($c, $export, $taken);
+            }
+            if ('skip' === $plan['status']) {
+                $skipped[$c['id']] = true;
+            } else {
+                $taken[] = strtolower($plan['name']);
+            }
+            $rows[] = [
                 'id'         => $c['id'],
                 'name'       => $c['name'],
                 'type'       => $c['type'],
@@ -283,6 +388,7 @@ class Importer
                 'variant_of' => $c['variant_of'],
                 'status'     => $plan['status'],
                 'issues'     => $plan['issues'],
+                'images'     => count(self::campaign_images($c, $export)),
             ];
         }
 
@@ -294,22 +400,28 @@ class Importer
      *
      * @param int[] $selected export IDs of the campaigns to import; variants follow their parent
      *
-     * @return array ['imported' => [new ID => name], 'skipped' => [names]]
+     * @return array ['imported' => [new ID => name], 'skipped' => [names], 'premium' => count]
      */
     public static function run(array $export, array $selected, $copy_images)
     {
         $selected = array_map('intval', $selected);
         $taken    = self::existing_names();
         $new_ids  = [];
-        $result   = ['imported' => [], 'skipped' => []];
+        $uuids    = [];
+        $result   = ['imported' => [], 'skipped' => [], 'premium' => 0];
         $tag_ids  = [];
         $images   = [];
+        $copied   = 0;
 
         foreach (self::ordered($export) as $c) {
             $wanted = $c['variant_of'] ? in_array($c['variant_of'], $selected, true) : in_array($c['id'], $selected, true);
-            if ( ! $wanted || ($c['variant_of'] && ! isset($new_ids[$c['variant_of']]))) continue;
+            if ( ! $wanted) continue;
+            if ($c['variant_of'] && ! isset($new_ids[$c['variant_of']])) {
+                $result['skipped'][] = $c['name'];
+                continue;
+            }
 
-            $plan = self::plan($c, $export, $taken);
+            $plan = self::plan($c, $export, $taken, $copy_images);
             if ('skip' === $plan['status']) {
                 $result['skipped'][] = $c['name'];
                 continue;
@@ -340,14 +452,33 @@ class Importer
             }
 
             if ($copy_images) {
-                foreach ($c['images'] as $url) {
-                    if ( ! array_key_exists($url, $images)) $images[$url] = self::copy_image($url);
-                    if ($images[$url]) $settings = self::replace_in($settings, $url, $images[$url]);
+                $copy = function ($url) use (&$images, &$copied) {
+                    if ( ! array_key_exists($url, $images)) {
+                        $images[$url] = $copied < self::MAX_IMAGES ? self::copy_image($url) : false;
+                        $copied++;
+                    }
+
+                    return $images[$url];
+                };
+
+                // Attachment settings get the copy's new ID; without a copy, the template's default image shows
+                // rather than whichever image has the old ID here.
+                foreach (References::attachment_settings() as $key) {
+                    $old = References::ids($settings[$key] ?? null);
+                    if ( ! $old) continue;
+                    $url            = $export['attachments'][$old[0]] ?? '';
+                    $image          = '' !== $url ? $copy($url) : false;
+                    $settings[$key] = $image ? (is_int($settings[$key]) ? $image['id'] : (string)$image['id']) : '';
+                }
+
+                if ('' !== $export['site']) {
+                    foreach (References::images($c['settings'], $export['site']) as $url) {
+                        if ($image = $copy($url)) $settings = self::replace_in($settings, $url, $image['url']);
+                    }
                 }
             }
 
             $uuid = AjaxHandler::generateUniqueId();
-            if ('' !== $c['uuid']) $settings = self::replace_in($settings, '#' . $c['uuid'], '#' . $uuid);
 
             $id = OCR::add_optin_campaign($uuid, $plan['name'], $c['template'], $c['type']);
             if ( ! $id) {
@@ -359,9 +490,22 @@ class Importer
             OptinCampaignMeta::add_campaign_meta($id, 'imported_from', $export['site'] ?: '-');
             if ($c['variant_of']) OptinCampaignMeta::add_campaign_meta($id, 'split_test_parent', $new_ids[$c['variant_of']]);
 
-            $new_ids[$c['id']]          = $id;
-            $taken[]                    = strtolower($plan['name']);
-            $result['imported'][$id]    = $plan['name'];
+            if ('' !== $c['uuid']) $uuids['#' . $c['uuid']] = '#' . $uuid;
+            if ('premium' === $plan['status']) $result['premium']++;
+            $new_ids[$c['id']]       = $id;
+            $taken[]                 = strtolower($plan['name']);
+            $result['imported'][$id] = $plan['name'];
+        }
+
+        // Custom CSS names campaigns by ID, and an A/B version's CSS usually names its parent's. Point every old ID
+        // at its new one, across all the campaigns just imported.
+        if ($uuids) {
+            foreach (array_keys($result['imported']) as $id) {
+                $settings = OCR::get_settings_by_id($id);
+                $updated  = $settings;
+                foreach ($uuids as $from => $to) $updated = self::replace_in($updated, $from, $to);
+                if ($updated !== $settings) OCR::save_settings_by_id($id, $updated);
+            }
         }
 
         do_action('mailoptin_optin_campaigns_imported', $result['imported'], $export);
@@ -408,6 +552,48 @@ class Importer
         $labels = apply_filters('mailoptin_registered_connections', []);
         if ( ! empty($labels[$service]) && is_string($labels[$service])) return wp_strip_all_tags($labels[$service]);
 
+        // Names the connections add-on registers, for a file from a site that didn't record them.
+        $known = [
+            'AweberConnect' => 'AWeber',
+            'BenchmarkEmailConnect' => 'Benchmark Email (Classic)',
+            'CampaignMonitorConnect' => 'Campaign Monitor',
+            'ConvertFoxConnect' => 'Gist',
+            'ConvertKitConnect' => 'Kit Classic',
+            'CopperConnect' => 'Copper CRM',
+            'CtctConnect' => 'Constant Contact (Legacy)',
+            'Ctctv3Connect' => 'Constant Contact',
+            'EasyDigitalDownloadsConnect' => 'Easy Digital Downloads',
+            'EgoiConnect' => 'E-Goi',
+            'ElasticEmailConnect' => 'Elastic Email',
+            'FacebookCustomAudienceConnect' => 'Facebook Custom Audience',
+            'GoogleSheetConnect' => 'Google Sheets',
+            'HubspotConnect' => 'HubSpot',
+            'IContactConnect' => 'iContact',
+            'InfusionsoftConnect' => 'Infusionsoft (Keap)',
+            'LeadBankConnect' => 'MailOptin Leads (deprecated)',
+            'MailChimpConnect' => 'Mailchimp',
+            'MailerliteConnect' => 'MailerLite Classic',
+            'Mailerlitev2Connect' => 'MailerLite',
+            'MicrosoftDynamic365Connect' => 'Microsoft Dynamics 365',
+            'OrttoCRMConnect' => 'Ortto',
+            'PmProConnect' => 'Paid Memberships Pro',
+            'RCPConnect' => 'Restrict Content Pro',
+            'RegisteredUsersConnect' => 'WordPress Registered Users',
+            'SendGridConnect' => 'SendGrid Email Marketing',
+            'SendinblueConnect' => 'Brevo (Sendinblue)',
+            'SendpulseConnect' => 'SendPulse',
+            'TutorLMSConnect' => 'Tutor LMS',
+            'VerticalResponseConnect' => 'Vertical Response',
+            'WeMailConnect' => 'weMail',
+            'WebHookConnect' => 'Webhook',
+            'WooMembershipConnect' => 'WooCommerce Memberships',
+            'WooSubscriptionsConnect' => 'WooCommerce Subscriptions',
+            'WordPressUserRegistrationConnect' => 'WordPress User Registration',
+            'ZohoCRMConnect' => 'Zoho CRM',
+            'ZohoCampaignsConnect' => 'Zoho Campaigns',
+        ];
+        if (isset($known[$service])) return $known[$service];
+
         return preg_replace('/Connect$/', '', $service) ?: __('an email service', 'mailoptin');
     }
 
@@ -435,9 +621,10 @@ class Importer
     }
 
     /**
-     * Copy an image into the Media Library. WordPress's downloader refuses local and private addresses.
+     * Copy an image into the Media Library. WordPress's safe request refuses local and private addresses, and
+     * the download stops at MAX_IMAGE_BYTES.
      *
-     * @return string|false the new URL
+     * @return array|false ['id' => attachment ID, 'url' => its URL]
      */
     protected static function copy_image($url)
     {
@@ -447,17 +634,28 @@ class Importer
             require_once ABSPATH . 'wp-admin/includes/image.php';
         }
 
-        $tmp = download_url($url, 20);
-        if (is_wp_error($tmp)) return false;
+        $name = wp_basename((string)wp_parse_url($url, PHP_URL_PATH));
+        if ( ! preg_match('/\.(jpe?g|png|gif|webp|avif)$/i', $name)) return false;
 
-        $file = ['name' => wp_basename(wp_parse_url($url, PHP_URL_PATH)), 'tmp_name' => $tmp];
-        $id   = media_handle_sideload($file, 0);
+        $tmp = wp_tempnam($name);
+        if ( ! $tmp) return false;
+
+        $response = wp_safe_remote_get($url, ['timeout' => 15, 'stream' => true, 'filename' => $tmp, 'limit_response_size' => self::MAX_IMAGE_BYTES]);
+        if (is_wp_error($response) || 200 !== (int)wp_remote_retrieve_response_code($response) || filesize($tmp) >= self::MAX_IMAGE_BYTES) {
+            @unlink($tmp);
+
+            return false;
+        }
+
+        $id = media_handle_sideload(['name' => $name, 'tmp_name' => $tmp], 0);
         if (is_wp_error($id)) {
             @unlink($tmp);
 
             return false;
         }
 
-        return wp_get_attachment_url($id) ?: false;
+        $new = wp_get_attachment_url($id);
+
+        return $new ? ['id' => (int)$id, 'url' => $new] : false;
     }
 }

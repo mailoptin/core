@@ -47,6 +47,8 @@ class Exporter
             'terms'     => [],
             'tags'      => [],
             'fields'    => [],
+            // Attachment ID => URL, for settings that hold an attachment (the form's image).
+            'attachments' => [],
             // Display names of the email services used, e.g. "Mailchimp", for the importing site to show.
             'services'  => [],
         ];
@@ -95,8 +97,20 @@ class Exporter
                 foreach (References::ids($integration['MailOptinConnect_lead_tags'] ?? null) as $tag_id) {
                     if (isset($tag_names[$tag_id])) $export['tags'][$tag_id] = $tag_names[$tag_id];
                 }
-                foreach (array_keys(References::field_mappings($integration)) as $merge_key) {
+            }
+
+            // Custom field mappings of the integrations that save to MailOptin: their keys are MailOptin custom fields.
+            $mappings = References::field_mappings($settings);
+            foreach (References::mailoptin_positions($settings) as $i) {
+                foreach (array_keys((array)($mappings[$i] ?? [])) as $merge_key) {
                     if ( ! isset($export['fields'][$merge_key]) && ($ref = References::describe_field($merge_key))) $export['fields'][$merge_key] = $ref;
+                }
+            }
+
+            foreach (References::attachment_settings() as $key) {
+                foreach (References::ids($settings[$key] ?? null) as $attachment_id) {
+                    $url = wp_get_attachment_url($attachment_id);
+                    if ($url) $export['attachments'][$attachment_id] = $url;
                 }
             }
         }
