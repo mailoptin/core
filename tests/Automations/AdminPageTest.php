@@ -632,4 +632,26 @@ class AdminPageTest extends EngineTest
 
         remove_filter('wp_doing_ajax', '__return_true');
     }
+
+    public function test_the_old_toggle_endpoints_work_with_the_nonce_the_list_sends()
+    {
+        $handler = \MailOptin\Core\AjaxHandler::get_instance();
+        $id      = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign('abcdefghij', 'Toggle me', 'BareMetal', 'sidebar');
+        \MailOptin\Core\Repositories\OptinCampaignsRepository::deactivate_campaign($id);
+
+        // What the lists' switch posts (admin-script.js): the admin nonce from mailoptin_globals.
+        $_POST = $_REQUEST = ['id' => $id, 'status' => 'true', 'nonce' => wp_create_nonce('mailoptin-admin-nonce')];
+        add_filter('wp_doing_ajax', '__return_true');
+        add_filter('wp_die_ajax_handler', $h = function () { return function () { throw new \RuntimeException('done'); }; });
+        try {
+            $handler->toggle_optin_activated();
+        } catch (\RuntimeException $e) {
+            $this->assertSame('done', $e->getMessage());
+        } finally {
+            remove_filter('wp_die_ajax_handler', $h);
+            remove_filter('wp_doing_ajax', '__return_true');
+        }
+
+        $this->assertTrue(\MailOptin\Core\Repositories\OptinCampaignsRepository::is_activated($id));
+    }
 }
