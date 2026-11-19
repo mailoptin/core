@@ -568,6 +568,15 @@ class OptinCampaignsRepository extends AbstractRepository
     }
 
     /**
+     * Forget saved campaign settings read so far in this request. Kept from master's request cache;
+     * saved settings now live in CampaignSettingsRepository, which owns that cache.
+     */
+    public static function flush_saved_customizer_data_cache()
+    {
+        CampaignSettingsRepository::flush_cache();
+    }
+
+    /**
      * Filtered customizer defaults of an optin campaign, built once per campaign per request.
      *
      * @param int $optin_campaign_id

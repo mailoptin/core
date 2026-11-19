@@ -700,8 +700,6 @@ class AjaxHandler
      */
     public function toggle_optin_activated()
     {
-        check_ajax_referer('customizer-fetch-email-list', 'security');
-
         if ( ! current_user_has_privilege()) {
             exit;
         }
@@ -723,8 +721,6 @@ class AjaxHandler
 
     public function toggle_automation_activated()
     {
-        check_ajax_referer('customizer-fetch-email-list', 'security');
-
         if ( ! current_user_has_privilege()) {
             exit;
         }

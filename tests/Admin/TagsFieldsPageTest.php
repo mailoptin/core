@@ -273,7 +273,8 @@ class TagsFieldsPageTest extends WP_UnitTestCase
         $this->subscriber('amara@example.com');
         update_option('mo_db_ver', 19);
 
-        $this->assertSame(['subscribers', 'lists'], wp_list_pluck($this->page->header_menu_tabs(), 'id'));
+        // The suppression list needs no update (its table is older), so it stays.
+        $this->assertSame(['subscribers', 'lists', 'suppressions'], wp_list_pluck($this->page->header_menu_tabs(), 'id'));
         $this->assertSame('', $this->render('render_tags', ['view' => 'tags']));
         $this->assertStringContainsString('Search email or name', $this->render('render_subscribers'));
     }

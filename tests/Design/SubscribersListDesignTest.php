@@ -16,13 +16,17 @@ class SubscribersListDesignTest extends \WP_UnitTestCase
         parent::set_up();
         \MailOptin\Core\Base::get_instance()->register_metadata_table();
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
-        set_current_screen('dashboard');
+        // Its own screen: WordPress caches a list's columns per screen, and a list table takes its screen
+        // from hook_suffix, so without one it would share the empty screen (and columns) of other lists.
+        $GLOBALS['hook_suffix'] = 'mailoptin_page_mailoptin-subscribers';
+        set_current_screen('mailoptin_page_mailoptin-subscribers');
         $this->list_id = ListsRepository::create(['name' => 'Newsletter', 'double_optin' => 0]);
     }
 
     public function tear_down()
     {
         $_GET = [];
+        unset($GLOBALS['hook_suffix']);
         parent::tear_down();
     }
 
@@ -52,8 +56,10 @@ class SubscribersListDesignTest extends \WP_UnitTestCase
         $this->assertStringContainsString('2 matching', $html);
         $this->assertStringContainsString('+ Add subscriber', $html);
         $this->assertStringContainsString('mo-ui-btn mo-ui-primary', $html);
-        // Admin notices go below the heading row, not between the title and its buttons.
-        $this->assertMatchesRegularExpression('#\+ Add subscriber</a>\s*</span>\s*</div>\s*<hr class="wp-header-end">#', $html);
+        // The heading row holds its buttons. Notices go below the shared page header, which prints the one
+        // wp-header-end marker (see DesignSystemTest), so the list prints none of its own.
+        $this->assertMatchesRegularExpression('#\+ Add subscriber</a>\s*</span>\s*</div>#', $html);
+        $this->assertStringNotContainsString('wp-header-end', $html);
 
         // Name on the first line, email on the second.
         $this->assertMatchesRegularExpression('#class="row-title"[^>]*>Amara Obi</a></strong><span class="mo-subscriber-email">amara@example.com</span>#', $html);

@@ -44,9 +44,8 @@ class RelatedPostsTest extends \WP_UnitTestCase
         $this->assertNotEmpty($id);
         if ($active) OCR::activate_campaign($id);
 
-        $all      = get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
-        $all[$id] = $settings + (isset($all[$id]) ? $all[$id] : []);
-        update_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $all);
+        $settings_repo = \MailOptin\Core\Repositories\CampaignSettingsRepository::class;
+        $settings_repo::update($settings_repo::TYPE_OPTIN, $id, $settings);
         OCR::flush_saved_customizer_data_cache();
 
         return $id;

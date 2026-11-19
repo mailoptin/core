@@ -227,15 +227,22 @@ class PostMetaFieldsTest extends WP_UnitTestCase
             'post_content_length'   => 10,
         ];
 
-        $html = $template->posts_block_tmpl('b1', get_post($this->post_id), $settings, 1);
+        // Newsletters draw posts with the Posts email block (MJML), using the template's post helpers.
+        $block = \MailOptin\Core\EmailBlocks\Blocks::get_instance()->get('posts');
+        $style = new \MailOptin\Core\EmailBlocks\Style($campaign, $template);
+        $draw  = function ($extra) use ($block, $style, $settings) {
+            return $block->render($extra + $settings + ['post_list' => [$this->post_id]], [], $style, 'b1');
+        };
+
+        $html = $draw([]);
         $this->assertStringContainsString('<span>spring, tulips</span><span>&nbsp;•&nbsp;</span><span>2 min read</span>', $html);
         $this->assertLessThan(strpos($html, '<img'), strpos($html, 'spring, tulips'));
 
-        $html = $template->posts_block_tmpl('b1', get_post($this->post_id), ['post_meta_position' => PostMetaFields::POSITION_BELOW_IMAGE] + $settings, 1);
+        $html = $draw(['post_meta_position' => PostMetaFields::POSITION_BELOW_IMAGE]);
         $this->assertGreaterThan(strpos($html, '<img'), strpos($html, 'spring, tulips'));
 
         // No image: the details stay under the title.
-        $html = $template->posts_block_tmpl('b1', get_post($this->post_id), ['post_meta_position' => PostMetaFields::POSITION_BELOW_IMAGE, 'remove_feature_image' => true] + $settings, 1);
+        $html = $draw(['post_meta_position' => PostMetaFields::POSITION_BELOW_IMAGE, 'remove_feature_image' => true]);
         $this->assertStringContainsString('spring, tulips', $html);
         $this->assertStringNotContainsString('<img', $html);
     }

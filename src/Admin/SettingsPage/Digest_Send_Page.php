@@ -138,7 +138,6 @@ class Digest_Send_Page
             <div class="mo-ui-heading">
                 <h1><?php echo esc_html(sprintf(__('Send “%s” now', 'mailoptin'), ER::get_email_campaign_name($email_campaign_id))); ?></h1>
             </div>
-            <hr class="wp-header-end">
             <?php echo self::notice_html(); ?>
 
             <form method="post" action="<?php echo esc_url(self::url($email_campaign_id, $latest ? ['latest' => 1] : [])); ?>">

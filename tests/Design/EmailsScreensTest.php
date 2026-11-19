@@ -23,7 +23,7 @@ class EmailsScreensTest extends \WP_UnitTestCase
         global $wpdb;
         $list = new Email_Campaign_List($wpdb);
 
-        $this->assertSame(['cb', 'name', 'campaign_type', 'activated'], array_keys($list->get_columns()), 'No "Actions" column of icon buttons.');
+        $this->assertSame(['cb', 'name', 'campaign_type', 'next_send', 'activated'], array_keys($list->get_columns()), 'No "Actions" column of icon buttons; digests show their next send.');
 
         $id   = EmailCampaignRepository::add_email_campaign('<b>Weekly</b> & more', 'new_publish_post', 'Lucid');
         $html = $list->column_name(['id' => $id, 'name' => '<b>Weekly</b> & more']);
