@@ -174,7 +174,7 @@ class BroadcastTemplatesTest extends \WP_UnitTestCase
         \MailOptin\Core\EmailBlocks\Builtin\ElementBlock::flush_defaults();
         $defaults = \MailOptin\Core\EmailBlocks\Blocks::get_instance()->get('button')->defaults($lucid);
 
-        $this->assertSame('#dc4d2f', $defaults['button_background_color']);
+        $this->assertSame('#d54324', $defaults['button_background_color']);
         $this->assertNotSame('700', $defaults['button_font_weight'] ?? '');
     }
 
