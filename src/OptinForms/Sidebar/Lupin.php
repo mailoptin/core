@@ -21,7 +21,7 @@ class Lupin extends AbstractOptinTheme
                 ],
                 [
                     'name'        => 'mo_optin_form_background_color_default',
-                    'value'       => '#1998d6',
+                    'value'       => '#157eb1',
                     'optin_class' => 'Lupin',
                     'optin_type'  => 'sidebar'
                 ],
@@ -457,11 +457,11 @@ HTML;
 
         return <<<CSS
 html div#$optin_uuid div#$optin_css_id.lupinSidebar-container {
-         background: #1998D6;
+         background: #157eb1;
          -webkit-border-radius: 5px;
          -moz-border-radius: 5px;
          border-radius: 5px;
-         border: 3px solid #1998d6;
+         border: 3px solid #157eb1;
          max-width: 350px;
          padding: 10px 20px 30px;
          color: #fff;
