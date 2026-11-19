@@ -274,7 +274,7 @@ class Gridgum extends AbstractOptinTheme
         );
 
         $settings['mini_headline_font_color'] = array(
-            'default'   => '#46ca9b',
+            'default'   => '#268463',
             'type'      => 'option',
             'transport' => 'postMessage'
         );
@@ -545,7 +545,7 @@ HTML;
         $optin_css_id = $this->optin_css_id;
         $optin_uuid   = $this->optin_campaign_uuid;
 
-        $mini_headline_font_color = $this->get_customizer_value('mini_headline_font_color', '#46ca9b');
+        $mini_headline_font_color = $this->get_customizer_value('mini_headline_font_color', '#268463');
 
         $is_mini_headline_display = '';
         if ($this->get_customizer_value('hide_mini_headline', false)) {
@@ -664,7 +664,7 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container input[type="submit"].gr
          font-size: 15px;
          border-radius: 3px;
          border: 0px;
-         background: #46ca9b;
+         background: #268463;
          text-transform: uppercase;
          color: #fff;
          font-weight: 700;
@@ -673,7 +673,7 @@ html div#$optin_uuid div#$optin_css_id.gridgum_container input[type="submit"].gr
 
 html div#$optin_uuid div#$optin_css_id.gridgum_container .gridgum_note {
          padding-top: 10px;
-         color: #777;
+         color: #767676;
          text-align: center;
          font-style: italic;
          display: block;

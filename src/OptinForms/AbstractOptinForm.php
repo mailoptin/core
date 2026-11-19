@@ -386,6 +386,39 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         return $global_css;
     }
 
+    /**
+     * Rules every template gets: a visible keyboard focus ring, close links with a 44px tap area, and on
+     * phones, fields and buttons at least 44px tall. They only raise minimums; template styling stays.
+     *
+     * @return string
+     */
+    public function accessibility_css()
+    {
+        $uuid = $this->optin_campaign_uuid;
+        $id   = $this->optin_css_id;
+        $form = "html div#$uuid div#$id";
+
+        $close = "html div#$uuid a.mo-optin-form-close-icon";
+
+        // Blue ring with a white halo, so it shows on light and dark forms alike.
+        $css = "$form .mo-optin-field:focus-visible, $form .mo-optin-form-custom-field:focus-visible, $form .mo-optin-form-submit-button:focus-visible, $form .mo-optin-form-cta-button:focus-visible, $close:focus-visible {outline: 2px solid #2271b1 !important; outline-offset: 2px; box-shadow: 0 0 0 2px #fff;}";
+
+        // Close links are drawn at 12-34px. An invisible 44px layer centred on each one makes it easy to tap
+        // without moving anything. It needs the link to be positioned: the zero-specificity default below
+        // makes static links relative, and any template that positions its link itself still wins. Links
+        // wrapping an image are left alone: templates position that image against the form, not the link.
+        // Browsers without :has() skip both rules together, so the layer is never anchored to the form.
+        $plain = "html div#$uuid a.mo-optin-form-close-icon:not(:has(> img))";
+        $css   .= ":where($plain) {position: relative;}";
+        $css   .= "$plain::before {content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%);}";
+
+        $css .= "@media screen and (max-width: 480px) {
+        $form input.mo-optin-field, $form input.mo-optin-form-custom-field, $form select.mo-optin-form-custom-field, $form .mo-optin-form-submit-button, $form .mo-optin-form-cta-button {min-height: 44px !important;}
+        }";
+
+        return $css;
+    }
+
     public function placeholders_input_css()
     {
         ob_start();
@@ -698,6 +731,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         $global_css .= $this->placeholders_input_css();
 
+        $global_css .= $this->accessibility_css();
+
         return apply_filters('mo_optin_form_global_css', $global_css, $optin_campaign_uuid, $optin_css_id);
     }
 
@@ -826,6 +861,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 'top: 0',
                 'width: 100%',
                 'padding: 0 10px',
+                'box-sizing: border-box',
                 'height: 100%',
                 'overflow: auto', // fixes overflow scrolling bar being shown :D
                 'background: rgba(0,0,0,0.7)'
