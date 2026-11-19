@@ -110,6 +110,21 @@ class NewPublishPost extends AbstractTriggers
     }
 
     /**
+     * Whether a post notification can never send: "Send Immediately" is off and there is no delay to
+     * send after, so new_publish_post() skips every post.
+     *
+     * @param int $email_campaign_id
+     *
+     * @return bool
+     */
+    public static function never_sends($email_campaign_id)
+    {
+        if (ER::get_merged_customizer_value($email_campaign_id, 'send_immediately')) return false;
+
+        return empty(ER::get_merged_customizer_value($email_campaign_id, 'schedule_digit')) || empty(ER::get_merged_customizer_value($email_campaign_id, 'schedule_type'));
+    }
+
+    /**
      * @param string $new_status New post status.
      * @param string $old_status Old post status.
      * @param WP_Post $post Post object.
