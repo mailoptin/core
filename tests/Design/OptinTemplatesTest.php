@@ -51,14 +51,16 @@ class OptinTemplatesTest extends \WP_UnitTestCase
         $uuid = Repository::get_optin_campaign_uuid($id);
         $css  = $form->global_css();
 
-        $this->assertStringContainsString(":focus-visible {outline: 2px solid #2271b1 !important;", $css);
-        $this->assertStringNotContainsString(':focus-visible {outline:0', $css);
+        $this->assertStringContainsString(":focus-visible {outline: 2px solid #2271b1 !important; outline-offset: 2px; box-shadow: 0 0 0 2px #fff;}", $css);
 
         // Close links: zero-specificity default position, so a template that positions its link still wins.
-        $this->assertStringContainsString(":where(html div#$uuid a.mo-optin-form-close-icon) {position: relative;}", $css);
-        $this->assertStringContainsString("html div#$uuid a.mo-optin-form-close-icon::before {content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px;", $css);
+        // Links wrapping an image (Pansy, LetterBox) are skipped: their image is positioned against the form.
+        $plain = "html div#$uuid a.mo-optin-form-close-icon:not(:has(> img))";
+        $this->assertStringContainsString(":where($plain) {position: relative;}", $css);
+        $this->assertStringContainsString("$plain::before {content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px;", $css);
 
         $this->assertMatchesRegularExpression('/@media screen and \(max-width: 480px\) \{[^}]*\.mo-optin-form-submit-button, [^{]*\{min-height: 44px !important;\}/', $css);
+
     }
 
     public function test_low_contrast_defaults_are_darker()

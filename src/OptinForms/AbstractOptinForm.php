@@ -400,17 +400,20 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         $close = "html div#$uuid a.mo-optin-form-close-icon";
 
-        $css = "$form .mo-optin-field:focus-visible, $form .mo-optin-form-custom-field:focus-visible, $form .mo-optin-form-submit-button:focus-visible, $form .mo-optin-form-cta-button:focus-visible, $close:focus-visible {outline: 2px solid #2271b1 !important; outline-offset: 2px;}";
+        // Blue ring with a white halo, so it shows on light and dark forms alike.
+        $css = "$form .mo-optin-field:focus-visible, $form .mo-optin-form-custom-field:focus-visible, $form .mo-optin-form-submit-button:focus-visible, $form .mo-optin-form-cta-button:focus-visible, $close:focus-visible {outline: 2px solid #2271b1 !important; outline-offset: 2px; box-shadow: 0 0 0 2px #fff;}";
 
         // Close links are drawn at 12-34px. An invisible 44px layer centred on each one makes it easy to tap
         // without moving anything. It needs the link to be positioned: the zero-specificity default below
-        // makes static links relative, and any template that positions its link itself still wins.
-        $css .= ":where(html div#$uuid a.mo-optin-form-close-icon) {position: relative;}";
-        $css .= "$close::before {content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%);}";
+        // makes static links relative, and any template that positions its link itself still wins. Links
+        // wrapping an image are left alone: templates position that image against the form, not the link.
+        // Browsers without :has() skip both rules together, so the layer is never anchored to the form.
+        $plain = "html div#$uuid a.mo-optin-form-close-icon:not(:has(> img))";
+        $css   .= ":where($plain) {position: relative;}";
+        $css   .= "$plain::before {content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%);}";
 
         $css .= "@media screen and (max-width: 480px) {
         $form input.mo-optin-field, $form input.mo-optin-form-custom-field, $form select.mo-optin-form-custom-field, $form .mo-optin-form-submit-button, $form .mo-optin-form-cta-button {min-height: 44px !important;}
-        $form a.mo-optin-form-cta-button {align-items: center;}
         }";
 
         return $css;
