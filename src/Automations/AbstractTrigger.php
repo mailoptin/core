@@ -92,6 +92,15 @@ abstract class AbstractTrigger
     }
 
     /**
+     * What starts it, in plain words for these settings (the list and the builder's summary), or ''
+     * for the label followed by the chosen options.
+     */
+    public function summary($settings)
+    {
+        return '';
+    }
+
+    /**
      * Whether a started event passes this automation's trigger settings and its own audience fields.
      */
     public function matches($context, $settings, $audience)

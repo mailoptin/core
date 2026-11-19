@@ -78,6 +78,29 @@ class Recipes
                     )],
                 ],
             ],
+            'repeat_reward'   => [
+                'title'            => __('Reward repeat customers', 'mailoptin'),
+                'description'      => __('Thank customers on their third order with a code for the next one, and remind them once before it runs out.', 'mailoptin'),
+                'flow'             => __('Third paid order → wait 1 day → thank-you with a 15% code → wait 23 days → reminder a week before the code ends, if they haven\'t ordered again', 'mailoptin'),
+                'trigger_id'       => 'woo_order_count',
+                'trigger_settings' => ['orders' => 3, 'runs' => 'once', 'reenter' => true],
+                'steps'            => [
+                    ['wait', ['amount' => 1, 'unit' => 'days', 'until' => '09:00']],
+                    ['email', __('Thank you for coming back', 'mailoptin'), sprintf(
+                        '<p>%s</p><p>%s</p><p>%s</p>',
+                        __('Hi {{customer.first_name|there}},', 'mailoptin'),
+                        __('That was order number {{customer.order_count}} with {{store.name}}. Thank you for being a regular.', 'mailoptin'),
+                        __('Here is 15% off your next order. The code is only for you and works once.', 'mailoptin')
+                    ), ['discount_type' => 'percent', 'amount' => '15', 'expiry_days' => '30', 'prefix' => 'THANKS']],
+                    ['wait', ['amount' => 23, 'unit' => 'days', 'until' => '09:00']],
+                    ['check', 'not_ordered_again'],
+                    ['email', __('Your 15% off ends soon', 'mailoptin'), sprintf(
+                        '<p>%s</p><p>%s</p>',
+                        __('Hi {{customer.first_name|there}},', 'mailoptin'),
+                        __('Just a reminder: your thank-you code for 15% off ends in a week.', 'mailoptin')
+                    ), ['discount_type' => 'percent', 'amount' => '15', 'expiry_days' => '30', 'prefix' => 'THANKS', 'code_mode' => 'earlier']],
+                ],
+            ],
             'welcome_series'  => [
                 'title'            => __('Welcome series', 'mailoptin'),
                 'description'      => __('Greet new subscribers over their first week.', 'mailoptin'),
@@ -202,7 +225,7 @@ class Recipes
                     $steps[] = ['type' => Repo::STEP_CHECK, 'settings' => ['check' => $step[1]]];
                     break;
                 case 'email':
-                    $steps[] = ['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => self::create_email($automation_id, $step[1], $step[2])]];
+                    $steps[] = ['type' => Repo::STEP_EMAIL, 'settings' => ['email_campaign_id' => self::create_email($automation_id, $step[1], $step[2], 'Lucid', $step[3] ?? null)]];
                     break;
             }
         }
@@ -222,7 +245,7 @@ class Recipes
      *
      * @return int email campaign ID
      */
-    public static function create_email($automation_id, $subject, $body_html = '', $template = 'Lucid')
+    public static function create_email($automation_id, $subject, $body_html = '', $template = 'Lucid', $discount = null)
     {
         // Email names are unique; this one is internal, the subject is what people see.
         // The name column holds 50 characters: leave room for " (99)".
@@ -237,13 +260,22 @@ class Recipes
 
         $values = ['email_campaign_title' => $subject];
 
+        $blocks = [];
+
         if ('' !== $body_html) {
-            $values['email_newsletter_content'] = wp_json_encode([[
+            $blocks[] = [
                 'id'       => wp_generate_password(8, false),
                 'type'     => 'text',
                 'settings' => ['text_content' => wp_kses_post($body_html)] + Misc::elements_default_fields_values($email_campaign_id)['text'],
-            ]]);
+            ];
         }
+
+        // A discount code after the text (recipes that reward): settings as the Discount code block names them.
+        if (is_array($discount)) {
+            $blocks[] = ['id' => wp_generate_password(8, false), 'type' => 'discount_code', 'settings' => array_map('sanitize_text_field', $discount)];
+        }
+
+        if ($blocks) $values['email_newsletter_content'] = wp_json_encode($blocks);
 
         ER::update_settings_by_id($email_campaign_id, $values);
 

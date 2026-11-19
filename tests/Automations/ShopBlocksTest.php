@@ -41,6 +41,14 @@ class FakeStore extends Store
         return $made;
     }
 
+    public function run_coupon($run)
+    {
+        $found = null;
+        foreach (self::$coupons as $coupon) if ((int)$coupon['args']['run_id'] === (int)$run['id']) $found = $coupon;
+
+        return $found;
+    }
+
     public function coupon_exists($code) { return in_array($code, self::$existing, true); }
     public function apply_coupon_url($code) { return 'https://shop.test/cart?mo_coupon=' . rawurlencode($code); }
 }
@@ -285,5 +293,47 @@ class ShopBlocksTest extends EngineTest
         // A broadcast keeps its web version link.
         $broadcast = ER::add_email_campaign('B ' . uniqid(), ER::NEWSLETTER, 'Lucid');
         $this->assertStringContainsString('{{webversion}}', (new Templatify($broadcast))->forge());
+    }
+
+    public function test_a_reminder_repeats_the_code_the_person_already_has()
+    {
+        $first    = $this->cart_email([['id' => 'd1', 'type' => 'discount_code', 'settings' => ['amount' => '15', 'prefix' => 'THANKS']]]);
+        $reminder = $this->cart_email([['id' => 'd2', 'type' => 'discount_code', 'settings' => ['code_mode' => 'earlier', 'amount' => '15', 'prefix' => 'THANKS']]]);
+        $this->cart_automation($first);
+
+        $run = ['id' => 7, 'automation_id' => 1, 'email' => 'p@example.org', 'context' => []];
+        $one = Dynamic::expand((new Templatify($first))->forge(), ['trigger' => self::$cart_trigger, 'run' => $run, 'mode' => 'send', 'email_campaign_id' => $first]);
+        $two = Dynamic::expand((new Templatify($reminder))->forge(), ['trigger' => self::$cart_trigger, 'run' => $run, 'mode' => 'send', 'email_campaign_id' => $reminder]);
+
+        $this->assertCount(1, FakeStore::$coupons, 'The reminder makes no new code.');
+        $code = reset(FakeStore::$coupons)['code'];
+        $this->assertStringContainsString($code, $one);
+        $this->assertStringContainsString($code, $two);
+
+        // Another person's run (run 17 starts with "run1"): never their code.
+        $other = Dynamic::expand((new Templatify($reminder))->forge(), ['trigger' => self::$cart_trigger, 'run' => ['id' => 17] + $run, 'mode' => 'send', 'email_campaign_id' => $reminder]);
+        $this->assertStringNotContainsString($code, $other);
+    }
+
+    public function test_a_reminder_with_no_earlier_code_makes_one()
+    {
+        $reminder = $this->cart_email([['id' => 'd2', 'type' => 'discount_code', 'settings' => ['code_mode' => 'earlier', 'amount' => '15', 'prefix' => 'THANKS']]]);
+        $this->cart_automation($reminder);
+
+        $html = Dynamic::expand((new Templatify($reminder))->forge(), ['trigger' => self::$cart_trigger, 'run' => ['id' => 9, 'automation_id' => 1, 'email' => 'q@example.org', 'context' => []], 'mode' => 'send', 'email_campaign_id' => $reminder]);
+
+        $this->assertCount(1, FakeStore::$coupons);
+        $this->assertStringContainsString(reset(FakeStore::$coupons)['code'], $html);
+    }
+
+    public function test_the_discount_settings_hide_for_an_existing_coupon_only()
+    {
+        $flat = Blocks::get_instance()->get('discount_code')->fields();
+
+        $this->assertArrayHasKey('earlier', $flat['code_mode']['choices']);
+        $this->assertArrayNotHasKey('show_if', $flat['existing_code'], 'Broadcasts need the coupon code field whatever the mode.');
+        foreach (['discount_type', 'amount', 'expiry_days', 'minimum', 'individual', 'exclude_sale', 'prefix'] as $key) {
+            $this->assertSame(['!existing'], $flat[$key]['show_if']['code_mode'] ?? null, $key);
+        }
     }
 }

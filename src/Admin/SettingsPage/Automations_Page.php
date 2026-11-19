@@ -324,6 +324,10 @@ class Automations_Page
     {
         if ( ! $trigger) return __('A trigger that is no longer available', 'mailoptin');
 
+        $summary = (string)$trigger->summary((array)($automation['trigger_settings'] ?? []));
+
+        if ('' !== $summary) return $trigger->is_available() ? $summary : $summary . ' ' . __('(not available: is its plugin active?)', 'mailoptin');
+
         $summary = $trigger->label();
 
         foreach ($trigger->settings_fields() as $key => $field) {
@@ -1150,6 +1154,7 @@ class Automations_Page
             'order_refunded'     => __('Order refunded', 'mailoptin'),
             'order_cancelled'    => __('Order cancelled', 'mailoptin'),
             'order_failed'       => __('Order failed', 'mailoptin'),
+            'orders_cancelled'   => __('Fewer paid orders than the number', 'mailoptin'),
             'email_missing'      => __('An email was deleted', 'mailoptin'),
             'automation_deleted' => __('Automation deleted', 'mailoptin'),
             'erased'             => __('Personal data erased', 'mailoptin'),

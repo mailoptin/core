@@ -15,6 +15,7 @@ class DiscountCode extends ShopBlock
 {
     const MODE_NEW = 'new';
     const MODE_EXISTING = 'existing';
+    const MODE_EARLIER = 'earlier';
 
     public function id()
     {
@@ -47,19 +48,20 @@ class DiscountCode extends ShopBlock
                 'code_mode'     => ['type' => 'select', 'label' => __('Code', 'mailoptin'), 'choices' => [
                     self::MODE_NEW      => __('A new code for each person (single use, tied to their email address)', 'mailoptin'),
                     self::MODE_EXISTING => __('A coupon you already have (everyone gets the same code)', 'mailoptin'),
-                ], 'default' => self::MODE_NEW, 'description' => __('In a broadcast everyone gets the same code: a coupon you already have.', 'mailoptin'), 'tab' => 'content'],
+                    self::MODE_EARLIER  => __('The same code as an earlier email in this automation (for a reminder)', 'mailoptin'),
+                ], 'default' => self::MODE_NEW, 'description' => __('In a broadcast everyone gets the same code: a coupon you already have. "The same code as an earlier email" repeats the code this person already got from this automation; if they have none yet, a new one is made with the settings below.', 'mailoptin'), 'tab' => 'content'],
                 'existing_code' => ['type' => 'text', 'label' => __('Coupon code', 'mailoptin'), 'description' => __('For "a coupon you already have".', 'mailoptin'), 'default' => '', 'tab' => 'content'],
                 'discount_type' => ['type' => 'select', 'label' => __('Discount', 'mailoptin'), 'choices' => [
                     'percent'       => __('Percentage off', 'mailoptin'),
                     'fixed'         => __('Fixed amount off', 'mailoptin'),
                     'free_shipping' => __('Free shipping', 'mailoptin'),
-                ], 'default' => 'percent', 'tab' => 'content'],
-                'amount'        => ['type' => 'number', 'label' => __('Amount', 'mailoptin'), 'min' => 0, 'max' => 100000, 'default' => '10', 'tab' => 'content', 'show_if' => ['discount_type' => ['!free_shipping']]],
-                'expiry_days'   => ['type' => 'number', 'label' => __('Expires after (days)', 'mailoptin'), 'description' => __('0: never.', 'mailoptin'), 'min' => 0, 'max' => 365, 'default' => '7', 'tab' => 'content'],
-                'minimum'       => ['type' => 'number', 'label' => __('Minimum spend', 'mailoptin'), 'description' => __('0: none.', 'mailoptin'), 'min' => 0, 'max' => 1000000, 'default' => '0', 'tab' => 'content'],
-                'individual'    => ['type' => 'checkbox', 'label' => __('Not with other coupons', 'mailoptin'), 'default' => true, 'tab' => 'content'],
-                'exclude_sale'  => ['type' => 'checkbox', 'label' => __('Exclude sale items', 'mailoptin'), 'default' => false, 'tab' => 'content'],
-                'prefix'        => ['type' => 'text', 'label' => __('Code starts with', 'mailoptin'), 'description' => __('Then 6 random letters and digits.', 'mailoptin'), 'default' => 'SAVE', 'tab' => 'content'],
+                ], 'default' => 'percent', 'tab' => 'content', 'show_if' => ['code_mode' => ['!existing']]],
+                'amount'        => ['type' => 'number', 'label' => __('Amount', 'mailoptin'), 'min' => 0, 'max' => 100000, 'default' => '10', 'tab' => 'content', 'show_if' => ['discount_type' => ['!free_shipping'], 'code_mode' => ['!existing']]],
+                'expiry_days'   => ['type' => 'number', 'label' => __('Expires after (days)', 'mailoptin'), 'description' => __('0: never.', 'mailoptin'), 'min' => 0, 'max' => 365, 'default' => '7', 'tab' => 'content', 'show_if' => ['code_mode' => ['!existing']]],
+                'minimum'       => ['type' => 'number', 'label' => __('Minimum spend', 'mailoptin'), 'description' => __('0: none.', 'mailoptin'), 'min' => 0, 'max' => 1000000, 'default' => '0', 'tab' => 'content', 'show_if' => ['code_mode' => ['!existing']]],
+                'individual'    => ['type' => 'checkbox', 'label' => __('Not with other coupons', 'mailoptin'), 'default' => true, 'tab' => 'content', 'show_if' => ['code_mode' => ['!existing']]],
+                'exclude_sale'  => ['type' => 'checkbox', 'label' => __('Exclude sale items', 'mailoptin'), 'default' => false, 'tab' => 'content', 'show_if' => ['code_mode' => ['!existing']]],
+                'prefix'        => ['type' => 'text', 'label' => __('Code starts with', 'mailoptin'), 'description' => __('Then 6 random letters and digits.', 'mailoptin'), 'default' => 'SAVE', 'tab' => 'content', 'show_if' => ['code_mode' => ['!existing']]],
             ] + $this->button_fields(__('Use it now', 'mailoptin'));
     }
 
@@ -114,7 +116,9 @@ class DiscountCode extends ShopBlock
             $terms   = $this->terms($store, $settings, $expires);
         } else {
             $run    = (array)($args['run'] ?? []);
-            $result = $store->create_coupon([
+            // A reminder repeats the code this person already has; with none yet, it makes one.
+            $result = self::MODE_EARLIER === ($settings['code_mode'] ?? '') ? $store->run_coupon($run) : null;
+            $result = $result ?: $store->create_coupon([
                 'type'           => in_array($settings['discount_type'] ?? '', ['percent', 'fixed', 'free_shipping'], true) ? $settings['discount_type'] : 'percent',
                 'amount'         => (float)($settings['amount'] ?? 0),
                 'expiry_days'    => $store->supports_coupon(Store::COUPON_EXPIRY) ? $days : 0,
@@ -124,6 +128,7 @@ class DiscountCode extends ShopBlock
                 'prefix'         => (string)($settings['prefix'] ?? ''),
                 'email'          => $store->supports_coupon(Store::COUPON_PER_PERSON) ? (string)($run['email'] ?? '') : '',
                 'automation_id'  => absint($run['automation_id'] ?? 0),
+                'run_id'         => absint($run['id'] ?? 0),
                 // One code per person per email and block: a retried send gives the same one; a
                 // copied email (same block ids) makes its own.
                 'key'            => 'run' . absint($run['id'] ?? 0) . '-e' . absint($args['email_campaign_id'] ?? 0) . '-' . preg_replace('/[^A-Za-z0-9_-]/', '', (string)($data['id'] ?? '')),
