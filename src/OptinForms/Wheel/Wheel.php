@@ -135,7 +135,7 @@ class Wheel
         return [
             'garden'  => [
                 'label' => __('Garden', 'mailoptin'),
-                'colors' => ['wheel_side_bg' => '#f3ead8', 'form_background_color' => '#fbf8f2', 'headline_font_color' => '#1f2a24', 'description_font_color' => '#3d4741', 'submit_button_background' => '#2f6b4f', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#c8643b', 'wheel_ring_color' => '#1f2a24', 'wheel_heading_font' => 'serif', 'email_field_background' => '#ffffff', 'email_field_color' => '#1f2a24'],
+                'colors' => ['wheel_side_bg' => '#f3ead8', 'form_background_color' => '#fbf8f2', 'headline_font_color' => '#1f2a24', 'description_font_color' => '#3d4741', 'submit_button_background' => '#2f6b4f', 'submit_button_color' => '#ffffff', 'wheel_eyebrow_color' => '#b45833', 'wheel_ring_color' => '#1f2a24', 'wheel_heading_font' => 'serif', 'email_field_background' => '#ffffff', 'email_field_color' => '#1f2a24'],
                 'slices' => [['#2f6b4f', '#ffffff'], ['#f3ead8', '#1f2a24'], ['#c8643b', '#ffffff'], ['#fbf8f2', '#6b756f'], ['#21503a', '#ffffff'], ['#f6e3d9', '#1f2a24']],
             ],
             'bold'    => [
@@ -178,7 +178,7 @@ class Wheel
             'wheel_no_thanks'    => __('No thanks', 'mailoptin'),
             'wheel_terms_url'    => '',
             'wheel_side_bg'      => '#f3ead8',
-            'wheel_eyebrow_color' => '#c8643b',
+            'wheel_eyebrow_color' => '#b45833',
             'wheel_ring_color'   => '#1f2a24',
             'wheel_heading_font' => 'serif',
         ];

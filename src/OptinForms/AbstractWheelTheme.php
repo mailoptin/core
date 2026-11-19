@@ -299,7 +299,7 @@ HTML;
         $note    = $this->color('note_font_color', '#6b756f');
         $btn     = $this->color('submit_button_background', '#2f6b4f');
         $btntext = $this->color('submit_button_color', '#ffffff');
-        $eyebrow = $this->color('wheel_eyebrow_color', '#c8643b');
+        $eyebrow = $this->color('wheel_eyebrow_color', '#b45833');
         $ring    = $this->color('wheel_ring_color', '#1f2a24');
         $font    = 'sans' === $this->wheel('wheel_heading_font') ? 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : 'Georgia, "Times New Roman", serif';
 
