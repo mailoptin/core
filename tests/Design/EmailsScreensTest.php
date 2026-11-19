@@ -50,6 +50,10 @@ class EmailsScreensTest extends \WP_UnitTestCase
         $this->assertStringContainsString('>Plain text</a>', $html);
         $this->assertStringNotContainsString('dashicons-visibility', $html, 'No unlabelled eye icons.');
 
+        $row = $logs->column_subject(['id' => 3, 'title' => 'New <b>posts</b>', 'status' => 'failed', 'email_campaign_id' => 0]);
+        $this->assertStringContainsString('New &lt;b&gt;posts&lt;/b&gt;', $row, 'The subject is escaped.');
+        $this->assertStringContainsString('>Resend</a>', $row, 'The Resend link reads "Resend".');
+
         $status = (new \ReflectionMethod($logs, 'queue_progress_html'));
         $status->setAccessible(true);
         $this->assertSame('Completed', $status->invoke($logs, ['id' => 999999, 'status' => 'processed']), 'A stored "processed" reads Completed.');

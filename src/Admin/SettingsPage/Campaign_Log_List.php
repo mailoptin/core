@@ -216,7 +216,7 @@ class Campaign_Log_List extends \WP_List_Table
      */
     function column_subject($item)
     {
-        $name            = '<strong>' . $item['title'] . '</strong>';
+        $name            = '<strong>' . esc_html($item['title']) . '</strong>';
         $campaign_log_id = absint($item['id']);
 
         $delete_href = add_query_arg(
@@ -237,7 +237,7 @@ class Campaign_Log_List extends \WP_List_Table
         $actions += [
             'delete' => sprintf(
                 '<a class="mo-delete-prompt" href="%s">%s</a>',
-                $delete_href, __('Delete', 'mailoptin')
+                esc_url($delete_href), esc_html__('Delete', 'mailoptin')
             ),
         ];
 
@@ -250,12 +250,7 @@ class Campaign_Log_List extends \WP_List_Table
             MAILOPTIN_CAMPAIGN_LOG_SETTINGS_PAGE
         );
 
-        $actions['resend'] = sprintf(
-            '<a href="%s">%s</a>',
-            $resend_href,
-            'resend',
-            __('Resend', 'mailoptin')
-        );
+        $actions['resend'] = sprintf('<a href="%s">%s</a>', esc_url($resend_href), esc_html__('Resend', 'mailoptin'));
 
         if (QueueRunner::LOG_STATUS_SENDING === $item['status'] || QueueRunner::LOG_STATUS_PAUSED === $item['status']) {
             $queue_action = QueueRunner::LOG_STATUS_SENDING === $item['status'] ? 'pause' : 'resume';
@@ -294,24 +289,6 @@ class Campaign_Log_List extends \WP_List_Table
         };
 
         return $link('html', __('HTML', 'mailoptin')) . ' <span class="mo-muted" aria-hidden="true">·</span> ' . $link('text', __('Plain text', 'mailoptin'));
-    }
-
-    /**
-     * Column for plain text preview
-     *
-     * @param array $item
-     *
-     * @return mixed
-     */
-    public function column_content_text($item)
-    {
-        $campaign_id = intval($item['id']);
-        $preview_url = add_query_arg(
-            ['mailoptin' => 'preview-campaign', 'type' => 'text', 'id' => $campaign_id],
-            home_url()
-        );
-
-        return "<a target='_blank' class=\"mo-open-link-fancybox\" href=\"$preview_url\"><span class=\"dashicons dashicons-visibility\"></span></a>";
     }
 
     /**
