@@ -501,6 +501,9 @@ class OptinCampaign_List extends \WP_List_Table
         if (OptinCampaignsRepository::is_test_mode($optin_campaign_id)) {
             $html .= ' ' . UI::badge(__('Test mode', 'mailoptin'), 'warn');
         }
+        if (OptinCampaignMeta::get_campaign_meta($optin_campaign_id, 'imported_from')) {
+            $html .= ' ' . UI::badge(__('Imported', 'mailoptin'), 'info');
+        }
 
         $html .= '<div class="mo-optin-meta">' . esc_html(implode(' · ', $meta)) . '</div>';
 
@@ -624,6 +627,11 @@ class OptinCampaign_List extends \WP_List_Table
                 'href'  => self::_optin_campaign_clone_url($optin_campaign_id),
                 'label' => __('Duplicate', 'mailoptin')
             ],
+            'export'        => [
+                'title' => __('Download it as a file you can import on another site', 'mailoptin'),
+                'href'  => OptinCampaignImport::export_url($optin_campaign_id),
+                'label' => __('Export', 'mailoptin')
+            ],
             'split_test'    => [
                 'title' => __('Test another version against this one', 'mailoptin'),
                 'href'  => 'javascript:;',
@@ -696,6 +704,7 @@ class OptinCampaign_List extends \WP_List_Table
     public function get_bulk_actions()
     {
         $actions = array(
+            'bulk-export'        => __('Export', 'mailoptin'),
             'bulk-delete'        => __('Delete', 'mailoptin'),
             'bulk-clear-cookies' => __('Clear Local Cookies', 'mailoptin'),
         );

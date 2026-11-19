@@ -1045,3 +1045,22 @@ body.mailoptin-admin .wp-list-table .column-activated {
     }
 
 }
+
+/* Import optin campaigns */
+.mo-import { display: grid; gap: var(--mo-sp-4); max-width: 960px; }
+.mo-import .mo-ui-note { margin: 0; }
+.mo-import-card { background: #fff; border: 1px solid #c3c4c7; padding: var(--mo-sp-5); max-width: 640px; }
+.mo-import-card h3 { margin: 0 0 var(--mo-sp-3); font-size: var(--mo-fs-md); }
+.mo-import-card input[type="file"] { margin-top: var(--mo-sp-2); max-width: 100%; }
+.mo-import-table .mo-import-name { font-weight: 600; font-size: var(--mo-fs-md); color: #1d2327; }
+.mo-import-table .mo-optin-meta { color: #646970; margin-top: var(--mo-sp-1); }
+.mo-import-table .mo-import-variant td:nth-child(2) { padding-left: var(--mo-sp-6); }
+.mo-import-issues { margin: var(--mo-sp-2) 0 0; padding-left: var(--mo-sp-5); list-style: disc; color: #3c434a; }
+.mo-import-issues li { margin-bottom: var(--mo-sp-1); }
+.mo-import-option { background: #fff; border: 1px solid #c3c4c7; padding: var(--mo-sp-4); margin: 0; }
+.mo-import-actions { display: flex; gap: var(--mo-sp-2); flex-wrap: wrap; margin: 0; }
+@media screen and (max-width: 782px) {
+	.mo-import-table th.check-column { width: 2.5em; }
+	.mo-import-table .mo-import-variant td:nth-child(2) { padding-left: var(--mo-sp-4); }
+	.mo-import-actions .button { min-height: 44px; }
+}
