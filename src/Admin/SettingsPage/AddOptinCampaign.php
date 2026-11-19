@@ -36,13 +36,13 @@ class AddOptinCampaign extends AbstractSettingsPage
     {
         if (!empty($_GET['page']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG) : ?>
             <div class="mailoptin-optin-new-list mailoptin-optin-clear">
-                <h4><?php _e('Title', 'mailoptin'); ?>
-                    <input type="text" name="mailoptin-optin-campaign" id="mailoptin-add-optin-campaign-title" placeholder="<?php _e('Enter a name...', 'mailoptin') ?>">
-                </h4>
+                <label for="mailoptin-add-optin-campaign-title"><?php _e('Campaign name', 'mailoptin'); ?></label>
+                <input type="text" name="mailoptin-optin-campaign" id="mailoptin-add-optin-campaign-title" placeholder="<?php esc_attr_e('e.g. Spring newsletter pop-up', 'mailoptin') ?>">
+                <span class="mo-optin-new-help"><?php _e('Only you see this name.', 'mailoptin'); ?></span>
             </div>
             <div id="mailoptin-sub-bar">
                 <div class="mailoptin-new-toolbar mailoptin-clear">
-                    <h4><?php _e('Select Optin Type', 'mailoptin'); ?>
+                    <h4><?php _e('Type', 'mailoptin'); ?>
                         <span class="spinner mo-dash-spinner"></span>
                     </h4>
                     <span class="sr-only"><?php __('Loading...', 'mailoptin'); ?></span>
@@ -93,7 +93,7 @@ class AddOptinCampaign extends AbstractSettingsPage
     public function back_to_optin_overview()
     {
         $url = MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE;
-        echo "<a class=\"add-new-h2\" style='margin-left: 15px;' href=\"$url\">" . __('Back to Overview', 'mailoptin') . '</a>';
+        echo "<a class=\"add-new-h2\" style='margin-left: 15px;' href=\"$url\">" . __('All campaigns', 'mailoptin') . '</a>';
     }
 
 
