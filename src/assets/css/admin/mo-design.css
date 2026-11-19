@@ -28,6 +28,23 @@ body.mailoptin-admin {
     --mo-pro-bg: #f3ecff;
     --mo-radius: 10px;
     --mo-radius-sm: 6px;
+
+    /* Type scale: use only these sizes. */
+    --mo-fs-xs: 12px;
+    --mo-fs-sm: 13px;
+    --mo-fs-base: 14px;
+    --mo-fs-md: 16px;
+    --mo-fs-lg: 20px;
+    --mo-fs-xl: 23px;
+
+    /* Spacing scale: use only these steps. */
+    --mo-sp-1: 4px;
+    --mo-sp-2: 8px;
+    --mo-sp-3: 12px;
+    --mo-sp-4: 16px;
+    --mo-sp-5: 24px;
+    --mo-sp-6: 32px;
+    --mo-sp-7: 48px;
 }
 
 /* ---------- Page header: white top bar with the page name, then underlined tabs ---------- */
@@ -141,7 +158,7 @@ body.mailoptin-admin .mailoptin-nav-tab.mailoptin-nav-active {
 }
 
 .mo-ui-heading h1 {
-    font-size: 22px;
+    font-size: var(--mo-fs-xl);
     font-weight: 600;
     line-height: 1.3;
     margin: 0;
@@ -290,7 +307,7 @@ button.mo-ui-btn {
     border-radius: 99px;
     color: var(--mo-pro, #5b2a9e);
     display: inline-block;
-    font-size: 11px;
+    font-size: var(--mo-fs-xs);
     font-weight: 600;
     line-height: 16px;
     margin-left: 4px;
@@ -415,6 +432,109 @@ input.mo-ui-search {
     margin-left: auto;
 }
 
+/* ---------- Admin notices: below the header, in line with the page ---------- */
+
+/* WordPress moves notices to just after .wp-header-end, which the header prints inside this box. */
+body.mailoptin-admin .mo-header-notices {
+    padding: 0 28px 0 22px;
+}
+
+body.mailoptin-admin .mo-header-notices > .notice,
+body.mailoptin-admin .mo-header-notices > .updated,
+body.mailoptin-admin .mo-header-notices > .error {
+    margin: var(--mo-sp-4) 0 0;
+}
+
+/* ---------- Type filter bar (Optin Campaigns, Add New, Integrations) ---------- */
+
+/* Sentence case, readable contrast and a visible focus ring, in place of the old uppercase blue tabs. */
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mo-sp-2) var(--mo-sp-3);
+    min-height: 0;
+    padding: 0;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-clear:after {
+    display: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar h4 {
+    color: var(--mo-muted);
+    float: none;
+    font-size: var(--mo-fs-sm);
+    font-weight: 400;
+    margin: 0;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul {
+    display: flex;
+    flex-wrap: wrap;
+    float: none;
+    gap: var(--mo-sp-1);
+    margin: 0;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li {
+    float: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li:empty {
+    display: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a {
+    border: 1px solid transparent;
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-blue);
+    display: inline-block;
+    font-size: var(--mo-fs-sm);
+    letter-spacing: 0;
+    outline: revert !important;
+    padding: 6px var(--mo-sp-3);
+    text-transform: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a:hover {
+    background: var(--mo-blue-soft);
+    color: var(--mo-blue-dark);
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a.mailoptin-type-active {
+    background: #fff;
+    border-color: var(--mo-line);
+    color: var(--mo-ink);
+    font-weight: 600;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a:focus-visible {
+    box-shadow: 0 0 0 2px var(--mo-blue);
+    outline: 2px solid transparent !important;
+}
+
+/* ---------- "Add New" next to a page title ---------- */
+
+body.mailoptin-admin .mailoptin-data-listing .add-new-h2,
+body.mailoptin-admin .mailoptin-data-listing .add-new-h2:hover,
+body.mailoptin-admin .mailoptin-log-listing .add-new-h2,
+body.mailoptin-admin .mailoptin-log-listing .add-new-h2:hover {
+    background: var(--mo-blue);
+    border-color: var(--mo-blue);
+    box-shadow: none;
+    text-shadow: none;
+}
+
+body.mailoptin-admin .mailoptin-data-listing .add-new-h2:hover,
+body.mailoptin-admin .mailoptin-log-listing .add-new-h2:hover {
+    background: var(--mo-blue-dark);
+}
+
+
 /* ---------- Small screens ---------- */
 
 @media screen and (max-width: 782px) {
@@ -441,4 +561,43 @@ input.mo-ui-search {
     input.mo-ui-search {
         width: 100%;
     }
+
+    body.mailoptin-admin .mo-header-notices {
+        padding: 0 16px;
+    }
+
+    /* Nothing pushes the page wider than the screen: fields shrink, long buttons wrap, and simple
+       tables (the ones WordPress doesn't fold into rows on phones) scroll inside their own box. */
+    body.mailoptin-admin #wpbody-content input:not([type="checkbox"]):not([type="radio"]),
+    body.mailoptin-admin #wpbody-content select,
+    body.mailoptin-admin #wpbody-content textarea {
+        max-width: 100%;
+    }
+
+    /* Long labels wrap, with normal line spacing rather than WordPress's tall single-line height. */
+    body.mailoptin-admin #wpbody-content .button {
+        height: auto;
+        line-height: 1.4;
+        max-width: 100%;
+        padding-bottom: var(--mo-sp-2);
+        padding-top: var(--mo-sp-2);
+        white-space: normal;
+    }
+
+    /* WordPress's own list tables carry a table-view-* class (list or excerpt) and fold into rows on
+       phones; only the hand-made tables, which don't, scroll. */
+    body.mailoptin-admin #wpbody-content table.widefat:not([class*="table-view-"]),
+    body.mailoptin-admin #wpbody-content table.mo-api-table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        /* Screen-reader text inside is absolutely positioned; without this it escapes the scroll box. */
+        position: relative;
+    }
+
+    body.mailoptin-admin .mailoptin-license-field {
+        flex-wrap: wrap;
+        gap: var(--mo-sp-2);
+    }
+
 }

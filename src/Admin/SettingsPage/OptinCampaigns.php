@@ -102,27 +102,27 @@ class OptinCampaigns extends AbstractSettingsPage
                         </li>
                         <li>
                             <a href="<?php echo $lightbox_url; ?>" class="<?php echo $lightbox_menu_active; ?>">
-                                <?php _e('Lightbox', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('lightbox')); ?>
                             </a>
                         </li>
                         <li>
                             <a href="<?php echo $in_post; ?>" class="<?php echo $before_after_post_menu_active; ?>">
-                                <?php _e('In-Post ', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('inpost')); ?>
                             </a>
                         </li>
                         <li>
                         <li>
                             <a href="<?php echo $sidebar_url; ?>" class="<?php echo $sidebar_menu_active; ?>">
-                                <?php _e('Sidebar/Widget', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('sidebar')); ?>
                             </a></li>
                         <li>
                             <a href="<?php echo $notification_bar; ?>" class="<?php echo $notification_bar_menu_active; ?>">
-                                <?php _e('Notification-Bar', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('bar')); ?>
                             </a>
                         </li>
                         <li>
                             <a href="<?php echo $slide_in; ?>" class="<?php echo $slide_in_menu_active; ?>">
-                                <?php _e('Slide-In', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('slidein')); ?>
                             </a>
                         </li>
                     </ul>

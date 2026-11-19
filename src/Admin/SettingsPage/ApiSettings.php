@@ -90,7 +90,6 @@ class ApiSettings
 
         echo '<div class="mo-ui-page mo-api">';
         echo '<div class="mo-ui-heading"><h1>' . esc_html__('Subscriber API', 'mailoptin') . '</h1><span class="mo-ui-sub">' . esc_html__('Add and update subscribers from your shop, CRM, Zapier or Make.', 'mailoptin') . '</span></div>';
-        echo '<hr class="wp-header-end">';
 
         if ( ! empty($_GET['revoked'])) echo UI::note(esc_html__('API key revoked. Requests with it are refused from now on.', 'mailoptin'), 'ok');
 

@@ -49,26 +49,26 @@ class AddOptinCampaign extends AbstractSettingsPage
                     <ul class="mailoptin-design-options">
                         <li>
                             <a href="#" class="mo-select-optin-type mailoptin-type-active" data-optin-type="lightbox">
-                                <?php _e('Lightbox', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('lightbox')); ?>
                             </a>
                         </li>
                         <li>
                             <a href="#" class="mo-select-optin-type" data-optin-type="inpost">
-                                <?php _e('In-Post', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('inpost')); ?>
                             </a>
                         </li>
                         <li>
                             <a href="#" class="mo-select-optin-type" data-optin-type="sidebar">
-                                <?php _e('Sidebar/Widget', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('sidebar')); ?>
                             </a></li>
                         <li>
                             <a href="#" class="mo-select-optin-type" data-optin-type="bar">
-                                <?php _e('Notification-Bar', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('bar')); ?>
                             </a>
                         </li>
                         <li>
                             <a href="#" class="mo-select-optin-type" data-optin-type="slidein">
-                                <?php _e('Slide-In', 'mailoptin'); ?>
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('slidein')); ?>
                             </a>
                         </li>
                     </ul>

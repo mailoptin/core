@@ -61,4 +61,38 @@ class DesignSystemTest extends \WP_UnitTestCase
         $this->assertContains('mailoptin-admin', wp_styles()->registered['mailoptin-design']->deps);
         $this->assertFileExists(MAILOPTIN_ASSETS_DIR . 'css/admin/mo-design.css');
     }
+
+    public function test_campaign_types_have_plain_names()
+    {
+        $this->assertSame('Pop-up', UI::optin_type_label('lightbox'));
+        $this->assertSame('In-post', UI::optin_type_label('inpost'));
+        $this->assertSame('Sidebar', UI::optin_type_label('sidebar'));
+        $this->assertSame('Bar', UI::optin_type_label('bar'));
+        $this->assertSame('Slide-in', UI::optin_type_label('slidein'));
+        $this->assertSame('Custom', UI::optin_type_label('custom'), 'Anything else: its own name, capitalised.');
+    }
+
+    /**
+     * WordPress moves admin notices to just after the first .wp-header-end. The shared header prints one,
+     * and no screen prints a second, or every notice would be shown twice.
+     */
+    public function test_one_notice_marker_below_the_header()
+    {
+        $page = new class extends \MailOptin\Core\Admin\SettingsPage\AbstractSettingsPage {
+        };
+        $page->set_settings_page_instance((object)['page_header' => 'Tags']);
+
+        ob_start();
+        $page->settings_page_header('tags');
+        $html = ob_get_clean();
+
+        $this->assertSame(1, substr_count($html, 'wp-header-end'));
+        $this->assertGreaterThan(strpos($html, 'mailoptin-admin-wrap'), strpos($html, 'wp-header-end'), 'After the header, not before it.');
+
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(dirname(__DIR__, 2) . '/src', \FilesystemIterator::SKIP_DOTS));
+        foreach ($files as $file) {
+            if ('php' !== $file->getExtension() || 'AbstractSettingsPage.php' === $file->getFilename()) continue;
+            $this->assertDoesNotMatchRegularExpression('/class=[\'"][^\'"]*\bwp-header-end\b/', file_get_contents($file->getPathname()), $file->getFilename() . ' prints its own marker.');
+        }
+    }
 }

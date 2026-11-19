@@ -71,6 +71,7 @@ class LicenseUpgrader
 
             .mailoptin-admin .remove_white_styling #post-body-content input[type=text] {
                 width: 25em !important;
+                max-width: 100% !important;
             }
         </style>
 

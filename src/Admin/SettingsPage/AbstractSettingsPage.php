@@ -128,6 +128,8 @@ abstract class AbstractSettingsPage
             </div>
         </div>
         <?php $this->settings_page_header_menus($active_menu); ?>
+        <?php // WordPress moves admin notices to just after the first .wp-header-end, so they sit below this header on every MailOptin page. ?>
+        <div class="mo-header-notices"><hr class="wp-header-end"></div>
         <?php
         do_action('mailoptin_settings_page_header', $active_menu);
     }
