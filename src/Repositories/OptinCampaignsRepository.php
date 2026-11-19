@@ -10,6 +10,9 @@ use function MailOptin\Core\cache_transform;
 
 class OptinCampaignsRepository extends AbstractRepository
 {
+    /** @var array Filtered customizer defaults keyed by "{blog_id}_{optin_campaign_id}". */
+    protected static $customizer_defaults_cache = [];
+
     /**
      * Check if an optin campaign name already exist.
      *
@@ -241,6 +244,9 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaign_uuid($optin_campaign_id)
     {
+        // No campaign to look up; avoid a query that returns null and so is never cached by cache_transform().
+        if ( ! absint($optin_campaign_id)) return null;
+
         $table = parent::campaigns_table();
 
         $cache_key = "campaign_uuid_$optin_campaign_id";
@@ -293,6 +299,9 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaign_class($optin_campaign_id)
     {
+        // No campaign to look up; avoid a query that returns null and so is never cached by cache_transform().
+        if ( ! absint($optin_campaign_id)) return null;
+
         $cache_key = 'get_optin_campaign_class_' . $optin_campaign_id;
 
         $callback = function () use ($optin_campaign_id) {
@@ -339,6 +348,9 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_campaign_type($optin_campaign_id)
     {
+        // No campaign to look up; avoid a query that returns null and so is never cached by cache_transform().
+        if ( ! absint($optin_campaign_id)) return null;
+
         $cache_key = 'get_optin_campaign_type_' . $optin_campaign_id;
 
         $callback = function () use ($optin_campaign_id) {
@@ -529,6 +541,67 @@ class OptinCampaignsRepository extends AbstractRepository
     }
 
     /**
+     * Whether defaults can be kept in memory for the rest of the request. Saved settings have their own
+     * cache in CampaignSettingsRepository; Customizer previews always build fresh defaults.
+     *
+     * @return bool
+     */
+    protected static function can_use_runtime_cache()
+    {
+        if (is_customize_preview()) return false;
+
+        return (bool)apply_filters('mailoptin_optin_settings_runtime_cache_enabled', true);
+    }
+
+    /**
+     * Drop the in-memory defaults when the locale changes, because they contain translated strings.
+     */
+    protected static function register_runtime_cache_invalidation()
+    {
+        static $registered = false;
+
+        if ($registered) return;
+
+        $registered = true;
+
+        add_action('change_locale', [__CLASS__, 'flush_customizer_defaults_cache']);
+    }
+
+    /**
+     * Filtered customizer defaults of an optin campaign, built once per campaign per request.
+     *
+     * @param int $optin_campaign_id
+     *
+     * @return array
+     */
+    public static function get_customizer_defaults($optin_campaign_id)
+    {
+        if ( ! self::can_use_runtime_cache()) {
+            return (new AbstractCustomizer($optin_campaign_id))->customizer_defaults;
+        }
+
+        self::register_runtime_cache_invalidation();
+
+        $cache_key = get_current_blog_id() . '_' . absint($optin_campaign_id);
+
+        if ( ! array_key_exists($cache_key, self::$customizer_defaults_cache)) {
+            self::$customizer_defaults_cache[$cache_key] = (new AbstractCustomizer($optin_campaign_id))->customizer_defaults;
+        }
+
+        return self::$customizer_defaults_cache[$cache_key];
+    }
+
+    /**
+     * Clear cached customizer defaults.
+     *
+     * Optin themes register their default filters when instantiated, so defaults built before then can be stale.
+     */
+    public static function flush_customizer_defaults_cache()
+    {
+        self::$customizer_defaults_cache = [];
+    }
+
+    /**
      * Get customizer value for optin.
      *
      * @param int $optin_campaign_id
@@ -559,7 +632,7 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_merged_customizer_value($optin_campaign_id, $settings_name)
     {
-        $customizer_defaults = (new AbstractCustomizer($optin_campaign_id))->customizer_defaults;
+        $customizer_defaults = self::get_customizer_defaults($optin_campaign_id);
 
         $default = isset($customizer_defaults[$settings_name]) ? $customizer_defaults[$settings_name] : '';
 

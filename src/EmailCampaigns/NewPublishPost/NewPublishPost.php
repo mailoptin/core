@@ -193,6 +193,9 @@ class NewPublishPost extends AbstractTriggers
                                         $post_terms = array_map('absint', $post_terms_array);
                                     }
 
+                                    // include the terms' translations so a term selected in one language matches the others.
+                                    $post_terms = (array)apply_filters('mo_targeting_equivalent_term_ids', $post_terms, $taxonomy);
+
                                     // do not check if $post_terms is empty because if no term is on the post, wp_get_object_terms return empty array
                                     // so we can use the empty to check against if NPP requires certain term(s)
                                     if (is_array($npp_terms) && ! empty($npp_terms)) {
@@ -209,6 +212,10 @@ class NewPublishPost extends AbstractTriggers
                 $npp_tags        = ER::get_merged_customizer_value($email_campaign_id, 'post_tags');
                 $post_categories = wp_get_post_categories($post->ID, ['fields' => 'ids']);
                 $post_tags       = wp_get_post_tags($post->ID, ['fields' => 'ids']);
+
+                // include the terms' translations so a term selected in one language matches the others.
+                $post_categories = (array)apply_filters('mo_targeting_equivalent_term_ids', $post_categories, 'category');
+                $post_tags       = (array)apply_filters('mo_targeting_equivalent_term_ids', $post_tags, 'post_tag');
 
                 // do not check if $post_categories is empty because if no category is on the post, wp_get_post_categories return empty array
                 // so we can use the empty to check against if NPP requires certain category(s)

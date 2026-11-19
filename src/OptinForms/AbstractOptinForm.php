@@ -92,6 +92,9 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
             }, -1);
         }
 
+        // The theme has just registered its default filters, so defaults cached before now may be stale.
+        OCR::flush_customizer_defaults_cache();
+
         parent::__construct($optin_campaign_id);
     }
 
@@ -960,7 +963,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
     }
 
     /**
-     * Cache proxy to retrieve the optin form structure.
+     * Retrieve the optin form structure, or nothing if the form should be hidden after conversion.
      *
      * @return string
      */

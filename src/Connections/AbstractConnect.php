@@ -2,7 +2,6 @@
 
 namespace MailOptin\Core\Connections;
 
-use MailOptin\Core\Admin\Customizer\OptinForm\AbstractCustomizer;
 use MailOptin\Core\Core;
 use MailOptin\Core\EmailCampaigns\TemplateTrait;
 use MailOptin\Core\Repositories\AbstractCampaignLogMeta;
@@ -50,7 +49,7 @@ abstract class AbstractConnect
     public function get_integration_data($data_key, $integration_data = [], $default = '')
     {
         $optin_campaign_id = isset($this->extras['optin_campaign_id']) ? absint($this->extras['optin_campaign_id']) : '';
-        $defaults          = (new AbstractCustomizer($optin_campaign_id))->customizer_defaults['integrations'];
+        $defaults          = OptinCampaignsRepository::get_customizer_defaults($optin_campaign_id)['integrations'] ?? [];
 
         $data   = is_valid_data($default) ? $default : ($defaults[$data_key] ?? '');
         $bucket = is_array($integration_data) && ! empty($integration_data) ? $integration_data : ($this->extras['integration_data'] ?? []);

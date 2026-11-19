@@ -9,18 +9,21 @@ class AbstractCampaignLogMetaTest extends WP_UnitTestCase
 {
     public $insert_data;
 
-    public function setUp()
+    public function set_up()
     {
-        parent::setUp();
+        parent::set_up();
     }
 
-    public function tearDown()
+    public function tear_down()
     {
-        parent::tearDown();
+        parent::tear_down();
     }
 
     public function testAddCampaignLogMeta()
     {
-//        $response = AbstractCampaignLogMeta::add_campaignlog_meta(3, 'key3', 'value3');
+        \MailOptin\Core\Base::get_instance()->register_metadata_table();
+
+        $this->assertNotFalse(\MailOptin\Core\Repositories\AbstractCampaignLogMeta::add_campaignlog_meta(3, 'key3', 'value3'));
+        $this->assertSame('value3', \MailOptin\Core\Repositories\AbstractCampaignLogMeta::get_campaignlog_meta(3, 'key3', true));
     }
 }
