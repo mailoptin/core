@@ -410,17 +410,48 @@ trait TemplateTrait
         $content = apply_filters('mailoptin_settings_replace_footer_placeholder_tags', $content);
 
         foreach ($replace as $key => $item) {
-            if (empty($item)) {
-                // Not filled in: the tag goes, with its line when it is alone on one (an empty
-                // "address line 2" left "{{company_address_2}}" in sent emails).
-                $tag     = preg_quote($search[$key], '/');
-                // (<br> may carry inline styles by now.)
-                $content = preg_replace('/(^|<br\b[^>]*>|\R)[ \t]*' . $tag . '[ \t]*(<br\b[^>]*>)?\s*(?=\R|<|$)/i', '$1', $content);
-                $content = str_replace($search[$key], '', $content);
-                unset($search[$key], $replace[$key]);
-            }
+            if ( ! empty($item)) continue;
+
+            // In the customizer the tag stays, so you can see which detail is missing. In an email it goes,
+            // with the comma or line break that was there for it.
+            // (A customizer save request also counts as preview, but emails it triggers, like a page published
+            // from the customizer, are real.)
+            if ( ! is_customize_preview() || did_action('customize_save')) $content = self::remove_empty_footer_tag($content, $search[$key]);
+
+            unset($search[$key], $replace[$key]);
         }
 
         return str_replace($search, $replace, $content);
+    }
+
+    /**
+     * Take an empty detail's tag out of the footer, with its own punctuation: a line of its own goes
+     * entirely ("{{company_address_2}}<br>"), and so does the comma beside it ("{{company_city}}, ").
+     *
+     * @param string $content
+     * @param string $tag e.g. "{{company_address_2}}"
+     *
+     * @return string
+     */
+    public static function remove_empty_footer_tag($content, $tag)
+    {
+        $t = preg_quote($tag, '/');
+
+        $patterns = [
+            // Alone on a line, with its comma or full stop and line break.
+            '/^[ \t]*' . $t . '[ \t]*[,.]?[ \t]*(?:<br\b[^>]*>)?[ \t]*\r?\n/m' => '',
+            // Between line breaks in one-line HTML: "<br>{{company_address_2}}<br>".
+            '/<br\b[^>]*>[ \t]*' . $t . '[ \t]*[,.]?[ \t]*(?=<br)/' => '',
+            // Last in its paragraph: the line break or comma before it goes too ("Portland, {{company_state}}</p>").
+            '/(?:<br\b[^>]*>\s*|[ \t]*,[ \t]*)?' . $t . '[ \t]*[,.]?(?=\s*<\/)/' => '',
+            // Followed by a comma: "{{company_city}}, OR".
+            '/' . $t . '[ \t]*,[ \t]*/' => '',
+            // After a comma or space: "Portland, {{company_state}}".
+            '/[ \t]*,?[ \t]*' . $t . '/' => '',
+        ];
+
+        $content = preg_replace(array_keys($patterns), array_values($patterns), $content);
+
+        return str_replace($tag, '', (string)$content);
     }
 }
