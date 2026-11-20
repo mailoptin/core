@@ -665,6 +665,77 @@ class OptinCampaignsRepository extends AbstractRepository
     }
 
     /**
+     * Turn objects into associative arrays, including objects nested in a list.
+     *
+     * Option filters and older saves can leave repeater rows as stdClass. Indexing those
+     * as arrays is a fatal error on PHP 8.
+     *
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public static function cast_to_array($value)
+    {
+        if (is_object($value)) {
+            $encoded = wp_json_encode($value);
+            if ( ! is_string($encoded)) {
+                return [];
+            }
+
+            $decoded = json_decode($encoded, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        if ( ! is_array($value)) {
+            return $value;
+        }
+
+        foreach ($value as $key => $item) {
+            if (is_array($item) || is_object($item)) {
+                $value[$key] = self::cast_to_array($item);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * Decode a customizer value that is either a JSON string or already a list.
+     *
+     * Repeater settings such as integrations are normally stored as JSON text, but Customizer
+     * saves and older data can already be an array or object. json_decode() on those is a
+     * TypeError on PHP 8, and a list of stdClass rows cannot be indexed as arrays.
+     *
+     * @param mixed $value
+     *
+     * @return array
+     */
+    public static function decode_json_list($value)
+    {
+        if (is_object($value)) {
+            $value = self::cast_to_array($value);
+        }
+
+        if (is_string($value)) {
+            if ($value === '') {
+                return [];
+            }
+
+            $decoded = json_decode($value, true);
+            $value   = is_array($decoded) ? $decoded : [];
+        }
+
+        if ( ! is_array($value)) {
+            return [];
+        }
+
+        $value = self::cast_to_array($value);
+
+        return is_array($value) ? $value : [];
+    }
+
+    /**
      * Return value of a optin form customizer settings or the default settings value if not found.
      *
      * @param int $optin_campaign_id
@@ -694,7 +765,7 @@ class OptinCampaignsRepository extends AbstractRepository
 
         if (empty($custom_fields)) return [];
 
-        return json_decode($custom_fields, true);
+        return self::decode_json_list($custom_fields);
     }
 
     /**

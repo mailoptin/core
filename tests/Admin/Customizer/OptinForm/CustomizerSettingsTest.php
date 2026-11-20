@@ -34,6 +34,7 @@ class CustomizerSettingsTest extends WP_UnitTestCase
 
         $this->assertSame(wp_json_encode($settings[12]['headline']), $normalized[12]['headline']);
         $this->assertSame(wp_json_encode($settings[12]['integrations']), $normalized[12]['integrations']);
+        $this->assertIsString($normalized[12]['integrations']);
         $this->assertSame(500, $normalized[12]['form_width']);
         $this->assertSame([12, 15], $normalized[12]['posts_never_load']);
         $this->assertSame([], $normalized[12]['post_tags_load']);
@@ -53,6 +54,34 @@ class CustomizerSettingsTest extends WP_UnitTestCase
         $normalized = CustomizerSettings::normalize_campaign_customizer_values($settings, 12);
 
         $this->assertSame(wp_json_encode($settings[12]->headline), $normalized[12]['headline']);
+    }
+
+    public function testNestedIntegrationObjectsAreEncodedAsListsNotLeftAsObjects()
+    {
+        $settings = [
+            12 => (object)[
+                'integrations' => [
+                    (object)[
+                        'connection_service'    => 'MailChimpConnect',
+                        'connection_email_list' => 'list-1',
+                    ],
+                ],
+                'posts_never_load' => (object)['12' => (object)['id' => 12]],
+            ],
+        ];
+
+        $normalized = CustomizerSettings::normalize_campaign_customizer_values($settings, 12);
+
+        $this->assertSame(
+            wp_json_encode([
+                [
+                    'connection_service'    => 'MailChimpConnect',
+                    'connection_email_list' => 'list-1',
+                ],
+            ]),
+            $normalized[12]['integrations']
+        );
+        $this->assertSame(['12' => ['id' => 12]], $normalized[12]['posts_never_load']);
     }
 
     public function testInvalidOptionShapeFallsBackToAnEmptySettingsArray()
