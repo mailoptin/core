@@ -107,6 +107,7 @@ class Base
         AjaxHandler::get_instance();
         Cron::get_instance();
         AsyncHandler::get_instance();
+        SendQueue\QueueRunner::get_instance();
 
         $this->admin_hooks();
         Admin\Customizer\EmailCampaign\Customizer::instance();
