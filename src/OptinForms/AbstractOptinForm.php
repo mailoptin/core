@@ -883,7 +883,9 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                  $this->is_cookie_targeting_rule_active() ||
                  $this->is_device_targeting_active() ||
                  $this->is_x_page_views_rule_active() ||
-                 OCR::is_split_test_optin($this->optin_campaign_id)
+                 OCR::is_split_test_optin($this->optin_campaign_id) ||
+                 // An add-on that decides in the browser whether it shows (a display gate in mailoptin.js).
+                 apply_filters('mailoptin_optin_starts_hidden', false, $this->optin_campaign_id, $this->optin_campaign_type)
              )
         ) {
             $is_hidden_style = 'display: none';
