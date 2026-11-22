@@ -109,15 +109,23 @@ class SendingStore
 
     public static function decrypt($stored)
     {
+        return self::open($stored) ?? [];
+    }
+
+    /**
+     * @return array|null null when it can't be decrypted
+     */
+    protected static function open($stored)
+    {
         $raw = base64_decode((string)$stored, true);
 
-        if (false === $raw || strlen($raw) <= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) return [];
+        if (false === $raw || strlen($raw) <= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) return null;
 
         $plain = sodium_crypto_secretbox_open(substr($raw, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES), substr($raw, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES), self::key());
 
         $data = false === $plain ? null : json_decode($plain, true);
 
-        return is_array($data) ? $data : [];
+        return is_array($data) ? $data : null;
     }
 
     /**
@@ -127,7 +135,7 @@ class SendingStore
     {
         $stored = (string)get_option(self::CREDENTIALS_OPTION, '');
 
-        return '' !== $stored && [] === self::decrypt($stored);
+        return '' !== $stored && null === self::open($stored);
     }
 
     public static function credentials()
@@ -245,8 +253,9 @@ class SendingStore
             update_option(self::STATE_OPTION, [], false);
         }
 
-        $credentials = self::credentials();
-        $changed     = [];
+        $credentials   = self::credentials();
+        $changed       = [];
+        $username_sent = array_key_exists(self::FIELD_PREFIX . 'smtp_username', $data);
 
         foreach (self::fields() as $service => $fields) {
             foreach ($fields as $field => $definition) {
@@ -254,7 +263,8 @@ class SendingStore
 
                 if ( ! array_key_exists($key, $data)) continue;
 
-                $value = trim((string)$data[$key]);
+                // Posted raw (see Sending::skip_sanitize): only the slashes WordPress adds come off.
+                $value = is_string($data[$key]) ? trim(wp_unslash($data[$key])) : '';
                 unset($data[$key]);
 
                 if ('secret' === ($definition['type'] ?? '') && '' === $value) continue;
@@ -269,6 +279,12 @@ class SendingStore
 
                 $credentials[$service][$field] = $value;
             }
+        }
+
+        // A server without a login: no username, so the saved password goes too.
+        if ($username_sent && '' === (string)($credentials['smtp']['username'] ?? '') && '' !== (string)($credentials['smtp']['password'] ?? '')) {
+            $credentials['smtp']['password'] = '';
+            $changed['smtp'] = true;
         }
 
         if ($changed) {

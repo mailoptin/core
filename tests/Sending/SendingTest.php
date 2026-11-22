@@ -140,6 +140,82 @@ class SendingTest extends WP_UnitTestCase
         $this->assertArrayNotHasKey('token', $gmail);
     }
 
+    public function test_secrets_and_from_name_survive_the_settings_framework_exactly()
+    {
+        // A made-up value with the characters esc_html() and stripslashes() would change.
+        $typed = implode('', ['&', '"', '\\', '<1>', "'"]);
+
+        $posted = wp_slash([
+            'mo_sending_smtp_host'     => 'mail.example.com',
+            'mo_sending_smtp_username' => 'me@example.com',
+            'mo_sending_smtp_password' => $typed,
+            Sending::SITE_FROM_NAME    => "Tom & Jerry's",
+            'from_name'                => 'A & B',
+        ]);
+
+        $data = $this->sending->take_credentials(\W3Guy\Custom_Settings_Page_Api::sanitize_data($posted), MAILOPTIN_SETTINGS_DB_OPTION_NAME);
+
+        $this->assertSame($typed, SendingStore::credentials()['smtp']['password']);
+        $this->assertSame("Tom & Jerry's", $data[Sending::SITE_FROM_NAME]);
+        // Other settings are sanitised as before.
+        $this->assertSame('A &amp; B', $data['from_name']);
+    }
+
+    public function test_no_username_means_no_saved_password()
+    {
+        SendingStore::save_credentials(['smtp' => ['host' => 'mail.example.com', 'username' => 'me', 'password' => 'hunter2']]);
+
+        $this->sending->take_credentials(['mo_sending_smtp_username' => '', 'mo_sending_smtp_password' => ''], MAILOPTIN_SETTINGS_DB_OPTION_NAME);
+
+        $this->assertSame('', SendingStore::credentials()['smtp']['password']);
+    }
+
+    public function test_empty_credentials_are_not_mistaken_for_changed_security_keys()
+    {
+        SendingStore::save_credentials([]);
+
+        $this->assertFalse(SendingStore::credentials_unreadable());
+    }
+
+    public function test_ticking_site_mail_before_a_service_connects_leaves_the_other_plugin_sending()
+    {
+        SiteMailer::claim('fusewp', 'FuseWP');
+
+        $this->choose('smtp', [Sending::SITE_ENABLED => '1']);
+        $this->sending->after_save([], MAILOPTIN_SETTINGS_DB_OPTION_NAME);
+        $this->assertSame('fusewp', SiteMailer::owner());
+        $this->assertStringContainsString('keeps sending', SendingScreen::site_mail_html());
+
+        // Connecting later takes it over.
+        add_filter('mailoptin_site_mail_sender', function () {
+            return new FakeSiteSender();
+        });
+        Sending::sync_site_mail();
+        $this->assertSame(Sending::OWNER, SiteMailer::owner());
+    }
+
+    public function test_sign_up_emails_fall_back_to_wordpress_while_sending_is_stopped()
+    {
+        SendingStore::save_credentials(['smtp' => ['host' => '127.0.0.1', 'port' => '1', 'encryption' => 'none']]);
+        SendingStore::update_state(['connected' => ['smtp' => true]]);
+        $this->choose('smtp');
+
+        $args = ['to' => 'a@example.com', 'subject' => 'Confirm', 'html' => '<p>Hi</p>', 'text' => '', 'headers' => []];
+
+        \MailOptin\Core\SendQueue\QueueRunner::block('Login refused');
+        $this->assertNull($this->sending->send_now(null, $args));
+        \MailOptin\Core\SendQueue\QueueRunner::unblock();
+    }
+
+    public function test_the_site_mailer_option_is_autoloaded()
+    {
+        delete_option(SiteMailer::OPTION);
+        Sending::add_site_mailer_option();
+
+        global $wpdb;
+        $this->assertContains($wpdb->get_var($wpdb->prepare("SELECT autoload FROM $wpdb->options WHERE option_name = %s", SiteMailer::OPTION)), ['yes', 'on']);
+    }
+
     public function test_only_a_connected_free_service_is_active()
     {
         SendingStore::save_credentials(['smtp' => ['host' => 'mail.example.com']]);
@@ -168,6 +244,9 @@ class SendingTest extends WP_UnitTestCase
     public function test_turning_on_site_mail_takes_it_from_another_plugin_and_off_releases_it()
     {
         SiteMailer::claim('fusewp', 'FuseWP');
+        add_filter('mailoptin_site_mail_sender', function () {
+            return new FakeSiteSender();
+        });
 
         $this->choose('smtp', [Sending::SITE_ENABLED => '1']);
         $this->sending->after_save([], MAILOPTIN_SETTINGS_DB_OPTION_NAME);
@@ -261,7 +340,12 @@ class SendingTest extends WP_UnitTestCase
 
     public function test_sign_in_callback_ignores_unknown_state_and_other_users()
     {
+        // Expired or unknown: back to the settings to start again.
         $_GET = ['state' => 'mo' . str_repeat('b', 40), 'code' => 'x'];
+        $this->assertStringContainsString('mo_sending_notice=oauth_expired', $this->run_callback());
+
+        // Not ours at all.
+        $_GET = ['state' => 'abc', 'code' => 'x'];
         $this->assertNull($this->run_callback());
 
         $other = self::factory()->user->create(['role' => 'administrator']);

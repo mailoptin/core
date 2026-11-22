@@ -110,6 +110,8 @@ class CreateDBTables
             dbDelta($sql);
         }
 
+        \MailOptin\Core\Sending\Sending::add_site_mailer_option();
+
         // A new site starts on the table; an existing one moves its settings across.
         \MailOptin\Core\Repositories\CampaignSettingsRepository::migrate();
     }
@@ -387,10 +389,6 @@ class CreateDBTables
     }
 
     /**
-     * One row per integration a submission (conversion) was sent to: whether it got there and,
-     * while it hasn't, what's needed to try again. Datetimes are UTC.
-     */
-    /**
      * Emails this site sent through MailOptin's sending service, for Settings › Email log. Never the
      * content: who, what, which plugin, and the result.
      */
@@ -416,6 +414,10 @@ class CreateDBTables
 ) $collate;";
     }
 
+    /**
+     * One row per integration a submission (conversion) was sent to: whether it got there and,
+     * while it hasn't, what's needed to try again. Datetimes are UTC.
+     */
     public static function conversion_syncs_table_sql($collate)
     {
         global $wpdb;

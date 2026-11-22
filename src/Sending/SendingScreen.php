@@ -23,12 +23,13 @@ class SendingScreen
     protected static function notice_text($code)
     {
         $notices = [
-            'tested'            => ['success', __('Connected. Emails go out through this service now.', 'mailoptin')],
+            'tested'            => ['success', __('The connection test passed.', 'mailoptin')],
             'test_failed'       => ['error', __('The connection test failed. The reason is below.', 'mailoptin')],
             'test_email_sent'   => ['success', __('Test email sent. Check your inbox.', 'mailoptin')],
             'test_email_failed' => ['error', __('The test email wasn\'t sent. The reason is below.', 'mailoptin')],
-            'oauth_connected'   => ['success', __('Signed in and connected. Emails go out through this account now.', 'mailoptin')],
+            'oauth_connected'   => ['success', __('Signed in. The connection test passed.', 'mailoptin')],
             'oauth_failed'      => ['error', __('Sign-in didn\'t finish. The reason is below.', 'mailoptin')],
+            'oauth_expired'     => ['error', __('That sign-in had expired. Sign in again.', 'mailoptin')],
             'oauth_needs_app'   => ['error', __('Enter the app\'s client ID and secret and save, then sign in.', 'mailoptin')],
             'disconnected'      => ['success', __('Signed out. Emails go through WordPress until you sign in again or choose another service.', 'mailoptin')],
         ];
@@ -227,6 +228,7 @@ class SendingScreen
         $settings = Sending::settings();
         $current  = SiteMailer::current();
         $ours     = $current && Sending::OWNER === $current['owner'];
+        $wanted   = Sending::site_mail_wanted();
         $other    = $current && ! $ours ? (string)$current['label'] : '';
         $sender   = Sending::site_sender();
         $taken    = get_transient('mo_site_mail_taken_' . get_current_user_id());
@@ -247,21 +249,23 @@ class SendingScreen
 
             <label class="mo-toggle-row" for="mo-site-mail-enabled">
                 <input type="hidden" name="mailoptin_settings[<?php echo esc_attr(Sending::SITE_ENABLED); ?>]" value="">
-                <input type="checkbox" id="mo-site-mail-enabled" name="mailoptin_settings[<?php echo esc_attr(Sending::SITE_ENABLED); ?>]" value="1" <?php checked($ours); ?>>
+                <input type="checkbox" id="mo-site-mail-enabled" name="mailoptin_settings[<?php echo esc_attr(Sending::SITE_ENABLED); ?>]" value="1" <?php checked($wanted); ?>>
                 <span>
                     <strong><?php echo esc_html($label && 'wp_mail' !== $service ? sprintf(__('Send all of this site\'s emails through %s', 'mailoptin'), $label) : __('Send all of this site\'s emails through MailOptin\'s sending service', 'mailoptin')); ?></strong>
                     <span class="description"><?php esc_html_e('Password resets, new-user emails, WooCommerce orders, contact forms: anything WordPress or another plugin sends.', 'mailoptin'); ?></span>
                 </span>
             </label>
 
-            <?php if ($other) : ?>
-                <div class="notice notice-warning inline"><p><strong><?php echo esc_html(sprintf(__('%s sends this site\'s emails.', 'mailoptin'), $other)); ?></strong> <?php echo esc_html(sprintf(__('Only one plugin can. Turning this on and saving switches it off in %s.', 'mailoptin'), $other)); ?></p></div>
-            <?php endif; ?>
-
-            <?php if ($ours && ! $sender) : ?>
-                <div class="notice notice-warning inline"><p><?php esc_html_e('No sending service is connected yet, so WordPress still sends the site\'s emails the usual way. Choose and connect one above.', 'mailoptin'); ?></p></div>
-            <?php elseif ( ! $ours && 'wp_mail' === $service) : ?>
+            <?php if ('wp_mail' === $service) : ?>
                 <p class="description"><?php esc_html_e('Choose and connect a sending service above first.', 'mailoptin'); ?></p>
+            <?php elseif ( ! SendingStore::is_ours($service) && ! $sender) : ?>
+                <p class="description"><?php echo esc_html(sprintf(__('This isn\'t available for %s yet. It works with Other SMTP, Gmail and Microsoft 365.', 'mailoptin'), $label)); ?></p>
+            <?php elseif ($wanted && ! $sender) : ?>
+                <div class="notice notice-warning inline"><p><?php echo esc_html($ours
+                    ? sprintf(__('%s isn\'t connected, so WordPress sends the site\'s emails the usual way for now.', 'mailoptin'), $label)
+                    : ($other ? sprintf(__('This starts once %1$s connects. Until then %2$s keeps sending the site\'s emails.', 'mailoptin'), $label, $other) : sprintf(__('This starts once %s connects.', 'mailoptin'), $label))); ?></p></div>
+            <?php elseif ($other) : ?>
+                <div class="notice notice-warning inline"><p><strong><?php echo esc_html(sprintf(__('%s sends this site\'s emails.', 'mailoptin'), $other)); ?></strong> <?php echo esc_html(sprintf(__('Only one plugin can. Turning this on and saving switches it off in %s.', 'mailoptin'), $other)); ?></p></div>
             <?php endif; ?>
 
             <div class="mo-fields">
@@ -331,7 +335,7 @@ class SendingScreen
         ob_start();
         ?>
         <div class="mo-email-log">
-            <p class="description"><?php echo esc_html(sprintf(__('Every email this site sent through MailOptin\'s sending service in the last %d days. The content isn\'t kept.', 'mailoptin'), EmailLog::KEEP_DAYS)); ?></p>
+            <p class="description"><?php echo esc_html(sprintf(__('Every email the site sent while "Send all of this site\'s emails" was on, for %d days: who it went to, the subject and the result. The content isn\'t kept. Campaigns have their own reports.', 'mailoptin'), EmailLog::KEEP_DAYS)); ?></p>
             <ul class="subsubsub">
                 <li><a href="<?php echo $link(['log_view' => 'all']); ?>" <?php echo 'all' === $view ? 'class="current" aria-current="page"' : ''; ?>><?php esc_html_e('All', 'mailoptin'); ?> <span class="count">(<?php echo esc_html(number_format_i18n($all)); ?>)</span></a> |</li>
                 <li><a href="<?php echo $link(['log_view' => 'failed']); ?>" <?php echo 'failed' === $view ? 'class="current" aria-current="page"' : ''; ?>><?php esc_html_e('Failed', 'mailoptin'); ?> <span class="count">(<?php echo esc_html(number_format_i18n($failed)); ?>)</span></a></li>

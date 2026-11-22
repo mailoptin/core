@@ -40,16 +40,25 @@ class EmailLog
         ], ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']);
     }
 
-    /** Entries older than KEEP_DAYS go, in batches so a big log can't hold the table long. */
+    const PURGE_HOOK = 'mo_email_log_purge';
+
+    /**
+     * Entries older than KEEP_DAYS go, in batches so a big log can't hold the table long. What one run
+     * can't finish, the next run a few minutes later does.
+     */
     public static function purge()
     {
         global $wpdb;
 
         $before = gmdate('Y-m-d H:i:s', time() - self::KEEP_DAYS * DAY_IN_SECONDS);
+        $start  = time();
 
-        for ($i = 0; $i < 20; $i++) {
-            $deleted = $wpdb->query($wpdb->prepare('DELETE FROM ' . self::table() . ' WHERE sent_at < %s LIMIT 5000', $before));
-            if ( ! $deleted || $deleted < 5000) break;
+        do {
+            $deleted = (int)$wpdb->query($wpdb->prepare('DELETE FROM ' . self::table() . ' WHERE sent_at < %s LIMIT 5000', $before));
+        } while (5000 === $deleted && time() - $start < 20);
+
+        if (5000 === $deleted && ! wp_next_scheduled(self::PURGE_HOOK)) {
+            wp_schedule_single_event(time() + 5 * MINUTE_IN_SECONDS, self::PURGE_HOOK);
         }
     }
 

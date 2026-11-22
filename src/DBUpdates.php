@@ -471,6 +471,8 @@ class DBUpdates
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
         dbDelta(CreateDBTables::email_log_table_sql($collate));
+
+        \MailOptin\Core\Sending\Sending::add_site_mailer_option();
     }
 
     public static function get_instance()

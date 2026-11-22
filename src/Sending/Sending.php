@@ -32,6 +32,7 @@ class Sending
 
     public function __construct()
     {
+        add_filter('wp_cspa_sanitize_skip', [$this, 'skip_sanitize'], 10, 2);
         add_filter('wp_cspa_santized_data', [$this, 'take_credentials'], 9, 2);
         add_action('wp_cspa_after_persist_settings', [$this, 'after_save'], 9, 2);
 
@@ -42,6 +43,7 @@ class Sending
         add_action('admin_init', [$this, 'oauth_callback'], 1);
 
         add_action('mo_daily_recurring_job', [EmailLog::class, 'purge']);
+        add_action(EmailLog::PURGE_HOOK, [EmailLog::class, 'purge']);
 
         $this->register_site_mailer();
     }
@@ -49,6 +51,24 @@ class Sending
     /* ---------------------------------------------------------------------------------------------
      * Saving
      * ------------------------------------------------------------------------------------------ */
+
+    /**
+     * The settings framework runs esc_html() on every posted value, which would turn a password's
+     * "&" into "&amp;" and a From name's apostrophe into an entity. These arrive raw (still slashed)
+     * and are cleaned in take_credentials().
+     */
+    public function skip_sanitize($skip, $key)
+    {
+        if ($skip || ! is_string($key)) return $skip;
+
+        if (in_array($key, [self::SITE_FROM_EMAIL, self::SITE_FROM_NAME], true)) return true;
+
+        foreach (SendingStore::SERVICES as $service) {
+            if (0 === strpos($key, SendingStore::FIELD_PREFIX . $service . '_')) return true;
+        }
+
+        return $skip;
+    }
 
     public function take_credentials($data, $option_name = '')
     {
@@ -60,8 +80,8 @@ class Sending
         foreach ([self::SITE_ENABLED, self::SITE_FORCE_FROM] as $key) {
             if (array_key_exists($key, $data)) $data[$key] = in_array($data[$key], ['1', 'on', 'true', true], true) ? '1' : '';
         }
-        if (isset($data[self::SITE_FROM_EMAIL])) $data[self::SITE_FROM_EMAIL] = sanitize_email($data[self::SITE_FROM_EMAIL]);
-        if (isset($data[self::SITE_FROM_NAME])) $data[self::SITE_FROM_NAME] = sanitize_text_field($data[self::SITE_FROM_NAME]);
+        if (isset($data[self::SITE_FROM_EMAIL])) $data[self::SITE_FROM_EMAIL] = is_string($data[self::SITE_FROM_EMAIL]) ? sanitize_email(wp_unslash($data[self::SITE_FROM_EMAIL])) : '';
+        if (isset($data[self::SITE_FROM_NAME])) $data[self::SITE_FROM_NAME] = is_string($data[self::SITE_FROM_NAME]) ? sanitize_text_field(wp_unslash($data[self::SITE_FROM_NAME])) : '';
 
         return $data;
     }
@@ -72,16 +92,40 @@ class Sending
 
         SendingStore::after_save();
 
-        // Turned on here: MailOptin sends the site's email, taking it from any other plugin.
-        $settings = self::settings();
-        if (array_key_exists(self::SITE_ENABLED, $settings)) {
-            if ('1' === $settings[self::SITE_ENABLED]) {
-                $previous = SiteMailer::claim(self::OWNER, 'MailOptin');
-                if ($previous) set_transient('mo_site_mail_taken_' . get_current_user_id(), (string)$previous['label'], 120);
-            } else {
-                SiteMailer::release(self::OWNER);
-            }
+        self::sync_site_mail();
+    }
+
+    /**
+     * Whether "Send all of this site's emails" is ticked.
+     */
+    public static function site_mail_wanted()
+    {
+        return '1' === (self::settings()[self::SITE_ENABLED] ?? '');
+    }
+
+    /**
+     * Ticked and a service can send: MailOptin sends the site's email, taking it from any other plugin.
+     * Ticked with nothing connected yet: another plugin keeps sending it until a service connects, so
+     * ticking the box early never leaves the site's email worse off. Unticked: let it go.
+     */
+    public static function sync_site_mail()
+    {
+        if ( ! self::site_mail_wanted()) {
+            SiteMailer::release(self::OWNER);
+
+            return;
         }
+
+        if (SiteMailer::owner() === self::OWNER || ! self::site_sender()) return;
+
+        $previous = SiteMailer::claim(self::OWNER, 'MailOptin');
+        if ($previous && is_user_logged_in()) set_transient('mo_site_mail_taken_' . get_current_user_id(), (string)$previous['label'], 120);
+    }
+
+    /** Autoloaded from the start, so reading it on every page costs no query. */
+    public static function add_site_mailer_option()
+    {
+        add_option(SiteMailer::OPTION, [], '', 'yes');
     }
 
     public static function settings()
@@ -114,16 +158,21 @@ class Sending
         $client = SendingStore::sender(SendingStore::active());
         if ( ! $client) return null;
 
-        $blocked = QueueRunner::blocked();
-        if ($blocked) return new \WP_Error('mo_sending_stopped', $blocked['error']);
+        // Sending is stopped after a refused login: WordPress sends sign-up emails meanwhile, so
+        // confirmations still arrive.
+        if (QueueRunner::blocked()) return null;
 
         $message = ServiceSender::message($args['to'], $args['subject'], $args['html'], (string)$args['text'], (array)$args['headers']);
         $sent    = current($client->send([$message]));
 
         if ( ! $sent instanceof SendResult) return new \WP_Error('mo_sending_service_failed', __('The sending service returned no result.', 'mailoptin'));
 
-        // Refused credentials stop the queue too, as they would from a campaign.
-        if (SendResult::AUTH === $sent->status) QueueRunner::block($sent->error);
+        // Refused credentials stop the queue too, as they would from a campaign, and WordPress sends this one.
+        if (SendResult::AUTH === $sent->status) {
+            QueueRunner::block($sent->error);
+
+            return null;
+        }
 
         return ServiceSender::to_queue_result($sent);
     }
@@ -185,6 +234,7 @@ class Sending
         switch ($action) {
             case 'test':
                 $test = SendingStore::connect($service);
+                self::sync_site_mail();
                 $this->go($test->ok ? 'tested' : 'test_failed');
                 break;
 
@@ -217,8 +267,10 @@ class Sending
         $sender = SendingStore::sender($service);
         $to     = wp_get_current_user()->user_email;
 
+        // The site's From, else the signed-in account (Gmail and Microsoft 365 refuse other addresses),
+        // else MailOptin's From, else what the server suggests.
         $settings = self::settings();
-        $from     = (string)($settings[self::SITE_FROM_EMAIL] ?? '') ?: (string)($settings['from_email'] ?? '');
+        $from     = (string)($settings[self::SITE_FROM_EMAIL] ?? '') ?: SendingStore::account_email($service) ?: (string)($settings['from_email'] ?? '');
         if ('' === $from && $sender && method_exists($sender, 'default_from')) $from = (string)$sender->default_from();
 
         $message = Message::make([
@@ -281,7 +333,12 @@ class Sending
         if (0 !== strpos($state, 'mo') || ! preg_match('/^mo[A-Za-z0-9]{40}$/', $state)) return;
 
         $pending = get_transient(self::OAUTH_TRANSIENT . $state);
-        if ( ! is_array($pending)) return;
+        if ( ! is_array($pending)) {
+            // Took longer than 15 minutes, or the page was reloaded: start again.
+            if (current_user_has_privilege()) $this->go('oauth_expired');
+
+            return;
+        }
 
         // Used once, by the person who started it.
         delete_transient(self::OAUTH_TRANSIENT . $state);
@@ -311,6 +368,7 @@ class Sending
 
         SendingStore::update_service_credentials($service, ['token' => $token->to_array()]);
         $test = SendingStore::connect($service);
+        self::sync_site_mail();
 
         $this->go($test->ok ? 'oauth_connected' : 'test_failed');
     }
