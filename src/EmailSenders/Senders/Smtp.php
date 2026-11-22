@@ -143,7 +143,7 @@ class Smtp implements SenderInterface
         $stop = null; // set when the rest of the batch can't go either
 
         foreach ($messages as $key => $message) {
-            $results[$key] = $stop ?: $this->send_one($mailer, $message, $stop);
+            $results[$key] = $stop ? clone $stop : $this->send_one($mailer, $message, $stop);
         }
 
         $this->disconnect($mailer);
@@ -160,7 +160,8 @@ class Smtp implements SenderInterface
      */
     protected function send_one($mailer, Message $message, &$stop)
     {
-        if (empty($message->to)) return SendResult::failed('No recipient.');
+        $problem = $message->problem();
+        if ('' !== $problem) return SendResult::failed($problem);
 
         // Build the email. Anything wrong here is wrong with this email, not the server.
         try {
@@ -328,10 +329,7 @@ class Smtp implements SenderInterface
     }
 
     /** Headers PHPMailer writes itself; a second copy from the message would be a duplicate. */
-    const RESERVED_HEADERS = [
-        'from', 'to', 'cc', 'bcc', 'reply-to', 'subject', 'date', 'message-id', 'sender', 'return-path',
-        'mime-version', 'content-type', 'content-transfer-encoding', 'x-mailer',
-    ];
+    const RESERVED_HEADERS = Message::RESERVED_HEADERS;
 
     protected function reset($mailer)
     {

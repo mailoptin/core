@@ -65,4 +65,14 @@ abstract class OAuthSmtp extends Smtp
     {
         return $this->tokens->token();
     }
+
+    /**
+     * Gmail and Microsoft 365 send only as the signed-in mailbox: Microsoft refuses another From
+     * (SendAsDenied) and Gmail rewrites it. SiteMailer sends as the account and keeps the address an
+     * email asked for as its Reply-To.
+     */
+    public function sends_as_account()
+    {
+        return true;
+    }
 }

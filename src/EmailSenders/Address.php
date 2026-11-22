@@ -40,6 +40,39 @@ class Address
     }
 
     /**
+     * A syntactically valid address (international ones included).
+     */
+    public function is_valid()
+    {
+        return '' !== $this->email && false !== filter_var($this->email, FILTER_VALIDATE_EMAIL, FILTER_FLAG_EMAIL_UNICODE);
+    }
+
+    /**
+     * Addresses from a comma-separated string ("a@x.com, Name <b@y.com>") or a list, keeping
+     * "Name <email>" forms and quoted names with commas whole.
+     *
+     * @param string|array $value
+     *
+     * @return array strings, arrays or Address objects, as given
+     */
+    public static function split($value)
+    {
+        if (is_array($value) && ! isset($value['email'])) {
+            $list = $value;
+        } elseif (is_array($value) || $value instanceof self) {
+            return [$value];
+        } else {
+            $list = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)(?![^<]*>)/', (string)$value);
+        }
+
+        return array_values(array_filter(array_map(function ($a) {
+            return is_string($a) ? trim($a) : $a;
+        }, $list), function ($a) {
+            return '' !== $a && null !== $a;
+        }));
+    }
+
+    /**
      * RFC 5322 form, "Name <email>", quoting the name when it needs it.
      */
     public function format()

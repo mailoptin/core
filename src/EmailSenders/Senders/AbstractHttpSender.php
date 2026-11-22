@@ -64,7 +64,8 @@ abstract class AbstractHttpSender implements SenderInterface
         $results = [];
 
         foreach ($messages as $key => $message) {
-            $results[$key] = $this->send_one($message);
+            $problem       = $message->problem();
+            $results[$key] = '' !== $problem ? SendResult::failed($problem) : $this->send_one($message);
 
             // Bad credentials won't fix themselves on the next message.
             if (SendResult::AUTH === $results[$key]->status) {
@@ -162,7 +163,9 @@ abstract class AbstractHttpSender implements SenderInterface
 
     protected static function json($data)
     {
-        return (string)json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        // Invalid UTF-8 (a Latin-1 subject from an old plugin) is replaced, not allowed to empty the
+        // whole request: one bad byte would otherwise fail a Postmark batch of 500.
+        return (string)json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     /**

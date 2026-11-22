@@ -65,6 +65,9 @@ class Ses extends AbstractHttpSender implements WebhookSetupInterface
             $headers['Content-Type'] = is_string($data) ? 'application/x-www-form-urlencoded; charset=utf-8' : 'application/json';
         }
 
+        // Temporary credentials (an IAM role, STS) come with a session token, signed with the rest.
+        if ('' !== $this->config('session_token')) $headers['X-Amz-Security-Token'] = $this->config('session_token');
+
         $signer  = new SignatureV4($this->config('access_key'), $this->config('secret_key'), $this->region(), $service);
         $headers = $signer->sign($method, $url, $headers, $body);
 

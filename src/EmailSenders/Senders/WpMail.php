@@ -64,7 +64,8 @@ class WpMail implements SenderInterface
             return $a->format();
         }, $message->to);
 
-        if (empty($to)) return SendResult::failed('No recipient.');
+        $problem = $message->problem();
+        if ('' !== $problem) return SendResult::failed($problem);
 
         $headers = [];
 

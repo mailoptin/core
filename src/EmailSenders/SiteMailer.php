@@ -152,9 +152,10 @@ class SiteMailer
             self::$sending = false;
         }
 
-        // A setup problem (a refused password, a revoked sign-in): let WordPress send it the usual
-        // way, so password resets still go out while the site owner fixes it.
-        $fallback = SendResult::AUTH === $result->status;
+        // A setup problem (a refused password, a revoked sign-in) or a server that can't be reached
+        // (a host blocking outgoing SMTP): let WordPress send it the usual way, so password resets
+        // still go out while the site owner fixes it.
+        $fallback = in_array($result->status, [SendResult::AUTH, SendResult::RETRY], true);
         $sent     = SendResult::SENT === $result->status;
 
         $this->log($message, $sender, $sent ? 'sent' : ($fallback ? 'fallback' : 'failed'), $result);
@@ -292,6 +293,15 @@ class SiteMailer
             $from_name = (string)($this->options['from_name'] ?? $from_name);
         }
 
+        // Gmail and Microsoft 365 send only as the signed-in mailbox. An email from another address
+        // (a shop's orders@, a form's visitor) goes out as the account, with replies still going to
+        // the address it asked for.
+        $account = $sender && method_exists($sender, 'sends_as_account') && $sender->sends_as_account() ? (string)$sender->default_from() : '';
+        if ('' !== $account && 0 !== strcasecmp($from, $account)) {
+            if ( ! $reply_to && '' !== $from) $reply_to = [Address::from(['email' => $from, 'name' => $from_name])];
+            $from = $account;
+        }
+
         $type = (string)apply_filters('wp_mail_content_type', $type ?: 'text/plain');
         $body = (string)($atts['message'] ?? '');
         $html = 'text/html' === strtolower($type);
@@ -311,6 +321,8 @@ class SiteMailer
             'text'        => $html ? self::plain_text($body) : $body,
             'headers'     => $custom,
             'attachments' => $attachments,
+            // Not a campaign: Postmark sends it on the transactional stream.
+            'stream'      => Message::TRANSACTIONAL,
         ]);
     }
 
@@ -319,14 +331,7 @@ class SiteMailer
      */
     public static function addresses($value)
     {
-        if ( ! is_array($value)) {
-            // Split on commas outside quotes and angle brackets.
-            $value = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)(?![^<]*>)/', (string)$value);
-        }
-
-        return array_values(array_filter(array_map(function ($a) {
-            return is_string($a) ? trim($a) : $a;
-        }, $value)));
+        return Address::split($value);
     }
 
     /**

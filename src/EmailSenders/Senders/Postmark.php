@@ -37,21 +37,52 @@ class Postmark extends AbstractHttpSender implements WebhookSetupInterface
         ];
     }
 
+    /** Postmark refuses a request over 50 MB; batches stay under this, attachments included. */
+    const MAX_BATCH_BYTES = 40000000;
+
     public function send(array $messages)
     {
         $results = [];
+        $batch   = [];
+        $bytes   = 0;
 
-        foreach (array_chunk($messages, $this->batch_size(), true) as $chunk) {
-            $results += $this->send_batch($chunk);
+        foreach ($messages as $key => $message) {
+            $problem = $message->problem();
+            if ('' !== $problem) {
+                $results[$key] = SendResult::failed($problem);
+                continue;
+            }
+
+            $payload = $this->payload($message);
+            $size    = strlen(self::json($payload));
+
+            // Up to 500 emails and MAX_BATCH_BYTES per request.
+            if ($batch && (count($batch) >= $this->batch_size() || $bytes + $size > static::MAX_BATCH_BYTES)) {
+                $results += $this->send_batch($batch);
+                $batch = [];
+                $bytes = 0;
+            }
+
+            $batch[$key] = $payload;
+            $bytes      += $size;
         }
 
-        return $results;
+        if ($batch) $results += $this->send_batch($batch);
+
+        // In the order given.
+        $ordered = [];
+        foreach (array_keys($messages) as $key) $ordered[$key] = $results[$key];
+
+        return $ordered;
     }
 
-    protected function send_batch(array $messages)
+    /**
+     * @param array $payloads key => Postmark email
+     */
+    protected function send_batch(array $payloads)
     {
-        $keys    = array_keys($messages);
-        $payload = array_map([$this, 'payload'], array_values($messages));
+        $keys    = array_keys($payloads);
+        $payload = array_values($payloads);
 
         $response = $this->http->request('POST', self::API . '/email/batch', $this->headers(), self::json($payload));
         $body     = $response->json();
@@ -64,7 +95,11 @@ class Postmark extends AbstractHttpSender implements WebhookSetupInterface
                 ? SendResult::auth($error)
                 : $this->result_for_failure($response, $error);
 
-            return array_fill_keys($keys, $result);
+            // One result object per email, so a caller changing one doesn't change them all.
+            $results = [];
+            foreach ($keys as $key) $results[$key] = clone $result;
+
+            return $results;
         }
 
         $results = [];
@@ -114,7 +149,7 @@ class Postmark extends AbstractHttpSender implements WebhookSetupInterface
             'From'          => $message->from->format(),
             'To'            => $list($message->to),
             'Subject'       => $message->subject,
-            'MessageStream' => $message->stream ?: ($this->config('message_stream') ?: 'outbound'),
+            'MessageStream' => $this->stream($message),
             // The plugin tracks opens and clicks itself.
             'TrackOpens'    => false,
             'TrackLinks'    => 'None',
@@ -139,6 +174,17 @@ class Postmark extends AbstractHttpSender implements WebhookSetupInterface
         }
 
         return $data;
+    }
+
+    /**
+     * The message stream: the message's own, the transactional one for Message::TRANSACTIONAL, or
+     * the configured broadcast stream.
+     */
+    protected function stream(Message $message)
+    {
+        if (Message::TRANSACTIONAL === $message->stream) return $this->config('transactional_stream') ?: 'outbound';
+
+        return $message->stream ?: ($this->config('message_stream') ?: 'outbound');
     }
 
     public function test_connection()
@@ -166,8 +212,9 @@ class Postmark extends AbstractHttpSender implements WebhookSetupInterface
 
     public function install_webhook($url, $secret)
     {
+        // Bounces from campaigns and from transactional email (SiteMailer's) both come back.
         $streams = (array)($this->config['webhook_streams'] ?? []);
-        if (empty($streams)) $streams = [$this->config('message_stream') ?: 'outbound'];
+        if (empty($streams)) $streams = [$this->config('message_stream') ?: 'outbound', $this->config('transactional_stream') ?: 'outbound'];
 
         $ids = [];
 
