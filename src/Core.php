@@ -38,6 +38,9 @@ final class Core
 
     public function __construct()
     {
+        // A clone of wp-email-senders instead of the bundled copy, when wp-config.php says so.
+        Sending\PackageSource::register();
+
         Base::get_instance();
     }
 

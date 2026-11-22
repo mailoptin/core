@@ -125,17 +125,21 @@ The package is its own repo, so you develop and push there; this plugin only eve
    `composer install && vendor/bin/phpunit`. The SMTP tests start a local server and need Python's aiosmtpd
    (`pip install aiosmtpd`).
 
-3. **Try it in the site.** From this plugin, copy your working tree in:
+3. **Point the site at your clone.** In `wp-config.php`:
 
-   ```
-   php bin/sync-email-senders.php ../wp-email-senders
+   ```php
+   define('MAILOPTIN_EMAIL_SENDERS_DIR', __DIR__ . '/wp-content/plugins/wp-email-senders');
    ```
 
-   Run it again after each edit (or from your editor's on-save hook): the site runs the copy, never the package folder.
-   The script warns that the package has uncommitted changes; that's expected while you work.
+   MailOptin (and Premium) now run the clone's code directly, so each edit shows on the next page load, with no sync.
+   Each `MailOptin\Core\EmailSenders\X` becomes the clone's `MailOptin\EmailSenders\X` under MailOptin's name
+   (`src/Sending/PackageSource.php`). Remove the constant, or set it to `false`, and the bundled copy in
+   `src/EmailSenders/` is used again. A path without `src/Senders.php` is ignored, with an admin notice.
+
+   Development only. Don't set it on a site where FuseWP also loads a development clone: the two would share the
+   package's own class names.
 
 4. **Push the package branch and open its PR** from the package folder, as with any repo.
 
-5. **Once it's merged**, sync again from the merged commit or tag (Updating the package, above), so `VERSION` names a
-   real commit, and commit `src/EmailSenders/` here. Until then, don't commit the copy you synced from a working tree:
-   `git checkout src/EmailSenders` puts it back.
+5. **Once it's merged**, sync from the merged commit or tag (Updating the package, above), so `VERSION` names a real
+   commit, commit `src/EmailSenders/` here, and remove the constant to check the bundled copy behaves the same.
