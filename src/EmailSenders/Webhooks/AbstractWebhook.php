@@ -43,4 +43,38 @@ abstract class AbstractWebhook implements WebhookInterface
 
         return '' !== $given && hash_equals($secret, $given);
     }
+
+    /**
+     * Whether a key (an SNS message, a Mailgun token, a SendGrid event) was handled before.
+     */
+    protected function seen($key)
+    {
+        $get = $this->config['cache_get'] ?? null;
+
+        return is_callable($get) && (bool)call_user_func($get, $key);
+    }
+
+    /**
+     * Remember keys as handled: straight away, or on $result->confirm() when the webhook was made
+     * with 'confirm' => true (the host confirms once it has handled the events).
+     *
+     * @param string[] $keys
+     */
+    protected function remember(Result $result, array $keys)
+    {
+        $set = $this->config['cache_set'] ?? null;
+        if ( ! is_callable($set) || ! $keys) return $result;
+
+        $store = function () use ($set, $keys) {
+            foreach ($keys as $key) call_user_func($set, $key, '1');
+        };
+
+        if ( ! empty($this->config['confirm'])) {
+            $result->on_confirm($store);
+        } else {
+            $store();
+        }
+
+        return $result;
+    }
 }

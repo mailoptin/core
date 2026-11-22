@@ -13,6 +13,8 @@ namespace MailOptin\Core\EmailSenders\Webhooks;
  * - cache_get / cache_set (optional callables): keep downloaded certificates, keyed by URL, so each
  *   request doesn't fetch one, and remember notifications already handled. For example transients
  *   kept for at least max_age.
+ * - confirm (bool): remember notifications as handled only on Result::confirm(), so a retry after a
+ *   failed handling is handled again.
  * - max_age (seconds, default 86400): refuse notifications older than this. A signed message can
  *   otherwise be replayed at any time; SNS keeps the original timestamp when it retries.
  */
@@ -61,16 +63,13 @@ class SesWebhook extends AbstractWebhook
 
         // A retry or a replay of a message already handled: accept it, so SNS stops retrying, but
         // report nothing.
-        $get = $this->config['cache_get'] ?? null;
-        $set = $this->config['cache_set'] ?? null;
         $key = 'ses_message_' . (string)($data['MessageId'] ?? '');
 
-        if (is_callable($get) && call_user_func($get, $key)) return new Result(true);
-        if (is_callable($set)) call_user_func($set, $key, '1');
+        if ($this->seen($key)) return new Result(true);
 
         $message = json_decode((string)($data['Message'] ?? ''), true);
 
-        return new Result(true, is_array($message) ? self::events($message) : []);
+        return $this->remember(new Result(true, is_array($message) ? self::events($message) : []), [$key]);
     }
 
     /**

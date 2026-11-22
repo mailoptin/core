@@ -10,7 +10,7 @@ namespace MailOptin\Core\EmailSenders\Webhooks;
  * reattached to another event: old timestamps are refused, and with the cache callables, so is a token
  * seen before.
  *
- * Config: signing_key; secret (optional); max_age (seconds, default 900); cache_get / cache_set
+ * Config: signing_key; secret (optional); max_age (seconds, default 900); confirm (bool, see Result::confirm()); cache_get / cache_set
  * (optional callables, keyed by token, to remember tokens already used).
  */
 class MailgunWebhook extends AbstractWebhook
@@ -35,14 +35,11 @@ class MailgunWebhook extends AbstractWebhook
 
         if (abs(time() - (int)$timestamp) > $max_age) return Result::rejected('Mailgun signature too old.');
 
-        $get = $this->config['cache_get'] ?? null;
-        $set = $this->config['cache_set'] ?? null;
+        $seen_key = 'mailgun_token_' . $token;
 
-        if (is_callable($get) && call_user_func($get, 'mailgun_token_' . $token)) return Result::rejected('Mailgun token already used.');
+        if ($this->seen($seen_key)) return Result::rejected('Mailgun token already used.');
 
         if ( ! $this->secret_matches($request)) return Result::rejected('Wrong webhook secret.');
-
-        if (is_callable($set)) call_user_func($set, 'mailgun_token_' . $token, '1');
 
         $event = (array)($data['event-data'] ?? []);
         $name  = (string)($event['event'] ?? '');
@@ -54,16 +51,16 @@ class MailgunWebhook extends AbstractWebhook
 
             // Mailgun's own suppressions ("Not delivering to previously bounced address") are hard too.
         } else {
-            return new Result(true);
+            return $this->remember(new Result(true), [$seen_key]);
         }
 
         $email = (string)($event['recipient'] ?? '');
 
-        if ('' === $email) return new Result(true);
+        if ('' === $email) return $this->remember(new Result(true), [$seen_key]);
 
         $status = (array)($event['delivery-status'] ?? []);
 
-        return new Result(true, [
+        return $this->remember(new Result(true, [
             new DeliveryEvent(
                 $type,
                 $email,
@@ -73,6 +70,6 @@ class MailgunWebhook extends AbstractWebhook
                 trim((string)($status['description'] ?? '') ?: (string)($status['message'] ?? '')),
                 DeliveryEvent::time($event['timestamp'] ?? null)
             ),
-        ]);
+        ]), [$seen_key]);
     }
 }

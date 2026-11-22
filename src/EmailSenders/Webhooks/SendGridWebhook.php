@@ -6,7 +6,9 @@ namespace MailOptin\Core\EmailSenders\Webhooks;
 /**
  * SendGrid's signed event webhook (ECDSA over the timestamp and raw body).
  *
- * Config: public_key (base64, as SendGrid shows it); secret (optional); max_age (seconds, default 73 hours).
+ * Config: public_key (base64, as SendGrid shows it); secret (optional); max_age (seconds, default 73 hours);
+ * cache_get / cache_set (optional callables, keep for at least max_age): skip events handled before, by
+ * their sg_event_id; confirm (bool): remember them only on $result->confirm().
  */
 class SendGridWebhook extends AbstractWebhook
 {
@@ -42,9 +44,14 @@ class SendGridWebhook extends AbstractWebhook
         if ( ! ctype_digit((string)$timestamp) || abs(time() - (int)$timestamp) > $max_age) return Result::rejected('SendGrid signature too old.');
 
         $events = [];
+        $keys   = [];
 
         foreach ($request->json() as $item) {
             if ( ! is_array($item) || empty($item['email'])) continue;
+
+            // SendGrid retries a batch it got no 2xx for: events handled the first time are skipped.
+            $key = isset($item['sg_event_id']) && is_scalar($item['sg_event_id']) && '' !== (string)$item['sg_event_id'] ? 'sendgrid_event_' . $item['sg_event_id'] : '';
+            if ('' !== $key && $this->seen($key)) continue;
 
             $name = (string)($item['event'] ?? '');
 
@@ -72,8 +79,9 @@ class SendGridWebhook extends AbstractWebhook
                 (string)($item['reason'] ?? ''),
                 DeliveryEvent::time($item['timestamp'] ?? null)
             );
+            if ('' !== $key) $keys[] = $key;
         }
 
-        return new Result(true, $events);
+        return $this->remember(new Result(true, $events), $keys);
     }
 }
