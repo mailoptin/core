@@ -13,7 +13,7 @@ class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 25;
+    const DB_VER = 26;
 
     public function init_options()
     {
@@ -459,6 +459,18 @@ class DBUpdates
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
         dbDelta(CreateDBTables::audience_consents_table_sql($collate));
+    }
+
+    /** The email log (Settings › Email log). */
+    public function update_routine_26()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::email_log_table_sql($collate));
     }
 
     public static function get_instance()
