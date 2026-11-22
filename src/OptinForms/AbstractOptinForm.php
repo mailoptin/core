@@ -843,7 +843,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $has_custom_field_flag = false;
         $custom_field_data     = $this->get_customizer_value('fields');
         if ( ! empty($custom_field_data)) {
-            $custom_field_data = json_decode($custom_field_data, true);
+            $custom_field_data = OCR::decode_json_list($custom_field_data);
             if ( ! empty($custom_field_data)) {
                 $has_custom_field_flag = true;
             }
@@ -1236,7 +1236,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         $required_custom_fields = [];
 
         if ( ! empty($custom_fields)) {
-            $custom_fields = json_decode($custom_fields, true);
+            $custom_fields = OCR::decode_json_list($custom_fields);
 
             if ( ! empty($custom_fields) && is_array($custom_fields)) {
                 foreach ($custom_fields as $custom_field) {

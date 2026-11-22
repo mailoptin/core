@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core\Admin\Customizer\OptinForm;
 
+use MailOptin\Core\Repositories\OptinCampaignsRepository;
+
 class CustomizerSettings extends AbstractCustomizer
 {
     /** @var \WP_Customize_Manager */
@@ -76,6 +78,7 @@ class CustomizerSettings extends AbstractCustomizer
     public static function normalize_campaign_customizer_values($settings, $optin_campaign_id, $customizer_defaults = [])
     {
         // Options can be returned as objects by integrations or other option filters.
+        // Only the top level is cast here so other campaigns are not rewritten.
         if (is_object($settings)) {
             $settings = get_object_vars($settings);
         }
@@ -89,8 +92,9 @@ class CustomizerSettings extends AbstractCustomizer
 
         $campaign_settings = $settings[$optin_campaign_id];
 
-        if (is_object($campaign_settings)) {
-            $campaign_settings = get_object_vars($campaign_settings);
+        // Shallow get_object_vars() leaves nested stdClass rows, which opt-in conversion then indexes as arrays.
+        if (is_object($campaign_settings) || is_array($campaign_settings)) {
+            $campaign_settings = OptinCampaignsRepository::cast_to_array($campaign_settings);
         }
 
         if ( ! is_array($campaign_settings)) {
@@ -119,10 +123,11 @@ class CustomizerSettings extends AbstractCustomizer
                 if (is_string($value)) {
                     if ($value !== '') {
                         $decoded_value = json_decode($value, true);
-                        $campaign_settings[$key] = is_array($decoded_value) ? $decoded_value : [];
+                        $campaign_settings[$key] = is_array($decoded_value) ? OptinCampaignsRepository::cast_to_array($decoded_value) : [];
                     }
-                } elseif (is_object($value)) {
-                    $campaign_settings[$key] = get_object_vars($value);
+                } elseif (is_array($value) || is_object($value)) {
+                    $cast_value = OptinCampaignsRepository::cast_to_array($value);
+                    $campaign_settings[$key] = is_array($cast_value) ? $cast_value : [];
                 }
 
                 continue;

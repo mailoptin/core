@@ -467,8 +467,6 @@ class Email_Campaign_List extends \WP_List_Table
         }
 
         if ('clone' === $this->current_action()) {
-            if (apply_filters('mailoptin_add_new_email_campaign_limit', true) && ER::campaign_count() >= 1) return;
-
             // In our file that handles the request, verify the nonce.
             $nonce = esc_attr($_REQUEST['_wpnonce']);
             if ( ! wp_verify_nonce($nonce, 'mailoptin_clone_email_campaign')) {

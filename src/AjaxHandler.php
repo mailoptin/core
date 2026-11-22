@@ -1017,9 +1017,8 @@ class AjaxHandler
             return $response;
         }
 
-        $integrations = json_decode(
-            OptinCampaignsRepository::get_customizer_value($optin_campaign_id, 'integrations', ''),
-            true
+        $integrations = OptinCampaignsRepository::decode_json_list(
+            OptinCampaignsRepository::get_customizer_value($optin_campaign_id, 'integrations', '')
         );
 
         if ( ! is_array($integrations) || empty($integrations)) {
