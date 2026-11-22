@@ -161,6 +161,13 @@ class SendingTest extends WP_UnitTestCase
         $this->assertSame('A &amp; B', $data['from_name']);
     }
 
+    public function test_only_real_credential_fields_skip_sanitising()
+    {
+        $this->assertTrue($this->sending->skip_sanitize(false, 'mo_sending_smtp_password'));
+        $this->assertFalse($this->sending->skip_sanitize(false, 'mo_sending_smtp_made_up'));
+        $this->assertFalse($this->sending->skip_sanitize(false, 'mo_sending_service'));
+    }
+
     public function test_no_username_means_no_saved_password()
     {
         SendingStore::save_credentials(['smtp' => ['host' => 'mail.example.com', 'username' => 'me', 'password' => 'hunter2']]);

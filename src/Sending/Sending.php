@@ -63,11 +63,17 @@ class Sending
 
         if (in_array($key, [self::SITE_FROM_EMAIL, self::SITE_FROM_NAME], true)) return true;
 
-        foreach (SendingStore::SERVICES as $service) {
-            if (0 === strpos($key, SendingStore::FIELD_PREFIX . $service . '_')) return true;
+        static $keys = null;
+
+        // Only the real fields: take_credentials() takes each of them out of the settings.
+        if (null === $keys) {
+            $keys = [];
+            foreach (SendingStore::fields() as $service => $fields) {
+                foreach (array_keys($fields) as $field) $keys[SendingStore::FIELD_PREFIX . $service . '_' . $field] = true;
+            }
         }
 
-        return $skip;
+        return isset($keys[$key]) ? true : $skip;
     }
 
     public function take_credentials($data, $option_name = '')
