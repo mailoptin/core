@@ -42,7 +42,7 @@ whole folder, so a hand edit is lost, and `--check` reports it.
 
    ```
    cd wp-email-senders && git checkout v1.1.0
-   cd ../libsodium
+   cd ../core
    php bin/sync-email-senders.php ../wp-email-senders
    git diff --stat src/EmailSenders
    ```
@@ -69,7 +69,7 @@ FuseWP updates on its own schedule, and the two plugins never need to update tog
 
 ```
 cd wp-email-senders && git checkout <commit from src/EmailSenders/VERSION>
-cd ../libsodium
+cd ../core
 php bin/sync-email-senders.php ../wp-email-senders --check
 ```
 
@@ -99,6 +99,43 @@ update `src/Sending/` in the same commit as the sync.
 
 | File | Uses |
 | --- | --- |
-| `src/Sending/SendingService.php` | `Senders::make()` per service, `test_connection()`, `install_webhook()` |
-| `src/Sending/ProviderSender.php` | `Message::make()` and `SendResult` → the send queue's results |
-| `src/Sending/Sending.php` | `Webhooks::make()` and `Request` for `POST /wp-json/mailoptin/v1/email-events/{service}` |
+| `src/Sending/SendingStore.php` | `Senders::make()` for SMTP, Gmail and Microsoft 365, `Fields`, `ConnectionResult`, `OAuth\Token` |
+| `src/Sending/Sending.php` | `OAuth\Provider` (sign-in), `SiteMailer`, `Message::make()` (test email), `SendResult` |
+| `src/Sending/ServiceSender.php` | `Message::make()` and `SendResult` → the send queue's results |
+| `src/Sending/SendingScreen.php` | `Fields::oauth()` (setup steps), `SiteMailer::current()` |
+
+MailOptin Premium uses this copy too, for Postmark, Amazon SES, SendGrid, Mailgun and Brevo: `Senders::make()`,
+`WebhookSetupInterface` and `Webhooks` in its `src/Sending/`.
+
+## Working on the package with a real site
+
+The package is its own repo, so you develop and push there; this plugin only ever gets a copy.
+
+1. **Clone it next to this plugin**, so the relative paths above work:
+
+   ```
+   wp-content/plugins/
+     mailoptin/            ← this repo (mailoptin/core)
+     wp-email-senders/     ← git clone git@github.com:mailoptin/wp-email-senders.git
+   ```
+
+   It isn't a WordPress plugin (no plugin header), so WordPress ignores the folder.
+
+2. **Branch in the package**, make the change and add a test there. Its tests need no WordPress:
+   `composer install && vendor/bin/phpunit`. The SMTP tests start a local server and need Python's aiosmtpd
+   (`pip install aiosmtpd`).
+
+3. **Try it in the site.** From this plugin, copy your working tree in:
+
+   ```
+   php bin/sync-email-senders.php ../wp-email-senders
+   ```
+
+   Run it again after each edit (or from your editor's on-save hook): the site runs the copy, never the package folder.
+   The script warns that the package has uncommitted changes; that's expected while you work.
+
+4. **Push the package branch and open its PR** from the package folder, as with any repo.
+
+5. **Once it's merged**, sync again from the merged commit or tag (Updating the package, above), so `VERSION` names a
+   real commit, and commit `src/EmailSenders/` here. Until then, don't commit the copy you synced from a working tree:
+   `git checkout src/EmailSenders` puts it back.
