@@ -93,6 +93,8 @@ class CreateDBTables
 
         $sqls = array_merge($sqls, self::audience_tables_sql($collate));
         $sqls[] = self::conversion_syncs_table_sql($collate);
+
+        $sqls[] = self::email_log_table_sql($collate);
         $sqls = array_merge($sqls, self::tags_fields_tables_sql($collate));
         $sqls[] = self::segments_table_sql($collate);
         $sqls = array_merge($sqls, self::tracking_tables_sql($collate));
@@ -107,6 +109,8 @@ class CreateDBTables
         foreach ($sqls as $sql) {
             dbDelta($sql);
         }
+
+        \MailOptin\Core\Sending\Sending::add_site_mailer_option();
 
         // A new site starts on the table; an existing one moves its settings across.
         \MailOptin\Core\Repositories\CampaignSettingsRepository::migrate();
@@ -382,6 +386,32 @@ class CreateDBTables
 ) $collate;";
 
         return $sqls;
+    }
+
+    /**
+     * Emails this site sent through MailOptin's sending service, for Settings › Email log. Never the
+     * content: who, what, which plugin, and the result.
+     */
+    public static function email_log_table_sql($collate)
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . Core::email_log_table_name;
+
+        return "CREATE TABLE $table (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  sent_at datetime NOT NULL,
+  recipients text NOT NULL,
+  subject varchar(255) NOT NULL DEFAULT '',
+  source varchar(100) NOT NULL DEFAULT '',
+  sender varchar(30) NOT NULL DEFAULT '',
+  status varchar(10) NOT NULL,
+  error text NULL,
+  message_id varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY  (id),
+  KEY sent_at (sent_at),
+  KEY status_sent (status,sent_at)
+) $collate;";
     }
 
     /**

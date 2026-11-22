@@ -34,9 +34,13 @@ final class Core
     const abandoned_carts_table_name = 'mo_abandoned_carts';
     const abandoned_cart_runs_table_name = 'mo_abandoned_cart_runs';
     const audience_consents_table_name = 'mo_audience_consents';
+    const email_log_table_name = 'mo_email_log';
 
     public function __construct()
     {
+        // A clone of wp-email-senders instead of the bundled copy, when wp-config.php says so.
+        Sending\PackageSource::register();
+
         Base::get_instance();
     }
 

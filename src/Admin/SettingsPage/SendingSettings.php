@@ -39,6 +39,10 @@ class SendingSettings
      */
     public static function service()
     {
+        // Any SMTP server, Gmail and Microsoft 365 are the free plugin's own.
+        $chosen = \MailOptin\Core\Sending\SendingStore::chosen();
+        if (\MailOptin\Core\Sending\SendingStore::is_ours($chosen)) return $chosen;
+
         $service = (string)apply_filters('mailoptin_sending_service', 'wp_mail');
 
         return isset(self::SERVICES[$service]) ? $service : 'wp_mail';
@@ -252,6 +256,14 @@ class SendingSettings
                 ],
             ],
             [
+                'section_title'  => __('Your site\'s emails', 'mailoptin'),
+                'mo_site_mail'   => [
+                    'type'  => 'arbitrary',
+                    'label' => __('All of this site\'s emails', 'mailoptin'),
+                    'data'  => \MailOptin\Core\Sending\SendingScreen::site_mail_html(),
+                ],
+            ],
+            [
                 'section_title'            => __('Sending for built-in lists', 'mailoptin'),
                 self::HOURLY_LIMIT_SETTING => [
                     'type'        => 'number',
@@ -306,6 +318,18 @@ class SendingSettings
             ],
         ];
 
+        $settings['email_log'] = [
+            'tab_title' => __('Email log', 'mailoptin'),
+            [
+                'section_title' => __('Email log', 'mailoptin'),
+                'mo_email_log'  => [
+                    'type'  => 'arbitrary',
+                    'label' => '',
+                    'data'  => \MailOptin\Core\Sending\SendingScreen::email_log_html(),
+                ],
+            ],
+        ];
+
         return $settings;
     }
 
@@ -319,7 +343,12 @@ class SendingSettings
         $current = self::service();
         $name    = 'mailoptin_settings[' . self::SERVICE_SETTING . ']';
 
-        $cards = ['wp_mail' => [__('WordPress (wp_mail)', 'mailoptin'), __('Your site\'s own mailer, or the SMTP plugin it uses. No bounce handling.', 'mailoptin')]];
+        $cards = [
+            'wp_mail'      => [__('WordPress (wp_mail)', 'mailoptin'), __('Your site\'s own mailer, or the SMTP plugin it uses. No bounce handling.', 'mailoptin')],
+            'gmail'        => [__('Gmail', 'mailoptin'), __('Send as your Gmail or Google Workspace address, signed in with Google.', 'mailoptin')],
+            'microsoft365' => [__('Microsoft 365', 'mailoptin'), __('Send as your Microsoft 365 or Outlook address, signed in with Microsoft.', 'mailoptin')],
+            'smtp'         => [__('Other SMTP', 'mailoptin'), __('Any mail server: your web host, Zoho, Fastmail, or a provider\'s SMTP relay.', 'mailoptin')],
+        ];
         foreach (self::SERVICES as $id => $label) {
             $cards[$id] = [$label, __('Direct sending. Bounces and spam complaints are handled.', 'mailoptin')];
         }
@@ -327,16 +356,16 @@ class SendingSettings
         ob_start();
         ?>
         <div class="mo-services">
-            <?php foreach ($cards as $id => list($label, $description)) : $locked = ! $premium && 'wp_mail' !== $id; ?>
+            <?php foreach ($cards as $id => list($label, $description)) : $free = 'wp_mail' === $id || \MailOptin\Core\Sending\SendingStore::is_ours($id); $locked = ! $premium && ! $free; ?>
                 <label class="mo-service<?php echo $current === $id ? ' is-on' : ''; ?><?php echo $locked ? ' is-locked' : ''; ?>">
                     <input type="radio" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($id); ?>" <?php checked($current, $id); ?> <?php disabled($locked); ?>>
                     <strong><?php echo esc_html($label); ?></strong>
-                    <?php if ('wp_mail' !== $id) : ?><span class="mo-premium-pill"><?php esc_html_e('Premium', 'mailoptin'); ?></span><?php endif; ?>
+                    <?php if ( ! $free) : ?><span class="mo-premium-pill"><?php esc_html_e('Premium', 'mailoptin'); ?></span><?php endif; ?>
                     <span class="description"><?php echo esc_html($description); ?></span>
                 </label>
             <?php endforeach; ?>
         </div>
-        <p class="description"><?php esc_html_e('Broadcasts, welcome and confirmation emails to built-in lists all use this. Campaigns sent to Mailchimp and other connected services are sent by that service, as before.', 'mailoptin'); ?></p>
+        <p class="description"><?php esc_html_e('Broadcasts, welcome and confirmation emails to built-in lists all use this, and so can every other email your site sends (below). Campaigns sent to Mailchimp and other connected services are sent by that service, as before.', 'mailoptin'); ?></p>
 
         <?php if ( ! $premium) : ?>
             <div class="mo-service-upsell">

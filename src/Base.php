@@ -111,6 +111,8 @@ class Base
         Cron::get_instance();
         AsyncHandler::get_instance();
         SendQueue\QueueRunner::get_instance();
+        // Every request: cron sends campaigns, and any page can send the site's emails.
+        new Sending\Sending();
         Submissions\SubmissionSync::get_instance();
         Audience\PublicEndpoints::get_instance();
         Audience\CampaignRenderer::get_instance();
@@ -195,6 +197,7 @@ class Base
         Admin\SettingsPage\LeadBank::get_instance();
         Admin\SettingsPage\Subscribers_Page::get_instance();
         Admin\SettingsPage\SendingSettings::get_instance();
+        Sending\SendingScreen::init();
         Admin\SettingsPage\AdvanceAnalytics::get_instance();
         AdminNotices::get_instance();
         ConversionExport::get_instance();
@@ -222,6 +225,7 @@ class Base
         $tables[] = $db_prefix . Core::lists_table_name;
         $tables[] = $db_prefix . Core::list_subscribers_table_name;
         $tables[] = $db_prefix . Core::suppressions_table_name;
+        $tables[] = $db_prefix . Core::email_log_table_name;
         $tables[] = $db_prefix . Core::subscriber_events_table_name;
         $tables[] = $db_prefix . Core::send_queue_table_name;
         $tables[] = $db_prefix . Core::conversion_syncs_table_name;

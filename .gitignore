@@ -19,4 +19,5 @@ src/BlockEditor/node_modules/*
 !tests/Automations/
 !tests/EmailBlocks/
 !tests/OptinTransfer/
+!tests/Sending/
 bin/email-blocks/node_modules/
