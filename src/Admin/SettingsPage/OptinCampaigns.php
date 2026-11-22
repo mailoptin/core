@@ -7,6 +7,7 @@ if ( ! defined('ABSPATH')) {
     exit;
 }
 
+use function MailOptin\Core\moVarGET;
 use W3Guy\Custom_Settings_Page_Api;
 
 class OptinCampaigns extends AbstractSettingsPage
@@ -20,6 +21,14 @@ class OptinCampaigns extends AbstractSettingsPage
 
     public function __construct()
     {
+        // "view=add-new" is the Emails page's; on this page it means the optin Add New screen.
+        add_action('admin_init', function () {
+            if (moVarGET('page') === MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG && moVarGET('view') === 'add-new') {
+                wp_safe_redirect(add_query_arg('view', 'add-new-optin', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
+                exit;
+            }
+        });
+
         add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
 
             if (in_array($active_menu, ['optin-campaigns', 'add-new-optin', 'import-optins'])) {

@@ -59,4 +59,17 @@ class EmailsScreensTest extends \WP_UnitTestCase
         $this->assertSame('Completed', $status->invoke($logs, ['id' => 999999, 'status' => 'processed']), 'A stored "processed" reads Completed.');
         $this->assertSame('Queued', $status->invoke($logs, ['id' => 999999, 'status' => 'queued']));
     }
+
+    public function test_the_emails_view_hook_does_nothing_on_another_page()
+    {
+        // View hooks are shared by every MailOptin page; "view=add-new" typed on Optin Campaigns used to
+        // reach the Emails callback before that page had set itself up, and crash.
+        $_GET = ['page' => MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG, 'view' => 'add-new'];
+        $emails = new \MailOptin\Core\Admin\SettingsPage\EmailCampaigns();
+
+        ob_start();
+        $emails->settings_admin_page_callback();
+        $this->assertSame('', ob_get_clean());
+        $_GET = [];
+    }
 }

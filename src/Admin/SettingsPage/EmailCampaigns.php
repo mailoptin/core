@@ -165,6 +165,10 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
+        // View hooks are shared by every MailOptin page: "view=add-new" typed on another page (Optin
+        // Campaigns has add-new-optin) reaches this too, before the Emails page has set itself up.
+        if ( ! $this->settingsInstance) return;
+
         if (moVarGET('page') == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
 
             if (moVarGET('view') == 'add-new') {
