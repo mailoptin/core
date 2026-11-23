@@ -200,7 +200,7 @@ $("#recaptcha_api_platform").on("change", function() {
 
         $token = $conversion_data->payload['g-recaptcha-response'] ?? '';
 
-        if (empty($site_key) || empty($site_secret)) return $response;
+        if (!defined('MAILOPTIN_DETACH_LIBSODIUM') || empty($site_key) || empty($site_secret)) return $response;
 
         $optin_campaign_id = $conversion_data->optin_campaign_id;
         $fields            = OptinCampaignsRepository::form_custom_fields($optin_campaign_id);
