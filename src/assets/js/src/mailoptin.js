@@ -2287,6 +2287,8 @@ var mailoptin_optin = {
                 return true;
             };
 
+            if (!cd.own_color) self.countdown_fit_color($form);
+
             if (tick()) {
                 var timer = setInterval(function () {
                     if (!tick()) clearInterval(timer);
@@ -2333,6 +2335,72 @@ var mailoptin_optin = {
         if (!$form.is(':visible')) return false;
         var r = $form[0].getBoundingClientRect();
         return r.bottom > 0 && r.right > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight) && r.left < (window.innerWidth || document.documentElement.clientWidth);
+    },
+
+    /**
+     * The server picks a theme colour for the countdown without knowing what's behind it. Here we can
+     * see: if it reads poorly on its background, use whichever of the theme's own text colours
+     * (headline, description, note) reads best there, else near-black or white. Not over an image.
+     */
+    countdown_fit_color: function ($form) {
+        var el = $form.find('.mo-countdown[data-mo-countdown]')[0];
+        if (!el || !window.getComputedStyle) return;
+
+        var parse = function (value) {
+            var m = String(value).match(/[\d.]+/g);
+            if (!m || m.length < 3) return null;
+            return {r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1};
+        };
+        var luminance = function (c) {
+            var f = function (v) {
+                v /= 255;
+                return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+            };
+            return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+        };
+        var ratio = function (a, b) {
+            var x = luminance(a), y = luminance(b);
+            return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+        };
+
+        // The first solid background behind it; none at all means the page's white.
+        var bg = {r: 255, g: 255, b: 255, a: 1}, e, style, c;
+        for (e = el; e && e.nodeType === 1; e = e.parentElement) {
+            style = window.getComputedStyle(e);
+            if (style.backgroundImage && style.backgroundImage !== 'none') return;
+            c = parse(style.backgroundColor);
+            if (c && c.a >= 0.5) {
+                bg = c;
+                break;
+            }
+        }
+
+        var current = parse(window.getComputedStyle(el).color);
+        if (current && ratio(current, bg) >= 4.5) return;
+
+        var candidates = [], best = null, bestRatio = 0;
+        $.each(['.mo-optin-form-headline', '.mo-optin-form-description', '.mo-optin-form-note'], function (i, selector) {
+            var found = $form.find(selector)[0];
+            if (found) candidates.push(window.getComputedStyle(found).color);
+        });
+        candidates.push('rgb(31, 42, 36)', 'rgb(255, 255, 255)');
+
+        $.each(candidates, function (i, value) {
+            var color = parse(value), r;
+            if (!color || color.a < 0.9) return;
+            r = ratio(color, bg);
+            if (r >= 4.5 && (best === null || bestRatio < 4.5)) {
+                best = value;
+                bestRatio = r;
+                return false;
+            }
+            if (r > bestRatio) {
+                best = value;
+                bestRatio = r;
+            }
+        });
+
+        if (best) el.style.color = best;
     },
 
     countdown_stored: function (uuid) {

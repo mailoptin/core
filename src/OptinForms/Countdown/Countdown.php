@@ -494,6 +494,8 @@ class Countdown
             'on_end'    => (string)self::value($id, 'countdown_on_end'),
             'message'   => (string)self::value($id, 'countdown_end_message'),
             'hide_days' => self::on(self::value($id, 'countdown_hide_days')),
+            // With its own number colour set, the page leaves the countdown's colours alone.
+            'own_color' => '' !== self::css_color(self::value($id, 'countdown_number_color')),
             'labels'    => self::labels($id),
             'texts'     => [
                 'ends_in' => __('Ends in %s', 'mailoptin'),
