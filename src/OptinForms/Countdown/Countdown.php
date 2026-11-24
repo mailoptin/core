@@ -453,7 +453,7 @@ class Countdown
                . "$scope .mo-countdown-message{margin:0;font-size:16px}"
                . "@media (max-width:480px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:22px}}"
                // Narrow forms (a sidebar, a small slide-in): smaller labels so "Minutes" and "Seconds" don't touch.
-               . "$scope.mo-countdown-boxes{container-type:inline-size}"
+               . "$scope.mo-countdown-boxes{container-type:inline-size;width:100%;box-sizing:border-box}"
                . "@container (max-width:250px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:4px}{$scope}.mo-countdown-boxes .mo-countdown-unit{padding:8px 2px 6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:20px}{$scope}.mo-countdown-boxes .mo-countdown-label{font-size:10px}}";
 
         // Themes colour their text on the headline, not on the form, so the countdown takes the headline's
