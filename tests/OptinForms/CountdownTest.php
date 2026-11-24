@@ -187,6 +187,13 @@ class CountdownTest extends WP_UnitTestCase
         $html = OptinFormFactory::build($this->on(['headline_font_color' => '#123456']));
         $this->assertMatchesRegularExpression('/\.mo-countdown\{color:#123456\}/', $html);
 
+        // Above the button it sits in the form's body: the note's colour, not the headline's.
+        $html = OptinFormFactory::build($this->on(['countdown_position' => 'above_button', 'headline_font_color' => '#ffffff', 'note_font_color' => '#333333']));
+        $this->assertMatchesRegularExpression('/\.mo-countdown\{color:#333333\}/', $html);
+
+        // Two ids, so a theme's "html div#uuid div#form *" rule can't override its sizes.
+        $this->assertMatchesRegularExpression('/#(\w+)#\1 \.mo-countdown\{/', $html);
+
         $html = OptinFormFactory::build($this->on(['headline_font_color' => '#123456', 'countdown_number_color' => '#abcdef']));
         $this->assertStringContainsString('.mo-countdown-number', $html);
         $this->assertStringContainsString('color:#abcdef', $html);

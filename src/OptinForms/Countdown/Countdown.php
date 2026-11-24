@@ -433,7 +433,9 @@ class Countdown
     protected static function css($theme)
     {
         $id     = $theme->optin_campaign_id;
-        $scope  = '#' . $theme->optin_campaign_uuid . ' .mo-countdown';
+        // The id twice: many themes style everything in the form with two ids (html div#uuid div#form *),
+        // which would otherwise win over the countdown's sizes.
+        $scope  = '#' . $theme->optin_campaign_uuid . '#' . $theme->optin_campaign_uuid . ' .mo-countdown';
         $number = self::css_color(self::value($id, 'countdown_number_color'));
         $box    = self::css_color(self::value($id, 'countdown_box_color'));
 
@@ -454,12 +456,20 @@ class Countdown
                . "@media (max-width:480px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:22px}}"
                // Narrow forms (a sidebar, a small slide-in): smaller labels so "Minutes" and "Seconds" don't touch.
                . "$scope.mo-countdown-boxes{container-type:inline-size;width:100%;box-sizing:border-box}"
-               . "@container (max-width:250px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:4px}{$scope}.mo-countdown-boxes .mo-countdown-unit{padding:8px 2px 6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:20px}{$scope}.mo-countdown-boxes .mo-countdown-label{font-size:10px}}";
+               . "@container (max-width:250px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:4px}{$scope}.mo-countdown-boxes .mo-countdown-unit{padding:8px 2px 6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:20px}{$scope}.mo-countdown-boxes .mo-countdown-label{font-size:10px}}"
+               // Very narrow: two by two, so each label has room.
+               . "@container (max-width:180px){{$scope}.mo-countdown-boxes .mo-countdown-units{flex-wrap:wrap}{$scope}.mo-countdown-boxes .mo-countdown-unit{flex:1 1 calc(50% - 4px);max-width:none}}";
 
-        // Themes colour their text on the headline, not on the form, so the countdown takes the headline's
-        // colour. (Description colours are often muted, or meant for a column that phones don't show.)
-        $headline = self::css_color($theme->get_customizer_value('headline_font_color'));
-        if ('' !== $headline) $css .= "$scope{color:$headline}";
+        // Themes colour their text on its elements, not on the form, so the countdown takes the colour of
+        // what it sits beside. Near the headline: the headline's (description colours are often muted, or
+        // meant for a column phones don't show). Above the button, in the form's body, where a headline
+        // colour can be white on white: the note's, which sits under the button.
+        $color = '';
+        if (AbstractOptinForm::COUNTDOWN_ABOVE_BUTTON === self::resolved_position($id)) {
+            $color = self::css_color($theme->get_customizer_value('note_font_color'));
+        }
+        if ('' === $color) $color = self::css_color($theme->get_customizer_value('headline_font_color'));
+        if ('' !== $color) $css .= "$scope{color:$color}";
 
         if ('' !== $number) $css .= "$scope .mo-countdown-number,$scope .mo-countdown-compact{color:$number}";
         if ('' !== $box) $css .= "$scope.mo-countdown-boxes .mo-countdown-unit,$scope.mo-countdown-compact .mo-countdown-compact{background:$box}";
