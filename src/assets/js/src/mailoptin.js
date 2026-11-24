@@ -2260,7 +2260,8 @@ var mailoptin_optin = {
 
             var tick = function () {
                 var $countdown = $form.find('.mo-countdown[data-mo-countdown]');
-                if (!$countdown.length) return false;
+                // Gone, or already showing how it ended (the server wrote that): nothing to tick.
+                if (!$countdown.length || $countdown.hasClass('mo-countdown-ended')) return false;
 
                 // "After each visitor first sees it": the clock starts when the campaign is on screen.
                 if (end === null) {
@@ -2401,7 +2402,13 @@ var mailoptin_optin = {
             return;
         }
 
-        if (cd.on_end === 'stop' && !preview) {
+        // In the Customizer the campaign stays, so its editor can still see it: stop at zero.
+        if (cd.on_end === 'stop' && preview) {
+            this.countdown_render($countdown, 0, cd);
+            return;
+        }
+
+        if (cd.on_end === 'stop') {
             var uuid = $form.attr('id'), config = this.optin_js_config(uuid) || {};
             this.countdown_stopped[uuid] = true;
 
