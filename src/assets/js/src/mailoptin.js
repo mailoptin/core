@@ -2231,6 +2231,165 @@ var mailoptin_optin = {
     },
 
     /**
+     * Countdowns (see Countdown.php): work out each campaign's deadline, drop a campaign whose
+     * countdown has ended and is set to stop it, and keep the rest ticking.
+     */
+    countdown_init: function () {
+        var self = this, preview = $.MailOptin.is_customize_preview === true;
+
+        $('.moOptinForm').each(function () {
+            var $form = $(this), uuid = $form.attr('id'), config = self.optin_js_config(uuid);
+
+            if (!config || !config.countdown) return;
+
+            var cd = config.countdown, end = self.countdown_deadline(uuid, cd, preview);
+
+            // Ended before this page loaded (a cached page, or a visitor's own countdown that ran
+            // out on an earlier visit) and set to stop the campaign.
+            if (end !== null && Date.now() >= end && cd.on_end === 'stop' && !preview) {
+                $form.remove();
+                return;
+            }
+
+            var tick = function () {
+                var $countdown = $form.find('.mo-countdown[data-mo-countdown]');
+                if (!$countdown.length) return false;
+
+                // "After each visitor first sees it": the clock starts when the campaign is on screen.
+                if (end === null) {
+                    if (cd.mode !== 'evergreen' || !$form.is(':visible')) return true;
+                    end = self.countdown_start(uuid, cd, preview);
+                }
+
+                var left = Math.max(0, Math.round((end - Date.now()) / 1000));
+
+                if (left === 0 && cd.mode === 'daily') {
+                    while (end <= Date.now()) end += cd.period * 1000;
+                    left = Math.round((end - Date.now()) / 1000);
+                }
+
+                if (left === 0) {
+                    self.countdown_end_reached($form, $countdown, cd, preview);
+                    return false;
+                }
+
+                self.countdown_render($countdown, left, cd);
+                return true;
+            };
+
+            if (tick()) {
+                var timer = setInterval(function () {
+                    if (!tick()) clearInterval(timer);
+                }, 1000);
+            }
+        });
+    },
+
+    /** The deadline in ms, or null while an evergreen countdown hasn't started. */
+    countdown_deadline: function (uuid, cd, preview) {
+        if (cd.mode === 'evergreen') {
+            var start = preview ? null : this.countdown_stored(uuid);
+            return start ? start + cd.duration * 1000 : null;
+        }
+
+        if (cd.mode === 'daily') {
+            var end = cd.end * 1000;
+            while (end <= Date.now()) end += cd.period * 1000;
+            return end;
+        }
+
+        if (cd.end_local) {
+            var local = Date.parse(cd.end_local);
+            return isNaN(local) ? null : local;
+        }
+
+        return cd.end ? cd.end * 1000 : null;
+    },
+
+    countdown_stored: function (uuid) {
+        try {
+            var value = parseInt(window.localStorage.getItem('mo_countdown_' + uuid), 10);
+            return isNaN(value) ? null : value;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    countdown_start: function (uuid, cd, preview) {
+        var now = Date.now();
+        if (!preview) {
+            try {
+                window.localStorage.setItem('mo_countdown_' + uuid, String(now));
+            } catch (e) {
+                // Storage blocked (private browsing): the countdown runs for this page view only.
+            }
+        }
+        return now + cd.duration * 1000;
+    },
+
+    countdown_render: function ($countdown, left, cd) {
+        var days = Math.floor(left / 86400),
+            hours = Math.floor(left % 86400 / 3600),
+            minutes = Math.floor(left % 3600 / 60),
+            seconds = left % 60,
+            two = function (n) {
+                return (n < 10 ? '0' : '') + n;
+            },
+            values = {days: days, hours: hours, minutes: minutes, seconds: seconds};
+
+        $countdown.find('.mo-countdown-unit').each(function () {
+            var unit = $(this).attr('data-unit');
+            $(this).find('.mo-countdown-number').text(two(values[unit]));
+            if (unit === 'days') $(this).prop('hidden', cd.hide_days && days === 0);
+        });
+
+        var $compact = $countdown.find('.mo-countdown-compact');
+        if ($compact.length) {
+            var time = two(hours) + ':' + two(minutes) + ':' + two(seconds);
+            $compact.text(cd.hide_days && days === 0 ? time : days + 'd ' + time);
+        }
+
+        // Screen readers get a sentence, which changes once a minute, not every second.
+        var sentence = this.countdown_sentence(left, cd.texts);
+        var $sr = $countdown.find('.mo-countdown-sr');
+        if ($sr.text() !== sentence) $sr.text(sentence);
+    },
+
+    countdown_sentence: function (left, texts) {
+        var days = Math.floor(left / 86400), hours = Math.floor(left % 86400 / 3600), minutes = Math.floor(left % 3600 / 60), parts = [];
+        var word = function (pair, n) {
+            return (n === 1 ? pair[0] : pair[1]).replace('%s', n);
+        };
+        if (days) parts.push(word(texts.day, days));
+        if (hours) parts.push(word(texts.hour, hours));
+        if (minutes) parts.push(word(texts.minute, minutes));
+        return parts.length ? texts.ends_in.replace('%s', parts.join(', ')) : texts.soon;
+    },
+
+    countdown_end_reached: function ($form, $countdown, cd, preview) {
+        if (cd.on_end === 'message' && cd.message) {
+            $countdown.removeAttr('role').removeAttr('data-mode').addClass('mo-countdown-ended');
+            $countdown.empty().append($('<p class="mo-countdown-message"></p>').text(cd.message));
+            return;
+        }
+
+        if (cd.on_end === 'stop' && !preview) {
+            if ($form.hasClass('mo-optin-form-lightbox') && $.MoModalBox && $.MoModalBox.isActive && $form.is(':visible')) {
+                $.MoModalBox.close();
+                return;
+            }
+            if ($form.is(':visible') && ($form.hasClass('mo-optin-form-bar') || $form.hasClass('mo-optin-form-slidein'))) {
+                this._close_optin($form);
+                return;
+            }
+            $form.remove();
+            return;
+        }
+
+        $countdown.remove();
+    },
+
+    /**
      * Initialize class
      */
     init: function () {
@@ -2242,6 +2401,7 @@ var mailoptin_optin = {
             _this.eventSubscription();
             _this.mailoptin_jq_plugin();
             _this.is_scheduled_for_display();
+            _this.countdown_init();
             // Before they show: a two-step campaign opens on its question.
             _this.init_twostep();
             _this.initOptinForms();

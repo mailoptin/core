@@ -7,6 +7,12 @@ use MailOptin\Core\OptinForms\AbstractMessageTheme;
 /** Notice Box: a highlighted box inside a post, with an icon, a title, a line of text and a button. */
 class NoticeBox extends AbstractMessageTheme
 {
+    /** Where a countdown fits in this theme, best first. */
+    public static function countdown_positions()
+    {
+        return [self::COUNTDOWN_BELOW_DESCRIPTION, self::COUNTDOWN_ABOVE_HEADLINE];
+    }
+
     public $optin_form_name = 'Notice Box';
 
     public static $type = 'inpost';

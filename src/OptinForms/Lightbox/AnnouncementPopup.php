@@ -7,6 +7,12 @@ use MailOptin\Core\OptinForms\AbstractMessageTheme;
 /** Announcement Pop-up: an image, title, text, button and a "No thanks" link, for big news. */
 class AnnouncementPopup extends AbstractMessageTheme
 {
+    /** Where a countdown fits in this theme, best first. */
+    public static function countdown_positions()
+    {
+        return [self::COUNTDOWN_BELOW_DESCRIPTION, self::COUNTDOWN_ABOVE_HEADLINE];
+    }
+
     public $optin_form_name = 'Announcement Pop-up';
 
     public static $type = 'lightbox';
