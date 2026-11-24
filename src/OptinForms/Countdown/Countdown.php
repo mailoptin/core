@@ -75,10 +75,15 @@ class Countdown
 
     public static function defaults($optin_campaign_id = 0)
     {
+        // Read on every setting lookup, so built once per campaign per request.
+        static $cache = [];
+
+        if ($optin_campaign_id && isset($cache[$optin_campaign_id])) return $cache[$optin_campaign_id];
+
         $positions = $optin_campaign_id ? self::positions($optin_campaign_id) : [];
         $type      = $optin_campaign_id ? OCR::get_optin_campaign_type($optin_campaign_id) : '';
 
-        return [
+        $defaults = [
             'countdown_enabled'       => false,
             'countdown_mode'          => self::FIXED,
             'countdown_end'           => '',
@@ -97,6 +102,10 @@ class Countdown
             'countdown_number_color'  => '',
             'countdown_box_color'     => '',
         ];
+
+        if ($optin_campaign_id) $cache[$optin_campaign_id] = $defaults;
+
+        return $defaults;
     }
 
     public static function value($optin_campaign_id, $key)
@@ -243,7 +252,8 @@ class Countdown
         if ( ! self::active($id) || self::resolved_position($id) !== $position) return $html;
 
         if ('' !== $button) {
-            $cta = self::on(OCR::get_customizer_value($id, 'display_only_button'));
+            // Through the theme, so a theme's own default for it counts.
+            $cta = self::on($theme->get_customizer_value('display_only_button'));
             if (('cta' === $button) !== $cta) return $html;
         }
 
@@ -288,6 +298,11 @@ class Countdown
         if (self::ended($id)) {
             if (self::ON_END_MESSAGE === $on_end && '' !== $message) {
                 return sprintf('<div class="mo-countdown mo-countdown-ended" data-mo-countdown="%s"><p class="mo-countdown-message">%s</p></div>', esc_attr($uuid), esc_html($message)) . self::css($theme);
+            }
+
+            // Visitors don't see the campaign any more; tell the person editing it why.
+            if (self::ON_END_STOP === $on_end && is_customize_preview()) {
+                return sprintf('<div class="mo-countdown mo-countdown-ended" data-mo-countdown="%s"><p class="mo-countdown-message">%s</p></div>', esc_attr($uuid), esc_html__('The countdown has ended, so visitors no longer see this campaign.', 'mailoptin')) . self::css($theme);
             }
 
             return '';
@@ -419,8 +434,8 @@ class Countdown
     {
         $id     = $theme->optin_campaign_id;
         $scope  = '#' . $theme->optin_campaign_uuid . ' .mo-countdown';
-        $number = (string)self::value($id, 'countdown_number_color');
-        $box    = (string)self::value($id, 'countdown_box_color');
+        $number = self::css_color(self::value($id, 'countdown_number_color'));
+        $box    = self::css_color(self::value($id, 'countdown_box_color'));
 
         $css = "$scope{margin:16px 0;font-variant-numeric:tabular-nums;line-height:1.2;text-align:center}"
                . "$scope .mo-countdown-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}"
@@ -481,16 +496,27 @@ class Countdown
 
         if (self::FIXED === $mode) {
             if ('visitor' === $timezone) {
-                $countdown['end_local'] = (string)self::value($id, 'countdown_end');
+                // Year, month, day, hour, minute: the browser builds the date on the visitor's clock.
+                try {
+                    $local = new \DateTime((string)self::value($id, 'countdown_end'), new \DateTimeZone('UTC'));
+
+                    $countdown['end_local'] = array_map('intval', explode(',', $local->format('Y,n,j,G,i')));
+                } catch (\Exception $e) {
+                    $countdown['end_local'] = null;
+                }
             } else {
                 $countdown['end'] = self::end_timestamp($id);
             }
         } elseif (self::EVERGREEN === $mode) {
             $countdown['duration'] = absint(self::value($id, 'countdown_duration')) * MINUTE_IN_SECONDS;
         } else {
-            $countdown['end'] = (new \DateTime('tomorrow', wp_timezone()))->getTimestamp();
-            // Seconds to add to reach the next midnight once that one has passed.
-            $countdown['period'] = DAY_IN_SECONDS;
+            // The site's next few midnights, worked out here so a clock change lands on the right one.
+            $midnight          = new \DateTime('tomorrow', wp_timezone());
+            $countdown['ends'] = [];
+            for ($i = 0; $i < 3; $i++) {
+                $countdown['ends'][] = $midnight->getTimestamp();
+                $midnight->modify('+1 day');
+            }
         }
 
         $data['countdown'] = $countdown;
@@ -613,8 +639,12 @@ class Countdown
             'site'    => sprintf(__('Site time zone (%s)', 'mailoptin'), wp_timezone_string()),
             'visitor' => __('Each visitor\'s own time zone', 'mailoptin'),
         ];
-        if (is_numeric($timezone)) {
-            $zones[$timezone] = sprintf(__('UTC%s (from the schedule)', 'mailoptin'), ($timezone >= 0 ? '+' : '-') . gmdate('H:i', abs((int)$timezone)));
+        // The saved offset, and the schedule's (so "Use that date" below always has its option).
+        $schedule_timezone = self::sanitize_timezone(OCR::get_customizer_value($campaign_id, 'schedule_timezone'));
+        foreach ([$timezone, $schedule_timezone] as $offset) {
+            if (is_numeric($offset)) {
+                $zones[$offset] = sprintf(__('UTC%s (from the schedule)', 'mailoptin'), ($offset >= 0 ? '+' : '-') . gmdate('H:i', abs((int)$offset)));
+            }
         }
 
         $add('countdown_timezone', [
@@ -715,7 +745,9 @@ class Countdown
                . '<script>(function(){var b=document.getElementById("mo-countdown-use-schedule");if(!b)return;b.addEventListener("click",function(){'
                . 'wp.customize(' . wp_json_encode($option_prefix . '[countdown_end]') . ').set(' . wp_json_encode($schedule_end) . ');'
                . 'wp.customize(' . wp_json_encode($option_prefix . '[countdown_timezone]') . ').set(' . wp_json_encode($timezone) . ');'
-               . 'var i=document.getElementById(' . wp_json_encode('_' . $option_prefix . '[countdown_control_end]') . ');if(i)i.value=' . wp_json_encode($schedule_end) . ';'
+               // The picker keeps its own date: set it through the picker so the two agree.
+               . 'var i=document.getElementById(' . wp_json_encode('_' . $option_prefix . '[countdown_control_end]') . '),p=i&&window.jQuery?jQuery(i).data("DateTimePicker"):null;'
+               . 'if(p){p.date(' . wp_json_encode($schedule_end) . ');}else if(i){i.value=' . wp_json_encode($schedule_end) . ';}'
                . '});})();</script>';
     }
 

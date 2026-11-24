@@ -853,6 +853,9 @@ var mailoptin_optin = {
         var self = mailoptin_optin;
         var _this = this;
 
+        // Its countdown ended on this page and it's set to stop: no trigger shows it again.
+        if (self.countdown_stopped[optin_config.optin_uuid]) return;
+
         // do cookie checking if we are not in customizer mode and not test mode is active.
         if ($.MailOptin.is_customize_preview === false && optin_config.test_mode === false && skip_display_checks !== true) {
             if (self.is_optin_visible(optin_config) === false) return;
@@ -2234,6 +2237,9 @@ var mailoptin_optin = {
      * Countdowns (see Countdown.php): work out each campaign's deadline, drop a campaign whose
      * countdown has ended and is set to stop it, and keep the rest ticking.
      */
+    /** Campaigns whose countdown ended and stopped them, by uuid. */
+    countdown_stopped: {},
+
     countdown_init: function () {
         var self = this, preview = $.MailOptin.is_customize_preview === true;
 
@@ -2247,6 +2253,7 @@ var mailoptin_optin = {
             // Ended before this page loaded (a cached page, or a visitor's own countdown that ran
             // out on an earlier visit) and set to stop the campaign.
             if (end !== null && Date.now() >= end && cd.on_end === 'stop' && !preview) {
+                self.countdown_stopped[uuid] = true;
                 $form.remove();
                 return;
             }
@@ -2257,14 +2264,16 @@ var mailoptin_optin = {
 
                 // "After each visitor first sees it": the clock starts when the campaign is on screen.
                 if (end === null) {
-                    if (cd.mode !== 'evergreen' || !$form.is(':visible')) return true;
+                    // A date the browser couldn't read: leave the server's numbers and stop ticking.
+                    if (cd.mode !== 'evergreen') return false;
+                    if (!self.countdown_on_screen($form)) return true;
                     end = self.countdown_start(uuid, cd, preview);
                 }
 
                 var left = Math.max(0, Math.round((end - Date.now()) / 1000));
 
                 if (left === 0 && cd.mode === 'daily') {
-                    while (end <= Date.now()) end += cd.period * 1000;
+                    end = self.countdown_next_midnight(cd);
                     left = Math.round((end - Date.now()) / 1000);
                 }
 
@@ -2292,18 +2301,37 @@ var mailoptin_optin = {
             return start ? start + cd.duration * 1000 : null;
         }
 
-        if (cd.mode === 'daily') {
-            var end = cd.end * 1000;
-            while (end <= Date.now()) end += cd.period * 1000;
-            return end;
-        }
+        if (cd.mode === 'daily') return this.countdown_next_midnight(cd);
 
+        // In the visitor's own time zone: the date and time as numbers, read on the visitor's clock.
         if (cd.end_local) {
-            var local = Date.parse(cd.end_local);
+            var p = cd.end_local, local = new Date(p[0], p[1] - 1, p[2], p[3], p[4], 0).getTime();
             return isNaN(local) ? null : local;
         }
 
         return cd.end ? cd.end * 1000 : null;
+    },
+
+    /**
+     * The site's next midnight. The server sends the next few (so a clock change is already in them);
+     * a page cached longer than that steps on a day at a time.
+     */
+    countdown_next_midnight: function (cd) {
+        var now = Date.now(), ends = cd.ends || [], end = 0, i;
+        for (i = 0; i < ends.length; i++) {
+            end = ends[i] * 1000;
+            if (end > now) return end;
+        }
+        end = end || now;
+        while (end <= now) end += 86400000;
+        return end;
+    },
+
+    /** Any part of the campaign inside the window. */
+    countdown_on_screen: function ($form) {
+        if (!$form.is(':visible')) return false;
+        var r = $form[0].getBoundingClientRect();
+        return r.bottom > 0 && r.right > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight) && r.left < (window.innerWidth || document.documentElement.clientWidth);
     },
 
     countdown_stored: function (uuid) {
@@ -2374,12 +2402,18 @@ var mailoptin_optin = {
         }
 
         if (cd.on_end === 'stop' && !preview) {
-            if ($form.hasClass('mo-optin-form-lightbox') && $.MoModalBox && $.MoModalBox.isActive && $form.is(':visible')) {
-                $.MoModalBox.close();
+            var uuid = $form.attr('id'), config = this.optin_js_config(uuid) || {};
+            this.countdown_stopped[uuid] = true;
+
+            // A pop-up stays in the page closed (its wrapper belongs to the modal); nothing reopens it.
+            if ($form.hasClass('mo-optin-form-lightbox')) {
+                if ($.MoModalBox && $.MoModalBox.isActive && $form.is(':visible')) $.MoModalBox.close();
                 return;
             }
-            if ($form.is(':visible') && ($form.hasClass('mo-optin-form-bar') || $form.hasClass('mo-optin-form-slidein'))) {
-                this._close_optin($form);
+            if ($form.hasClass('mo-optin-form-bar') || $form.hasClass('mo-optin-form-slidein')) {
+                // Free its spot so another bar or slide-in can take it.
+                if ($form.is(':visible')) this._close_optin($form);
+                this.flag_optin_type_close(config, config.optin_type);
                 return;
             }
             $form.remove();

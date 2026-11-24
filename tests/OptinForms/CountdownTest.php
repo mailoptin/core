@@ -205,4 +205,33 @@ class CountdownTest extends WP_UnitTestCase
 
         $this->assertArrayNotHasKey('countdown', apply_filters('mo_optin_js_config', [], OptinFormFactory::make($this->campaign())));
     }
+
+    public function test_a_visitor_time_zone_date_goes_to_the_browser_as_numbers()
+    {
+        $id     = $this->on(['countdown_end' => '11/30/2026 11:59 PM', 'countdown_timezone' => 'visitor']);
+        $config = apply_filters('mo_optin_js_config', [], OptinFormFactory::make($id));
+
+        $this->assertSame([2026, 11, 30, 23, 59], $config['countdown']['end_local']);
+        $this->assertArrayNotHasKey('end', $config['countdown']);
+    }
+
+    public function test_midnights_are_worked_out_on_the_server()
+    {
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) $this->markTestSkipped('Premium mode');
+
+        $config = apply_filters('mo_optin_js_config', [], OptinFormFactory::make($this->on(['countdown_mode' => 'daily'])));
+        $ends   = $config['countdown']['ends'];
+
+        $this->assertCount(3, $ends);
+        foreach ($ends as $end) $this->assertSame('00:00', wp_date('H:i', $end));
+        $this->assertGreaterThan(time(), $ends[0]);
+    }
+
+    public function test_a_bad_saved_colour_never_reaches_the_page()
+    {
+        $html = OptinFormFactory::build($this->on(['countdown_number_color' => 'red}body{display:none', 'countdown_box_color' => '#abc']));
+
+        $this->assertStringNotContainsString('red}body', $html);
+        $this->assertStringContainsString('background:#abc', $html);
+    }
 }
