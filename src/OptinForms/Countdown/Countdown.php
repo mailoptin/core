@@ -334,7 +334,7 @@ class Countdown
         if (self::EVERGREEN === $mode) return absint(self::value($optin_campaign_id, 'countdown_duration')) * MINUTE_IN_SECONDS;
 
         if (self::DAILY === $mode) {
-            $midnight = new \DateTime('tomorrow', wp_timezone());
+            $midnight = (new \DateTime('@' . $now))->setTimezone(wp_timezone())->modify('tomorrow');
 
             return max(0, $midnight->getTimestamp() - $now);
         }
@@ -405,6 +405,16 @@ class Countdown
      * The three styles, scoped to the campaign. Colours start from the theme's own text colour, so the
      * countdown fits dark and light themes; the two colour settings override them.
      */
+    /** A hex or rgb()/rgba() colour, or '' for anything else, so it is safe inside a style block. */
+    public static function css_color($value)
+    {
+        $value = trim((string)$value);
+
+        if (preg_match('/^#[0-9a-f]{3,8}$/i', $value) || preg_match('/^rgba?\(\s*[\d.\s,%]+\)$/i', $value)) return $value;
+
+        return '';
+    }
+
     protected static function css($theme)
     {
         $id     = $theme->optin_campaign_id;
@@ -418,7 +428,7 @@ class Countdown
                . "$scope .mo-countdown-units .mo-countdown-unit[hidden]{display:none!important}"
                . "$scope.mo-countdown-boxes .mo-countdown-unit{flex:1 1 0;max-width:96px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 8px;border-radius:6px;background:rgba(127,127,127,.14)}"
                . "$scope.mo-countdown-boxes .mo-countdown-number{font-size:28px;font-weight:700}"
-               . "$scope.mo-countdown-boxes .mo-countdown-label{font-size:12px;opacity:.85}"
+               . "$scope.mo-countdown-boxes .mo-countdown-label{font-size:12px}"
                . "$scope.mo-countdown-plain .mo-countdown-units{gap:12px}"
                . "$scope.mo-countdown-plain .mo-countdown-unit{display:inline-flex;align-items:baseline;gap:4px}"
                . "$scope.mo-countdown-plain .mo-countdown-number{font-size:20px;font-weight:700}"
@@ -426,7 +436,15 @@ class Countdown
                . "$scope.mo-countdown-compact{display:inline-block;margin:0 8px;vertical-align:middle}"
                . "$scope.mo-countdown-compact .mo-countdown-compact{display:inline-block;font-size:16px;font-weight:700;padding:4px 10px;border-radius:4px;background:rgba(127,127,127,.2)}"
                . "$scope .mo-countdown-message{margin:0;font-size:16px}"
-               . "@media (max-width:480px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:22px}}";
+               . "@media (max-width:480px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:22px}}"
+               // Narrow forms (a sidebar, a small slide-in): smaller labels so "Minutes" and "Seconds" don't touch.
+               . "$scope.mo-countdown-boxes{container-type:inline-size}"
+               . "@container (max-width:250px){{$scope}.mo-countdown-boxes .mo-countdown-units{gap:4px}{$scope}.mo-countdown-boxes .mo-countdown-unit{padding:8px 2px 6px}{$scope}.mo-countdown-boxes .mo-countdown-number{font-size:20px}{$scope}.mo-countdown-boxes .mo-countdown-label{font-size:10px}}";
+
+        // Themes colour their text on the headline, not on the form, so the countdown takes the headline's
+        // colour. (Description colours are often muted, or meant for a column that phones don't show.)
+        $headline = self::css_color($theme->get_customizer_value('headline_font_color'));
+        if ('' !== $headline) $css .= "$scope{color:$headline}";
 
         if ('' !== $number) $css .= "$scope .mo-countdown-number,$scope .mo-countdown-compact{color:$number}";
         if ('' !== $box) $css .= "$scope.mo-countdown-boxes .mo-countdown-unit,$scope.mo-countdown-compact .mo-countdown-compact{background:$box}";
