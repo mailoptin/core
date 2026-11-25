@@ -2287,7 +2287,8 @@ var mailoptin_optin = {
                 return true;
             };
 
-            if (!cd.own_color) self.countdown_fit_color($form);
+            var own = cd.own_color || {};
+            if (!(own.number && own.label)) self.countdown_fit_color($form, own);
 
             if (tick()) {
                 var timer = setInterval(function () {
@@ -2342,7 +2343,7 @@ var mailoptin_optin = {
      * see: if it reads poorly on its background, use whichever of the theme's own text colours
      * (headline, description, note) reads best there, else near-black or white. Not over an image.
      */
-    countdown_fit_color: function ($form) {
+    countdown_fit_color: function ($form, own) {
         var el = $form.find('.mo-countdown[data-mo-countdown]')[0];
         if (!el || !window.getComputedStyle) return;
 
@@ -2365,7 +2366,8 @@ var mailoptin_optin = {
 
         // What's behind a number: the countdown's own tinted box over the theme's background, so every
         // see-through layer down to the first solid one, laid over each other (no solid one: white).
-        var probe = $(el).find('.mo-countdown-number, .mo-countdown-compact')[0] || el,
+        // Judge the text the owner left to us: the numbers, or the labels when the numbers are theirs.
+        var probe = $(el).find(own && own.number ? '.mo-countdown-label' : '.mo-countdown-number, .mo-countdown-compact')[0] || el,
             layers = [], e, style, c, bg = {r: 255, g: 255, b: 255, a: 1};
         for (e = probe; e && e.nodeType === 1; e = e.parentElement) {
             style = window.getComputedStyle(e);

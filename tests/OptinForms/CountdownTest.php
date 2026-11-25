@@ -241,4 +241,39 @@ class CountdownTest extends WP_UnitTestCase
         $this->assertStringNotContainsString('red}body', $html);
         $this->assertStringContainsString('background:#abc', $html);
     }
+
+    public function test_background_and_labels_colours_follow_the_style()
+    {
+        // Boxes: a panel behind the countdown, the boxes colour, and the labels.
+        $html = OptinFormFactory::build($this->on(['countdown_style' => 'boxes', 'countdown_bg_color' => '#1f2a44', 'countdown_box_color' => '#334466', 'countdown_label_color' => '#c9d2e3']));
+        $this->assertMatchesRegularExpression('/\.mo-countdown:not\(\.mo-countdown-compact\)\{background:#1f2a44;padding:12px/', $html);
+        $this->assertStringContainsString('.mo-countdown-unit{background:#334466}', $html);
+        $this->assertStringContainsString('.mo-countdown-label{color:#c9d2e3}', $html);
+
+        // Plain: no boxes, so a saved boxes colour is ignored.
+        $html = OptinFormFactory::build($this->on(['countdown_style' => 'plain', 'countdown_bg_color' => '#e8f0ea', 'countdown_box_color' => '#334466']));
+        $this->assertStringContainsString('background:#e8f0ea', $html);
+        $this->assertStringNotContainsString('#334466', $html);
+
+        // Compact: the background is the pill.
+        $html = OptinFormFactory::build($this->on(['countdown_style' => 'compact', 'countdown_bg_color' => '#f6c344']));
+        $this->assertStringContainsString('.mo-countdown-compact .mo-countdown-compact{background:#f6c344}', $html);
+    }
+
+    public function test_the_page_is_told_which_colours_the_owner_chose()
+    {
+        $own = function ($settings) {
+            $config = apply_filters('mo_optin_js_config', [], OptinFormFactory::make($this->on($settings)));
+
+            return $config['countdown']['own_color'];
+        };
+
+        $this->assertSame(['number' => false, 'label' => false], $own([]));
+        $this->assertSame(['number' => true, 'label' => false], $own(['countdown_number_color' => '#ffffff']));
+        $this->assertSame(['number' => false, 'label' => true], $own(['countdown_label_color' => '#ffffff']));
+        // Compact has no labels, so only the numbers are left to adjust.
+        $this->assertSame(['number' => false, 'label' => true], $own(['countdown_style' => 'compact']));
+        // A bad value doesn't count as chosen.
+        $this->assertSame(['number' => false, 'label' => false], $own(['countdown_number_color' => 'red;}']));
+    }
 }

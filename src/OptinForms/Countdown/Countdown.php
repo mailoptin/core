@@ -99,7 +99,9 @@ class Countdown
             'countdown_hide_days'     => true,
             'countdown_on_end'        => self::ON_END_STOP,
             'countdown_end_message'   => __('This offer has ended.', 'mailoptin'),
+            'countdown_bg_color'      => '',
             'countdown_number_color'  => '',
+            'countdown_label_color'   => '',
             'countdown_box_color'     => '',
         ];
 
@@ -143,7 +145,9 @@ class Countdown
             'countdown_hide_days'     => [self::class, 'on'],
             'countdown_on_end'        => function ($v) { return in_array($v, [self::ON_END_STOP, self::ON_END_MESSAGE, self::ON_END_HIDE], true) ? $v : self::ON_END_STOP; },
             'countdown_end_message'   => $text,
+            'countdown_bg_color'      => $color,
             'countdown_number_color'  => $color,
+            'countdown_label_color'   => $color,
             'countdown_box_color'     => $color,
         ];
     }
@@ -436,8 +440,12 @@ class Countdown
         // The id twice: many themes style everything in the form with two ids (html div#uuid div#form *),
         // which would otherwise win over the countdown's sizes.
         $scope  = '#' . $theme->optin_campaign_uuid . '#' . $theme->optin_campaign_uuid . ' .mo-countdown';
+        $style  = (string)self::value($id, 'countdown_style');
+        $bg     = self::css_color(self::value($id, 'countdown_bg_color'));
         $number = self::css_color(self::value($id, 'countdown_number_color'));
-        $box    = self::css_color(self::value($id, 'countdown_box_color'));
+        $label  = self::css_color(self::value($id, 'countdown_label_color'));
+        // Boxes colour only means something in the boxes style.
+        $box    = 'boxes' === $style ? self::css_color(self::value($id, 'countdown_box_color')) : '';
 
         $css = "$scope{margin:16px 0;font-variant-numeric:tabular-nums;line-height:1.2;text-align:center}"
                . "$scope .mo-countdown-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}"
@@ -471,8 +479,15 @@ class Countdown
         if ('' === $color) $color = self::css_color($theme->get_customizer_value('headline_font_color'));
         if ('' !== $color) $css .= "$scope{color:$color}";
 
+        // Background: a panel behind the whole countdown; in the compact style, the pill itself.
+        if ('' !== $bg) {
+            $css .= 'compact' === $style
+                ? "$scope.mo-countdown-compact .mo-countdown-compact{background:$bg}"
+                : "$scope:not(.mo-countdown-compact){background:$bg;padding:12px;border-radius:8px;box-sizing:border-box}";
+        }
+        if ('' !== $box) $css .= "$scope.mo-countdown-boxes .mo-countdown-unit{background:$box}";
         if ('' !== $number) $css .= "$scope .mo-countdown-number,$scope .mo-countdown-compact{color:$number}";
-        if ('' !== $box) $css .= "$scope.mo-countdown-boxes .mo-countdown-unit,$scope.mo-countdown-compact .mo-countdown-compact{background:$box}";
+        if ('' !== $label) $css .= "$scope .mo-countdown-label{color:$label}";
 
         return '<style>' . $css . '</style>';
     }
@@ -494,8 +509,11 @@ class Countdown
             'on_end'    => (string)self::value($id, 'countdown_on_end'),
             'message'   => (string)self::value($id, 'countdown_end_message'),
             'hide_days' => self::on(self::value($id, 'countdown_hide_days')),
-            // With its own number colour set, the page leaves the countdown's colours alone.
-            'own_color' => '' !== self::css_color(self::value($id, 'countdown_number_color')),
+            // Colours the owner chose: the page never changes these (compact has no labels).
+            'own_color' => [
+                'number' => '' !== self::css_color(self::value($id, 'countdown_number_color')),
+                'label'  => 'compact' === (string)self::value($id, 'countdown_style') || '' !== self::css_color(self::value($id, 'countdown_label_color')),
+            ],
             'labels'    => self::labels($id),
             'texts'     => [
                 'ends_in' => __('Ends in %s', 'mailoptin'),
@@ -735,15 +753,65 @@ class Countdown
 
         $add('countdown_end_message', ['type' => 'text', 'label' => __('Message', 'mailoptin'), 'active_callback' => $when('countdown_on_end', self::ON_END_MESSAGE)]);
 
-        foreach (['countdown_number_color' => __('Numbers colour', 'mailoptin'), 'countdown_box_color' => __('Boxes colour', 'mailoptin')] as $key => $label) {
-            $wp_customize->add_control(new \WP_Customize_Color_Control($wp_customize, $id('countdown_control_' . $key), [
+        $wp_customize->add_control(new WP_Customize_Custom_Content($wp_customize, $id('countdown_control_colors'), [
+            'section'  => self::SECTION,
+            'settings' => [],
+            'priority' => $priority += 5,
+            'content'  => '<span class="customize-control-title">' . esc_html__('Colours', 'mailoptin') . '</span>'
+                          . '<span class="description customize-control-description">' . esc_html__('Leave a colour empty to use the campaign\'s own. Empty colours also adjust to stay readable.', 'mailoptin') . '</span>',
+        ]));
+
+        $not_compact = function () use ($value) { return 'compact' !== $value('countdown_style'); };
+        $colors      = [
+            'countdown_bg_color'     => [__('Background', 'mailoptin'), __('A panel behind the whole countdown. In the compact style, the pill behind the time.', 'mailoptin'), null],
+            'countdown_box_color'    => [__('Boxes colour', 'mailoptin'), __('Empty: a light tint that suits light and dark campaigns.', 'mailoptin'), $when('countdown_style', 'boxes')],
+            'countdown_number_color' => [__('Numbers colour', 'mailoptin'), '', null],
+            'countdown_label_color'  => [__('Labels colour', 'mailoptin'), __('Days, Hours, Minutes and Seconds.', 'mailoptin'), $not_compact],
+        ];
+        foreach ($colors as $key => list($label, $description, $active)) {
+            $args = [
                 'label'       => $label,
-                'description' => 'countdown_box_color' === $key ? __('Empty: they start from the campaign\'s own colours.', 'mailoptin') : '',
+                'description' => $description,
                 'section'     => self::SECTION,
                 'settings'    => $id($key),
                 'priority'    => $priority += 5,
-            ]));
+            ];
+            if ($active) $args['active_callback'] = $active;
+            $wp_customize->add_control(new \WP_Customize_Color_Control($wp_customize, $id('countdown_control_' . $key), $args));
         }
+
+        $wp_customize->add_control(new WP_Customize_Custom_Content($wp_customize, $id('countdown_control_contrast'), [
+            'section'  => self::SECTION,
+            'settings' => [],
+            'priority' => $priority += 5,
+            'content'  => self::contrast_note_html($option_prefix),
+        ]));
+    }
+
+    /**
+     * A note under the colours when the numbers or labels the owner picked are hard to read on the
+     * background they picked (the boxes colour, where the numbers sit on it). Only colours they set:
+     * empty ones adjust on the page by themselves. It never stops a save.
+     */
+    protected static function contrast_note_html($option_prefix)
+    {
+        $keys = [];
+        foreach (['bg', 'box', 'number', 'label', 'style'] as $key) {
+            $keys[$key] = $option_prefix . '[countdown_' . ('style' === $key ? 'style' : $key . '_color') . ']';
+        }
+
+        return '<p id="mo-countdown-contrast" role="status" hidden style="margin:0;padding:8px 10px;background:#fcf9e8;border-left:4px solid #dba617;font-size:13px;line-height:1.5"></p>'
+               . '<script>(function(){var api=window.wp&&wp.customize;if(!api)return;var k=' . wp_json_encode($keys) . ','
+               . 'text=' . wp_json_encode(__('These colours are hard to read together (%s:1). Try a darker background or darker text, or the other way round.', 'mailoptin')) . ';'
+               . 'function rgb(h){h=String(h||"").replace("#","");if(h.length===3)h=h.replace(/./g,"$&$&");if(!/^[0-9a-f]{6}/i.test(h))return null;return[0,2,4].map(function(i){return parseInt(h.substr(i,2),16);});}'
+               . 'function lum(c){return c.map(function(v){v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);}).reduce(function(a,v,i){return a+v*[.2126,.7152,.0722][i];},0);}'
+               . 'function ratio(a,b){var x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);}'
+               . 'function val(n){var s=api(k[n]);return s?s.get():"";}'
+               . 'function check(){var el=document.getElementById("mo-countdown-contrast");if(!el)return;var bg=rgb(val("bg")),box=val("style")==="boxes"?rgb(val("box")):null,worst=0;'
+               . '[["number",box||bg],["label",box||bg]].forEach(function(p){var c=rgb(val(p[0]));if(!c||!p[1]||(p[0]==="label"&&val("style")==="compact"))return;var r=ratio(c,p[1]);if(r<4.5&&(!worst||r<worst))worst=r;});'
+               . 'el.hidden=!worst;if(worst)el.textContent=text.replace("%s",worst.toFixed(1));}'
+               . 'api.bind("ready",function(){Object.keys(k).forEach(function(n){api(k[n],function(s){s.bind(check);});});check();});'
+               . 'if(api.settings&&api.settings.initialized)check();})();</script>';
     }
 
     /** "Use that date": copies the schedule's end and time zone into the countdown. */
