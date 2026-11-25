@@ -228,4 +228,154 @@ class BuiltInTriggersTest extends EngineTest
 
         $this->assertLessThanOrEqual(2, $wpdb->num_queries - $before);
     }
+
+    protected function signup($campaign_id, $email = 'signup@example.org', $name = 'Maya Green')
+    {
+        \MailOptin\Core\AjaxHandler::track_conversion($campaign_id, [
+            'optin_campaign_id' => $campaign_id, 'optin_campaign_type' => 'inpost', 'name' => $name, 'email' => $email,
+            'custom_fields' => '[]', 'user_agent' => '', 'conversion_page' => 'https://example.org/spring/', 'referrer' => '', 'meta_data' => '[]',
+        ]);
+    }
+
+    public function test_a_sign_up_through_the_chosen_campaign_starts_it_once()
+    {
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Spring sign-up', 'BareMetal', 'inpost');
+        $other    = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Other form', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign, 'runs' => 'once'], [$this->email_step('Thanks {{signup.first_name|friend}}')]);
+        $any      = $this->automation_for('optin_signup', ['optin_campaign_id' => 0, 'runs' => 'every'], [$this->email_step('Hi')]);
+
+        $this->signup($other);
+        $this->assertCount(0, $this->runs($id), 'Another campaign doesn\'t start it');
+        $this->assertCount(1, $this->runs($any), '"Any campaign" does');
+
+        $this->signup($campaign);
+        // Part-way through "any campaign" already: not started again (the engine's rule for every trigger).
+        $this->assertCount(1, $this->runs($any));
+        $this->signup($campaign, 'second@example.org');
+        $this->assertCount(2, $this->runs($any));
+
+        // Signing up again, even after their run has finished, doesn't start a "once" automation again.
+        global $wpdb;
+        $wpdb->update(Repo::runs_table(), ['status' => Repo::RUN_STOPPED], ['automation_id' => $id]);
+        $this->signup($campaign);
+        $runs = array_values(array_filter($this->runs($id), function ($r) { return 'signup@example.org' === $r['email']; }));
+        $this->assertCount(1, $runs, 'Runs once per person');
+
+        $run     = Repo::get_run($runs[0]['id']);
+        $trigger = Triggers::get_instance()->get('optin_signup');
+        $this->assertSame('Thanks Maya, from Spring sign-up on https://example.org/spring/', Engine::replace_placeholders('Thanks {{signup.first_name|friend}}, from {{signup.campaign}} on {{signup.page}}', $trigger, $run, false));
+        $this->assertStringContainsString('Spring sign-up', $trigger->summary(['optin_campaign_id' => $campaign]));
+    }
+
+    public function test_a_split_test_variant_counts_as_its_parent()
+    {
+        $parent  = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Parent', 'BareMetal', 'inpost');
+        $variant = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Variant', 'BareMetal', 'inpost');
+        \MailOptin\Core\Repositories\OptinCampaignMeta::add_campaign_meta($variant, 'split_test_parent', $parent);
+        $id = $this->automation_for('optin_signup', ['optin_campaign_id' => $parent], [$this->email_step('Hi')]);
+
+        $this->signup($variant, 'variant@example.org');
+        $this->assertCount(1, $this->runs($id));
+        $this->assertArrayNotHasKey($variant, \MailOptin\Core\Automations\Triggers\OptinSignup::campaign_choices(), 'Variants aren\'t offered in the picker');
+    }
+
+    public function test_add_ons_can_add_checks_placeholders_context_and_a_stop_reason()
+    {
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Offer', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign], [
+            ['type' => Repo::STEP_WAIT, 'settings' => ['amount' => 1, 'unit' => 'days']],
+            $this->email_step('Your {{offer.thing}}'),
+        ]);
+
+        $context = function ($context) { $context['thing'] = 'narcissus'; return $context; };
+        $checks  = function ($checks) { $checks['not_bought'] = ['label' => 'they haven\'t bought it', 'callback' => '__return_true']; return $checks; };
+        $holders = function ($p) { $p['offer.thing'] = ['label' => 'Thing', 'value' => function ($c) { return $c['thing'] ?? ''; }, 'sample' => 'x']; return $p; };
+        $stop    = function ($reason, $run) { return 'bought@example.org' === $run['email'] ? 'purchased' : $reason; };
+        add_filter('mailoptin_optin_signup_trigger_context', $context);
+        add_filter('mailoptin_optin_signup_trigger_checks', $checks);
+        add_filter('mailoptin_optin_signup_trigger_placeholders', $holders);
+        add_filter('mailoptin_optin_signup_trigger_stop_reason', $stop, 10, 2);
+
+        $trigger = Triggers::get_instance()->get('optin_signup');
+        $this->assertArrayHasKey('not_bought', Engine::checks($trigger));
+
+        $this->signup($campaign, 'keen@example.org');
+        $this->signup($campaign, 'bought@example.org');
+        $runs = $this->runs($id);
+        $this->assertCount(2, $runs);
+
+        $keen = array_column(array_map(function ($r) { return Repo::get_run($r['id']); }, $runs), null, 'email')['keen@example.org'];
+        $this->assertSame('Your narcissus', Engine::replace_placeholders('Your {{offer.thing}}', $trigger, $keen, false));
+
+        foreach ($runs as $run) $this->make_due($run['id']);
+        Engine::get_instance()->run(time() + 5);
+        $by_email = array_column(array_map(function ($r) { return Repo::get_run($r['id']); }, $runs), null, 'email');
+        $this->assertSame('purchased', $by_email['bought@example.org']['stop_reason']);
+        $this->assertSame('', (string)$by_email['keen@example.org']['stop_reason']);
+
+        remove_filter('mailoptin_optin_signup_trigger_context', $context);
+        remove_filter('mailoptin_optin_signup_trigger_checks', $checks);
+        remove_filter('mailoptin_optin_signup_trigger_placeholders', $holders);
+        remove_filter('mailoptin_optin_signup_trigger_stop_reason', $stop, 10);
+    }
+
+    public function test_a_sign_up_costs_nothing_without_a_live_automation()
+    {
+        global $wpdb;
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Quiet', 'BareMetal', 'inpost');
+        Triggers::get_instance()->get('optin_signup');
+
+        $trigger = new \MailOptin\Core\Automations\Triggers\OptinSignup();
+        $before  = $wpdb->num_queries;
+        $trigger->signed_up(['email' => 'quiet@example.org'], $campaign);
+        $this->assertLessThanOrEqual(1, $wpdb->num_queries - $before);
+    }
+
+    public function test_on_a_double_opt_in_list_it_waits_until_they_confirm()
+    {
+        $list     = ListsRepository::create(['name' => 'Confirm first', 'double_optin' => 1]);
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Double', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign], [$this->email_step('Hi')]);
+
+        Subscription::subscribe('stranger@example.org', $list);
+        $this->signup($campaign, 'stranger@example.org');
+        $this->assertCount(0, $this->runs($id), 'Nothing is sent to an address that hasn\'t confirmed');
+        $this->assertCount(1, get_transient(\MailOptin\Core\Automations\Triggers\OptinSignup::PENDING_PREFIX . md5('stranger@example.org')), 'Only the sign-up waits, nothing else');
+
+        Subscription::confirm(Subscribers::get_by_email('stranger@example.org')['id']);
+        $this->assertCount(1, $this->runs($id), 'It starts once they confirm');
+    }
+
+    public function test_one_address_can_only_start_so_many_in_an_hour()
+    {
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Flood', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign], [$this->email_step('Hi')]);
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.9';
+        $limit = function () { return 3; };
+        add_filter('mailoptin_optin_signup_trigger_ip_limit', $limit);
+
+        for ($i = 0; $i < 5; $i++) $this->signup($campaign, "flood$i@example.org");
+
+        remove_filter('mailoptin_optin_signup_trigger_ip_limit', $limit);
+        unset($_SERVER['REMOTE_ADDR']);
+        $this->assertCount(3, $this->runs($id));
+    }
+
+    public function test_the_page_placeholder_only_links_to_this_site_and_one_sign_up_starts_once()
+    {
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Links', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign, 'runs' => 'every'], [$this->email_step('Hi')]);
+        $trigger  = Triggers::get_instance()->get('optin_signup');
+
+        \MailOptin\Core\AjaxHandler::track_conversion($campaign, ['email' => 'phish@example.org', 'name' => str_repeat('A very long name ', 10), 'conversion_page' => 'https://evil.example.com/login']);
+        // The same sign-up reported by the success hook too (lead bank on): still one run.
+        do_action('mailoptin_optin_subscription_succeeded', $campaign, (object)['email' => 'phish@example.org', 'name' => 'x', 'conversion_page' => ''], []);
+        $runs = $this->runs($id);
+        $this->assertCount(1, $runs);
+
+        $run = Repo::get_run($runs[0]['id']);
+        $this->assertSame('', Engine::replace_placeholders('{{signup.page}}', $trigger, $run, false));
+        $this->assertLessThanOrEqual(60, mb_strlen($run['context']['name']));
+        $this->assertSame($campaign, $run['context']['signup_campaign_id']);
+    }
 }
