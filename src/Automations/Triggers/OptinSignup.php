@@ -160,7 +160,8 @@ class OptinSignup extends AbstractTrigger
         // can't be used to email an address its owner never agreed to.
         $subscriber = Subscribers::get_by_email($email);
         if ($subscriber && Subscribers::STATUS_PENDING === $subscriber['status']) {
-            $pending   = (array)get_transient(self::PENDING_PREFIX . md5(strtolower($email)));
+            $pending   = get_transient(self::PENDING_PREFIX . md5(strtolower($email)));
+            $pending   = is_array($pending) ? $pending : [];
             $pending[] = $context;
             set_transient(self::PENDING_PREFIX . md5(strtolower($email)), array_slice($pending, -5), 14 * DAY_IN_SECONDS);
 

@@ -340,6 +340,7 @@ class BuiltInTriggersTest extends EngineTest
         Subscription::subscribe('stranger@example.org', $list);
         $this->signup($campaign, 'stranger@example.org');
         $this->assertCount(0, $this->runs($id), 'Nothing is sent to an address that hasn\'t confirmed');
+        $this->assertCount(1, get_transient(\MailOptin\Core\Automations\Triggers\OptinSignup::PENDING_PREFIX . md5('stranger@example.org')), 'Only the sign-up waits, nothing else');
 
         Subscription::confirm(Subscribers::get_by_email('stranger@example.org')['id']);
         $this->assertCount(1, $this->runs($id), 'It starts once they confirm');
