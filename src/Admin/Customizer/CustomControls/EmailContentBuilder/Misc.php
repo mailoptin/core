@@ -76,6 +76,7 @@ class Misc
                 ],
             'posts'   => $block_settings_default + [
                     'post_metas'            => ['author', 'date', 'category'],
+                    'post_meta_position'    => 'below_title',
                     'post_font_family'      => '',
                     'post_title_color'      => '',
                     'post_content_length'   => '150',
@@ -86,6 +87,8 @@ class Misc
                     'posts_post_type'       => 'post',
                     'read_more_text'        => esc_html__('Read More', 'mailoptin'),
                     'post_list'             => [],
+                    // One under another, as a block without the setting is drawn.
+                    'post_column_count'     => '1',
                     'default_image_url'     => MAILOPTIN_ASSETS_URL . 'images/email-templates/default-feature-img.jpg',
                 ]
         ],

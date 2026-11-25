@@ -30,45 +30,55 @@ class AddOptinCampaign extends AbstractSettingsPage
     }
 
     /**
+     * The optin type to open on: ?optin-type= when it's a known type, else lightbox.
+     */
+    public static function chosen_type()
+    {
+        $type = sanitize_key($_GET['optin-type'] ?? '');
+
+        return in_array($type, ['lightbox', 'inpost', 'sidebar', 'bar', 'slidein'], true) ? $type : 'lightbox';
+    }
+
+    /**
      * Sub-menu header for optin theme types.
      */
     public function optin_theme_sub_header()
     {
         if (!empty($_GET['page']) && $_GET['page'] == MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG) : ?>
             <div class="mailoptin-optin-new-list mailoptin-optin-clear">
-                <h4><?php _e('Title', 'mailoptin'); ?>
-                    <input type="text" name="mailoptin-optin-campaign" id="mailoptin-add-optin-campaign-title" placeholder="<?php _e('Enter a name...', 'mailoptin') ?>">
-                </h4>
+                <label for="mailoptin-add-optin-campaign-title"><?php _e('Campaign name', 'mailoptin'); ?></label>
+                <input type="text" name="mailoptin-optin-campaign" id="mailoptin-add-optin-campaign-title" placeholder="<?php esc_attr_e('e.g. Spring newsletter pop-up', 'mailoptin') ?>">
+                <span class="mo-optin-new-help"><?php _e('Only you see this name.', 'mailoptin'); ?></span>
             </div>
             <div id="mailoptin-sub-bar">
                 <div class="mailoptin-new-toolbar mailoptin-clear">
-                    <h4><?php _e('Select Optin Type', 'mailoptin'); ?>
+                    <h4><?php _e('Type', 'mailoptin'); ?>
                         <span class="spinner mo-dash-spinner"></span>
                     </h4>
                     <span class="sr-only"><?php __('Loading...', 'mailoptin'); ?></span>
                     <ul class="mailoptin-design-options">
                         <li>
-                            <a href="#" class="mo-select-optin-type mailoptin-type-active" data-optin-type="lightbox">
-                                <?php _e('Lightbox', 'mailoptin'); ?>
+                            <a href="#" class="mo-select-optin-type<?php echo self::chosen_type() === 'lightbox' ? ' mailoptin-type-active' : ''; ?>" data-optin-type="lightbox">
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('lightbox')); ?>
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="mo-select-optin-type" data-optin-type="inpost">
-                                <?php _e('In-Post', 'mailoptin'); ?>
+                            <a href="#" class="mo-select-optin-type<?php echo self::chosen_type() === 'inpost' ? ' mailoptin-type-active' : ''; ?>" data-optin-type="inpost">
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('inpost')); ?>
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="mo-select-optin-type" data-optin-type="sidebar">
-                                <?php _e('Sidebar/Widget', 'mailoptin'); ?>
+                            <a href="#" class="mo-select-optin-type<?php echo self::chosen_type() === 'sidebar' ? ' mailoptin-type-active' : ''; ?>" data-optin-type="sidebar">
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('sidebar')); ?>
                             </a></li>
                         <li>
-                            <a href="#" class="mo-select-optin-type" data-optin-type="bar">
-                                <?php _e('Notification-Bar', 'mailoptin'); ?>
+                            <a href="#" class="mo-select-optin-type<?php echo self::chosen_type() === 'bar' ? ' mailoptin-type-active' : ''; ?>" data-optin-type="bar">
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('bar')); ?>
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="mo-select-optin-type" data-optin-type="slidein">
-                                <?php _e('Slide-In', 'mailoptin'); ?>
+                            <a href="#" class="mo-select-optin-type<?php echo self::chosen_type() === 'slidein' ? ' mailoptin-type-active' : ''; ?>" data-optin-type="slidein">
+                                <?php echo esc_html(\MailOptin\Core\Admin\UI::optin_type_label('slidein')); ?>
                             </a>
                         </li>
                     </ul>
@@ -82,18 +92,18 @@ class AddOptinCampaign extends AbstractSettingsPage
      */
     public function optin_form_list()
     {
-        // lightbox/modal display should be default.
-        $optin_type = 'lightbox';
+        // Lightbox by default, or the type chosen from the empty Optin Campaigns screen.
+        $optin_type = self::chosen_type();
 
         echo '<div class="mailoptin-optin-themes mailoptin-optin-clear">';
-        OptinThemesRepository::listing_display_template($optin_type);
+        OptinThemesRepository::listing_display_template($optin_type, true);
         echo '</div>';
     }
 
     public function back_to_optin_overview()
     {
         $url = MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE;
-        echo "<a class=\"add-new-h2\" style='margin-left: 15px;' href=\"$url\">" . __('Back to Overview', 'mailoptin') . '</a>';
+        echo "<a class=\"add-new-h2\" style='margin-left: 15px;' href=\"$url\">" . __('All campaigns', 'mailoptin') . '</a>';
     }
 
 

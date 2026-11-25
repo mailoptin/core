@@ -42,15 +42,15 @@ class Lucid extends AbstractTemplate
     {
         return [
                 'page_background_color'                    => '#f2f4f6',
-                'header_text_color'                        => '#bbbfc3',
-                'header_web_version_link_color'            => '#74787e',
+                'header_text_color'                        => '#868d94',
+                'header_web_version_link_color'            => '#6d7076',
                 'content_background_color'                 => '#ffffff',
-                'content_text_color'                       => '#74787e',
+                'content_text_color'                       => '#6d7076',
                 'content_headline_color'                   => '#2F3133',
-                'content_ellipsis_button_background_color' => '#dc4d2f',
+                'content_ellipsis_button_background_color' => '#d54324',
                 'content_ellipsis_button_text_color'       => '#ffffff',
-                'footer_text_color'                        => '#aeaeae',
-                'footer_unsubscribe_link_color'            => '#74787e',
+                'footer_text_color'                        => '#6d7076',
+                'footer_unsubscribe_link_color'            => '#6d7076',
         ];
     }
 
@@ -239,6 +239,7 @@ class Lucid extends AbstractTemplate
                         <a href="{{post.url}}">
                             <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
                         </a>
+                        {{post.meta.below_image}}
                     <?php endif;
 
                     if ($content_remove_post_link == true) : ?>
@@ -246,6 +247,7 @@ class Lucid extends AbstractTemplate
                             {{post.title}}</h1>
                         {{post.meta}}
                         <img class="mo-imgix" alt="{{post.feature.image.alt}}" src="{{post.feature.image}}" width="<?= $width ?>" style="max-width:<?= $width ?>px;margin:0 auto;">
+                        {{post.meta.below_image}}
                     <?php endif;
                     do_action('mailoptin_email_campaign_lucid_before_post_content');
                     ?>
@@ -331,7 +333,7 @@ class Lucid extends AbstractTemplate
     {
         $column_count = $this->column_count;
 
-        $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="font-size:10px;">[mo_header_web_version_link_label]</a>');
+        $view_web_version    = apply_filters('mo_email_template_view_web_version', '<a class="webversion-label mo-header-web-version-label mo-header-web-version-color" href="{{webversion}}" style="font-size:12px;">[mo_header_web_version_link_label]</a>');
         $before_main_content = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_before_main_content');
         $after_main_content  = EmailCampaignRepository::get_merged_customizer_value($this->email_campaign_id, 'content_after_main_content');
         $content             = $this->parsed_post_list($column_count);
@@ -411,7 +413,7 @@ HTML;
       height: 100%;
       margin: 0;
       line-height: 1.4;
-      color: #74787E;
+      color: #6d7076;
       -webkit-text-size-adjust: none;
       mso-line-height-rule: exactly;
     }
@@ -451,7 +453,9 @@ HTML;
       text-align: center;
     }
     .email-masthead a {
-     font-size: 10px;
+      font-size: 12px;
+      display: inline-block;
+      padding: 12px 0;
     }
 
     .email-masthead_logo {
@@ -480,16 +484,19 @@ HTML;
     }
 
     .email-body img {
-      max-width: 500px;
-      max-height: 500px;
-      width: 100%;
+      max-width: 100%;
       height: auto;
       padding-bottom: 10px;
       display: block;
       margin: 0 auto;
       border: 0;
       outline: none;
-      object-fit: cover;
+    }
+
+    /* Post images fill their column; images inside post content keep their own size. No max-height:
+       clients that ignore object-fit (Gmail, Outlook.com) would squash tall images to fit it. */
+    .email-body img.mo-imgix {
+      width: 100%;
     }
     
     .mo-post-cell tr td:only-child img {
@@ -536,6 +543,10 @@ HTML;
       line-height: 22px;
       mso-line-height-rule: exactly;
       padding: 0 0 5px 0;
+    }
+
+    .mo-post-meta-below-image .mo-post-meta {
+      padding-top: 10px;
     }
 
     .body-sub {
@@ -605,7 +616,8 @@ HTML;
     /*Media Queries ------------------------------ */
     @media only screen and (max-width: 600px) {
       .email-body_inner,
-      .email-footer {
+      .email-footer,
+      .content-cell {
         width: 100% !important;
       }
     }
@@ -621,7 +633,7 @@ HTML;
         padding: 5px 10px;
         margin: 0;
         text-align: left;
-        width: 500px;                          /* specify width  */
+        max-width: 500px;                          /* specify width  */
         white-space: pre-wrap;                 /* CSS3 browsers  */
         white-space: -moz-pre-wrap !important; /* 1999+ Mozilla  */
         white-space: -pre-wrap;                /* Opera 4 thru 6 */

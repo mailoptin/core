@@ -82,7 +82,7 @@ class Elegance extends AbstractOptinTheme
 
             [
                 'name'        => 'mo_optin_form_description_font_color_default',
-                'value'       => '#777777',
+                'value'       => '#767676',
                 'optin_class' => 'Elegance',
                 'optin_type'  => 'lightbox'
             ],
@@ -453,7 +453,7 @@ html div#$optin_uuid div#$optin_css_id.moEleganceModal h2.moElegance_header {
 html div#$optin_uuid div#$optin_css_id.moEleganceModal .moElegance_description {
   line-height: 1.5;
   text-align: center;
-  color: #777;
+  color: #767676;
   margin-bottom: 2em;
 }
 

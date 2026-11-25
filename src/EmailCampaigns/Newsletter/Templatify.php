@@ -19,9 +19,13 @@ class Templatify implements TemplatifyInterface
     /**
      * @param int $email_campaign_id
      */
-    public function __construct($email_campaign_id)
+    /** @var array what the email is about, for blocks that show it (an automation's run data) */
+    public $context = [];
+
+    public function __construct($email_campaign_id, $context = [])
     {
         $this->email_campaign_id = $email_campaign_id;
+        $this->context           = (array)$context;
     }
 
     public function builderHtml()
@@ -33,17 +37,9 @@ class Templatify implements TemplatifyInterface
 
         if (is_null($content)) return '';
 
-        $template_class_instance = EmailCampaignFactory::make($this->email_campaign_id);
-
-        $html = '';
-        foreach ($content as $element) {
-            $method = $element['type'] . '_block';
-            if (is_object($template_class_instance) && method_exists($template_class_instance, $method)) {
-                $html .= $template_class_instance->$method($element['id'], $element['settings']);
-            }
-        }
-
-        return $html;
+        // One renderer for the preview, a test and the send: the block API (a template may still
+        // draw a block its own way with a {type}_block() method).
+        return \MailOptin\Core\EmailBlocks\Blocks::get_instance()->render($content, $this->email_campaign_id, $this->context);
     }
 
     public function newsletter_content()
@@ -76,8 +72,17 @@ class Templatify implements TemplatifyInterface
             $content = \MailOptin\Core\emogrify($content);
         }
 
+        // Columns' widths on wider screens, as MJML writes them: after inlining, which would drop
+        // rules for classes it can't find.
+        // Whenever the email has MJML columns (a Columns block, or posts side by side).
+        if ( ! ER::is_code_your_own_template($this->email_campaign_id) && false !== strpos($content, 'mj-column-per-')) {
+            $head    = \MailOptin\Core\EmailBlocks\Mjml::columns_head();
+            $content = false !== stripos($content, '</head>') ? preg_replace('#</head>#i', $head . '</head>', $content, 1) : $head . $content;
+        }
+
         return $this->replace_footer_placeholder_tags(
-            str_replace(['%5B', '%5D', '%7B', '%7D', '%24', '%20'], ['[', ']', '{', '}', '$', ' '], $content)
+            // Emogrify URL-encodes these in links; placeholders such as {{cart.url|fallback}} need them back.
+            str_replace(['%5B', '%5D', '%7B', '%7D', '%24', '%20', '%7C'], ['[', ']', '{', '}', '$', ' ', '|'], $content)
         );
     }
 }

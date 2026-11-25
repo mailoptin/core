@@ -4,13 +4,16 @@ namespace MailOptin\Core;
 
 use MailOptin\AdvanceAnalytics\AdvanceAnalytics;
 use MailOptin\Core\PluginSettings\Settings;
+use MailOptin\Core\RegisterActivation\CreateDBTables;
+use MailOptin\Core\Repositories\ConversionSyncRepository;
+use MailOptin\Core\Repositories\SuppressionRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 class DBUpdates
 {
     public static $instance;
 
-    const DB_VER = 16;
+    const DB_VER = 25;
 
     public function init_options()
     {
@@ -25,8 +28,18 @@ class DBUpdates
             return;
         }
 
-        // update plugin
-        $this->update();
+        // One request at a time; a lock older than 10 minutes belongs to a request that died.
+        if ( ! add_option('mo_db_update_lock', time(), '', 'no')) {
+            if ((int)get_option('mo_db_update_lock') > time() - 10 * MINUTE_IN_SECONDS) return;
+            update_option('mo_db_update_lock', time(), false);
+        }
+
+        try {
+            // update plugin
+            $this->update();
+        } finally {
+            delete_option('mo_db_update_lock');
+        }
     }
 
     public function update()
@@ -270,6 +283,182 @@ class DBUpdates
         if ( ! empty($recaptcha_site_key)) {
             Settings::instance()->update('recaptcha_api_platform', 'classic');
         }
+    }
+
+    public function update_routine_17()
+    {
+        global $wpdb;
+
+        $collate = '';
+        if ($wpdb->has_cap('collation')) {
+            $collate = $wpdb->get_charset_collate();
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::audience_tables_sql($collate) as $sql) {
+            dbDelta($sql);
+        }
+    }
+
+    /**
+     * Copy the unsubscribe lists kept by the MailOptin Leads and WordPress Registered Users
+     * newsletters into the suppression table, which the send queue checks before every email.
+     * The options are left in place so downgrading doesn't email anyone who opted out.
+     */
+    public function update_routine_18()
+    {
+        $legacy = [
+            'mo_leadbank_unsubscribers' => 'mo_leadbank_unsubscribe',
+            'mo_wp_user_unsubscribers'  => 'mo_wp_user_unsubscribe',
+        ];
+
+        foreach ($legacy as $option_name => $source) {
+            $emails = array_map(function ($encoded) {
+                // Older handlers stored the value as it arrived in the URL, where "+" becomes a space.
+                return (string)base64_decode(str_replace(' ', '+', (string)$encoded), true);
+            }, (array)get_option($option_name, []));
+
+            SuppressionRepository::add_many($emails, SuppressionRepository::REASON_UNSUBSCRIBED, $source);
+        }
+    }
+
+    /**
+     * Sync tracking for submissions. Submissions saved before this have no sync history, which the
+     * Submissions screen shows as "Not recorded".
+     */
+    public function update_routine_19()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::conversion_syncs_table_sql($collate));
+
+        add_option(ConversionSyncRepository::TRACKING_SINCE_OPTION, current_time('mysql'));
+    }
+
+    /**
+     * Tags and custom fields for built-in list subscribers.
+     */
+    public function update_routine_20()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::tags_fields_tables_sql($collate) as $sql) {
+            dbDelta($sql);
+        }
+    }
+
+    /**
+     * Saved segments of built-in list subscribers.
+     */
+    public function update_routine_21()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::segments_table_sql($collate));
+    }
+
+    /**
+     * Open and click tracking for campaigns sent to built-in lists, and an index for finding
+     * what a subscriber was sent.
+     */
+    public function update_routine_22()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::tracking_tables_sql($collate) as $sql) {
+            dbDelta($sql);
+        }
+
+        foreach (CreateDBTables::audience_tables_sql($collate) as $sql) {
+            if (false !== strpos($sql, Core::send_queue_table_name)) dbDelta($sql);
+        }
+    }
+
+    /**
+     * Campaign settings move from the two option rows into their own table.
+     */
+    public function update_routine_23()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::campaign_settings_table_sql($collate));
+
+        \MailOptin\Core\Repositories\CampaignSettingsRepository::migrate();
+    }
+
+    /**
+     * Automations tables, and the send queue allowing one address more than once per campaign
+     * log when the recipient differs: an automation email reaches the same person once per run.
+     */
+    public function update_routine_24()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        foreach (CreateDBTables::automations_tables_sql($collate) as $sql) {
+            dbDelta($sql);
+        }
+
+        $queue = $wpdb->prefix . Core::send_queue_table_name;
+
+        // Add the new key before dropping the old, so the table is never without one.
+        if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $queue WHERE Key_name = %s", 'campaign_recipient'))) {
+            $wpdb->query("ALTER TABLE $queue ADD UNIQUE KEY campaign_recipient (campaign_log_id,email,recipient_id)");
+        }
+
+        if ($wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $queue WHERE Key_name = %s", 'campaign_email'))) {
+            $wpdb->query("ALTER TABLE $queue DROP INDEX campaign_email");
+        }
+
+        // The send queue reads a campaign's state from this table on every pass.
+        $log_meta = $wpdb->prefix . Core::campaign_log_meta_table_name;
+
+        if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $log_meta WHERE Key_name = %s", 'campaign_log_id'))) {
+            $wpdb->query("ALTER TABLE $log_meta ADD KEY campaign_log_id (campaign_log_id)");
+        }
+
+        // Automation emails find their campaign log by meta key and value.
+        if ( ! $wpdb->get_var($wpdb->prepare("SHOW INDEX FROM $log_meta WHERE Key_name = %s", 'key_value'))) {
+            $wpdb->query("ALTER TABLE $log_meta ADD KEY key_value (meta_key(64),meta_value(32))");
+        }
+    }
+
+    /**
+     * Marketing consent from customers, users and members.
+     */
+    public function update_routine_25()
+    {
+        global $wpdb;
+
+        $collate = $wpdb->has_cap('collation') ? $wpdb->get_charset_collate() : '';
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        dbDelta(CreateDBTables::audience_consents_table_sql($collate));
     }
 
     public static function get_instance()

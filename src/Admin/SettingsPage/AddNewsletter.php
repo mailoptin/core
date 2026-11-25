@@ -70,17 +70,17 @@ class AddNewsletter extends AbstractSettingsPage
             $screenshot     = $email_template['screenshot'];
             ?>
             <div id="mailoptin-email-template-list"
-                 class="mailoptin-email-template mailoptin-email-template-<?php echo $template_class; ?>"
-                 data-email-template="<?php echo $template_class; ?>"
-                 data-campaign-type="<?php echo $campaign_type; ?>">
+                 class="mailoptin-email-template mailoptin-email-template-<?php echo esc_attr($template_class); ?>"
+                 data-email-template="<?php echo esc_attr($template_class); ?>"
+                 data-campaign-type="<?php echo esc_attr($campaign_type); ?>">
                 <div class="mailoptin-email-template-screenshot">
-                    <img src="<?php echo $screenshot; ?>" alt="<?php echo $template_name; ?>">
+                    <img src="<?php echo esc_url($screenshot); ?>" alt="<?php echo esc_attr($template_name); ?>">
                 </div>
-                <h3 class="mailoptin-email-template-name"><?php echo $template_name . ' ' . __('Template', 'mailoptin'); ?></h3>
+                <h3 class="mailoptin-email-template-name"><?php echo esc_html($template_name . ' ' . __('Template', 'mailoptin')); ?></h3>
                 <div class="mailoptin-email-template-actions">
                     <a class="button button-primary mailemail-template-select"
-                       data-email-template="<?php echo $template_class; ?>"
-                       data-campaign-type="<?php echo $campaign_type; ?>"
+                       data-email-template="<?php echo esc_attr($template_class); ?>"
+                       data-campaign-type="<?php echo esc_attr($campaign_type); ?>"
                        title="<?php _e('Select this template', 'mailoptin'); ?>">
                         <?php _e('Select Template', 'mailoptin'); ?>
                     </a>

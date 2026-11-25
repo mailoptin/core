@@ -77,6 +77,9 @@ class Base
     {
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, ['MailOptin\Core\RegisterActivation\Base', 'run_install']);
 
+        // Before anything reads the old campaign settings options.
+        Repositories\CampaignSettingsCompat::init();
+
         if (version_compare(get_bloginfo('version'), '5.1', '<')) {
             add_action('wpmu_new_blog', ['MailOptin\Core\RegisterActivation\Base', 'multisite_new_blog_install']);
         } else {
@@ -107,6 +110,25 @@ class Base
         AjaxHandler::get_instance();
         Cron::get_instance();
         AsyncHandler::get_instance();
+        SendQueue\QueueRunner::get_instance();
+        Submissions\SubmissionSync::get_instance();
+        Audience\PublicEndpoints::get_instance();
+        Audience\CampaignRenderer::get_instance();
+        Audience\Sources\Sources::get_instance();
+        Audience\Sources\ContactRenderer::get_instance();
+        Audience\Tracking::get_instance();
+        Audience\WelcomeEmail::get_instance();
+        Automations\Engine::get_instance();
+        Automations\Stores\Stores::init();
+        Audience\PersonalData::get_instance();
+        Audience\ImportConfirmations::get_instance();
+        Audience\PreferenceCentre::get_instance();
+        Audience\SubscriberImport::get_instance();
+        \MailOptin\MailOptinConnect\Connect::get_instance();
+        Api\SubscribersApi::get_instance();
+        require_once __DIR__ . '/Api/functions.php';
+        require_once __DIR__ . '/EmailBlocks/functions.php';
+        EmailBlocks\Templates::get_instance();
 
         $this->admin_hooks();
         Admin\Customizer\EmailCampaign\Customizer::instance();
@@ -116,10 +138,15 @@ class Base
         NewPublishPost::get_instance();
         PostsEmailDigest::get_instance();
         Newsletter::get_instance();
+        EmailCampaigns\Newsletter\Broadcasts::get_instance();
         Misc::get_instance();
 
         FrontEndOutput::get_instance();
+        \MailOptin\Core\OptinForms\RelatedPosts::get_instance();
         InPost::get_instance();
+        \MailOptin\Core\OptinForms\Messages::get_instance();
+        \MailOptin\Core\OptinForms\TwoStep::get_instance();
+        \MailOptin\Core\OptinForms\Wheel\Wheel::get_instance();
         Shortcodes::get_instance();
         Recaptcha::get_instance();
         //Turnstile initialization
@@ -140,7 +167,9 @@ class Base
 
     public function db_updates()
     {
-        if ( ! is_admin()) {
+        // Admin pages, and the background and form requests that write to the newer tables: after an
+        // automatic update, those can run before anyone opens an admin page. Not every front-end page.
+        if ( ! is_admin() && ! wp_doing_cron() && empty($_GET['mailoptin-ajax'])) {
             return;
         }
 
@@ -154,13 +183,24 @@ class Base
         }
 
         Admin\SettingsPage\Settings::get_instance();
+        Admin\SettingsPage\ApiSettings::get_instance();
+        Admin\SettingsPage\AudienceSourcesSettings::get_instance();
+        Admin\SetupWizard::get_instance();
         Admin\SettingsPage\Connections::get_instance();
         Admin\SettingsPage\EmailCampaigns::get_instance();
         Admin\SettingsPage\Newsletter::get_instance();
+        Admin\SettingsPage\Broadcast_Page::get_instance();
+        Admin\SettingsPage\Automations_Page::get_instance();
+        Admin\EmailEditor\EmailEditor::get_instance();
+        Admin\SettingsPage\Digest_Send_Page::get_instance();
         Admin\PostListMenu\PostPreview::get_instance();
         Admin\SettingsPage\CampaignLog::get_instance();
+        Admin\SettingsPage\Campaign_Report::get_instance();
         Admin\SettingsPage\OptinCampaigns::get_instance();
+        Admin\SettingsPage\OptinCampaignImport::get_instance();
         Admin\SettingsPage\LeadBank::get_instance();
+        Admin\SettingsPage\Subscribers_Page::get_instance();
+        Admin\SettingsPage\SendingSettings::get_instance();
         Admin\SettingsPage\AdvanceAnalytics::get_instance();
         AdminNotices::get_instance();
         ConversionExport::get_instance();
@@ -184,6 +224,22 @@ class Base
         $tables[] = $db_prefix . Core::conversions_table_name;
         $tables[] = $db_prefix . Core::email_campaigns_table_name;
         $tables[] = $db_prefix . Core::email_campaign_meta_table_name;
+        $tables[] = $db_prefix . Core::subscribers_table_name;
+        $tables[] = $db_prefix . Core::lists_table_name;
+        $tables[] = $db_prefix . Core::list_subscribers_table_name;
+        $tables[] = $db_prefix . Core::suppressions_table_name;
+        $tables[] = $db_prefix . Core::subscriber_events_table_name;
+        $tables[] = $db_prefix . Core::send_queue_table_name;
+        $tables[] = $db_prefix . Core::conversion_syncs_table_name;
+        $tables[] = $db_prefix . Core::tags_table_name;
+        $tables[] = $db_prefix . Core::subscriber_tags_table_name;
+        $tables[] = $db_prefix . Core::custom_fields_table_name;
+        $tables[] = $db_prefix . Core::field_values_table_name;
+        $tables[] = $db_prefix . Core::segments_table_name;
+        $tables[] = $db_prefix . Core::campaign_links_table_name;
+        $tables[] = $db_prefix . Core::campaign_activity_table_name;
+        $tables[] = $db_prefix . Core::campaign_stats_table_name;
+        $tables[] = $db_prefix . Core::campaign_settings_table_name;
 
         $tables = apply_filters('mo_drop_mu_database_tables', $tables, $db_prefix);
 

@@ -224,6 +224,8 @@ class OptinConversionsRepository extends AbstractRepository
      */
     public static function delete($id)
     {
+        ConversionSyncRepository::delete_for_conversions([$id]);
+
         return parent::wpdb()->delete(
             parent::conversions_table(),
             array('id' => $id),
@@ -239,6 +241,8 @@ class OptinConversionsRepository extends AbstractRepository
     public static function deleteAll()
     {
         $table = parent::conversions_table();
+
+        parent::wpdb()->query("DELETE FROM " . ConversionSyncRepository::table());
 
         return parent::wpdb()->query("DELETE FROM $table");
     }

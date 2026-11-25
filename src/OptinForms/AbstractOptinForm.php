@@ -389,6 +389,39 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         return $global_css;
     }
 
+    /**
+     * Rules every template gets: a visible keyboard focus ring, close links with a 44px tap area, and on
+     * phones, fields and buttons at least 44px tall. They only raise minimums; template styling stays.
+     *
+     * @return string
+     */
+    public function accessibility_css()
+    {
+        $uuid = $this->optin_campaign_uuid;
+        $id   = $this->optin_css_id;
+        $form = "html div#$uuid div#$id";
+
+        $close = "html div#$uuid a.mo-optin-form-close-icon";
+
+        // Blue ring with a white halo, so it shows on light and dark forms alike.
+        $css = "$form .mo-optin-field:focus-visible, $form .mo-optin-form-custom-field:focus-visible, $form .mo-optin-form-submit-button:focus-visible, $form .mo-optin-form-cta-button:focus-visible, $close:focus-visible {outline: 2px solid #2271b1 !important; outline-offset: 2px; box-shadow: 0 0 0 2px #fff;}";
+
+        // Close links are drawn at 12-34px. An invisible 44px layer centred on each one makes it easy to tap
+        // without moving anything. It needs the link to be positioned: the zero-specificity default below
+        // makes static links relative, and any template that positions its link itself still wins. Links
+        // wrapping an image are left alone: templates position that image against the form, not the link.
+        // Browsers without :has() skip both rules together, so the layer is never anchored to the form.
+        $plain = "html div#$uuid a.mo-optin-form-close-icon:not(:has(> img))";
+        $css   .= ":where($plain) {position: relative;}";
+        $css   .= "$plain::before {content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%);}";
+
+        $css .= "@media screen and (max-width: 480px) {
+        $form input.mo-optin-field, $form input.mo-optin-form-custom-field, $form select.mo-optin-form-custom-field, $form .mo-optin-form-submit-button, $form .mo-optin-form-cta-button {min-height: 44px !important;}
+        }";
+
+        return $css;
+    }
+
     public function placeholders_input_css()
     {
         ob_start();
@@ -701,6 +734,8 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
         $global_css .= $this->placeholders_input_css();
 
+        $global_css .= $this->accessibility_css();
+
         return apply_filters('mo_optin_form_global_css', $global_css, $optin_campaign_uuid, $optin_css_id);
     }
 
@@ -829,6 +864,7 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                 'top: 0',
                 'width: 100%',
                 'padding: 0 10px',
+                'box-sizing: border-box',
                 'height: 100%',
                 'overflow: auto', // fixes overflow scrolling bar being shown :D
                 'background: rgba(0,0,0,0.7)'
@@ -883,7 +919,9 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
                  $this->is_cookie_targeting_rule_active() ||
                  $this->is_device_targeting_active() ||
                  $this->is_x_page_views_rule_active() ||
-                 OCR::is_split_test_optin($this->optin_campaign_id)
+                 OCR::is_split_test_optin($this->optin_campaign_id) ||
+                 // An add-on that decides in the browser whether it shows (a display gate in mailoptin.js).
+                 apply_filters('mailoptin_optin_starts_hidden', false, $this->optin_campaign_id, $this->optin_campaign_type)
              )
         ) {
             $is_hidden_style = 'display: none';
@@ -1238,6 +1276,35 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
         /** exit intent display rule */
         if ($exit_intent_status === true && ! empty($exit_intent_status)) {
             $data['exit_intent_status'] = $exit_intent_status;
+        }
+
+        // Premium display rules: when the visitor goes idle, and a floating tab that opens the campaign.
+        if (apply_filters('mailoptin_premium_display_rules', defined('MAILOPTIN_DETACH_LIBSODIUM'))) {
+            // An untouched slider isn't saved: its 30 seconds.
+            $idle_value = $this->get_customizer_value('idle_value');
+            $idle_value = '' === (string)$idle_value || null === $idle_value ? 30 : absint($idle_value);
+
+            if ($this->get_customizer_value('idle_status') === true && $idle_value > 0) {
+                $data['idle_status'] = true;
+                $data['idle_value']  = min(600, max(5, $idle_value));
+            }
+
+            if ($this->get_customizer_value('launcher_status') === true && in_array($data['optin_type'], ['lightbox', 'slidein', 'bar'], true)) {
+                $text = trim(sanitize_text_field((string)$this->get_customizer_value('launcher_text')));
+
+                $data['launcher'] = [
+                    'text'       => '' !== $text ? $text : __('Get 10% off', 'mailoptin'),
+                    'style'      => 'tab' === $this->get_customizer_value('launcher_style') ? 'tab' : 'button',
+                    'position'   => in_array($this->get_customizer_value('launcher_position'), ['bottom_right', 'bottom_left', 'right', 'left'], true) ? $this->get_customizer_value('launcher_position') : 'bottom_right',
+                    'background' => sanitize_hex_color((string)$this->get_customizer_value('launcher_background')) ?: '#1f7a4d',
+                    'color'      => sanitize_hex_color((string)$this->get_customizer_value('launcher_color')) ?: '#ffffff',
+                    'only'       => $this->get_customizer_value('launcher_only') === true,
+                    'mobile'     => $this->get_customizer_value('launcher_mobile') !== false,
+                ];
+
+                // Opened only from the tab: the tab is always there, or nothing could open it.
+                $data['launcher']['when'] = ! $data['launcher']['only'] && 'after_close' === $this->get_customizer_value('launcher_when') ? 'after_close' : 'always';
+            }
         }
 
         /** after conversion / success actions */

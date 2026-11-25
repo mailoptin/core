@@ -11,6 +11,29 @@ final class Core
     const conversions_table_name = 'mo_conversions';
     const email_campaigns_table_name = 'mo_email_campaigns';
     const email_campaign_meta_table_name = 'mo_email_campaignmeta';
+    const subscribers_table_name = 'mo_subscribers';
+    const lists_table_name = 'mo_lists';
+    const list_subscribers_table_name = 'mo_list_subscribers';
+    const suppressions_table_name = 'mo_suppressions';
+    const subscriber_events_table_name = 'mo_subscriber_events';
+    const send_queue_table_name = 'mo_send_queue';
+    const conversion_syncs_table_name = 'mo_conversion_syncs';
+    const tags_table_name = 'mo_tags';
+    const subscriber_tags_table_name = 'mo_subscriber_tags';
+    const custom_fields_table_name = 'mo_custom_fields';
+    const field_values_table_name = 'mo_subscriber_field_values';
+    const segments_table_name = 'mo_segments';
+    const campaign_links_table_name = 'mo_campaign_links';
+    const campaign_activity_table_name = 'mo_campaign_activity';
+    const campaign_stats_table_name = 'mo_campaign_stats';
+    const campaign_settings_table_name = 'mo_campaign_settings';
+    const automations_table_name = 'mo_automations';
+    const automation_steps_table_name = 'mo_automation_steps';
+    const automation_runs_table_name = 'mo_automation_runs';
+    const automation_run_steps_table_name = 'mo_automation_run_steps';
+    const abandoned_carts_table_name = 'mo_abandoned_carts';
+    const abandoned_cart_runs_table_name = 'mo_abandoned_cart_runs';
+    const audience_consents_table_name = 'mo_audience_consents';
 
     public function __construct()
     {

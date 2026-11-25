@@ -32,7 +32,11 @@ class EmailCampaigns extends AbstractSettingsPage
                             'campaign-log',
                             'add-new',
                             'add-new-email-automation',
-                            'create-broadcast'
+                            'create-broadcast',
+                            Broadcast_Page::VIEW,
+                            Automations_Page::VIEW,
+                            \MailOptin\Core\Admin\EmailEditor\EmailEditor::VIEW,
+                            Digest_Send_Page::VIEW
                     ])) {
 
                 add_action('wp_cspa_before_closing_header', [$this, 'add_new_email_campaign']);
@@ -40,7 +44,7 @@ class EmailCampaigns extends AbstractSettingsPage
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
                 $this->settingsInstance->option_name(MO_EMAIL_CAMPAIGNS_WP_OPTION_NAME);
                 $this->settingsInstance->page_header(__('Emails', 'mailoptin'));
-                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast'])) {
+                if ( ! in_array($active_menu, ['add-new-email-automation', 'add-new', 'create-broadcast', Broadcast_Page::VIEW, Automations_Page::VIEW, \MailOptin\Core\Admin\EmailEditor\EmailEditor::VIEW, Digest_Send_Page::VIEW])) {
                     $this->settingsInstance->sidebar($this->sidebar_args());
                 }
 
@@ -63,6 +67,12 @@ class EmailCampaigns extends AbstractSettingsPage
                 [$this, 'settings_admin_page_callback']
         );
         add_action('mailoptin_admin_settings_submenu_page_create-broadcast', [$this, 'settings_admin_page_callback']);
+        add_action('mailoptin_admin_settings_submenu_page_' . Broadcast_Page::VIEW, function () {
+            echo Broadcast_Page::html();
+        });
+        add_action('mailoptin_admin_settings_submenu_page_' . Digest_Send_Page::VIEW, function () {
+            echo Digest_Send_Page::html();
+        });
 
         add_action('post_submitbox_misc_actions', [$this, 'new_publish_post_exclude_metabox']);
         add_action('save_post', [$this, 'save_new_publish_post_exclude']);
@@ -137,7 +147,8 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function screen_option()
     {
-        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && ! isset($_GET['view'])) {
+        // The list shows with no view, or with its own tab's name (view=post-notifications) in the address.
+        if (isset($_GET['page']) && $_GET['page'] == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG && in_array($_GET['view'] ?? '', ['', 'post-notifications'], true)) {
             $option = 'per_page';
             $args   = [
                     'label'   => __('Email Automation', 'mailoptin'),
@@ -154,6 +165,10 @@ class EmailCampaigns extends AbstractSettingsPage
      */
     public function settings_admin_page_callback()
     {
+        // View hooks are shared by every MailOptin page: "view=add-new" typed on another page (Optin
+        // Campaigns has add-new-optin) reaches this too, before the Emails page has set itself up.
+        if ( ! $this->settingsInstance) return;
+
         if (moVarGET('page') == MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_SLUG) {
 
             if (moVarGET('view') == 'add-new') {
@@ -164,8 +179,9 @@ class EmailCampaigns extends AbstractSettingsPage
                 return AddEmailCampaign::get_instance()->settings_admin_page();
             }
 
+            // A name and a template, then the email editor.
             if (moVarGET('view') == 'create-broadcast') {
-                return AddNewsletter::get_instance()->settings_admin_page();
+                return \MailOptin\Core\Admin\EmailEditor\EmailEditor::new_broadcast_page();
             }
         }
 
@@ -173,15 +189,43 @@ class EmailCampaigns extends AbstractSettingsPage
         add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
         echo '<div class="mailoptin-data-listing">';
         $this->settingsInstance->page_header(__('Post Notifications', 'mailoptin'));
+        $this->never_sends_notice();
         $this->settingsInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
         echo '</div>';
+    }
+
+    /**
+     * Post notifications that are switched on but can never send, because "Send Immediately" is off and
+     * no delay is set.
+     */
+    public function never_sends_notice()
+    {
+        $names = [];
+
+        foreach (Core\Repositories\EmailCampaignRepository::get_by_email_campaign_type(Core\Repositories\EmailCampaignRepository::NEW_PUBLISH_POST) as $campaign) {
+            $id = absint($campaign['id']);
+
+            if (Core\Repositories\EmailCampaignRepository::is_campaign_active($id) && Core\EmailCampaigns\NewPublishPost\NewPublishPost::never_sends($id)) {
+                $names[] = sprintf('<a href="%s">%s</a>', esc_url(Email_Campaign_List::_campaign_customize_url($id)), esc_html($campaign['name']));
+            }
+        }
+
+        if (empty($names)) return;
+
+        printf(
+            '<div class="notice notice-warning"><p>%s</p></div>',
+            sprintf(
+                esc_html(_n('This post notification is switched on but never sends: %s. "Send Immediately" is off and no delay is set. Open it and, under Schedule, set a delay or switch on "Send Immediately".', 'These post notifications are switched on but never send: %s. "Send Immediately" is off and no delay is set. Open each and, under Schedule, set a delay or switch on "Send Immediately".', count($names), 'mailoptin')),
+                implode(', ', $names)
+            )
+        );
     }
 
     public function add_new_email_campaign()
     {
         if (
                 isset($_GET['view']) &&
-                in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast', 'campaign-log'])
+                in_array($_GET['view'], ['add-new-email-automation', 'add-new', 'create-broadcast', 'campaign-log', Broadcast_Page::VIEW, Digest_Send_Page::VIEW])
         ) {
             return;
         }

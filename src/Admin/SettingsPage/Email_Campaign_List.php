@@ -177,6 +177,50 @@ class Email_Campaign_List extends \WP_List_Table
         );
     }
 
+    /**
+     * Whether the list shows its first screen instead of the table: nothing in it at all.
+     */
+    public function shows_empty_state()
+    {
+        return 0 === (int)$this->record_count('');
+    }
+
+    /**
+     * With no post notifications at all, a first screen with the two kinds to start from.
+     */
+    public function display()
+    {
+        if ($this->shows_empty_state()) {
+            echo self::empty_state();
+
+            return;
+        }
+
+        parent::display();
+    }
+
+    public static function empty_state()
+    {
+        $url = function ($type) {
+            return add_query_arg(['view' => 'add-new-email-automation', 'type' => $type], MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE);
+        };
+
+        return \MailOptin\Core\Admin\EmptyState::render([
+            'icon'  => 'email',
+            'title' => __('Email subscribers when you publish', 'mailoptin'),
+            'text'  => __('Send each new post as it goes live, or a round-up of new posts every day, week or month.', 'mailoptin'),
+            'cards' => [
+                ['label' => __('New post alert', 'mailoptin'), 'sub' => __('One email per post', 'mailoptin'), 'url' => $url(ER::NEW_PUBLISH_POST)],
+                [
+                    'label' => __('Posts digest', 'mailoptin'),
+                    'sub'   => __('A round-up on a schedule', 'mailoptin'),
+                    'url'   => $url(ER::POSTS_EMAIL_DIGEST),
+                    'pro'   => ! apply_filters('mailoptin_enable_post_email_digest', false),
+                ],
+            ],
+        ]);
+    }
+
     /** Text displayed when no email campaign is available */
     public function no_items()
     {
@@ -214,51 +258,20 @@ class Email_Campaign_List extends \WP_List_Table
 
         $customize_url = self::_campaign_customize_url($email_campaign_id);
 
-        $delete_url = self::_campaign_delete_url($email_campaign_id);
-        $name       = "<strong><a href=\"$customize_url\">" . $item['name'] . '</a></strong>';
+        $name = sprintf('<strong><a class="row-title" href="%s">%s</a></strong>', esc_url($customize_url), esc_html($item['name']));
 
+        // Edit first, Delete last, as in WordPress's own lists; they used to be three coloured icon buttons.
         $actions = [
-            'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', $delete_url, __('Delete', 'mailoptin')),
+            'edit'   => sprintf('<a href="%s">%s</a>', esc_url($customize_url), esc_html__('Edit', 'mailoptin')),
+            'clone'  => sprintf('<a href="%s">%s</a>', esc_url(self::_campaign_clone_url($email_campaign_id)), esc_html__('Duplicate', 'mailoptin')),
+            'delete' => sprintf('<a class="mo-delete-prompt" href="%s">%s</a>', esc_url(self::_campaign_delete_url($email_campaign_id)), esc_html__('Delete', 'mailoptin')),
         ];
 
+        if (ER::POSTS_EMAIL_DIGEST === ($item['campaign_type'] ?? '') && Digest_Send_Page::is_enabled()) {
+            $actions = ['send_now' => sprintf('<a href="%s">%s</a>', esc_url(Digest_Send_Page::url($email_campaign_id)), __('Send now', 'mailoptin'))] + $actions;
+        }
+
         return $name . $this->row_actions($actions);
-    }
-
-    /**
-     * Render a column when no column specific method exist.
-     *
-     * @param array $item
-     *
-     * @return mixed
-     */
-    public function column_action($item)
-    {
-        $email_campaign_id = absint($item['id']);
-
-        $delete_url    = self::_campaign_delete_url($email_campaign_id);
-        $clone_url     = self::_campaign_clone_url($email_campaign_id);
-        $customize_url = self::_campaign_customize_url($email_campaign_id);
-
-        $action = sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-blue" href="%s" title="%s">%s</a> &nbsp;',
-            esc_url_raw($customize_url),
-            __('Customize', 'mailoptin'),
-            '<span class="dashicons dashicons-edit mo-action-icon"></span>'
-        );
-        $action .= sprintf(
-            '<a class="mo-tooltipster button action" href="%s" title="%s">%s</a> &nbsp;',
-            $clone_url,
-            __('Clone', 'mailoptin'),
-            '<span class="dashicons dashicons-admin-page mo-action-icon"></span>'
-        );
-        $action .= sprintf(
-            '<a class="mo-tooltipster button action mailoptin-btn-red mo-delete-prompt" href="%s" title="%s">%s</a> &nbsp;',
-            $delete_url,
-            __('Delete', 'mailoptin'),
-            '<span class="dashicons dashicons-trash mo-action-icon"></span>'
-        );
-
-        return $action;
     }
 
     /**
@@ -276,18 +289,46 @@ class Email_Campaign_List extends \WP_List_Table
         $checked     = ($input_value == 'yes') ? 'checked="checked"' : null;
 
         $switch = sprintf(
-            '<input data-mo-automation-id="%1$s" id="mo-automation-activate-switch-%1$s" type="checkbox" class="mo-automation-activate-switch tgl tgl-light" value="%%3$s" %3$s />',
+            '<input data-mo-automation-id="%1$s" id="mo-automation-activate-switch-%1$s" type="checkbox" class="mo-automation-activate-switch tgl tgl-light" value="%2$s" %3$s />',
             $email_campaign_id,
             $input_value,
             $checked
         );
 
         $switch .= sprintf(
-            '<label for="mo-automation-activate-switch-%1$s" style="margin:auto;" class="tgl-btn"></label>',
-            $email_campaign_id
+            '<label for="mo-automation-activate-switch-%1$s" style="margin:auto;" class="tgl-btn"><span class="screen-reader-text">%2$s</span></label>',
+            $email_campaign_id,
+            esc_html(sprintf(__('Send "%s"', 'mailoptin'), $item['name']))
         );
 
         return $switch;
+    }
+
+    /**
+     * When a digest next goes out, and how many posts it would carry now.
+     */
+    public function column_next_send($item)
+    {
+        if (ER::POSTS_EMAIL_DIGEST !== ($item['campaign_type'] ?? '') || ! Digest_Send_Page::is_enabled()) return '&mdash;';
+
+        $email_campaign_id = absint($item['id']);
+        $digest            = \MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest::get_instance();
+        $waiting           = Digest_Send_Page::waiting_count($email_campaign_id);
+        $waiting_html      = \MailOptin\Core\Admin\UI::badge(sprintf(_n('%s post waiting', '%s posts waiting', $waiting, 'mailoptin'), number_format_i18n($waiting)), $waiting ? 'info' : '');
+
+        if ($digest->is_manual_only($email_campaign_id)) {
+            return esc_html__('When you send it', 'mailoptin') . '<br>' . $waiting_html;
+        }
+
+        if ( ! ER::is_campaign_active($email_campaign_id)) {
+            return esc_html__('Not activated', 'mailoptin') . '<br>' . $waiting_html;
+        }
+
+        $next = $digest->next_unskipped_at($email_campaign_id);
+
+        if ( ! $next) return '&mdash;';
+
+        return esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $next->getTimestamp())) . '<br>' . $waiting_html;
     }
 
     /**
@@ -310,14 +351,20 @@ class Email_Campaign_List extends \WP_List_Table
      *
      * @return array
      */
+    /** The name WordPress folds the row under on phones. */
+    protected function get_default_primary_column_name()
+    {
+        return 'name';
+    }
+
     public function get_columns()
     {
         $columns = array(
             'cb'            => '<input type="checkbox">',
-            'name'          => __('Name', 'mailoptin'),
-            'campaign_type' => __('Automation Type', 'mailoptin'),
-            'action'        => __('Actions', 'mailoptin'),
-            'activated'     => __('Activated', 'mailoptin'),
+            'name'          => __('Email', 'mailoptin'),
+            'campaign_type' => __('Type', 'mailoptin'),
+            'next_send'     => __('Next send', 'mailoptin'),
+            'activated'     => __('Status', 'mailoptin'),
         );
 
         return $columns;
@@ -370,16 +417,13 @@ class Email_Campaign_List extends \WP_List_Table
         if ($which != 'top') return;
         $selected_option = isset($_POST['mo_email_automations_filter']) ? sanitize_text_field($_POST['mo_email_automations_filter']) : '';
         ?>
-        <div class="alignleft actions bulkactions" style="line-height: 2em;font-size: 15px">
-            <strong style="font-weight:500;"><?php _e('Filter By:', 'mailoptin'); ?></strong>
-        </div>
         <div class="alignleft actions bulkactions">
             <label for="mo-listing-filter" class="screen-reader-text">
                 <?php _e('Filter email automation by', 'mailoptin'); ?>
             </label>
             <select name="mo_email_automations_filter" id="mo-listing-filter">
                 <option value="">
-                    <?php _e('Select...', 'mailoptin'); ?>
+                    <?php _e('All types', 'mailoptin'); ?>
                 </option>
                 <option value="<?= ER::NEW_PUBLISH_POST; ?>" <?php selected(ER::NEW_PUBLISH_POST, $selected_option); ?>>
                     <?= ER::get_type_name(ER::NEW_PUBLISH_POST) ?>
@@ -388,7 +432,7 @@ class Email_Campaign_List extends \WP_List_Table
                     <?= ER::get_type_name(ER::POSTS_EMAIL_DIGEST) ?>
                 </option>
             </select>
-            <input type="submit" class="button action" value="<?php _e('Apply', 'mailoptin'); ?>">
+            <input type="submit" class="button action" value="<?php esc_attr_e('Filter', 'mailoptin'); ?>">
         </div>
         <?php
     }

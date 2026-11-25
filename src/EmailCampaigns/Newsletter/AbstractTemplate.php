@@ -12,9 +12,12 @@ abstract class AbstractTemplate extends \MailOptin\Core\EmailCampaigns\AbstractT
     {
         parent::__construct($email_campaign_id);
 
-        add_filter('mo_ecb_elements_default_values', [$this, 'email_content_builder_element_defaults']);
+        // The email the defaults are for is passed too: a template can keep to its own emails.
+        add_filter('mo_ecb_elements_default_values', [$this, 'email_content_builder_element_defaults'], 10, 2);
 
-        add_action('mo_get_preview_structure_before_closing_head', [$this, 'google_fonts']);
+        // One printer for every template made in the request (the same static callback is added
+        // once): each email's <head> gets the fonts link once, not once per template made before it.
+        add_action('mo_get_preview_structure_before_closing_head', [__CLASS__, 'print_google_fonts']);
     }
 
     public function get_font_family_stack($font_family)
@@ -75,6 +78,11 @@ abstract class AbstractTemplate extends \MailOptin\Core\EmailCampaigns\AbstractT
 
     public function google_fonts()
     {
+        self::print_google_fonts();
+    }
+
+    public static function print_google_fonts()
+    {
         echo <<<HTML
 <!--[if !mso]><!-->
 <link href="https://fonts.googleapis.com/css?family=Arvo:400,400i,700,700i|Lato:400,400i,700,700i|Lora:400,400i,700,700i|Merriweather:400,400i,700,700i|Merriweather+Sans:400,400i,700,700i|Noticia+Text:400,400i,700,700i|Open+Sans:400,400i,700,700i|Playfair+Display:400,400i,700,700i|Roboto:400,400i,700,700i|Source+Sans+Pro:400,400i,700,700i|Oswald:400,400i,700,700i|Raleway:400,400i,700,700i|Permanent+Marker:400,400i,700,700i|Pacifico:400,400i,700,700i" rel="stylesheet">
@@ -85,13 +93,28 @@ HTML;
 
     abstract function email_content_builder_element_defaults($defaults);
 
-    abstract function text_block($id, $settings);
+    /**
+     * The width, in pixels, of the table the blocks go in ({{newsletter.content}}): blocks and
+     * columns are drawn to fit it.
+     */
+    public function content_width()
+    {
+        return 570;
+    }
 
-    abstract function button_block($id, $settings);
+    /**
+     * What a new email in this template starts with, to edit or delete: blocks as saved
+     * ([['id', 'type', 'settings'], ...]). Settings left out take the block's defaults.
+     */
+    public function starter_content()
+    {
+        return [
+            ['id' => 'start-hello', 'type' => 'text', 'settings' => ['text_content' => '<p>' . esc_html__('Hi {{subscriber.first_name|there}},', 'mailoptin') . '</p><p>' . esc_html__('Write your message here.', 'mailoptin') . '</p>']],
+            ['id' => 'start-button', 'type' => 'button', 'settings' => ['button_text' => __('Read more', 'mailoptin'), 'button_link' => home_url('/')]],
+            ['id' => 'start-bye', 'type' => 'text', 'settings' => ['text_content' => '<p>' . esc_html__('Thanks for reading,', 'mailoptin') . '<br>' . esc_html(get_bloginfo('name')) . '</p>']],
+        ];
+    }
 
-    abstract function divider_block($id, $settings);
-
-    abstract function image_block($id, $settings);
-
-    abstract function spacer_block($id, $settings);
+    // Blocks are drawn by the block API (src/EmailBlocks), from MJML. A template can still draw one its
+    // own way by defining {block id}_block($id, $settings).
 }

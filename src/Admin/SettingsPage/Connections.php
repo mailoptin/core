@@ -88,7 +88,7 @@ class Connections extends AbstractSettingsPage
         ?>
         <div id="mailoptin-sub-bar">
             <div class="mailoptin-new-toolbar mailoptin-clear" style="border-top: 0;margin-bottom:0">
-                <h4><?php _e('Filter By:', 'mailoptin'); ?></h4>
+                <h4 class="screen-reader-text"><?php _e('Show integrations of type', 'mailoptin'); ?></h4>
                 <ul class="mailoptin-design-options">
                     <li>
                         <a href="<?php echo MAILOPTIN_CONNECTIONS_SETTINGS_PAGE; ?>" class="<?php echo $all_menu_active; ?>">
@@ -151,18 +151,18 @@ class Connections extends AbstractSettingsPage
 
         $boxes = [
                 [
-                        'section_title' => esc_html__('Integration with Form Plugins'),
-                        'content'       => sprintf(__('MailOptin integrates with popular WordPress form plugins to help save all contacts and subscribers from your forms submissions to your email marketing software and CRM.
-                <p><a href="%s" target="_blank">Gravity Forms integration</a></p>
-                <p><a href="%s" target="_blank">Contact Form 7 integration</a></p>
-                <p><a href="%s" target="_blank">WPForms integration</a></p>
-                <p><a href="%s" target="_blank">Ninja Forms integration</a></p>
-                <p><a href="%s" target="_blank">Elementor Forms integration</a></p>
-                <p><a href="%s" target="_blank">Forminator integration</a></p>
-                <p><a href="%s" target="_blank">Formidable Forms integration</a></p>
-                <p><a href="%s" target="_blank">Fluent Forms integration</a></p>
-                <p><a href="%s" target="_blank">WS Form integration</a></p>
-                '),
+                        'section_title' => esc_html__('Form plugins', 'mailoptin'),
+                        'content'       => sprintf(__('Send people who fill in these plugins\' forms to your email service or CRM. Each guide shows how.
+                <p><a href="%s" target="_blank">Gravity Forms</a></p>
+                <p><a href="%s" target="_blank">Contact Form 7</a></p>
+                <p><a href="%s" target="_blank">WPForms</a></p>
+                <p><a href="%s" target="_blank">Ninja Forms</a></p>
+                <p><a href="%s" target="_blank">Elementor Forms</a></p>
+                <p><a href="%s" target="_blank">Forminator</a></p>
+                <p><a href="%s" target="_blank">Formidable Forms</a></p>
+                <p><a href="%s" target="_blank">Fluent Forms</a></p>
+                <p><a href="%s" target="_blank">WS Form</a></p>
+                ', 'mailoptin'),
                                 'https://mailoptin.io/article/gravity-forms-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=gravity_forms',
                                 'https://mailoptin.io/article/contact-form-7-mailchimp-aweber-more/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=cf7',
                                 'https://mailoptin.io/article/wpforms-email-marketing-crm/?utm_source=wp_dashboard&utm_medium=integration_metabox&utm_campaign=wpforms',
@@ -175,8 +175,8 @@ class Connections extends AbstractSettingsPage
                         )
                 ],
                 [
-                        'section_title' => esc_html__('Elite WordPress Integrations'),
-                        'content'       => sprintf(__('MailOptin also integrates with the following WordPress features and plugins.
+                        'section_title' => esc_html__('More integrations', 'mailoptin'),
+                        'content'       => sprintf(__('Signups from these WordPress features and plugins can go to your email service too.
                 <p><a href="%s" target="_blank">WordPress user registration</a></p>
                 <p><a href="%s" target="_blank">MailPoet</a>, <a href="%s" target="_blank">Mailster</a>, <a href="%s" target="_blank">FluentCRM</a> & <a href="%s" target="_blank">Groundhogg</a></p>
                 <p><a href="%s" target="_blank">WooCommerce, memberships & subscriptions plugins</a></p>
@@ -225,8 +225,8 @@ class Connections extends AbstractSettingsPage
         usort($connection_args, function ($a, $b) {
 
             // First check if an integration is connected
-            $a_connected = strpos($a["section_title"] ?? '', '(Connected)') !== false;
-            $b_connected = strpos($b["section_title"] ?? '', '(Connected)') !== false;
+            $a_connected = self::is_connected_title($a["section_title"] ?? '');
+            $b_connected = self::is_connected_title($b["section_title"] ?? '');
 
             // Prioritize connected integrations
             if ($a_connected && ! $b_connected) {
@@ -301,7 +301,7 @@ class Connections extends AbstractSettingsPage
                     );
                 }
 
-                printf('<h2 class="mailoptin-integration-title">%s</h2></div>', str_replace(__('Connection', 'mailoptin'), '', $section_title));
+                printf('<h2 class="mailoptin-integration-title">%s</h2></div>', self::tile_title($section_title));
                 printf('<div class="mailoptin-integration-lower"><a href="#%s-modal-settings" data-fancybox class="button" role="button">%s</a></div>', $key, esc_html__('Configure', 'mailoptin'));
                 echo '</div>';
                 echo '</div>';
@@ -361,6 +361,33 @@ class Connections extends AbstractSettingsPage
         $args[] = 'code';
 
         return $args;
+    }
+
+    /**
+     * Whether a connection's title says it's connected. Connections write the status with
+     * __('Connected', 'mailoptin'), so on a translated site it reads e.g. "(Verbunden)".
+     */
+    public static function is_connected_title($section_title)
+    {
+        $section_title = (string)$section_title;
+
+        return false !== strpos($section_title, '(' . __('Connected', 'mailoptin') . ')') || false !== strpos($section_title, '(Connected)');
+    }
+
+    /**
+     * A tile's title: the integration's plain name, and a "Connected" badge when it is. Connections write
+     * their title as "Name Connection <span style=…>(Connected)</span>"; the inline-styled status is dropped.
+     *
+     * @param string $section_title
+     *
+     * @return string Escaped HTML.
+     */
+    public static function tile_title($section_title)
+    {
+        $is_connected = self::is_connected_title($section_title);
+        $plain_name   = trim(wp_strip_all_tags(str_replace(__('Connection', 'mailoptin'), '', preg_replace('#<span[^>]*>.*?</span>#s', '', (string)$section_title))));
+
+        return esc_html($plain_name) . ($is_connected ? ' ' . \MailOptin\Core\Admin\UI::badge(__('Connected', 'mailoptin'), 'ok') : '');
     }
 
     public static function get_instance()

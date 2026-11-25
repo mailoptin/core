@@ -153,7 +153,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 
@@ -169,7 +169,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 
@@ -337,12 +337,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($email_campaign_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting(new EC_Customizer_Setting(
-                    $this->wp_customize,
-                    $this->option_prefix . '[' . $id . ']',
-                    $args
-                )
-            );
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 
@@ -368,7 +363,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($page_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 
@@ -422,7 +417,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($header_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 
@@ -475,6 +470,11 @@ class CustomizerSettings extends AbstractCustomizer
                 ),
                 'content_post_meta'                        => array(
                     'default'   => $this->customizer_defaults['content_post_meta'],
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'content_post_meta_position'               => array(
+                    'default'   => $this->customizer_defaults['content_post_meta_position'],
                     'type'      => 'option',
                     'transport' => 'refresh',
                 ),
@@ -538,7 +538,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($content_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 
@@ -602,7 +602,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($footer_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 
@@ -623,7 +623,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($send_test_email_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
     }
 }

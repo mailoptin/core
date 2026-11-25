@@ -26,6 +26,7 @@ use MailOptin\Core\Repositories\OptinCampaignStat;
 use MailOptin\Core\Repositories\OptinConversionsRepository;
 use MailOptin\Core\Repositories\OptinThemesRepository;
 use MailOptin\Core\Repositories\StateRepository;
+use MailOptin\Core\Submissions\SubmissionSync;
 use MailOptin\Libsodium\LeadBank\LeadBank;
 
 class AjaxHandler
@@ -40,6 +41,7 @@ class AjaxHandler
         // MailOptin_event => nopriv
         $ajax_events = array(
             'track_optin_impression'                   => true,
+            'track_optin_click'                        => true,
             'subscribe_to_email_list'                  => true,
             'send_test_email'                          => false,
             'create_optin_campaign'                    => false,
@@ -184,11 +186,23 @@ class AjaxHandler
 
         $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_subject'));
 
-        if (EmailCampaignRepository::is_newsletter($email_campaign_id)) {
+        if (EmailCampaignRepository::is_built_email($email_campaign_id)) {
             $campaign_subject = Misc::parse_email_subject(EmailCampaignRepository::get_customizer_value($email_campaign_id, 'email_campaign_title'));
         }
 
         $campaign_type = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
+
+        // An automation's email is tested as the automation page does it: placeholders filled from the
+        // latest person who started it, or with sample values.
+        if (EmailCampaignRepository::is_automation_email($email_campaign_id)) {
+            $owner = \MailOptin\Core\Repositories\AutomationsRepository::email_owner($email_campaign_id);
+
+            if ($owner) {
+                wp_send_json(['success' => \MailOptin\Core\Automations\Engine::send_test($owner[0], $owner[1], $admin_email)]);
+            }
+
+            $campaign_type = EmailCampaignRepository::NEWSLETTER;
+        }
 
         $plugin_settings = new Settings();
         $from_name       = $plugin_settings->from_name();
@@ -293,7 +307,7 @@ class AjaxHandler
         echo '<div class="mailoptin-optin-themes mailoptin-optin-clear">';
         // lightbox/modal display should be default.
 
-        OptinThemesRepository::listing_display_template($optin_type);
+        OptinThemesRepository::listing_display_template($optin_type, true);
         echo '</div>';
 
         exit;
@@ -423,30 +437,45 @@ class AjaxHandler
         // merge parent optin with variants
         array_unshift($variant_ids, $parent_optin_id);
 
+        /**
+         * Extra columns for the variants (key => label), filled by mailoptin_split_test_winner_column.
+         * Premium's product offers add Orders and Revenue.
+         */
+        $columns = (array)apply_filters('mailoptin_split_test_winner_columns', [], $parent_optin_id);
+
         ob_start();
         ?>
         <div class="mo-end-test-modal">
         <div class="mo-end-test-conversion-rate">
             <div class="mo-end-test-centered">
                 <h2><?php _e('Select a Winner', 'mailoptin'); ?></h2>
-                <div class="mo-end-test-first-section">
-                    <div class="mo-end-test-content-optin-name mo-end-test-th-header">
-                        <?php _e('Optin Name', 'mailoptin'); ?>
-                    </div>
-                    <div class="mo-end-test-content-conversion mo-end-test-th-header">
-                        <?php _e('Conversion Rate', 'mailoptin'); ?>
-                    </div>
-                </div>
-                <?php foreach ($variant_ids as $variant_id) : ?>
-                    <?php $variant_name = OptinCampaignsRepository::get_optin_campaign_name($variant_id); ?>
-                    <?php $variant_conversion_rate = (new OptinCampaignStat($variant_id))->get_conversion_rate(); ?>
-                    <div class="mo-end-test-first-section mo-end-test-tbody mo-end-test-clearfix" data-parent-id="<?php echo $parent_optin_id; ?>" data-optin-id="<?php echo $variant_id; ?>">
-                        <div class="mo-end-test-content-optin-name"><?php echo $variant_name; ?></div>
-                        <div class="mo-end-test-content-conversion">
-                            <span class="mo-end-test-converted-rate"><?php echo $variant_conversion_rate; ?></span>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                <table class="mo-end-test-table">
+                    <thead>
+                    <tr>
+                        <th class="mo-end-test-th-header"><?php _e('Optin Name', 'mailoptin'); ?></th>
+                        <th class="mo-end-test-th-header"><?php _e('Conversion Rate', 'mailoptin'); ?></th>
+                        <?php foreach ($columns as $label) : ?>
+                            <th class="mo-end-test-th-header"><?php echo esc_html($label); ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($variant_ids as $variant_id) : ?>
+                        <?php $variant_name = OptinCampaignsRepository::get_optin_campaign_name($variant_id); ?>
+                        <?php $variant_conversion_rate = (new OptinCampaignStat($variant_id))->get_conversion_rate(); ?>
+                        <tr class="mo-end-test-tbody" data-parent-id="<?php echo absint($parent_optin_id); ?>" data-optin-id="<?php echo absint($variant_id); ?>">
+                            <td class="mo-end-test-content-optin-name"><?php echo esc_html($variant_name); ?></td>
+                            <td class="mo-end-test-content-conversion">
+                                <span class="mo-end-test-converted-rate"><?php echo esc_html($variant_conversion_rate); ?></span>
+                            </td>
+                            <?php foreach (array_keys($columns) as $key) : ?>
+                                <td><?php echo wp_kses_post(apply_filters('mailoptin_split_test_winner_column', '', $key, $variant_id, $parent_optin_id)); ?></td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php echo wp_kses_post(apply_filters('mailoptin_split_test_winner_note', '', $parent_optin_id, $variant_ids)); ?>
                 <div class="mo-end-test-warning-note">
                     <?php _e('Warning: selecting a winner will delete the other A/B test variants.', 'mailoptin'); ?>
                 </div>
@@ -498,8 +527,14 @@ class AjaxHandler
         $response = OptinCampaignsRepository::add_optin_campaign(self::generateUniqueId(), $title, $theme, $type);
 
         if (is_int($response)) {
+            /** After a campaign is made from a template on Add New (Premium: product offers write their defaults). */
+            do_action('mailoptin_optin_campaign_created', $response, $theme, $type);
+
             wp_send_json_success(
-                array('redirect' => OptinCampaign_List::_optin_campaign_customize_url($response))
+                array(
+                    // Where Add New goes next: the Customizer, or a template's own setup (Premium: product offers).
+                    'redirect' => apply_filters('mailoptin_new_optin_campaign_redirect', OptinCampaign_List::_optin_campaign_customize_url($response), $response, $theme, $type)
+                )
             );
         } else {
             wp_send_json_error();
@@ -535,9 +570,17 @@ class AjaxHandler
 
         if (is_int($email_campaign_id)) {
             EmailCampaignMeta::add_meta_data($email_campaign_id, 'created_at', current_time('mysql'));
-            wp_send_json_success(
-                array('redirect' => Email_Campaign_List::_campaign_customize_url($email_campaign_id))
-            );
+
+            // A post notification needs a delay or "Send Immediately", or it never sends: start with an hour.
+            if (EmailCampaignRepository::NEW_PUBLISH_POST === $type) {
+                EmailCampaignRepository::update_settings_by_id($email_campaign_id, ['schedule_digit' => '1', 'schedule_type' => 'hours']);
+            }
+            // Broadcasts open on their own page, where the design is one step of several.
+            $redirect = EmailCampaignRepository::NEWSLETTER === $type
+                ? \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($email_campaign_id)
+                : Email_Campaign_List::_campaign_customize_url($email_campaign_id);
+
+            wp_send_json_success(array('redirect' => $redirect));
         } else {
             global $wpdb;
             wp_send_json_error(isset($wpdb->last_error) ? $wpdb->last_error : null);
@@ -661,6 +704,9 @@ class AjaxHandler
             exit;
         }
 
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
+
         $optin_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);
 
@@ -678,6 +724,9 @@ class AjaxHandler
         if ( ! current_user_has_privilege()) {
             exit;
         }
+
+        // A request from another site must not switch campaigns on or off.
+        check_ajax_referer('mailoptin-admin-nonce', 'nonce');
 
         $email_campaign_id = absint($_POST['id']);
         $status            = sanitize_text_field($_POST['status']);
@@ -721,6 +770,12 @@ class AjaxHandler
         $builder->referrer          = $payload['referrer'] ?? '';
 
         $response = self::do_optin_conversion($builder);
+
+        /**
+         * The response to the form, after the subscription: a prize wheel adds its prize here
+         * (Wheel::respond), drawn only once the subscription has gone through.
+         */
+        $response = apply_filters('mailoptin_optin_subscription_response', $response, $optin_campaign_id, $payload);
 
         wp_send_json($response);
     }
@@ -924,12 +979,18 @@ class AjaxHandler
             $a = array_diff($bucket, [$email]);
 
             update_option('mo_leadbank_unsubscribers', $a);
+
+            // As before the suppression table: signing up again through a form lifts an unsubscribe
+            // from a Lead Bank email. Not one from a built-in list email, a bounce or a complaint.
+            \MailOptin\Core\Repositories\SuppressionRepository::remove_unsubscribe_from($lead_data['email'], ['mo_leadbank_unsubscribe']);
         }
 
         // kick-in if only lead bank should be used
         if ($lead_bank_only === true) {
 
             if ( ! self::is_leadbank_disabled() && $conversionRepoResponse) self::track_conversion($optin_campaign_id, $lead_data);
+
+            do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
 
             return AbstractConnect::ajax_success();
         }
@@ -945,10 +1006,12 @@ class AjaxHandler
             }
 
             $connection_email_list = $conversion_data->connection_email_list ?? '';
-            $response              = self::add_lead_to_connection($connection_service, $connection_email_list, $conversion_data);
+            $response              = SubmissionSync::send((int)$conversionRepoResponse, $connection_service, $connection_email_list, $conversion_data);
 
             if (AbstractConnect::is_ajax_success($response)) {
                 self::track_conversion($optin_campaign_id, $lead_data);
+
+                do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
             }
 
             return $response;
@@ -999,7 +1062,8 @@ class AjaxHandler
                     if (is_array($ls_lists)) {
                         foreach ($ls_lists as $ls_list) {
                             if (in_array($ls_list, $valid_options)) {
-                                $responses[] = self::add_lead_to_connection(
+                                $responses[] = SubmissionSync::send(
+                                        (int)$conversionRepoResponse,
                                         $integration['connection_service'],
                                         $ls_list,
                                         $conversion_data
@@ -1009,7 +1073,8 @@ class AjaxHandler
                     } else {
 
                         if (in_array($ls_lists, $valid_options)) {
-                            $responses[] = self::add_lead_to_connection(
+                            $responses[] = SubmissionSync::send(
+                                    (int)$conversionRepoResponse,
                                     $integration['connection_service'],
                                     $ls_lists,
                                     $conversion_data
@@ -1022,7 +1087,8 @@ class AjaxHandler
 
             } else {
 
-                $responses[] = self::add_lead_to_connection(
+                $responses[] = SubmissionSync::send(
+                    (int)$conversionRepoResponse,
                     $integration['connection_service'],
                     $integration['connection_email_list'] ?? '',
                     $conversion_data
@@ -1043,6 +1109,13 @@ class AjaxHandler
         if ($is_any_success) {
 
             if ( ! self::is_leadbank_disabled() && $conversionRepoResponse) self::track_conversion($optin_campaign_id, $lead_data);
+
+            /**
+             * Fires once, only when the subscription succeeded with at least one integration
+             * (mailoptin_after_optin_subscription fires for each one, whatever the result). Premium's
+             * email-unlock product offers apply their coupon only after this.
+             */
+            do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
 
             return AbstractConnect::ajax_success();
         }
@@ -1101,7 +1174,7 @@ class AjaxHandler
         }
 
         // $extras['referrer'] is already set
-        $extras['mo_ip_address']    = get_ip_address();
+        $extras['mo_ip_address']    = ! empty($conversion_data->ip_address) ? $conversion_data->ip_address : get_ip_address();
         $extras['mo_campaign_name'] = OptinCampaignsRepository::get_optin_campaign_name($conversion_data->optin_campaign_id);
 
         //add the disable_double_optin for external forms
@@ -1142,6 +1215,16 @@ class AjaxHandler
         (new OptinCampaignStat($optin_campaign_id))->save($stat_type);
 
         do_action('mailoptin_track_impressions', $payload, $optin_campaign_id, $optin_uuid);
+    }
+
+    /**
+     * A click on a related post (Read Next): a conversion for that campaign.
+     */
+    public function track_optin_click()
+    {
+        if ( ! isset($_REQUEST['stat_data']) || ! is_array($_REQUEST['stat_data'])) return;
+
+        \MailOptin\Core\OptinForms\RelatedPosts::track_click(sanitize_data($_REQUEST['stat_data']));
     }
 
     public static function get_valid_optin_impression_campaign_id($payload)

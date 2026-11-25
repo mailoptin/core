@@ -44,6 +44,13 @@ class Templatify implements TemplatifyInterface
             $content = \MailOptin\Core\emogrify($content);
         }
 
+        // Columns' widths on wider screens, as MJML writes them (the MJML templates, such as Folio):
+        // after inlining, which would drop rules for classes it can't find.
+        if ( ! ER::is_code_your_own_template($this->email_campaign_id) && false !== strpos($content, 'mj-column-per-')) {
+            $head    = \MailOptin\Core\EmailBlocks\Mjml::columns_head();
+            $content = false !== stripos($content, '</head>') ? preg_replace('#</head>#i', $head . '</head>', $content, 1) : $head . $content;
+        }
+
         return $this->replace_footer_placeholder_tags(
             str_replace(['%5B', '%5D', '%7B', '%7D', '%24', '%20'], ['[', ']', '{', '}', '$', ' '], $content)
         );

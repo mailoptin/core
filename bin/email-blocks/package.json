@@ -1,0 +1,12 @@
+{
+  "name": "mailoptin-email-blocks",
+  "private": true,
+  "description": "Compiles the email blocks' MJML into the HTML templates PHP fills in. Run: npm ci && npm run build (or npm run check in CI).",
+  "scripts": {
+    "build": "node build.js",
+    "check": "node build.js --check"
+  },
+  "devDependencies": {
+    "mjml": "4.15.3"
+  }
+}

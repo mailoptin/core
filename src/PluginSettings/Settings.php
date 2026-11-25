@@ -78,6 +78,8 @@ class Settings
         $data[$key] = $value;
 
         update_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, $data);
+        // Kept in step: later reads and updates in the same request see this one.
+        $this->settings_data = $data;
     }
 
     /**
@@ -91,6 +93,7 @@ class Settings
         unset($data[$key]);
 
         update_option(MAILOPTIN_SETTINGS_DB_OPTION_NAME, $data);
+        $this->settings_data = $data;
     }
 
     /**

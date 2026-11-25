@@ -1,0 +1,1326 @@
+/*
+ * MailOptin admin design system.
+ *
+ * One set of colours, spacing and components shared by every MailOptin admin screen:
+ * the page header and tabs, buttons, badges, chips, cards, notices, search boxes and
+ * list tables. Components use the "mo-ui-" prefix so they never clash with WordPress
+ * core or other plugins. Markup helpers live in MailOptin\Core\Admin\UI.
+ */
+
+body.mailoptin-admin {
+    --mo-blue: #2271b1;
+    --mo-blue-dark: #135e96;
+    --mo-blue-soft: #f0f6fc;
+    --mo-ink: #1d2327;
+    --mo-text: #3c434a;
+    --mo-muted: #646970;
+    --mo-line: #dcdcde;
+    --mo-line-soft: #f0f0f1;
+    --mo-bg: #f6f7f7;
+    --mo-card: #fff;
+    --mo-ok: #00701a;
+    --mo-ok-bg: #edfaef;
+    --mo-warn: #8a6100;
+    --mo-warn-bg: #fcf9e8;
+    --mo-bad: #b32d2e;
+    --mo-bad-bg: #fcf0f1;
+    --mo-pro: #5b2a9e;
+    --mo-pro-bg: #f3ecff;
+    --mo-radius: 10px;
+    --mo-radius-sm: 6px;
+
+    /* Type scale: use only these sizes. */
+    --mo-fs-xs: 12px;
+    --mo-fs-sm: 13px;
+    --mo-fs-base: 14px;
+    --mo-fs-md: 16px;
+    --mo-fs-lg: 20px;
+    --mo-fs-xl: 23px;
+
+    /* Spacing scale: use only these steps. */
+    --mo-sp-1: 4px;
+    --mo-sp-2: 8px;
+    --mo-sp-3: 12px;
+    --mo-sp-4: 16px;
+    --mo-sp-5: 24px;
+    --mo-sp-6: 32px;
+    --mo-sp-7: 48px;
+}
+
+/* ---------- Page header: white top bar with the page name, then underlined tabs ---------- */
+
+body.mailoptin-admin .mailoptin-admin-wrap {
+    background: #fff;
+    border-bottom: 1px solid var(--mo-line);
+    min-height: 60px;
+    padding: 0 28px;
+}
+
+body.mailoptin-admin .mailoptin-header-items {
+    gap: 12px;
+}
+
+body.mailoptin-admin .mailoptin-header-items img {
+    background: var(--mo-blue);
+    border-radius: 7px;
+    box-sizing: border-box;
+    height: 30px;
+    padding: 6px;
+    width: 30px;
+}
+
+body.mailoptin-admin h2.mailoptin-headers-main-title {
+    border-left: 0;
+    color: var(--mo-ink);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    margin: 0;
+    padding: 0;
+}
+
+body.mailoptin-admin .mailoptin-headers-header-close {
+    max-width: none;
+}
+
+/* Keep the help links clear of WordPress's absolutely positioned "Screen Options" button. */
+body.mailoptin-admin:has(#screen-meta-links) .mailoptin-admin-wrap {
+    padding-right: 170px;
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks {
+    white-space: nowrap;
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks a {
+    color: var(--mo-text);
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks a:hover,
+body.mailoptin-admin .mo-admin-banner__helplinks a:focus {
+    color: var(--mo-blue);
+}
+
+body.mailoptin-admin .mo-admin-banner__helplinks a.mailoptin-right-nav-active {
+    background: var(--mo-pro-bg);
+    border-radius: 99px;
+    color: var(--mo-pro);
+    padding: 4px 12px;
+}
+
+body.mailoptin-admin .mailoptin-header-menus {
+    border-bottom: 1px solid var(--mo-line);
+    box-shadow: none;
+    padding: 0 28px;
+}
+
+body.mailoptin-admin .mailoptin-nav-tab-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 22px;
+}
+
+body.mailoptin-admin .mailoptin-nav-tab {
+    border-bottom: 2px solid transparent;
+    color: var(--mo-text);
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+    padding: 12px 0 11px;
+    white-space: nowrap;
+}
+
+body.mailoptin-admin .mailoptin-nav-tab:hover {
+    color: var(--mo-blue);
+}
+
+body.mailoptin-admin .mailoptin-nav-tab.mailoptin-nav-active {
+    border-bottom-color: var(--mo-blue);
+    color: var(--mo-blue);
+    font-size: 13px;
+}
+
+/* ---------- Page body ---------- */
+
+.mo-ui-page {
+    color: var(--mo-ink);
+    font-size: 13px;
+    max-width: 1320px;
+    padding: 22px 28px;
+}
+
+.mo-ui-heading {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.mo-ui-heading h1 {
+    font-size: var(--mo-fs-xl);
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+    padding: 0;
+}
+
+.mo-ui-heading .mo-ui-sub {
+    color: var(--mo-muted);
+}
+
+.mo-ui-heading .mo-ui-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+/* ---------- Buttons ---------- */
+
+.mo-ui-btn,
+a.mo-ui-btn,
+button.mo-ui-btn {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-shadow: none;
+    box-sizing: border-box;
+    color: var(--mo-ink);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 6px;
+    height: 32px;
+    line-height: 1;
+    padding: 0 12px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.mo-ui-btn:hover,
+.mo-ui-btn:focus {
+    border-color: #8c8f94;
+    color: var(--mo-ink);
+}
+
+.mo-ui-btn:focus-visible {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--mo-blue);
+    outline: none;
+}
+
+.mo-ui-btn.mo-ui-primary {
+    background: var(--mo-blue);
+    border-color: var(--mo-blue);
+    color: #fff;
+}
+
+.mo-ui-btn.mo-ui-primary:hover,
+.mo-ui-btn.mo-ui-primary:focus {
+    background: var(--mo-blue-dark);
+    border-color: var(--mo-blue-dark);
+    color: #fff;
+}
+
+.mo-ui-btn.mo-ui-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--mo-blue);
+}
+
+.mo-ui-btn.mo-ui-ghost:hover {
+    background: var(--mo-blue-soft);
+}
+
+.mo-ui-btn.mo-ui-danger {
+    color: var(--mo-bad);
+}
+
+.mo-ui-btn[disabled],
+.mo-ui-btn.mo-ui-disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+/* ---------- Cards ---------- */
+
+.mo-ui-card {
+    background: var(--mo-card);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    box-sizing: border-box;
+}
+
+.mo-ui-card-pad {
+    padding: 18px 22px;
+}
+
+/* ---------- Badges, pills, chips ---------- */
+
+.mo-ui-badge {
+    align-items: center;
+    background: var(--mo-line-soft);
+    border-radius: 99px;
+    color: #50575e;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 500;
+    gap: 5px;
+    line-height: 18px;
+    padding: 1px 8px;
+    white-space: nowrap;
+}
+
+.mo-ui-badge::before {
+    background: currentColor;
+    border-radius: 50%;
+    content: "";
+    height: 6px;
+    width: 6px;
+}
+
+.mo-ui-badge.mo-ui-ok {
+    background: var(--mo-ok-bg);
+    color: var(--mo-ok);
+}
+
+.mo-ui-badge.mo-ui-warn {
+    background: var(--mo-warn-bg);
+    color: var(--mo-warn);
+}
+
+.mo-ui-badge.mo-ui-bad {
+    background: var(--mo-bad-bg);
+    color: var(--mo-bad);
+}
+
+.mo-ui-badge.mo-ui-info {
+    background: var(--mo-blue-soft);
+    color: var(--mo-blue);
+}
+
+.mo-ui-pro,
+.mo-premium-badge,
+.mo-premium-pill {
+    background: var(--mo-pro-bg, #f3ecff);
+    border-radius: 99px;
+    color: var(--mo-pro, #5b2a9e);
+    display: inline-block;
+    font-size: var(--mo-fs-xs);
+    font-weight: 600;
+    line-height: 16px;
+    margin-left: 4px;
+    padding: 0 7px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.mo-ui-chip {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--mo-line);
+    border-radius: 99px;
+    box-sizing: border-box;
+    color: var(--mo-ink);
+    display: inline-flex;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.mo-ui-chip b {
+    font-weight: 600;
+}
+
+.mo-ui-chip .mo-ui-chip-x {
+    color: var(--mo-muted);
+    text-decoration: none;
+}
+
+.mo-ui-chip .mo-ui-chip-x:hover {
+    color: var(--mo-bad);
+}
+
+.mo-ui-chip.mo-ui-chip-add {
+    border-style: dashed;
+    color: var(--mo-blue);
+}
+
+/* ---------- Notices ---------- */
+
+.mo-ui-note {
+    background: var(--mo-blue-soft);
+    border: 1px solid #c5d9ed;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.mo-ui-note.mo-ui-warn {
+    background: var(--mo-warn-bg);
+    border-color: #f0e2a8;
+}
+
+.mo-ui-note.mo-ui-bad {
+    background: var(--mo-bad-bg);
+    border-color: #f1c4c5;
+}
+
+.mo-ui-note.mo-ui-ok {
+    background: var(--mo-ok-bg);
+    border-color: #b8e6bf;
+}
+
+/* ---------- Forms ---------- */
+
+input.mo-ui-search {
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23646970' stroke-width='2'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='M9.5 9.5 13 13'/%3E%3C/svg%3E") no-repeat 10px center;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-sizing: border-box;
+    height: 32px;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 0 10px 0 30px;
+    width: 280px;
+}
+
+/* ---------- List screens ---------- */
+
+.mo-ui-views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 12px;
+}
+
+.mo-ui-views a {
+    border: 1px solid transparent;
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-text);
+    padding: 6px 12px;
+    text-decoration: none;
+}
+
+.mo-ui-views a.mo-ui-on {
+    background: #fff;
+    border-color: var(--mo-line);
+    color: var(--mo-ink);
+    font-weight: 600;
+}
+
+.mo-ui-views a .mo-ui-count {
+    color: var(--mo-muted);
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+.mo-ui-toolbar {
+    align-items: center;
+    border-bottom: 1px solid var(--mo-line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+}
+
+.mo-ui-toolbar .mo-ui-end {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
+/* ---------- Admin notices: below the header, in line with the page ---------- */
+
+/* WordPress moves notices to just after .wp-header-end, which the header prints inside this box. */
+body.mailoptin-admin .mo-header-notices {
+    padding: 0 28px 0 22px;
+}
+
+body.mailoptin-admin .mo-header-notices > .notice,
+body.mailoptin-admin .mo-header-notices > .updated,
+body.mailoptin-admin .mo-header-notices > .error {
+    margin: var(--mo-sp-4) 0 0;
+}
+
+/* ---------- Type filter bar (Optin Campaigns, Add New, Integrations) ---------- */
+
+/* Sentence case, readable contrast and a visible focus ring, in place of the old uppercase blue tabs. */
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mo-sp-2) var(--mo-sp-3);
+    min-height: 0;
+    padding: 0;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-clear:after {
+    display: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar h4 {
+    color: var(--mo-muted);
+    float: none;
+    font-size: var(--mo-fs-sm);
+    font-weight: 400;
+    margin: 0;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul {
+    display: flex;
+    flex-wrap: wrap;
+    float: none;
+    gap: var(--mo-sp-1);
+    margin: 0;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li {
+    float: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li:empty {
+    display: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a {
+    border: 1px solid transparent;
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-blue);
+    display: inline-block;
+    font-size: var(--mo-fs-sm);
+    letter-spacing: 0;
+    outline: revert !important;
+    padding: 6px var(--mo-sp-3);
+    text-transform: none;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a:hover {
+    background: var(--mo-blue-soft);
+    color: var(--mo-blue-dark);
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a.mailoptin-type-active {
+    background: #fff;
+    border-color: var(--mo-line);
+    color: var(--mo-ink);
+    font-weight: 600;
+}
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a:focus-visible {
+    box-shadow: 0 0 0 2px var(--mo-blue);
+    outline: 2px solid transparent !important;
+}
+
+/* ---------- "Add New" next to a page title ---------- */
+
+body.mailoptin-admin .mailoptin-data-listing .add-new-h2,
+body.mailoptin-admin .mailoptin-data-listing .add-new-h2:hover,
+body.mailoptin-admin .mailoptin-log-listing .add-new-h2,
+body.mailoptin-admin .mailoptin-log-listing .add-new-h2:hover {
+    background: var(--mo-blue);
+    border-color: var(--mo-blue);
+    box-shadow: none;
+    text-shadow: none;
+}
+
+body.mailoptin-admin .mailoptin-data-listing .add-new-h2:hover,
+body.mailoptin-admin .mailoptin-log-listing .add-new-h2:hover {
+    background: var(--mo-blue-dark);
+}
+
+
+/* ---------- Optin Campaigns list ---------- */
+
+body.mailoptin-admin #mailoptin-sub-bar .mailoptin-new-toolbar ul li a .mo-ui-count {
+    color: var(--mo-muted);
+    font-weight: 400;
+    margin-left: var(--mo-sp-1);
+}
+
+body.mailoptin-admin table.mo-optin-list .mo-optin-meta {
+    color: var(--mo-muted);
+    font-size: var(--mo-fs-sm);
+    margin-top: 2px;
+}
+
+body.mailoptin-admin table.mo-optin-list .row-title {
+    font-size: var(--mo-fs-base);
+}
+
+body.mailoptin-admin table.mo-optin-list .mo-ui-badge {
+    vertical-align: 1px;
+}
+
+/* Delete reads as the destructive one, without shouting on every row. */
+body.mailoptin-admin table.mo-optin-list .row-actions .delete a {
+    color: var(--mo-bad);
+}
+
+body.mailoptin-admin table.mo-optin-list .column-activated {
+    width: 72px;
+}
+
+/* Room for the name, its details line and all row actions on one line. */
+body.mailoptin-admin table.mo-optin-list th#name {
+    width: 40%;
+}
+
+body.mailoptin-admin table.mo-optin-list .column-impression,
+body.mailoptin-admin table.mo-optin-list .column-conversion,
+body.mailoptin-admin table.mo-optin-list .column-percent {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    width: 104px;
+}
+
+body.mailoptin-admin table.mo-optin-list .mo-split-test-buttons {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mo-sp-2);
+}
+
+@media screen and (max-width: 782px) {
+    /* WordPress folds rows on phones; folded values sit left, under their labels. */
+    body.mailoptin-admin table.mo-optin-list .column-impression,
+    body.mailoptin-admin table.mo-optin-list .column-conversion,
+    body.mailoptin-admin table.mo-optin-list .column-percent,
+    body.mailoptin-admin table.mo-optin-list .column-activated {
+        text-align: left;
+        width: auto;
+    }
+
+    /* WordPress gives the main column the full width on phones; the old 22% rule (an id selector) outranked it. */
+    body.mailoptin-admin table.mo-optin-list th#name {
+        width: 100%;
+    }
+
+    body.mailoptin-admin table.mo-optin-list .row-actions a {
+        display: inline-block;
+        min-height: 44px;
+        line-height: 44px;
+    }
+}
+
+/* ---------- Add New optin campaign ---------- */
+
+body.mailoptin-admin .mailoptin-optin-new-list {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    height: auto;
+    flex-wrap: wrap;
+    gap: var(--mo-sp-2) var(--mo-sp-3);
+    padding: var(--mo-sp-4) var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-optin-new-list label {
+    color: var(--mo-ink);
+    font-size: var(--mo-fs-base);
+    font-weight: 600;
+}
+
+body.mailoptin-admin .mailoptin-optin-new-list input#mailoptin-add-optin-campaign-title {
+    box-sizing: border-box;
+    flex: 0 1 360px;
+    margin: 0;
+    max-width: 100%;
+}
+
+body.mailoptin-admin .mailoptin-optin-new-list .mo-optin-new-help {
+    color: var(--mo-muted);
+    font-size: var(--mo-fs-sm);
+}
+
+/* An even grid however many templates the objective filter hides (the old floats reset every third margin). */
+body.mailoptin-admin .mailoptin-optin-themes {
+    display: grid;
+    gap: var(--mo-sp-5);
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+body.mailoptin-admin .mailoptin-optin-themes::after {
+    display: none;
+}
+
+/* The objective filter and any notes above the cards take a whole row. */
+body.mailoptin-admin .mailoptin-optin-themes > :not(.mailoptin-optin-theme) {
+    grid-column: 1 / -1;
+}
+
+body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme {
+    border-radius: var(--mo-radius-sm);
+    float: none;
+    margin: 0;
+    overflow: hidden;
+    width: auto;
+}
+
+body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme .mailoptin-optin-theme-name {
+    font-size: var(--mo-fs-base);
+    height: auto;
+    line-height: 20px;
+    padding: var(--mo-sp-3) var(--mo-sp-4);
+    padding-right: 130px;
+}
+
+body.mailoptin-admin .mailoptin-optin-themes .mailoptin-optin-theme .mailoptin-optin-theme-actions {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    display: flex;
+    height: 100%;
+    max-height: 44px;
+    padding: 0 var(--mo-sp-3);
+}
+
+/* ---------- Settings (tabbed settings pages) ---------- */
+
+body.mailoptin-admin .mailoptin-settings-wrap {
+    align-items: flex-start;
+    border: 0;
+    gap: var(--mo-sp-6);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper {
+    background: transparent;
+    border: 0;
+    display: flex;
+    flex: 0 0 200px;
+    flex-direction: column;
+    gap: 2px;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a,
+body.mailoptin-admin #poststuff .mailoptin-settings-wrap h2.nav-tab-wrapper a {
+    background: transparent;
+    border: 0;
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-text);
+    font-size: var(--mo-fs-base);
+    font-weight: 400;
+    padding: var(--mo-sp-2) var(--mo-sp-3);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a:hover {
+    background: var(--mo-line-soft);
+    color: var(--mo-ink);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a.nav-tab-active {
+    background: #fff !important;
+    border: 0;
+    box-shadow: inset 3px 0 0 var(--mo-blue), 0 0 0 1px var(--mo-line);
+    color: var(--mo-ink);
+    font-weight: 600;
+    width: auto;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder {
+    background: #fff;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-sizing: border-box;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder .postbox {
+    margin: 0;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder h3.hndle {
+    border-top: 1px solid var(--mo-line-soft);
+    border-bottom: 1px solid var(--mo-line-soft);
+    color: var(--mo-ink);
+    font-size: var(--mo-fs-md);
+    padding: var(--mo-sp-4) var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder .inside {
+    margin: 0;
+    padding: 0 var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder p.submit,
+body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder > form > p {
+    padding: 0 var(--mo-sp-5) var(--mo-sp-5);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table th {
+    color: var(--mo-ink);
+    width: 220px;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table .description {
+    color: var(--mo-muted);
+    max-width: 60ch;
+}
+
+/* The checkbox before its label, as everywhere else in WordPress; the renderer prints it after. */
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) {
+    align-items: center;
+    column-gap: var(--mo-sp-2);
+    display: flex;
+    flex-wrap: wrap;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) > input[type="checkbox"] {
+    margin: 0;
+    order: -1;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) > strong {
+    font-weight: 400;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap .form-table td:has(> input[type="checkbox"]) > :not(input):not(strong) {
+    flex-basis: 100%;
+}
+
+/* ---------- Integrations ---------- */
+
+/* An even grid at any width, in place of fixed 20% tiles. */
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections {
+    display: grid;
+    gap: var(--mo-sp-4);
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper {
+    max-width: none;
+    padding: 0;
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-tile-wrapper > div {
+    border-color: var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    box-shadow: 0 1px 2px rgba(29, 35, 39, .06);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    padding: var(--mo-sp-5) var(--mo-sp-4) var(--mo-sp-4);
+}
+
+body.mailoptin-admin .mailoptin-settings-wrap-grid.mailoptin_connections .mailoptin-integration-upper {
+    flex: 1;
+    min-height: 0;
+}
+
+body.mailoptin-admin .mailoptin-integration-title {
+    color: var(--mo-ink);
+    font-size: var(--mo-fs-base);
+    margin: var(--mo-sp-3) 0;
+}
+
+/* The older rule shows any span in the title as a red block; the badge keeps its own look. */
+body.mailoptin-admin .mailoptin-integration-title .mo-ui-badge {
+    color: var(--mo-ok);
+    display: inline-flex;
+    margin: var(--mo-sp-1) 0 0;
+}
+
+/* ---------- Subscribers area: Tags, Custom fields, Segments ---------- */
+
+/* Row actions read as quiet text links, not a row of bordered buttons; Delete is the red one. */
+body.mailoptin-admin .mo-actions-col {
+    white-space: nowrap;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]) {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: var(--mo-blue);
+    font-size: var(--mo-fs-sm);
+    line-height: 24px;
+    min-height: 0;
+    padding: 0 var(--mo-sp-1);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]):hover,
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]):focus {
+    background: none;
+    color: var(--mo-blue-dark);
+    text-decoration-color: currentColor;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small.mo-button-danger {
+    color: var(--mo-bad);
+}
+
+/* A clear keyboard focus ring on the links. */
+body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]):focus-visible {
+    border-radius: 2px;
+    box-shadow: 0 0 0 2px var(--mo-blue);
+    outline: 2px solid transparent;
+}
+
+/* Can't be deleted yet (the title says why): readable, but plainly not a link. */
+body.mailoptin-admin .mo-actions-col .button.button-small[disabled] {
+    background: none !important;
+    color: var(--mo-muted) !important;
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+body.mailoptin-admin .mo-actions-col .button.button-small + .button.button-small::before {
+    color: var(--mo-line);
+    content: "|";
+    margin-right: var(--mo-sp-2);
+    pointer-events: none;
+}
+
+/* Long addresses wrap between parts, not one letter at a time. */
+body.mailoptin-admin .wp-list-table .column-email {
+    overflow-wrap: anywhere;
+    width: 26%;
+    word-break: normal;
+}
+
+/* ---------- Emails: Post notifications list and Logs ---------- */
+
+body.mailoptin-admin .wp-list-table .column-content_html {
+    white-space: nowrap;
+    width: 140px;
+}
+
+body.mailoptin-admin .wp-list-table.campaign_logs .column-subject,
+body.mailoptin-admin .wp-list-table .column-subject {
+    width: 28%;
+}
+
+body.mailoptin-admin .wp-list-table .column-campaign_type {
+    color: var(--mo-muted);
+    text-align: left;
+}
+
+body.mailoptin-admin .wp-list-table .column-activated {
+    width: 80px;
+}
+
+/* ---------- Locked Premium feature ---------- */
+
+.mo-ui-locked {
+    align-items: center;
+    display: grid;
+    gap: 28px;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    margin: 0 0 16px;
+    max-width: 1100px;
+    padding: 30px;
+}
+
+.mo-ui-locked.mo-ui-locked-solo {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 760px;
+}
+
+.mo-ui-locked .mo-ui-pro {
+    margin-left: 0;
+}
+
+body.mailoptin-admin .mo-ui-locked h2,
+#poststuff .mo-ui-locked h2 {
+    color: var(--mo-ink);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 8px 0;
+    padding: 0;
+}
+
+.mo-ui-locked-intro {
+    color: var(--mo-muted);
+    font-size: 14px;
+    margin: 0;
+    max-width: 60ch;
+}
+
+.mo-ui-locked ul {
+    list-style: disc;
+    margin: 14px 0 18px 18px;
+}
+
+.mo-ui-locked li {
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.mo-ui-locked-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mo-ui-locked-foot {
+    color: var(--mo-muted);
+    margin: 14px 0 0;
+}
+
+.mo-ui-preview {
+    background: #fff;
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+}
+
+.mo-ui-preview-bar {
+    align-items: center;
+    background: var(--mo-line-soft);
+    border-bottom: 1px solid var(--mo-line);
+    display: flex;
+    gap: 5px;
+    height: 26px;
+    padding: 0 10px;
+}
+
+.mo-ui-preview-bar i {
+    background: #c3c4c7;
+    border-radius: 50%;
+    display: inline-block;
+    height: 8px;
+    width: 8px;
+}
+
+.mo-ui-preview-in {
+    padding: 14px;
+}
+
+.mo-ui-preview-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mo-ui-preview-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0;
+}
+
+.mo-ui-preview-table {
+    border-collapse: collapse;
+    font-size: 12px;
+    width: 100%;
+}
+
+.mo-ui-preview-table td {
+    border-top: 1px solid var(--mo-line-soft);
+    overflow-wrap: anywhere;
+    padding: 8px 4px;
+}
+
+.mo-ui-preview-stats {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 10px 0 14px;
+}
+
+.mo-ui-preview-stats div {
+    border: 1px solid var(--mo-line);
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+.mo-ui-preview-stats b {
+    display: block;
+    font-size: 18px;
+}
+
+.mo-ui-preview-stats span {
+    color: var(--mo-muted);
+    font-size: 11px;
+}
+
+.mo-ui-preview-chart {
+    align-items: flex-end;
+    border-bottom: 1px solid var(--mo-line);
+    display: flex;
+    gap: 6px;
+    height: 90px;
+}
+
+.mo-ui-preview-chart i {
+    background: var(--mo-blue);
+    border-radius: 3px 3px 0 0;
+    flex: 1;
+    opacity: .85;
+}
+
+/* ---------- Empty states ---------- */
+
+.mo-ui-empty {
+    align-items: center;
+    background: var(--mo-card);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius);
+    box-sizing: border-box;
+    color: var(--mo-text);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0 20px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.mo-ui-empty h2 {
+    color: var(--mo-ink);
+    font-size: 18px;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.mo-ui-empty p {
+    color: var(--mo-muted);
+    font-size: 14px;
+    margin: 0;
+    max-width: 46em;
+}
+
+.mo-ui-empty-icon {
+    color: var(--mo-ink);
+    height: 72px;
+    width: 96px;
+}
+
+.mo-ui-empty-cards {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    margin-top: 6px;
+    max-width: 640px;
+    width: 100%;
+}
+
+.mo-ui-empty-card {
+    align-items: center;
+    background: var(--mo-card);
+    border: 1px solid var(--mo-line);
+    border-radius: var(--mo-radius-sm);
+    color: var(--mo-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 10px;
+    text-decoration: none;
+}
+
+.mo-ui-empty-card:hover,
+.mo-ui-empty-card:focus {
+    border-color: var(--mo-blue);
+    color: var(--mo-blue);
+}
+
+.mo-ui-empty-card-sub {
+    color: var(--mo-muted);
+    font-size: 12px;
+}
+
+.mo-ui-empty-shape {
+    border: 1.5px solid var(--mo-muted);
+    border-radius: 4px;
+    display: block;
+    height: 30px;
+    position: relative;
+    width: 44px;
+}
+
+.mo-ui-empty-shape:after {
+    background: var(--mo-blue);
+    border-radius: 2px;
+    content: "";
+    opacity: .7;
+    position: absolute;
+}
+
+.mo-ui-shape-lightbox:after { inset: 7px 9px; }
+.mo-ui-shape-slidein:after { bottom: 3px; height: 10px; right: 3px; width: 16px; }
+.mo-ui-shape-bar:after { border-radius: 0; height: 6px; left: 0; right: 0; top: 0; }
+.mo-ui-shape-inpost:after { height: 7px; left: 6px; right: 6px; top: 11px; }
+.mo-ui-shape-sidebar:after { bottom: 3px; right: 3px; top: 3px; width: 12px; }
+
+.mo-ui-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 6px !important;
+}
+
+/* ---------- Small screens ---------- */
+
+@media screen and (max-width: 782px) {
+    body.mailoptin-admin:has(#screen-meta-links) .mailoptin-admin-wrap,
+    body.mailoptin-admin .mailoptin-admin-wrap,
+    body.mailoptin-admin .mailoptin-header-menus,
+    .mo-ui-page {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    body.mailoptin-admin .mailoptin-header-menus {
+        overflow-x: auto;
+    }
+
+    body.mailoptin-admin .mailoptin-headers-header-close {
+        display: none;
+    }
+
+    body.mailoptin-admin .mailoptin-nav-tab-wrapper {
+        flex-wrap: nowrap;
+    }
+
+    input.mo-ui-search {
+        width: 100%;
+    }
+
+    body.mailoptin-admin .mo-header-notices {
+        padding: 0 16px;
+    }
+
+    /* Row action links are full-size tap targets on phones. */
+    body.mailoptin-admin .mo-actions-col {
+        white-space: normal;
+    }
+
+    body.mailoptin-admin .mo-actions-col .button.button-small:not([type="submit"]) {
+        line-height: 44px;
+    }
+
+    /* "Add filter" takes its own line and opens in place, so it fits the screen. */
+    body.mailoptin-admin .mo-filter-bar {
+        clear: both;
+        width: 100%;
+    }
+
+    /* WordPress gives the folded main column the full width on phones. */
+    body.mailoptin-admin .wp-list-table .column-email,
+    body.mailoptin-admin .wp-list-table .column-subject {
+        width: auto;
+    }
+
+    body.mailoptin-admin .mo-add-filter summary {
+        line-height: 44px;
+    }
+
+    body.mailoptin-admin .mo-add-filter-body {
+        box-sizing: border-box;
+        min-width: 0;
+        position: static;
+        width: 100%;
+    }
+
+    /* Settings: the tab list becomes a scrolling row above the settings. */
+    body.mailoptin-admin .mailoptin-settings-wrap {
+        flex-direction: column;
+        gap: var(--mo-sp-3);
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper {
+        flex: none;
+        flex-direction: row;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a,
+    body.mailoptin-admin #poststuff .mailoptin-settings-wrap h2.nav-tab-wrapper a {
+        line-height: 28px;
+        white-space: nowrap;
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap h2.nav-tab-wrapper a.nav-tab-active {
+        box-shadow: inset 0 -3px 0 var(--mo-blue), 0 0 0 1px var(--mo-line);
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder {
+        width: 100%;
+    }
+
+    body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder h3.hndle,
+    body.mailoptin-admin .mailoptin-settings-wrap .metabox-holder .inside {
+        padding-left: var(--mo-sp-4);
+        padding-right: var(--mo-sp-4);
+    }
+
+    /* WordPress's Screen Options button sits over the header's top right; on phones the header starts below it. */
+    body.mailoptin-admin:has(#screen-meta-links) .mailoptin-admin-wrap {
+        padding-top: 40px;
+    }
+
+    /* Nothing pushes the page wider than the screen: fields shrink, long buttons wrap, and simple
+       tables (the ones WordPress doesn't fold into rows on phones) scroll inside their own box. */
+    body.mailoptin-admin #wpbody-content input:not([type="checkbox"]):not([type="radio"]),
+    body.mailoptin-admin #wpbody-content select,
+    body.mailoptin-admin #wpbody-content textarea {
+        max-width: 100%;
+    }
+
+    /* Long labels wrap, with normal line spacing rather than WordPress's tall single-line height. */
+    body.mailoptin-admin #wpbody-content .button {
+        height: auto;
+        line-height: 1.4;
+        max-width: 100%;
+        padding-bottom: var(--mo-sp-2);
+        padding-top: var(--mo-sp-2);
+        white-space: normal;
+    }
+
+    /* WordPress's own list tables carry a table-view-* class (list or excerpt) and fold into rows on
+       phones; only the hand-made tables, which don't, scroll. */
+    body.mailoptin-admin #wpbody-content table.widefat:not([class*="table-view-"]),
+    body.mailoptin-admin #wpbody-content table.mo-api-table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        /* Screen-reader text inside is absolutely positioned; without this it escapes the scroll box. */
+        position: relative;
+    }
+
+    body.mailoptin-admin .mailoptin-license-field {
+        flex-wrap: wrap;
+        gap: var(--mo-sp-2);
+    }
+
+}
+
+/* Import optin campaigns */
+.mo-import { display: grid; gap: var(--mo-sp-4); max-width: 960px; }
+.mo-import .mo-ui-note { margin: 0; }
+.mo-import-card { background: #fff; border: 1px solid #c3c4c7; padding: var(--mo-sp-5); max-width: 640px; }
+.mo-import-card h3 { margin: 0 0 var(--mo-sp-3); font-size: var(--mo-fs-md); }
+.mo-import-card input[type="file"] { margin-top: var(--mo-sp-2); max-width: 100%; }
+.mo-import-table .mo-import-name { font-weight: 600; font-size: var(--mo-fs-md); color: #1d2327; }
+.mo-import-table .mo-optin-meta { color: #646970; margin-top: var(--mo-sp-1); }
+.mo-import-table .mo-import-variant td:nth-child(2) { padding-left: var(--mo-sp-6); }
+.mo-import-issues { margin: var(--mo-sp-2) 0 0; padding-left: var(--mo-sp-5); list-style: disc; color: #3c434a; }
+.mo-import-issues li { margin-bottom: var(--mo-sp-1); }
+.mo-import-option { background: #fff; border: 1px solid #c3c4c7; padding: var(--mo-sp-4); margin: 0; }
+.mo-import-actions { display: flex; gap: var(--mo-sp-2); flex-wrap: wrap; margin: 0; }
+@media screen and (max-width: 782px) {
+	.mo-import-table th.check-column { width: 2.5em; }
+	.mo-import-table .mo-import-variant td:nth-child(2) { padding-left: var(--mo-sp-4); }
+	.mo-import-actions .button { min-height: 44px; }
+
+    .mo-ui-locked {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 20px;
+    }
+}

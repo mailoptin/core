@@ -2,6 +2,8 @@
 
 namespace MailOptin\Core;
 
+use MailOptin\Core\Repositories\ConversionSyncRepository;
+use MailOptin\Core\Repositories\SubscribersRepository;
 use Carbon\Carbon;
 use MailOptin\Core\Repositories\EmailCampaignRepository;
 use MailOptin\Libsodium\LibsodiumSettingsPage;
@@ -15,6 +17,7 @@ class Cron
         add_action('init', [$this, 'create_recurring_schedule']);
 
         add_action('mo_daily_recurring_job', [$this, 'cleanup_old_leadbank_data']);
+        add_action('mo_daily_recurring_job', [$this, 'cleanup_unconfirmed_subscribers']);
 
         add_action('mailoptin_admin_notices', function () {
             add_action('admin_notices', [$this, 'catch_late_email_digest_event_notice']);
@@ -44,14 +47,21 @@ class Cron
         }
 
         $digest_campaigns = EmailCampaignRepository::get_by_email_campaign_type(EmailCampaignRepository::POSTS_EMAIL_DIGEST, 1);
+        $has_digests      = is_array($digest_campaigns) && ! empty($digest_campaigns);
 
-        if ( ! is_array($digest_campaigns) || empty($digest_campaigns)) return;
+        // Automations' waits and emails also rely on WP-Cron: the hourly scan and their own tick.
+        $has_automations = \MailOptin\Core\Automations\Engine::is_available() && \MailOptin\Core\Repositories\AutomationsRepository::has_live();
 
-        $cron = wp_get_scheduled_event('mo_hourly_recurring_job');
+        if ( ! $has_digests && ! $has_automations) return;
 
-        if ( ! $cron) return;
+        $late = false;
 
-        if ( ! $this->is_late(wp_get_scheduled_event('mo_hourly_recurring_job'))) return;
+        foreach (array_merge(['mo_hourly_recurring_job'], $has_automations ? [\MailOptin\Core\Automations\Engine::TICK_HOOK] : []) as $hook) {
+            $event = wp_get_scheduled_event($hook);
+            if ($event && $this->is_late($event)) $late = true;
+        }
+
+        if ( ! $late) return;
 
         printf(
             '<div id="mailoptin-crontrol-late-message" data-dismissible="catch_late_email_digest_event-7" class="notice notice-warning is-dismissible"><p>%4$s %1$s</p><p><a target="_blank" href="%2$s">%3$s</a></p></div>',
@@ -92,9 +102,39 @@ class Cron
 
         $table = $wpdb->prefix . Core::conversions_table_name;
 
-        return $wpdb->query(
+        $deleted = $wpdb->query(
             "DELETE FROM $table WHERE DATEDIFF(NOW(), date_added) >= 90"
         );
+
+        ConversionSyncRepository::delete_orphans();
+
+        return $deleted;
+    }
+
+    /**
+     * Delete signups that never confirmed their email after 30 days. Bot signups pile up here,
+     * and keeping an unconfirmed address indefinitely isn't needed.
+     *
+     * @return int number deleted
+     */
+    public function cleanup_unconfirmed_subscribers()
+    {
+        $days = (int)apply_filters('mo_unconfirmed_subscriber_retention_days', 30);
+
+        if ($days <= 0) return 0;
+
+        $before  = gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
+        $deleted = 0;
+
+        // Batches keep each query small; the cap keeps one run from taking too long.
+        for ($i = 0; $i < 20; $i++) {
+            $batch   = SubscribersRepository::delete_stale_pending($before, 500);
+            $deleted += $batch;
+
+            if ($batch < 500) break;
+        }
+
+        return $deleted;
     }
 
     /**

@@ -52,6 +52,8 @@ class WP_Customize_Email_Schedule_Time_Fields_Control extends WP_Customize_Contr
                         $('#schedule_month_date').show();
                         $('#schedule_time').show();
                     }
+
+                    $('#mo-digest-manual-hint').toggle(value === 'manual');
                 };
 
                 do_action($('#schedule_interval').val());
@@ -92,6 +94,14 @@ class WP_Customize_Email_Schedule_Time_Fields_Control extends WP_Customize_Contr
                 ?>
             </select>
             <span style="display: inline-block" class="description customize-control-description"><?php _e('after publishing', 'mailoptin'); ?></span>
+            <p class="mo-npp-delay-warning" style="color:#b32d2e;<?php echo '' === trim((string)$this->value($settings[0])) ? '' : 'display:none'; ?>"><?php esc_html_e('With no delay it never sends. Enter one, or switch on "Send Immediately".', 'mailoptin'); ?></p>
+            <script type="text/javascript">
+                jQuery(function ($) {
+                    $(document).on('input change', '#customize-control-<?php echo esc_js(str_replace(['[', ']'], ['-', ''], $this->id)); ?> input[type=text]', function () {
+                        $(this).closest('div').find('.mo-npp-delay-warning').toggle('' === $.trim(this.value));
+                    });
+                });
+            </script>
         </div>
         <?php
     }
@@ -106,6 +116,8 @@ class WP_Customize_Email_Schedule_Time_Fields_Control extends WP_Customize_Contr
             'every_day' => __('Every Day', 'mailoptin'),
             'every_week' => __('Every Week', 'mailoptin'),
             'every_month' => __('Every Month', 'mailoptin'),
+            // \MailOptin\Core\EmailCampaigns\PostsEmailDigest\PostsEmailDigest::SCHEDULE_MANUAL
+            'manual'      => __('Only when I send it', 'mailoptin'),
         ];
 
         $time_choices = [
@@ -207,6 +219,9 @@ class WP_Customize_Email_Schedule_Time_Fields_Control extends WP_Customize_Contr
                 echo '<option value="' . esc_attr($value) . '"' . selected($this->value('schedule_time'), $value, false) . '>' . $label . '</option>';
             ?>
         </select>
+        <span id="mo-digest-manual-hint" class="description customize-control-description" style="display:none"><?php
+            esc_html_e('New posts are collected until you send the digest from the Emails list (Send now).', 'mailoptin');
+            ?></span>
         <?php
 
         $this->digest_control_script();

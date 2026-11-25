@@ -40,9 +40,40 @@ class Templatify implements TemplatifyInterface
 
     public function post_content_forge()
     {
-        $preview_structure = EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure();
+        $preview_structure = $this->place_post_meta_slot(EmailCampaignFactory::make($this->email_campaign_id)->get_preview_structure());
 
-        $preview_structure = str_replace('{{post.feature.image}}', $this->feature_image($this->post), $preview_structure);
+        $feature_image = $this->feature_image($this->post);
+
+        // Templates that mark their image (Folio and the other MJML ones) leave it out when there is none.
+        if (empty($feature_image)) {
+            $preview_structure = preg_replace('#<!--mo-feature-image-->.*?<!--/mo-feature-image-->#s', '', $preview_structure);
+        }
+
+        $preview_structure = str_replace('{{post.feature.image}}', $feature_image, $preview_structure);
+
+        // The category label (Ledger, Spotlight): left out when the post has none.
+        $category = esc_html($this->post_category($this->post));
+        if ('' === $category) {
+            $preview_structure = preg_replace('#<!--mo-post-category-->.*?<!--/mo-post-category-->#s', '', $preview_structure);
+        }
+        $preview_structure = str_replace('{{post.category}}', $category, $preview_structure);
+
+        // A product's price and sale (Shelf, Market): left out for posts, and the sale when not on sale.
+        $product = $this->product_data($this->post);
+        if ( ! $product) {
+            $preview_structure = preg_replace('#<!--mo-product-->.*?<!--/mo-product-->#s', '', $preview_structure);
+        }
+        if (empty($product['regular'])) {
+            $preview_structure = preg_replace('#<!--mo-product-sale-->.*?<!--/mo-product-sale-->#s', '', $preview_structure);
+        }
+        $preview_structure = str_replace(
+            ['{{product.price}}', '{{product.regular_price}}', '{{product.percent_off}}'],
+            [$product['price'] ?? '', $product['regular'] ?? '', (int)($product['percent'] ?? 0)],
+            $preview_structure
+        );
+
+        // The markers have done their job.
+        $preview_structure = preg_replace('#<!--/?mo-(?:feature-image|post-category|product|product-sale)-->#', '', $preview_structure);
         $preview_structure = str_replace('{{post.feature.image.alt}}', $this->feature_image_alt($this->post), $preview_structure);
 
         $search = array(
@@ -54,7 +85,7 @@ class Templatify implements TemplatifyInterface
 
         $replace = [
             apply_filters('mo_new_publish_post_title', $this->post->post_title, $this->post, $this->email_campaign_id),
-            apply_filters('mo_new_publish_post_content', $this->post_content($this->post), $this->post, $this->email_campaign_id),
+            apply_filters('mo_new_publish_post_content', $this->post_content($this->post, null, ER::get_customizer_value($this->email_campaign_id, 'content_post_meta')), $this->post, $this->email_campaign_id),
             apply_filters('mo_new_publish_post_url', $this->post_url($this->post), $this->post, $this->email_campaign_id),
             apply_filters('mo_new_publish_post_meta', $this->post_meta($this->post), $this->post, $this->email_campaign_id)
         ];
@@ -89,6 +120,13 @@ class Templatify implements TemplatifyInterface
 
         if ( ! is_customize_preview()) {
             $content = \MailOptin\Core\emogrify($content);
+        }
+
+        // Columns' widths on wider screens, as MJML writes them (the MJML templates, such as Folio):
+        // after inlining, which would drop rules for classes it can't find.
+        if ( ! ER::is_code_your_own_template($this->email_campaign_id) && false !== strpos($content, 'mj-column-per-')) {
+            $head    = \MailOptin\Core\EmailBlocks\Mjml::columns_head();
+            $content = false !== stripos($content, '</head>') ? preg_replace('#</head>#i', $head . '</head>', $content, 1) : $head . $content;
         }
 
         return $this->replace_footer_placeholder_tags(

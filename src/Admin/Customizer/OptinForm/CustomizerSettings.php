@@ -35,6 +35,8 @@ class CustomizerSettings extends AbstractCustomizer
 
         // Customizer controls expect scalar values; normalize this campaign's saved values as WordPress reads the shared option.
         add_filter('option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, [$this, 'normalize_saved_customizer_values']);
+        // The same, for settings read from the campaign settings table.
+        add_filter('mo_campaign_customizer_settings', [$this, 'normalize_campaign_table_values'], 10, 3);
     }
 
     /**
@@ -51,6 +53,15 @@ class CustomizerSettings extends AbstractCustomizer
         }
 
         return $settings;
+    }
+
+    public function normalize_campaign_table_values($settings, $campaign_type, $campaign_id)
+    {
+        if (\MailOptin\Core\Repositories\CampaignSettingsRepository::TYPE_OPTIN !== $campaign_type || absint($campaign_id) !== absint($this->optin_campaign_id)) return $settings;
+
+        $normalized = $this->normalize_saved_customizer_values([absint($campaign_id) => $settings]);
+
+        return is_array($normalized[absint($campaign_id)] ?? null) ? $normalized[absint($campaign_id)] : $settings;
     }
 
     /**
@@ -200,7 +211,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($design_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_design_customizer_settings', $this->wp_customize, $design_settings_args);
@@ -271,7 +282,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($headline_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_headline_customizer_settings', $this->wp_customize, $headline_settings_args, $this);
@@ -328,7 +339,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($description_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_description_customizer_settings', $this->wp_customize, $description_settings_args);
@@ -400,7 +411,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($note_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_note_customizer_settings', $this->wp_customize, $note_settings_args);
@@ -566,7 +577,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($fields_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_fields_customizer_settings', $this->wp_customize, $fields_settings_args);
@@ -657,7 +668,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($configuration_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_configuration_customizer_settings', $this->wp_customize, $configuration_settings_args);
@@ -704,7 +715,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($integration_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_integration_customizer_settings', $this->wp_customize, $integration_settings_args);
@@ -752,7 +763,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($success_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_success_customizer_settings', $this->wp_customize, $success_settings_args);
@@ -819,6 +830,101 @@ class CustomizerSettings extends AbstractCustomizer
                     'default'   => apply_filters('mo_optin_form_exit_intent_status', false),
                     'type'      => 'option',
                     'transport' => 'postMessage',
+                ),
+                // Two steps: a yes-or-no question first, then the form (Premium).
+                'twostep_status'                  => array(
+                    'default'   => apply_filters('mo_optin_form_twostep_status', false),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'twostep_question'                => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_question', __('Want our best posts in your inbox?', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_text'                    => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_text', __('One email a week. Unsubscribe any time.', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_yes'                     => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_yes', __('Yes, sign me up', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_no'                      => array(
+                    'default'           => apply_filters('mo_optin_form_twostep_no', __('No thanks', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'twostep_progress'                => array(
+                    'default'   => apply_filters('mo_optin_form_twostep_progress', true),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                // Show when the visitor goes idle (Premium: Display Rules).
+                'idle_status'                     => array(
+                    'default'   => apply_filters('mo_optin_form_idle_status', false),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                'idle_value'                      => array(
+                    'default'   => apply_filters('mo_optin_form_idle_value', 30),
+                    'type'      => 'option',
+                    'transport' => 'postMessage',
+                ),
+                // A floating tab or button that opens the campaign (Premium: Display Rules).
+                'launcher_status'                 => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_status', false),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_text'                   => array(
+                    'default'           => apply_filters('mo_optin_form_launcher_text', __('Get 10% off', 'mailoptin')),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'launcher_style'                  => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_style', 'button'),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_position'               => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_position', 'bottom_right'),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_background'             => array(
+                    'default'           => apply_filters('mo_optin_form_launcher_background', '#1f7a4d'),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_hex_color',
+                ),
+                'launcher_color'                  => array(
+                    'default'           => apply_filters('mo_optin_form_launcher_color', '#ffffff'),
+                    'type'              => 'option',
+                    'transport'         => 'refresh',
+                    'sanitize_callback' => 'sanitize_hex_color',
+                ),
+                'launcher_when'                   => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_when', 'always'),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_only'                   => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_only', false),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
+                ),
+                'launcher_mobile'                 => array(
+                    'default'   => apply_filters('mo_optin_form_launcher_mobile', true),
+                    'type'      => 'option',
+                    'transport' => 'refresh',
                 ),
                 'x_seconds_status'                => array(
                     'default'   => apply_filters('mo_optin_form_x_seconds_status', false),
@@ -911,7 +1017,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($output_settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_output_customizer_settings', $this->wp_customize, $output_settings_args);
@@ -959,7 +1065,7 @@ class CustomizerSettings extends AbstractCustomizer
 
         foreach ($settings_args as $id => $args) {
             $args['autoload'] = false;
-            $this->wp_customize->add_setting($this->option_prefix . '[' . $id . ']', $args);
+            \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::add($this->wp_customize, $this->option_prefix . '[' . $id . ']', $args);
         }
 
         do_action('mo_optin_after_embed_customizer_settings', $this->wp_customize, $settings_args);

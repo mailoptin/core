@@ -3,6 +3,7 @@
 namespace MailOptin\Core\EmailCampaigns\Newsletter\Templates;
 
 use MailOptin\Core\EmailCampaigns\Newsletter\AbstractTemplate;
+use MailOptin\Core\EmailCampaigns\PostMetaFields;
 
 class Lucid extends AbstractTemplate
 {
@@ -44,14 +45,14 @@ class Lucid extends AbstractTemplate
     {
         return [
                 'page_background_color'                    => '#f2f4f6',
-                'header_text_color'                        => '#bbbfc3',
-                'header_web_version_link_color'            => '#74787e',
+                'header_text_color'                        => '#868d94',
+                'header_web_version_link_color'            => '#6d7076',
                 'content_background_color'                 => '#ffffff',
-                'content_text_color'                       => '#74787e',
-                'content_ellipsis_button_background_color' => '#dc4d2f',
+                'content_text_color'                       => '#6d7076',
+                'content_ellipsis_button_background_color' => '#d54324',
                 'content_ellipsis_button_text_color'       => '#ffffff',
-                'footer_text_color'                        => '#aeaeae',
-                'footer_unsubscribe_link_color'            => '#74787e',
+                'footer_text_color'                        => '#6d7076',
+                'footer_unsubscribe_link_color'            => '#6d7076',
         ];
     }
 
@@ -263,7 +264,7 @@ HTML;
       height: 100%;
       margin: 0;
       line-height: 1.4;
-      color: #74787E;
+      color: #6d7076;
       padding: 0;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
@@ -298,7 +299,9 @@ HTML;
       text-align: center;
     }
     .email-masthead a {
-     font-size: 10px;
+      font-size: 12px;
+      display: inline-block;
+      padding: 12px 0;
     }
 
     .email-masthead_logo {
@@ -326,14 +329,13 @@ HTML;
       margin-bottom: 10px;
     }
 
+    /* No max-height: clients that ignore object-fit (Gmail, Outlook.com) would squash tall images to fit it. */
     .email-body img {
-      max-width:500px;
-      max-height: 500px;
+      max-width: 100%;
       height: auto;
       padding-bottom: 10px;
       display: block;
       margin: 0 auto;
-      object-fit: cover;
     }
 
     .email-body figure {
@@ -419,7 +421,7 @@ HTML;
       line-height: 45px;
       text-align: center;
       text-decoration: none;
-      background-color: #dc4d2f;
+      background-color: #d54324;
       -webkit-text-size-adjust: none;
     }
 
@@ -448,7 +450,7 @@ HTML;
         padding: 5px 10px;
         margin: 0;
         text-align: left;
-        width: 500px;                          /* specify width  */
+        max-width: 500px;                          /* specify width  */
         white-space: pre-wrap;                 /* CSS3 browsers  */
         white-space: -moz-pre-wrap !important; /* 1999+ Mozilla  */
         white-space: -pre-wrap;                /* Opera 4 thru 6 */
@@ -519,11 +521,6 @@ CSS;
 
     }
 
-    public function get_post_item_width($column_count)
-    {
-        return [2 => 235, 3 => 150][$column_count] ?? 500;
-    }
-
     public function email_content_builder_element_defaults($defaults)
     {
         $defaults['text']['text_font_family'] = 'Arial';
@@ -531,7 +528,7 @@ CSS;
 
         $defaults['button']['button_font_family']      = 'Arial';
         $defaults['button']['button_width']            = '100';
-        $defaults['button']['button_background_color'] = '#dc4d2f';
+        $defaults['button']['button_background_color'] = '#d54324';
         $defaults['button']['button_color']            = '#ffffff';
         $defaults['button']['button_font_size']        = '16';
         $defaults['button']['button_border_radius']    = '3';
@@ -590,301 +587,4 @@ CSS;
      *
      * @return false|string
      */
-    public function posts_block_tmpl($id, $post, $settings, $column_count)
-    {
-        $block_padding         = $settings['block_padding'];
-        $read_more_link_text   = $settings['read_more_text'];
-        $post_title_color      = $settings['post_title_color'];
-        $read_more_color       = $settings['read_more_color'];
-        $post_font_family      = $settings['post_font_family'];
-        $post_metas            = $settings['post_metas'];
-        $remove_feature_image  = $settings['remove_feature_image'];
-        $remove_post_content   = $settings['remove_post_content'];
-        $remove_read_more_link = $settings['remove_read_more_link'];
-        $post_content_length   = $settings['post_content_length'];
-
-        $width = $this->get_post_item_width($column_count);
-
-        ob_start();
-        ?>
-        <tr>
-            <td align="left" style="font-size:0;padding-top:<?= $block_padding['top'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-bottom:0;word-break:break-word;">
-                <div class="mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:13px;line-height:1;text-align:left;color:#F45E43;">
-                    <a href="<?= $this->post_url($post) ?>">
-                        <h1 style="color:<?= $post_title_color ?>"><?= $this->post_title($post) ?></h1></a>
-                </div>
-            </td>
-        </tr>
-
-        <?php if ( ! empty($post_metas)) : ?>
-        <tr>
-            <td align="left" style="font-size:0px;padding-bottom:<?= $block_padding['bottom'] ?>px;padding-right:<?= $block_padding['right'] ?>px;padding-left:<?= $block_padding['left'] ?>px;padding-top:0;word-break:break-word;">
-                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:12px;font-weight:400;line-height:22px;text-align:left;/*color:#6f6f6f;*/">
-                    <?= $this->post_meta($post, $post_metas) ?>
-                </div>
-            </td>
-        </tr>
-    <?php endif; ?>
-
-        <?php if ($remove_feature_image !== true) : ?>
-        <tr>
-            <td align="center" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
-                    <tbody>
-                    <tr>
-                        <td>
-                            <img class="mo-email-builder-element" alt="<?= $this->feature_image_alt($post) ?>" data-id="<?= $id ?>" height="auto" src="<?= $this->feature_image($post, $this->email_campaign_id, ($settings['default_image_url'] ?? '')) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width:<?= esc_attr($width) ?>px;" width="<?= esc_attr($width) ?>"/>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-    <?php endif; ?>
-
-        <?php if ($remove_post_content !== true) : ?>
-        <tr>
-            <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:24px;text-align:left;/*color:#6f6f6f;*/">
-                    <?= $this->post_content($post, $post_content_length) ?>
-                </div>
-            </td>
-        </tr>
-        <?php if ($remove_read_more_link !== true) : ?>
-            <tr>
-                <td align="left" style="font-size:0px;padding:10px 0px;word-break:break-word;">
-                    <div class="mo-content-text-color mo-email-builder-element" data-id="<?= $id ?>" style="font-family:<?= $post_font_family ?>;font-size:14px;line-height:1;text-align:left;text-decoration:underline;/*color:#007bff;*/">
-                        <a style="color:<?= $read_more_color ?>" href="<?= $this->post_url($post) ?>"><?= $read_more_link_text ?></a>
-                    </div>
-                </td>
-            </tr>
-        <?php endif; ?>
-    <?php endif; ?>
-
-        <tr>
-            <td style="background:transparent;font-size:0px;word-break:break-word;">
-                <!--[if mso | IE]>
-
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td height=25px" style="vertical-align:top;height:25px;">
-
-                <![endif]-->
-                <div style="height:25px;"> &nbsp;</div>
-                <!--[if mso | IE]>
-
-                </td></tr></table>
-
-                <![endif]-->
-            </td>
-        </tr>
-        <?php
-
-        return ob_get_clean();
-    }
-
-    public function posts_block($id, $settings)
-    {
-        $post_list    = $settings['post_list'];
-        $column_count = (int)$settings['post_column_count'];
-        if (empty($column_count) || $column_count <= 1 || $column_count > 3) $column_count = 1;
-
-        $html = '';
-
-        // Ensure column count is between 1 and 3
-        $column_count = max(1, min(3, $column_count));
-
-        if (is_array($post_list) && ! empty($post_list)) {
-
-            // For single column, use original simple layout
-            if ($column_count === 1) {
-                foreach ($post_list as $post) {
-                    $html .= $this->posts_block_tmpl($id, $post, $settings, $column_count);
-                }
-
-                return $html;
-            }
-
-            // Multi-column layout
-            $posts_chunked = array_chunk($post_list, $column_count);
-
-            // Calculate width percentages
-            $width_map = [
-                    2 => '50%',
-                    3 => '33.33%'
-            ];
-
-            foreach ($posts_chunked as $row) {
-
-                $html .= '<tr><td style="padding:0;"><table class="mo-posts-row" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>';
-
-                foreach ($row as $post) {
-                    // If row has fewer posts than column count, calculate appropriate width
-                    $width = count($row) < $column_count ? (100 / count($row)) . '%' : $width_map[$column_count];
-                    $html  .= '<td class="mo-post-column" valign="top" width="' . $width . '" style="width:' . $width . ';">';
-                    $html  .= '<table width="100%" cellpadding="0" cellspacing="0" border="0">';
-                    $html  .= $this->posts_block_tmpl($id, $post, $settings, $column_count);
-                    $html  .= '</table>';
-                    $html  .= '</td>';
-                }
-
-                $html .= '</tr></table></td></tr>';
-            }
-        }
-
-        return $html;
-    }
-
-    public function text_block($id, $settings)
-    {
-        $text          = wpautop(stripslashes($settings['text_content']));
-        $font_family   = $this->get_font_family_stack($settings['text_font_family']);
-        $font_size     = $settings['text_font_size'] . 'px';
-        $block_padding = $settings['block_padding'];
-        $padding       = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
-
-        return <<<HTML
-<tr>
-    <td align="left" style="/*background:transparent;*/font-size:0px;padding:$padding;word-break:break-word;">
-        <div class="mo-email-builder-element mo-content-text-color" id="$id" style="font-family:$font_family;font-size:$font_size;line-height:1;text-align:left;/*color:#74787e;*/">$text</div>
-    </td>
-</tr>
-HTML;
-    }
-
-    public function button_block($id, $settings)
-    {
-        $block_padding = $settings['block_padding'];
-        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
-
-        $button_text             = $settings['button_text'];
-        $button_link             = esc_url_raw($settings['button_link']);
-        $button_width            = $settings['button_width'];
-        $button_background_color = $settings['button_background_color'];
-        $button_color            = $settings['button_color'];
-        $button_font_size        = $settings['button_font_size'];
-        $button_alignment        = $settings['button_alignment'];
-
-        $button_padding = $settings['button_padding'];
-        $button_padding = $button_padding['top'] . 'px ' . $button_padding['right'] . 'px ' . $button_padding['bottom'] . 'px ' . $button_padding['left'] . 'px';
-
-        $button_border_radius = $settings['button_border_radius'];
-        $button_font_family   = $settings['button_font_family'];
-        $button_font_weight   = $settings['button_font_weight'];
-
-        return <<<HTML
-<tr>
-    <td align="$button_alignment" vertical-align="middle" style="font-size:0px;padding:$block_padding;word-break:break-word;">
-        <table class="mo-email-builder-element" id="$id" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;width:$button_width%;line-height:100%;">
-            <tr>
-                <td align="center" bgcolor="$button_background_color" role="presentation" style="border:none;border-radius:15px;cursor:auto;mso-padding-alt:$button_padding;background:$button_background_color;" valign="middle">
-                    <!--[if mso]>
-                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="$button_link" style="height:45px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="$button_background_color">
-                            <w:anchorlock/>
-                            <center>
-                            <![endif]-->
-                              <a style="display:inline-block;width:100%;background:{$button_background_color};color:{$button_color};font-family:{$button_font_family};font-size:{$button_font_size}px;font-weight:{$button_font_weight};line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:{$button_padding};mso-padding-alt:0px;border-radius:{$button_border_radius}px;" href="$button_link">$button_text</a>
-                            <!--[if mso]>
-                            </center>
-                        </v:roundrect>
-                    <![endif]-->                    
-                </td>
-            </tr>
-        </table>
-    </td>
-</tr>
-HTML;
-    }
-
-    public function divider_block($id, $settings)
-    {
-        $block_padding = $settings['block_padding'];
-        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
-
-        $divider_width  = $settings['divider_width'];
-        $divider_style  = $settings['divider_style'];
-        $divider_color  = $settings['divider_color'];
-        $divider_height = $settings['divider_height'];
-
-        return <<<HTML
-<tr>
-    <td class="mo-email-builder-element" id="$id" style="font-size:0px;padding:$block_padding;word-break:break-word;">
-        <p style="border-top:$divider_style {$divider_height}px $divider_color;font-size:0;margin:0px auto;width:$divider_width%;"></p>
-        <!--[if mso | IE]>
-        <table
-                align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:$divider_style {$divider_height}px $divider_color;font-size:1;margin:0px auto;width:450px;" role="presentation" width="450px"
-        >
-            <tr>
-                <td style="height:0;line-height:0;">
-                    &nbsp;
-                </td>
-            </tr>
-        </table>
-        <![endif]-->
-    </td>
-</tr>
-HTML;
-    }
-
-    public function spacer_block($id, $settings)
-    {
-        $block_padding = $settings['block_padding'];
-        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
-
-        $spacer_height = $settings['spacer_height'];
-
-        return <<<HTML
-<tr>
-    <td class="mo-email-builder-element" id="$id" style="background:transparent;font-size:0px;padding:$block_padding;word-break:break-word;">
-        <!--[if mso | IE]>
-
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td height="{$spacer_height}px" style="vertical-align:top;height:{$spacer_height}px;">
-
-        <![endif]-->
-        <div style="height:{$spacer_height}px;"> &nbsp; </div>
-        <!--[if mso | IE]>
-
-        </td></tr></table>
-
-        <![endif]-->
-    </td>
-</tr>
-HTML;
-    }
-
-    public function image_block($id, $settings)
-    {
-        $block_padding = $settings['block_padding'];
-        $block_padding = $block_padding['top'] . 'px ' . $block_padding['right'] . 'px ' . $block_padding['bottom'] . 'px ' . $block_padding['left'] . 'px';
-
-        $image_url       = $settings['image_url'];
-        $image_width     = $settings['image_width'];
-        $image_alignment = $settings['image_alignment'];
-        $image_alt_text  = $settings['image_alt_text'];
-        $image_link      = $settings['image_link'];
-
-        ob_start();
-        ?>
-        <tr>
-            <td align="<?= esc_attr($image_alignment) ?>" style="font-size:0px;padding:<?= esc_attr($block_padding) ?>;word-break:break-word;">
-                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
-                    <tbody>
-                    <tr>
-                        <td style="width:<?= $image_width ?>px;">
-                            <?php if ( ! empty($image_link)) : ?>
-                            <a href="<?= esc_url($image_link) ?>" target="_blank">
-                                <?php endif; ?>
-                                <img class="mo-email-builder-element" id="<?= $id ?>" alt="<?= esc_attr($image_alt_text) ?>" height="auto" src="<?= esc_attr($image_url) ?>" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width:<?= esc_attr($image_width) ?>" width="<?= esc_attr($image_width) ?>"/>
-                                <?php if ( ! empty($image_link)) : ?>
-                            </a>
-                        <?php endif; ?>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-        <?php
-        return ob_get_clean();
-    }
 }

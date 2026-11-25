@@ -10,9 +10,6 @@ use function MailOptin\Core\cache_transform;
 
 class OptinCampaignsRepository extends AbstractRepository
 {
-    /** @var array In-memory copy of the mo_optin_campaign option, keyed by blog ID. */
-    protected static $saved_customizer_data_cache = [];
-
     /** @var array Filtered customizer defaults keyed by "{blog_id}_{optin_campaign_id}". */
     protected static $customizer_defaults_cache = [];
 
@@ -540,71 +537,44 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_optin_saved_customizer_data()
     {
-        if ( ! self::can_use_runtime_cache(true)) {
-            return get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
-        }
-
-        self::register_runtime_cache_invalidation();
-
-        $blog_id = get_current_blog_id();
-
-        // WordPress caches the raw serialized option and unserializes it on every get_option() call.
-        // With many campaigns this happens hundreds of times per form render, so keep the array for the request.
-        if ( ! array_key_exists($blog_id, self::$saved_customizer_data_cache)) {
-            self::$saved_customizer_data_cache[$blog_id] = get_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, []);
-        }
-
-        return self::$saved_customizer_data_cache[$blog_id];
+        return CampaignSettingsRepository::all(CampaignSettingsRepository::TYPE_OPTIN);
     }
 
     /**
-     * Whether settings and defaults can be kept in memory for the rest of the request.
-     *
-     * Customizer previews inject unsaved values via option filters, so they always read fresh data.
-     *
-     * @param bool $check_option_filters
+     * Whether defaults can be kept in memory for the rest of the request. Saved settings have their own
+     * cache in CampaignSettingsRepository; Customizer previews always build fresh defaults.
      *
      * @return bool
      */
-    protected static function can_use_runtime_cache($check_option_filters = false)
+    protected static function can_use_runtime_cache()
     {
         if (is_customize_preview()) return false;
-
-        if ($check_option_filters && (
-                has_filter('option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME) ||
-                has_filter('pre_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME)
-            )) {
-            return false;
-        }
 
         return (bool)apply_filters('mailoptin_optin_settings_runtime_cache_enabled', true);
     }
 
     /**
-     * Drop in-memory copies whenever the option is written, and defaults when the locale changes
-     * because they contain translated strings.
+     * Drop the in-memory defaults when the locale changes, because they contain translated strings.
      */
     protected static function register_runtime_cache_invalidation()
     {
-        $flush = [__CLASS__, 'flush_saved_customizer_data_cache'];
+        $flush = [__CLASS__, 'flush_customizer_defaults_cache'];
 
-        // Checked each time rather than remembered: hooks can be removed later in the request (the
-        // WordPress test suite resets them after every test), and a lost hook means stale settings.
-        if (has_action('update_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush)) return;
+        // Checked each time rather than remembered (as on master): hooks can be removed later in the
+        // request, the WordPress test suite resets them after every test. Saved settings have their own
+        // cache in CampaignSettingsRepository, so only the defaults' locale hook is needed here.
+        if (has_action('change_locale', $flush)) return;
 
-        add_action('add_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
-        add_action('update_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
-        add_action('delete_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
-
-        add_action('change_locale', [__CLASS__, 'flush_customizer_defaults_cache']);
+        add_action('change_locale', $flush);
     }
 
     /**
-     * Clear the in-memory copy of saved campaign settings.
+     * Forget saved campaign settings read so far in this request. Kept from master's request cache;
+     * saved settings now live in CampaignSettingsRepository, which owns that cache.
      */
     public static function flush_saved_customizer_data_cache()
     {
-        self::$saved_customizer_data_cache = [];
+        CampaignSettingsRepository::flush_cache();
     }
 
     /**
@@ -654,8 +624,8 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         if (absint($optin_campaign_id) == 0) return false;
 
-        $settings = self::get_optin_saved_customizer_data();
-        $value    = isset($settings[$optin_campaign_id][$settings_name]) ? $settings[$optin_campaign_id][$settings_name] : null;
+        $settings = self::get_settings_by_id($optin_campaign_id);
+        $value    = isset($settings[$settings_name]) ? $settings[$settings_name] : null;
 
         $data = ! is_null($value) ? $value : $default;
 
@@ -832,9 +802,25 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function get_settings_by_id($optin_campaign_id)
     {
-        $settings = self::get_settings();
+        return CampaignSettingsRepository::get(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id);
+    }
 
-        return $settings[$optin_campaign_id] ?? [];
+    /**
+     * Replace one campaign's settings.
+     */
+    public static function save_settings_by_id($optin_campaign_id, $settings)
+    {
+        return CampaignSettingsRepository::save(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id, $settings);
+    }
+
+    /**
+     * Change some of one campaign's settings.
+     *
+     * @param array $changes setting => value
+     */
+    public static function update_settings_by_id($optin_campaign_id, $changes)
+    {
+        return CampaignSettingsRepository::update(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id, $changes);
     }
 
     /**
@@ -869,9 +855,13 @@ class OptinCampaignsRepository extends AbstractRepository
      *
      * @return bool
      */
+    /**
+     * Save every campaign in a full settings array that changed. Prefer save_settings_by_id() and
+     * update_settings_by_id(), which touch one campaign.
+     */
     public static function updateSettings($campaignSettings)
     {
-        return update_option(MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $campaignSettings, false);
+        return CampaignSettingsRepository::save_many(CampaignSettingsRepository::TYPE_OPTIN, $campaignSettings);
     }
 
     /**
@@ -935,13 +925,11 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $optin_campaign_id = absint($optin_campaign_id);
         // update the "activate_optin" setting to true
-        $all_settings = self::get_settings();
+        $settings = self::get_settings_by_id($optin_campaign_id);
 
-        if (isset($all_settings[$optin_campaign_id]['activate_optin']) && ($all_settings[$optin_campaign_id]['activate_optin'] === true)) return true;
+        if (isset($settings['activate_optin']) && ($settings['activate_optin'] === true)) return true;
 
-        $all_settings[$optin_campaign_id]['activate_optin'] = true;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['activate_optin' => true]);
     }
 
     /**
@@ -955,10 +943,7 @@ class OptinCampaignsRepository extends AbstractRepository
     {
         $optin_campaign_id = absint($optin_campaign_id);
         // update the "activate_optin" setting to true
-        $all_settings                                       = self::get_settings();
-        $all_settings[$optin_campaign_id]['activate_optin'] = false;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['activate_optin' => false]);
     }
 
 
@@ -992,10 +977,7 @@ class OptinCampaignsRepository extends AbstractRepository
     public static function enable_test_mode($optin_campaign_id)
     {
         // update the "activate_optin" setting to true
-        $all_settings                                  = self::get_settings();
-        $all_settings[$optin_campaign_id]['test_mode'] = true;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['test_mode' => true]);
     }
 
 
@@ -1009,10 +991,7 @@ class OptinCampaignsRepository extends AbstractRepository
     public static function disable_test_mode($optin_campaign_id)
     {
         // update the "activate_optin" setting to true
-        $all_settings                                  = self::get_settings();
-        $all_settings[$optin_campaign_id]['test_mode'] = false;
-
-        return self::updateSettings($all_settings);
+        return self::update_settings_by_id($optin_campaign_id, ['test_mode' => false]);
     }
 
 
@@ -1032,6 +1011,8 @@ class OptinCampaignsRepository extends AbstractRepository
         OptinCampaignsRepository::delete_settings_by_id($optin_campaign_id);
 
         OptinCampaignMeta::delete_campaign_meta($optin_campaign_id, 'split_test_parent');
+        \MailOptin\Core\OptinForms\TwoStep::clear_counts($optin_campaign_id);
+        \MailOptin\Core\OptinForms\Wheel\Spins::delete_campaign($optin_campaign_id);
     }
 
 
@@ -1044,10 +1025,7 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     public static function delete_settings_by_id($optin_campaign_id)
     {
-        $all_optin_campaign_settings = self::get_settings();
-        unset($all_optin_campaign_settings[$optin_campaign_id]);
-
-        return self::updateSettings($all_optin_campaign_settings);
+        return CampaignSettingsRepository::delete(CampaignSettingsRepository::TYPE_OPTIN, $optin_campaign_id);
     }
 
     /**

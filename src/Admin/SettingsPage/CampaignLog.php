@@ -31,6 +31,12 @@ class CampaignLog extends AbstractSettingsPage
      */
     public function settings_admin_page()
     {
+        if (Campaign_Report::is_requested()) {
+            echo Campaign_Report::html();
+
+            return;
+        }
+
         add_action('wp_cspa_main_content_area', array($this, 'wp_list_table'), 10, 2);
 
         $instance = Custom_Settings_Page_Api::instance();

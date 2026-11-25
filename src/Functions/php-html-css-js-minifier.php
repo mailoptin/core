@@ -12,9 +12,27 @@
 
 define('X', "\x1A"); // a placeholder character
 
-$SS = '"(?:[^"\\\]++|\\\.)*+"|\'(?:[^\'\\\\]++|\\\.)*+\'';
-$CC = '\/\*[\s\S]*?\*\/';
-$CH = '<\!--[\s\S]*?-->';
+/**
+ * Regex pieces for strings, CSS/JS comments and HTML comments.
+ *
+ * These used to be file-level variables read with `global`. Composer loads this file from inside a function,
+ * so they were never globals and every minifier silently got empty patterns. A function works however the
+ * file is loaded.
+ *
+ * @param string $name SS, CC or CH
+ *
+ * @return string
+ */
+function _mo_minify_pattern($name)
+{
+    static $patterns = [
+        'SS' => '"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'',
+        'CC' => '\/\*[\s\S]*?\*\/',
+        'CH' => '<\!--[\s\S]*?-->',
+    ];
+
+    return $patterns[$name];
+}
 
 function __minify_x($input) {
     return str_replace(array("\n", "\t", ' '), array(X . '\n', X . '\t', X . '\s'), $input);
@@ -36,83 +54,44 @@ function __minify_v($input) {
  * -------------------------------------------------------
  */
 
-function _mo_minify_html($input) {
-    return preg_replace_callback('#<\s*([^\/\s]+)\s*(?:>|(\s[^<>]+?)\s*>)#', function($m) {
-        if(isset($m[2])) {
-            // Minify inline CSS declaration(s)
-            if(stripos($m[2], ' style=') !== false) {
-                $m[2] = preg_replace_callback('#( style=)([\'"]?)(.*?)\2#i', function($m) {
-                    return $m[1] . $m[2] . mo_minify_css($m[3]) . $m[2];
-                }, $m[2]);
-            }
-            return '<' . $m[1] . preg_replace(
-                array(
-                    // From `defer="defer"`, `defer='defer'`, `defer="true"`, `defer='true'`, `defer=""` and `defer=''` to `defer` [^1]
-                    '#\s(checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)(?:=([\'"]?)(?:true|\1)?\2)#i',
-                    // Remove extra white-space(s) between HTML attribute(s) [^2]
-                    '#\s*([^\s=]+?)(=(?:\S+|([\'"]?).*?\3)|$)#',
-                    // From `<img />` to `<img/>` [^3]
-                    '#\s+\/$#'
-                ),
-                array(
-                    // [^1]
-                    ' $1',
-                    // [^2]
-                    ' $1$2',
-                    // [^3]
-                    '/'
-                ),
-                str_replace("\n", ' ', $m[2])) . '>';
-        }
-        return '<' . $m[1] . '>';
-    }, $input);
-}
-
+/**
+ * Minify HTML: drop plain comments and collapse runs of white-space in text.
+ *
+ * Tags and their attributes, pre, code, script, style and textarea, and IE conditional comments stay as written.
+ * Markup that asks for preserved white-space (`white-space: pre…` in its styles, or `xml:space`) is returned
+ * unchanged. So is anything a pattern fails on, such as an input past PCRE's backtracking limit.
+ *
+ * @param string $input
+ *
+ * @return string
+ */
 function mo_minify_html($input) {
     if( ! $input = trim($input)) return $input;
-    global $CH;
-    // Keep important white-space(s) after self-closing HTML tag(s)
-    $input = preg_replace('#(<(?:img|input)(?:\s[^<>]*?)?\s*\/?>)\s+#i', '$1' . X . '\s', $input);
-    // Create chunk(s) of HTML tag(s), ignored HTML group(s), HTML comment(s) and text
-    $input = preg_split('#(' . $CH . '|<pre(?:>|\s[^<>]*?>)[\s\S]*?<\/pre>|<code(?:>|\s[^<>]*?>)[\s\S]*?<\/code>|<script(?:>|\s[^<>]*?>)[\s\S]*?<\/script>|<style(?:>|\s[^<>]*?>)[\s\S]*?<\/style>|<textarea(?:>|\s[^<>]*?>)[\s\S]*?<\/textarea>|<[^<>]+?>)#i', $input, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-    $output = "";
-    foreach($input as $v) {
-        if($v !== ' ' && trim($v) === "") continue;
-        if($v[0] === '<' && substr($v, -1) === '>') {
-            if($v[1] === '!' && strpos($v, '<!--') === 0) { // HTML comment ...
-                // Remove if not detected as IE comment(s) ...
-                if(substr($v, -12) !== '<![endif]-->') continue;
-                $output .= $v;
-            } else {
-                $output .= __minify_x(_mo_minify_html($v));
-            }
-        } else {
-            // Force line-break with `&#10;` or `&#xa;`
-            $v = str_replace(array('&#10;', '&#xA;', '&#xa;'), X . '\n', $v);
-            // Force white-space with `&#32;` or `&#x20;`
-            $v = str_replace(array('&#32;', '&#x20;'), X . '\s', $v);
-            // Replace multiple white-space(s) with a space
-            $output .= preg_replace('#\s+#', ' ', $v);
-        }
+    if (preg_match('#white-space\s*:\s*(?:pre|break-spaces)|xml:space#i', $input)) return $input;
+
+    $kept = array();
+    foreach (array('pre', 'code', 'script', 'style', 'textarea') as $tag) {
+        $kept[] = '<' . $tag . '\b[^>]*+>(?:[^<]++|<(?!\/' . $tag . '\s*>))*+<\/' . $tag . '\s*>';
     }
-    // Clean up ...
-    $output = preg_replace(
-        array(
-            // Remove two or more white-space(s) between tag [^1]
-            '#>([\n\r\t]\s*|\s{2,})<#',
-            // Remove white-space(s) before tag-close [^2]
-            '#\s+(<\/[^\s]+?>)#'
-        ),
-        array(
-            // [^1]
-            '><',
-            // [^2]
-            '$1'
-        ),
-        $output);
-    $output = __minify_v($output);
-    // Remove white-space(s) after ignored tag-open and before ignored tag-close (except `<textarea>`)
-    return preg_replace('#<(code|pre|script|style)(>|\s[^<>]*?>)\s*([\s\S]*?)\s*<\/\1>#i', '<$1$2$3</$1>', $output);
+    $pattern = '#(' . implode('|', $kept) . ')' . // 1: kept whole
+               '|(<\/?[a-z][^\s>"\'\/]*+(?:"[^"]*+"|\'[^\']*+\'|[^>"\']++)*+>)' . // 2: a tag, quote-aware
+               '|(<!--(?:-?>|(?:[^-]++|-(?!->))*+-->))' . // 3: a comment, including <!--> and <!--->
+               '|(\s+)#i'; // 4: white-space in text
+
+    $output = preg_replace_callback($pattern, function ($m) {
+        if (isset($m[4]) && $m[4] !== '') {
+            // A run with a line break keeps one line break; any other run becomes one space.
+            return strpbrk($m[4], "\r\n") !== false ? "\n" : ' ';
+        }
+        if (isset($m[3]) && $m[3] !== '') {
+            // IE conditional comments stay, both their openers and closers.
+            return preg_match('#\[if\b|\[endif\]#i', $m[3]) ? $m[3] : '';
+        }
+
+        return $m[0];
+    }, $input);
+
+    return is_string($output) ? $output : $input;
 }
 
 
@@ -127,104 +106,67 @@ function mo_minify_html($input) {
  * -------------------------------------------------------
  */
 
+/**
+ * Minify CSS between strings, comments, escapes and unquoted URLs.
+ *
+ * Only white-space that can never matter is removed, and nothing is rewritten. The original rules also
+ * shortened values, which broke real CSS: `screen and (max-width: 480px)` became `and(` (an invalid media
+ * query), `0%` keyframes became `0`, `#0ff` became `#0`, `0s` became an invalid `0`,
+ * `:not(.a) .b` lost its space and changed meaning, and `transform-origin: 0 0` became `0`.
+ *
+ * @param string $input
+ *
+ * @return string
+ */
 function _mo_minify_css($input) {
-    // Keep important white-space(s) in `calc()`
-    if(stripos($input, 'calc(') !== false) {
-        $input = preg_replace_callback('#\b(calc\()\s*(.*?)\s*\)#i', function($m) {
-            return $m[1] . preg_replace('#\s+#', X . '\s', $m[2]) . ')';
-        }, $input);
-    }
-    // Minify ...
     return preg_replace(
         array(
-            // Fix case for `#foo [bar="baz"]` and `#foo :first-child` [^1]
-            '#(?<![,\{\}])\s+(\[|:\w)#',
-            // Fix case for `[bar="baz"] .foo` and `url(foo.jpg) no-repeat` [^2]
-            '#\]\s+#', '#\)\s+\b#',
-            // Minify HEX color code ... [^3]
-            '#\#([\da-f])\1([\da-f])\2([\da-f])\3\b#i',
-            // Remove white-space(s) around punctuation(s) [^4]
-            '#\s*([~!@*\(\)+=\{\}\[\]:;,>\/])\s*#',
-            // Replace zero unit(s) with `0` [^5]
-            '#\b(?:0\.)?0([a-z]+\b|%)#i',
-            // Replace `0.6` with `.6` [^6]
-            '#\b0+\.(\d+)#',
-            // Replace `:0 0`, `:0 0 0` and `:0 0 0 0` with `:0` [^7]
-            '#:(0\s+){0,3}0(?=[!,;\)\}]|$)#',
-            // Replace `background(?:-position)?:(0|none)` with `background$1:0 0` [^8]
-            '#\b(background(?:-position)?):(0|none)\b#i',
-            // Replace `(border(?:-radius)?|outline):none` with `$1:0` [^9]
-            '#\b(border(?:-radius)?|outline):none\b#i',
-            // Remove empty selector(s) [^10]
-            '#(^|[\{\}])(?:[^\{\}]+)\{\}#',
-            // Remove the last semi-colon and replace multiple semi-colon(s) with a semi-colon [^11]
-            '#;+([;\}])#',
-            // Replace multiple white-space(s) with a space [^12]
-            '#\s+#'
+            // Runs of white-space become one space.
+            '#\s+#',
+            // No space around `{`, `}`, `;` and `,`, or after `:`. A space before `:` is kept: in a selector,
+            // `a :hover` and `a:hover` differ. A value that is only a space (`--x: ;`) keeps it.
+            '#(?<!:)\s*([{};,])\s*#',
+            '#:\s+(?![;}])#',
+            // No `;` before `}`.
+            '#;+}#',
         ),
-        array(
-            // [^1]
-            X . '\s$1',
-            // [^2]
-            ']' . X . '\s', ')' . X . '\s',
-            // [^3]
-            '#$1$2$3',
-            // [^4]
-            '$1',
-            // [^5]
-            '0',
-            // [^6]
-            '.$1',
-            // [^7]
-            ':0',
-            // [^8]
-            '$1:0 0',
-            // [^9]
-            '$1:0',
-            // [^10]
-            '$1',
-            // [^11]
-            '$1',
-            // [^12]
-            ' '
-        ),
+        array(' ', '$1', ':', '}'),
         $input);
 }
 
 function mo_minify_css($input) {
     if( ! $input = trim($input)) return $input;
-    global $SS, $CC;
-    // Keep important white-space(s) between comment(s)
-    $input = preg_replace('#(' . $CC . ')\s+(' . $CC . ')#', '$1' . X . '\s$2', $input);
-    // Create chunk(s) of string(s), comment(s) and text
-    $input = preg_split('#(' . $SS . '|' . $CC . ')#', $input, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-    $output = "";
-    foreach($input as $v) {
-        if(trim($v) === "") continue;
-        if(
-            ($v[0] === '"' && substr($v, -1) === '"') ||
-            ($v[0] === "'" && substr($v, -1) === "'") ||
-            (strpos($v, '/*') === 0 && substr($v, -2) === '*/')
-        ) {
-            // Remove if not detected as important comment ...
-            if($v[0] === '/' && strpos($v, '/*!') !== 0) continue;
-            $output .= $v; // String or comment ...
-        } else {
-            $output .= _mo_minify_css($v);
+    // Left as written: strings (a string ends at a line break, as in CSS), a string left open at a line
+    // break, comments, escapes such as `\,` or `\31 `, and unquoted url(), which may contain `/*`.
+    $pattern = '#("(?:[^"\\\\\n\r\f]++|\\\\[\s\S])*+"|\'(?:[^\'\\\\\n\r\f]++|\\\\[\s\S])*+\')' . // 1: string
+               '|((?:"(?:[^"\\\\\n\r\f]++|\\\\[\s\S])*+|\'(?:[^\'\\\\\n\r\f]++|\\\\[\s\S])*+)(?=[\n\r\f]|$))' . // 2: open string
+               '|(\/\*(?:[^*]++|\*(?!\/))*+\*\/)' . // 3: comment
+               '|(\\\\[0-9a-f]{1,6}\s?|\\\\[\s\S])' . // 4: escape
+               '|(\burl\(\s*+[^\'"()\s]*+\s*+\))#i'; // 5: unquoted url()
+
+    $chunks = preg_split($pattern, $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+    if ( ! is_array($chunks)) return $input;
+
+    $output      = '';
+    $keep_break  = false;
+    foreach ($chunks as $v) {
+        if (preg_match('#^(?:"|\'|\/\*|\\\\|url\()#i', $v) && preg_match($pattern, $v, $m) && $m[0] === $v) {
+            if ( ! empty($m[3]) && strpos($v, '/*!') !== 0) continue; // a plain comment goes
+            $output     .= $v;
+            // The line break that ends an open string has to stay, or the string runs on into what follows.
+            $keep_break = ! empty($m[2]);
+            continue;
         }
+        $min = _mo_minify_css($v);
+        if ( ! is_string($min)) return $input;
+        if ($keep_break) {
+            $min        = "\n" . ltrim($min);
+            $keep_break = false;
+        }
+        $output .= $min;
     }
-    // Remove quote(s) where possible ...
-    $output = preg_replace(
-        array(
-            // '#(' . $CC . ')|(?<!\bcontent\:|\()([\'"])([a-z_][-\w]*?)\2#i',
-            '#(' . $CC . ')|\b(url\()([\'"])([^\s]+?)\3(\))#i'
-        ),
-        array(
-            // '$1$3',
-            '$1$2$4$5'
-        ),
-        $output);
-    return __minify_v($output);
+
+    return trim($output);
 }
 
 
@@ -267,7 +209,8 @@ function _minify_js($input) {
 function mo_minify_js($input) {
     if( ! $input = trim($input)) return $input;
     // Create chunk(s) of string(s), comment(s), regex(es) and text
-    global $SS, $CC;
+    $SS = _mo_minify_pattern('SS');
+    $CC = _mo_minify_pattern('CC');
     $input = preg_split('#(' . $SS . '|' . $CC . '|\/[^\n]+?\/(?=[.,;]|[gimuy]|$))#', $input, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
     $output = "";
     foreach($input as $v) {

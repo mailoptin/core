@@ -64,6 +64,8 @@ class Customizer
             add_action('customize_controls_enqueue_scripts', array($this, 'customizer_js'));
 
             add_action('customize_controls_print_footer_scripts', [$this, 'add_send_broadcast_button']);
+            // After WordPress prints the customizer scripts, at priority 20.
+            add_action('customize_controls_print_footer_scripts', [$this, 'hide_broadcast_page_controls'], 30);
             add_action('customize_controls_print_footer_scripts', [$this, 'add_activate_switch']);
             add_action('customize_controls_print_footer_scripts', [$this, 'change_title_html']);
 
@@ -73,10 +75,15 @@ class Customizer
                 $this->email_campaign_id
             );
 
+            // An automation's emails are designed like broadcasts: the block content builder.
+            if (ER::is_automation_email($this->email_campaign_id)) {
+                $this->email_campaign_type = ER::NEWSLETTER;
+            }
+
             add_action('customize_controls_print_scripts', function () {
-                $email_campaign_is_code_your_own = ! ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
-                $newsletter_is_code_your_own     = ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
-                $is_email_newsletter             = ER::is_newsletter($this->email_campaign_id) ? 'true' : 'false';
+                $email_campaign_is_code_your_own = ! ER::is_built_email($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $newsletter_is_code_your_own     = ER::is_built_email($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id) ? 'true' : 'false';
+                $is_email_newsletter             = ER::is_built_email($this->email_campaign_id) ? 'true' : 'false';
 
                 echo '<script type="text/javascript">';
                 echo "var mailoptin_email_campaign_option_prefix = '{$this->campaign_settings}';";
@@ -131,7 +138,11 @@ class Customizer
         $return_url  = MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE;
 
         if (ER::is_newsletter($this->email_campaign_id)) {
-            $return_url = MAILOPTIN_EMAIL_NEWSLETTERS_SETTINGS_PAGE;
+            $return_url = \MailOptin\Core\Admin\SettingsPage\Broadcast_Page::url($this->email_campaign_id, ['designed' => 1]);
+        }
+
+        if (ER::is_automation_email($this->email_campaign_id)) {
+            $return_url = (string)apply_filters('mailoptin_automation_email_return_url', MAILOPTIN_EMAIL_CAMPAIGNS_SETTINGS_PAGE, $this->email_campaign_id);
         }
 
         $wp_customize->set_preview_url($preview_url);
@@ -142,6 +153,9 @@ class Customizer
     public function add_send_broadcast_button()
     {
         if ( ! ER::is_newsletter($this->email_campaign_id)) return;
+
+        // Opened from the broadcast page, which sets the subject and audience and does the sending.
+        if (self::from_broadcast_page()) return;
 
         $date_sent = EmailCampaignMeta::get_meta_data($this->email_campaign_id, 'newsletter_date_sent');
 
@@ -176,11 +190,34 @@ class Customizer
     }
 
     /**
+     * Hide the controls the broadcast page owns. They stay in the customizer, only hidden, so
+     * the controls that depend on them (like a connection's own options) keep working.
+     */
+    public static function from_broadcast_page()
+    {
+        return ! empty($_GET[\MailOptin\Core\Admin\SettingsPage\Broadcast_Page::FROM_PAGE_ARG]);
+    }
+
+    public function hide_broadcast_page_controls()
+    {
+        if ( ! ER::is_newsletter($this->email_campaign_id) || ! self::from_broadcast_page()) return;
+
+        $ids = ['email_campaign_title', 'email_campaign_preheader', 'connection_service', 'connection_email_list', 'MailOptinConnect_segment', 'MailOptinConnect_exclude_tags', 'MailOptinConnect_audience_sources', 'MailOptinConnect_audience_count'];
+
+        // CSS rather than script: other customizer scripts show and hide these as settings change.
+        $selectors = array_map(function ($id) {
+            return '#customize-control-' . $this->campaign_settings . '-' . $this->email_campaign_id . '-' . $id;
+        }, $ids);
+
+        echo '<style type="text/css">' . esc_html(implode(',', $selectors)) . '{display:none!important}</style>';
+    }
+
+    /**
      * Add activation switch to optin customizer
      */
     public function add_activate_switch()
     {
-        if (ER::is_newsletter($this->email_campaign_id)) return;
+        if (ER::is_built_email($this->email_campaign_id)) return;
 
         $input_value = ER::is_campaign_active($this->email_campaign_id) ? 'yes' : 'no';
         $checked     = ($input_value == 'yes') ? 'checked="checked"' : null;
@@ -235,7 +272,7 @@ class Customizer
         ]);
 
 
-        if ( ! ER::is_newsletter($this->email_campaign_id)) {
+        if ( ! ER::is_built_email($this->email_campaign_id)) {
             $mappings[] = [
                 'selector' => '.mo-body-container',
                 'type'     => 'section',
@@ -337,7 +374,7 @@ class Customizer
             MAILOPTIN_VERSION_NUMBER
         );
 
-        if ( ! ER::is_newsletter($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id)) {
+        if ( ! ER::is_built_email($this->email_campaign_id) && ER::is_code_your_own_template($this->email_campaign_id)) {
 
             wp_enqueue_script(
                 'mailoptin-ace-js',
@@ -361,7 +398,7 @@ class Customizer
             ));
         }
 
-        if (ER::is_newsletter($this->email_campaign_id)) {
+        if (ER::is_built_email($this->email_campaign_id)) {
 
             wp_enqueue_script(
                 'mailoptin-email-newsletter-editor',
@@ -524,6 +561,11 @@ class Customizer
         add_filter('pre_option_blogname', array($this, 'rewrite_customizer_panel_title'));
 
         add_action('wp_footer', [$this, 'selector_mapping_scripts_styles'], 99);
+
+        // The campaign's settings live in the campaign settings table, not an option row. Again at the
+        // very end, for settings added by later customize_register callbacks.
+        \MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting::swap($wp_customize);
+        add_action('customize_register', ['\MailOptin\Core\Admin\Customizer\CampaignCustomizeSetting', 'swap'], PHP_INT_MAX);
     }
 
     /**
@@ -532,6 +574,10 @@ class Customizer
     public function save_email_campaign_title($wp_customize_manager)
     {
         $email_campaign_id = $this->email_campaign_id;
+
+        // An automation's emails keep their internal name; the subject can repeat across emails.
+        if (ER::is_automation_email($email_campaign_id)) return;
+
         $option_name       = "mo_email_campaigns[$email_campaign_id][email_campaign_title]";
         $posted_values     = $wp_customize_manager->unsanitized_post_values();
 
@@ -591,7 +637,7 @@ class Customizer
                 )
             );
 
-            if ( ! ER::is_newsletter($this->email_campaign_id)) {
+            if ( ! ER::is_built_email($this->email_campaign_id)) {
                 $wp_customize->add_section($this->campaign_content_section_id, array(
                         'title'    => __('Content', 'mailoptin'),
                         'priority' => 40,

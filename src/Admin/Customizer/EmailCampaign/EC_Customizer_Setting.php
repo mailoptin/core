@@ -32,8 +32,14 @@ class EC_Customizer_Setting extends \WP_Customize_Setting
      */
     public function validate_campaign_setting($value)
     {
-        $setting_id = $this->id;
+        return self::check_value($this->id, $value);
+    }
 
+    /**
+     * @return WP_Error|null
+     */
+    public static function check_value($setting_id, $value)
+    {
         if (strpos($setting_id, 'schedule_digit') !== false) {
             if (!is_numeric($value)) {
                 return new WP_Error('required', __('You must supply a valid numeric value.', 'mailoptin'));

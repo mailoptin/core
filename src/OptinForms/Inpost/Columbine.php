@@ -110,7 +110,7 @@ class Columbine extends AbstractOptinTheme
 
                 [
                     'name'        => 'mo_optin_form_submit_button_background_default',
-                    'value'       => '#54C3A5',
+                    'value'       => '#2e836c',
                     'optin_class' => 'Columbine',
                     'optin_type'  => 'inpost'
                 ],
@@ -247,7 +247,7 @@ class Columbine extends AbstractOptinTheme
         );
 
         $settings['mini_headline_font_color'] = array(
-            'default'   => '#54C3A5',
+            'default'   => '#2e836c',
             'type'      => 'option',
             'transport' => 'postMessage'
         );
@@ -551,7 +551,7 @@ HTML;
         $optin_css_id = $this->optin_css_id;
         $optin_uuid   = $this->optin_campaign_uuid;
 
-        $mini_headline_font_color = $this->get_customizer_value('mini_headline_font_color', '#54C3A5');
+        $mini_headline_font_color = $this->get_customizer_value('mini_headline_font_color', '#2e836c');
 
         $is_mini_headline_display = '';
         if ($this->get_customizer_value('hide_mini_headline', false)) {
@@ -668,7 +668,7 @@ html div#$optin_uuid div#$optin_css_id.columbine-container input[type="submit"].
          box-sizing: border-box;
          -webkit-appearance: none;
          border: 0;
-         background: #54C3A5;
+         background: #2e836c;
          padding: 13px 10px;
          font-size: 16px;
          line-height: 16px;

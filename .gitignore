@@ -11,3 +11,17 @@ src/BlockEditor/node_modules/*
 !tests/Admin/Customizer/
 !tests/Admin/Customizer/OptinForm/
 !tests/Admin/Customizer/OptinForm/CustomizerSettingsTest.php
+!tests/SendQueue/
+!tests/Audience/
+!tests/Submissions/
+!tests/Design/
+!tests/Api/
+!tests/Repositories/
+!tests/Automations/
+!tests/EmailBlocks/
+!tests/OptinTransfer/
+bin/email-blocks/node_modules/
+!tests/EmailCampaigns/
+!tests/OptinForms/
+!tests/OptinTransfer/
+!tests/Functions/

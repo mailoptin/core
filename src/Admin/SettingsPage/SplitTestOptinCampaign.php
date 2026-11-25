@@ -43,13 +43,11 @@ class SplitTestOptinCampaign
 
         OptinCampaignMeta::add_campaign_meta($optin_campaign_id, 'split_test_parent', $this->parent_optin_id);
 
-        $all_optin_campaign_settings = OptinCampaignsRepository::get_settings();
-        // append new template settings to existing settings.
-        $all_optin_campaign_settings[$optin_campaign_id]                    = OptinCampaignsRepository::get_settings_by_id($this->parent_optin_id);
-        $all_optin_campaign_settings[$optin_campaign_id]['split_test_note'] = $this->note;
-        $all_optin_campaign_settings[$optin_campaign_id]['activate_optin']  = true;
-        // save to DB
-        OptinCampaignsRepository::updateSettings($all_optin_campaign_settings);
+        $settings                    = OptinCampaignsRepository::get_settings_by_id($this->parent_optin_id);
+        $settings['split_test_note'] = $this->note;
+        $settings['activate_optin']  = true;
+
+        OptinCampaignsRepository::save_settings_by_id($optin_campaign_id, $settings);
 
         //reset stats
         (new OptinCampaignStat($optin_campaign_id))->reset_stat();

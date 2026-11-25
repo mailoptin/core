@@ -30,7 +30,14 @@ class AbstractCustomizer
         $this->email_campaign_id = $email_campaign_id;
 
         $this->email_campaign_type  = EmailCampaignRepository::get_email_campaign_type($email_campaign_id);
-        $this->email_campaign_class = EmailCampaignRepository::get_template_class($email_campaign_id);
+
+        // An automation's emails take the same defaults as broadcasts.
+        if (\MailOptin\Core\Repositories\AutomationsRepository::EMAIL_CAMPAIGN_TYPE === $this->email_campaign_type) {
+            $this->email_campaign_type = EmailCampaignRepository::NEWSLETTER;
+        }
+
+        // While the editor previews another template (not saved yet), its defaults.
+        $this->email_campaign_class = \MailOptin\Core\EmailBlocks\Templates::template_id_for($email_campaign_id);
 
         $this->customizer_defaults = $this->register_customizer_defaults();
     }
@@ -472,6 +479,7 @@ HTML;
         $defaults['content_after_main_content']               = apply_filters('mailoptin_content_after_main_content_default', '', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_remove_ellipsis_button']           = apply_filters('mailoptin_content_remove_ellipsis_button_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_post_meta']                        = apply_filters('mailoptin_content_post_meta_default', [], $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
+        $defaults['content_post_meta_position']               = apply_filters('mailoptin_content_post_meta_position_default', 'below_title', $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_remove_post_link']                 = apply_filters('mailoptin_content_remove_post_link_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_remove_post_body']                 = apply_filters('mailoptin_content_remove_post_body_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);
         $defaults['content_remove_feature_image']             = apply_filters('mailoptin_content_remove_feature_image_default', false, $this->customizer_defaults, $this->email_campaign_type, $this->email_campaign_class);

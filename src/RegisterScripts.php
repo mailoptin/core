@@ -209,6 +209,12 @@ class RegisterScripts
             'custom_field_label'                => sprintf(__('Field %s', 'mailoptin'), '#{ID}'),
             'sidebar'                           => 0,
             'js_required_title'                 => __('Title is required.', 'mailoptin'),
+            // Spin to win: the prize, after the spin.
+            'wheel_copy'                        => __('Copy', 'mailoptin'),
+            'wheel_copied'                      => __('Copied', 'mailoptin'),
+            'wheel_in_cart'                     => __('It\'s in your cart already.', 'mailoptin'),
+            'wheel_emailed'                     => __('We\'ve emailed it to you too.', 'mailoptin'),
+            'wheel_not_in_cart'                 => __('Enter the code at checkout.', 'mailoptin'),
             'is_new_returning_visitors_cookies' => defined('MAILOPTIN_DETACH_LIBSODIUM') && $enable_init_js_cookies_filter === true ? 'true' : 'false'
         );
 
@@ -257,6 +263,8 @@ class RegisterScripts
             wp_enqueue_style('mailoptin-admin-tooltipster-borderless', MAILOPTIN_ASSETS_URL . 'tooltipster/borderless.min.css', [], MAILOPTIN_VERSION_NUMBER);
             wp_enqueue_style('mailoptin-admin-tooltipster-light', MAILOPTIN_ASSETS_URL . 'tooltipster/light.min.css', [], MAILOPTIN_VERSION_NUMBER);
             wp_enqueue_style('mailoptin-admin', MAILOPTIN_ASSETS_URL . 'css/admin/admin.css', [], filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/admin.css'));
+            // Shared design system; loaded after admin.css so it can restyle the common header and tabs.
+            wp_enqueue_style('mailoptin-design', MAILOPTIN_ASSETS_URL . 'css/admin/mo-design.css', ['mailoptin-admin'], filemtime(MAILOPTIN_ASSETS_DIR . 'css/admin/mo-design.css'));
 
             wp_enqueue_style('mo-pure-css-toggle-buttons', MAILOPTIN_ASSETS_URL . 'js/customizer-controls/toggle-control/pure-css-togle-buttons.css', array(), false);
 

@@ -27,6 +27,102 @@ trait TemplateTrait
      *
      * @return false|string
      */
+    /**
+     * The post's first category (a product's, for WooCommerce products), or '' for none or the
+     * default "Uncategorized".
+     *
+     * @param int|WP_Post $post
+     *
+     * @return string not escaped
+     */
+    public function post_category($post)
+    {
+        $post = get_post($post);
+
+        if ( ! $post) return '';
+
+        $taxonomy = 'product' === $post->post_type ? 'product_cat' : 'category';
+        $terms    = get_the_terms($post, $taxonomy);
+
+        if (empty($terms) || is_wp_error($terms)) return '';
+
+        foreach ($terms as $term) {
+            if ('category' === $taxonomy && (int)$term->term_id === (int)get_option('default_category')) continue;
+            if ('product_cat' === $taxonomy && (int)$term->term_id === (int)get_option('default_product_cat')) continue;
+
+            return (string)apply_filters('mailoptin_email_post_category', $term->name, $post, $term);
+        }
+
+        return '';
+    }
+
+    /**
+     * A WooCommerce product's price for an email: the price shown (the lowest for a variable product,
+     * "From" when they differ), the regular price when on sale, and the percentage off.
+     *
+     * @param int|WP_Post $post
+     *
+     * @return array|null price, regular ('' unless on sale), percent (0 unless on sale); null when
+     *                    the post isn't a product or WooCommerce isn't active. Prices are HTML-safe text.
+     */
+    public function product_data($post)
+    {
+        $post = get_post($post);
+
+        if ( ! $post) return null;
+
+        // Other shops can supply their own (an array with price, regular and percent).
+        $pre = apply_filters('mailoptin_email_product_data_pre', null, $post);
+        if (is_array($pre)) return $pre + ['price' => '', 'regular' => '', 'percent' => 0];
+
+        if ('product' !== $post->post_type || ! function_exists('wc_get_product')) return null;
+
+        $product = wc_get_product($post);
+        if ( ! $product) return null;
+
+        if ($product->is_type('variable')) {
+            // The cheapest variation, and that variation's own regular price.
+            $prices = $product->get_variation_prices(true);
+            if (empty($prices['price'])) return null;
+
+            $key     = array_search(min($prices['price']), $prices['price']);
+            $price   = (float)$prices['price'][$key];
+            $regular = (float)($prices['regular_price'][$key] ?? $price);
+            $from    = $price !== (float)max($prices['price']);
+        } elseif ($product->is_type('grouped')) {
+            // From the cheapest of its products; no sale of its own.
+            $children = array_filter(array_map('wc_get_product', $product->get_children()), function ($child) {
+                return $child && $child->is_visible() && '' !== (string)$child->get_price();
+            });
+            if (empty($children)) return null;
+
+            $amounts = array_map(function ($child) { return (float)wc_get_price_to_display($child); }, $children);
+            $price   = min($amounts);
+            $regular = $price;
+            $from    = $price !== max($amounts);
+        } else {
+            $price   = (float)wc_get_price_to_display($product);
+            $regular = (float)wc_get_price_to_display($product, ['price' => $product->get_regular_price()]);
+            $from    = false;
+        }
+
+        if ('' === (string)$product->get_price()) return null;
+
+        $text = function ($amount) { return trim(wp_strip_all_tags(wc_price($amount))); };
+
+        // Rounded down so a discount is never overstated; under 1% isn't shown as a sale.
+        $percent = $product->is_on_sale() && $regular > $price && $regular > 0 ? (int)floor(($regular - $price) / $regular * 100) : 0;
+        $on_sale = $percent >= 1;
+
+        $data = [
+            'price'   => ($from ? esc_html__('From', 'mailoptin') . ' ' : '') . $text($price),
+            'regular' => $on_sale ? $text($regular) : '',
+            'percent' => $on_sale ? $percent : 0,
+        ];
+
+        return apply_filters('mailoptin_email_product_data', $data, $product, $post);
+    }
+
     public function post_url($post)
     {
         if ($post instanceof \stdClass) {
@@ -41,11 +137,12 @@ trait TemplateTrait
     }
 
     /**
+     * The chosen post details (author, date, terms, custom fields, product price…) as one line of HTML.
+     *
      * @param WP_Post $post
+     * @param string|array $post_metas keys from {@see PostMetaFields}; empty for the email's own setting
      *
-     * @param string $post_metas
-     *
-     * @return string
+     * @return string|false
      */
     public function post_meta($post, $post_metas = '')
     {
@@ -53,8 +150,6 @@ trait TemplateTrait
             $post_metas = ER::get_customizer_value($this->email_campaign_id, 'content_post_meta');
 
             if (empty($post_metas)) return '';
-
-            $post_metas = array_map('sanitize_text_field', explode(',', $post_metas));
         }
 
         $post = get_post($post);
@@ -63,21 +158,9 @@ trait TemplateTrait
             return false;
         }
 
-        $bucket = [];
+        $bucket = PostMetaFields::render($post, $post_metas);
 
-        foreach ($post_metas as $meta) {
-            switch ($meta) {
-                case 'author':
-                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_author_meta('display_name', $post->post_author)));
-                    break;
-                case 'date':
-                    $bucket[] = sprintf('<span>%s</span>', get_the_date(get_option('date_format'), $post));
-                    break;
-                case 'category':
-                    $bucket[] = sprintf('<span>%s</span>', wp_strip_all_tags(get_the_term_list($post->ID, 'category', '', ', ')));
-                    break;
-            }
-        }
+        if (empty($bucket)) return '';
 
         $html = '<div class="mo-post-meta mo-content-text-color">';
         $html .= implode('<span>&nbsp;•&nbsp;</span>', $bucket);
@@ -87,13 +170,44 @@ trait TemplateTrait
     }
 
     /**
+     * Where the post details go: under the title, or under the featured image.
+     */
+    public function post_meta_position()
+    {
+        $position = ER::get_customizer_value($this->email_campaign_id, PostMetaFields::POSITION_SETTING);
+
+        return PostMetaFields::POSITION_BELOW_IMAGE === $position ? PostMetaFields::POSITION_BELOW_IMAGE : PostMetaFields::POSITION_BELOW_TITLE;
+    }
+
+    /**
+     * Leave one {{post.meta}} in the template, where the details should go: under the title (the template's
+     * own {{post.meta}}) or under the featured image ({{post.meta.below_image}}). A template without the
+     * second slot keeps them under the title.
+     *
+     * @param string $template
+     *
+     * @return string
+     */
+    public function place_post_meta_slot($template)
+    {
+        $template = (string)$template;
+
+        if (PostMetaFields::POSITION_BELOW_IMAGE === $this->post_meta_position() && false !== strpos($template, '{{post.meta.below_image}}')) {
+            // The wrapper gives the details some room below the image (see .mo-post-meta-below-image).
+            return str_replace(['{{post.meta}}', '{{post.meta.below_image}}'], ['', '<div class="mo-post-meta-below-image">{{post.meta}}</div>'], $template);
+        }
+
+        return str_replace('{{post.meta.below_image}}', '', $template);
+    }
+
+    /**
      * @param int|WP_Post $post
      *
      * @param null|mixed $post_content_length
      *
      * @return string
      */
-    public function post_content($post, $post_content_length = null)
+    public function post_content($post, $post_content_length = null, $post_metas = null)
     {
         $is_remove_post_content = ER::get_merged_customizer_value(
             $this->email_campaign_id,
@@ -121,7 +235,11 @@ trait TemplateTrait
 
         $wc_price = '';
 
-        if (class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
+        // The price is already in the post details when they include it: don't show it twice. Only callers
+        // that render the details pass them; others (the [post-content] shortcode) keep the price.
+        $show_price = null === $post_metas || ! in_array('woo:price', PostMetaFields::parse($post_metas), true);
+
+        if ($show_price && class_exists('\WooCommerce') && apply_filters('mo_email_automation_display_woocommerce_price', true, $this->email_campaign_id, $post, $this)) {
             $product = wc_get_product($post->ID);
             if (false !== $product && is_object($product)) {
                 $wc_price = sprintf('<p class="mo-wc-price">%s</p>', $product->get_price_html());
@@ -289,13 +407,51 @@ trait TemplateTrait
             \MailOptin\Core\country_code_to_name(Settings::instance()->company_country()),
         ];
 
+        $content = apply_filters('mailoptin_settings_replace_footer_placeholder_tags', $content);
+
         foreach ($replace as $key => $item) {
-            if (empty($item)) {
-                unset($search[$key]);
-                unset($replace[$key]);
-            }
+            if ( ! empty($item)) continue;
+
+            // In the customizer the tag stays, so you can see which detail is missing. In an email it goes,
+            // with the comma or line break that was there for it.
+            // (A customizer save request also counts as preview, but emails it triggers, like a page published
+            // from the customizer, are real.)
+            if ( ! is_customize_preview() || did_action('customize_save')) $content = self::remove_empty_footer_tag($content, $search[$key]);
+
+            unset($search[$key], $replace[$key]);
         }
 
-        return str_replace($search, $replace, apply_filters('mailoptin_settings_replace_footer_placeholder_tags', $content));
+        return str_replace($search, $replace, $content);
+    }
+
+    /**
+     * Take an empty detail's tag out of the footer, with its own punctuation: a line of its own goes
+     * entirely ("{{company_address_2}}<br>"), and so does the comma beside it ("{{company_city}}, ").
+     *
+     * @param string $content
+     * @param string $tag e.g. "{{company_address_2}}"
+     *
+     * @return string
+     */
+    public static function remove_empty_footer_tag($content, $tag)
+    {
+        $t = preg_quote($tag, '/');
+
+        $patterns = [
+            // Alone on a line, with its comma or full stop and line break.
+            '/^[ \t]*' . $t . '[ \t]*[,.]?[ \t]*(?:<br\b[^>]*>)?[ \t]*\r?\n/m' => '',
+            // Between line breaks in one-line HTML: "<br>{{company_address_2}}<br>".
+            '/<br\b[^>]*>[ \t]*' . $t . '[ \t]*[,.]?[ \t]*(?=<br)/' => '',
+            // Last in its paragraph: the line break or comma before it goes too ("Portland, {{company_state}}</p>").
+            '/(?:<br\b[^>]*>\s*|[ \t]*,[ \t]*)?' . $t . '[ \t]*[,.]?(?=\s*<\/)/' => '',
+            // Followed by a comma: "{{company_city}}, OR".
+            '/' . $t . '[ \t]*,[ \t]*/' => '',
+            // After a comma or space: "Portland, {{company_state}}".
+            '/[ \t]*,?[ \t]*' . $t . '/' => '',
+        ];
+
+        $content = preg_replace(array_keys($patterns), array_values($patterns), $content);
+
+        return str_replace($tag, '', (string)$content);
     }
 }

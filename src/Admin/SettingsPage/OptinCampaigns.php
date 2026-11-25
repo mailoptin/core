@@ -7,6 +7,7 @@ if ( ! defined('ABSPATH')) {
     exit;
 }
 
+use function MailOptin\Core\moVarGET;
 use W3Guy\Custom_Settings_Page_Api;
 
 class OptinCampaigns extends AbstractSettingsPage
@@ -20,9 +21,17 @@ class OptinCampaigns extends AbstractSettingsPage
 
     public function __construct()
     {
+        // "view=add-new" is the Emails page's; on this page it means the optin Add New screen.
+        add_action('admin_init', function () {
+            if (moVarGET('page') === MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_SLUG && moVarGET('view') === 'add-new') {
+                wp_safe_redirect(add_query_arg('view', 'add-new-optin', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE));
+                exit;
+            }
+        });
+
         add_action('mailoptin_admin_settings_page_pre', function ($active_menu) {
 
-            if (in_array($active_menu, ['optin-campaigns', 'add-new-optin'])) {
+            if (in_array($active_menu, ['optin-campaigns', 'add-new-optin', 'import-optins'])) {
 
                 $this->settingsInstance = Custom_Settings_Page_Api::instance();
 
@@ -46,6 +55,7 @@ class OptinCampaigns extends AbstractSettingsPage
         add_action('mailoptin_register_menu_page', array($this, 'register_settings_page'), 25);
         add_action('mailoptin_admin_settings_submenu_page_optin-campaigns', [$this, 'settings_admin_page_callback']);
         add_action('mailoptin_admin_settings_submenu_page_add-new-optin', [$this, 'settings_admin_page_callback']);
+        add_action('mailoptin_admin_settings_submenu_page_import-optins', [$this, 'settings_admin_page_callback']);
 
         add_filter('set-screen-option', array($this, 'set_screen'), 10, 3);
         add_filter('set_screen_option_optin_forms_per_page', array($this, 'set_screen'), 10, 3);
@@ -90,41 +100,30 @@ class OptinCampaigns extends AbstractSettingsPage
             $before_after_post_menu_active = isset($_GET['optin-type']) && $_GET['optin-type'] == 'inpost' ? 'mailoptin-type-active' : null;
             $notification_bar_menu_active  = isset($_GET['optin-type']) && $_GET['optin-type'] == 'bar' ? 'mailoptin-type-active' : null;
             $slide_in_menu_active          = isset($_GET['optin-type']) && $_GET['optin-type'] == 'slidein' ? 'mailoptin-type-active' : null;
+
+            $tabs = [
+                ''         => [MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE, $all_menu_active],
+                'lightbox' => [$lightbox_url, $lightbox_menu_active],
+                'inpost'   => [$in_post, $before_after_post_menu_active],
+                'sidebar'  => [$sidebar_url, $sidebar_menu_active],
+                'bar'      => [$notification_bar, $notification_bar_menu_active],
+                'slidein'  => [$slide_in, $slide_in_menu_active],
+            ];
+
+            $counts = OptinCampaign_List::get_instance()->type_counts();
             ?>
             <div id="mailoptin-sub-bar">
                 <div class="mailoptin-new-toolbar mailoptin-clear">
-                    <h4><?php _e('Filter By:', 'mailoptin'); ?></h4>
+                    <h4 class="screen-reader-text"><?php _e('Show campaigns of type', 'mailoptin'); ?></h4>
                     <ul class="mailoptin-design-options">
-                        <li>
-                            <a href="<?php echo MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE; ?>" class="<?php echo $all_menu_active; ?>">
-                                <?php _e('All', 'mailoptin'); ?>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $lightbox_url; ?>" class="<?php echo $lightbox_menu_active; ?>">
-                                <?php _e('Lightbox', 'mailoptin'); ?>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $in_post; ?>" class="<?php echo $before_after_post_menu_active; ?>">
-                                <?php _e('In-Post ', 'mailoptin'); ?>
-                            </a>
-                        </li>
-                        <li>
-                        <li>
-                            <a href="<?php echo $sidebar_url; ?>" class="<?php echo $sidebar_menu_active; ?>">
-                                <?php _e('Sidebar/Widget', 'mailoptin'); ?>
-                            </a></li>
-                        <li>
-                            <a href="<?php echo $notification_bar; ?>" class="<?php echo $notification_bar_menu_active; ?>">
-                                <?php _e('Notification-Bar', 'mailoptin'); ?>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?php echo $slide_in; ?>" class="<?php echo $slide_in_menu_active; ?>">
-                                <?php _e('Slide-In', 'mailoptin'); ?>
-                            </a>
-                        </li>
+                        <?php foreach ($tabs as $type => $tab) : ?>
+                            <li>
+                                <a href="<?php echo esc_url($tab[0]); ?>" class="<?php echo esc_attr($tab[1]); ?>"<?php echo $tab[1] ? ' aria-current="page"' : ''; ?>>
+                                    <?php echo esc_html('' === $type ? __('All', 'mailoptin') : \MailOptin\Core\Admin\UI::optin_type_label($type)); ?>
+                                    <span class="mo-ui-count"><?php echo esc_html(number_format_i18n(isset($counts[$type]) ? $counts[$type] : 0)); ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
             </div>
@@ -176,6 +175,8 @@ class OptinCampaigns extends AbstractSettingsPage
     {
         if ( ! empty($_GET['view']) && $_GET['view'] == 'add-new-optin') {
             AddOptinCampaign::get_instance()->settings_admin_page();
+        } elseif ( ! empty($_GET['view']) && $_GET['view'] == 'import-optins') {
+            OptinCampaignImport::get_instance()->settings_admin_page();
         } else {
             echo '<div class="mailoptin-data-listing">';
             $this->settingsInstance->build(defined('MAILOPTIN_DETACH_LIBSODIUM'));
@@ -220,6 +221,7 @@ class OptinCampaigns extends AbstractSettingsPage
     {
         $url = add_query_arg('view', 'add-new-optin', MAILOPTIN_OPTIN_CAMPAIGNS_SETTINGS_PAGE);
         echo "<a class=\"add-new-h2\" href=\"$url\">" . __('Add New', 'mailoptin') . '</a>';
+        echo '<a class="add-new-h2" href="' . esc_url(OptinCampaignImport::url()) . '">' . esc_html__('Import', 'mailoptin') . '</a>';
     }
 
     /**

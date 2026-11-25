@@ -29,6 +29,9 @@ class PreviewCampaignLog
     public function preview_campaign_error_log()
     {
         if (isset($_GET['mailoptin'], $_GET['id']) && 'preview-campaign-error-log' == $_GET['mailoptin']) {
+            // Error logs contain recipient email addresses.
+            if ( ! \MailOptin\Core\current_user_has_privilege()) wp_die('', '', ['response' => 403]);
+
             $filename = sanitize_key($_GET['id']);
             echo nl2br(file_get_contents(MAILOPTIN_CAMPAIGN_ERROR_LOG . "$filename.log"));
             wp_die();
