@@ -70,6 +70,7 @@ class Triggers
         foreach ([
                      new Triggers\ListJoined(),
                      new Triggers\TagAdded(),
+                     new Triggers\OptinSignup(),
                      new Triggers\DateField(),
                      new Triggers\WooOrderStatus(),
                      new Triggers\WooOrderCount(),
