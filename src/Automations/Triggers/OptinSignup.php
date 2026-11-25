@@ -5,6 +5,7 @@ namespace MailOptin\Core\Automations\Triggers;
 use MailOptin\Core\Automations\AbstractTrigger;
 use MailOptin\Core\Repositories\AutomationsRepository;
 use MailOptin\Core\Repositories\OptinCampaignsRepository as Campaigns;
+use MailOptin\Core\Repositories\SubscribersRepository as Subscribers;
 
 /**
  * Someone signs up through an optin campaign: whatever list or service the campaign sends them to
@@ -20,6 +21,15 @@ use MailOptin\Core\Repositories\OptinCampaignsRepository as Campaigns;
  */
 class OptinSignup extends AbstractTrigger
 {
+    /** Sign-ups waiting for their double opt-in confirmation, by email. */
+    const PENDING_PREFIX = 'mo_optin_signup_pending_';
+
+    /** How many runs one IP address can start in an hour (people typing others' addresses into a form). */
+    const IP_LIMIT = 10;
+
+    /** email|campaign already handled in this request (two hooks can report the same sign-up). */
+    protected $seen = [];
+
     public function id()
     {
         return 'optin_signup';
@@ -99,6 +109,18 @@ class OptinSignup extends AbstractTrigger
     public function listen()
     {
         add_action('mailoptin_track_conversions', [$this, 'signed_up'], 10, 2);
+        // Also when the lead bank is off, which skips the conversion record (and its hook).
+        add_action('mailoptin_optin_subscription_succeeded', [$this, 'subscription_succeeded'], 10, 3);
+        add_action('mo_subscriber_confirmed', [$this, 'confirmed'], 20);
+    }
+
+    public function subscription_succeeded($optin_campaign_id, $conversion_data, $lead_data = [])
+    {
+        if (empty($lead_data) && is_object($conversion_data)) {
+            $lead_data = ['email' => $conversion_data->email ?? '', 'name' => $conversion_data->name ?? '', 'conversion_page' => $conversion_data->conversion_page ?? ''];
+        }
+
+        $this->signed_up((array)$lead_data, $optin_campaign_id);
     }
 
     /**
@@ -112,21 +134,99 @@ class OptinSignup extends AbstractTrigger
 
         if ( ! $optin_campaign_id || ! is_email($email)) return;
 
+        $key = strtolower($email) . '|' . $optin_campaign_id;
+        if (isset($this->seen[$key])) return;
+        $this->seen[$key] = true;
+
         // Most sites have no automation on this trigger: don't do any more work for them.
         if ( ! AutomationsRepository::live_for_trigger($this->id())) return;
 
-        // A split-test variant counts as its parent campaign.
+        // A split-test variant counts as its parent campaign; the one they used is kept for add-ons
+        // (an offer's code belongs to the variant that made it).
         $parent = absint(\MailOptin\Core\Repositories\OptinCampaignMeta::get_campaign_meta($optin_campaign_id, 'split_test_parent', true));
 
         $context = [
-            'optin_campaign_id' => $parent ?: $optin_campaign_id,
-            'name'              => sanitize_text_field((string)($lead_data['name'] ?? '')),
-            'page'              => esc_url_raw((string)($lead_data['conversion_page'] ?? '')),
+            'optin_campaign_id'  => $parent ?: $optin_campaign_id,
+            'signup_campaign_id' => $optin_campaign_id,
+            // Typed by whoever filled in the form: plain text, short.
+            'name'               => mb_substr(sanitize_text_field((string)($lead_data['name'] ?? '')), 0, 60),
+            // Only a page on this site, never a link someone else chose.
+            'page'               => self::own_page((string)($lead_data['conversion_page'] ?? '')),
         ];
 
         $context = (array)apply_filters('mailoptin_optin_signup_trigger_context', $context, $lead_data);
 
-        $this->start($email, 'optin-' . $context['optin_campaign_id'] . '-' . gmdate('YmdHis'), $context);
+        // On a built-in list with double opt-in they haven't confirmed yet: wait until they do, so a form
+        // can't be used to email an address its owner never agreed to.
+        $subscriber = Subscribers::get_by_email($email);
+        if ($subscriber && Subscribers::STATUS_PENDING === $subscriber['status']) {
+            $pending   = (array)get_transient(self::PENDING_PREFIX . md5(strtolower($email)));
+            $pending[] = $context;
+            set_transient(self::PENDING_PREFIX . md5(strtolower($email)), array_slice($pending, -5), 14 * DAY_IN_SECONDS);
+
+            return;
+        }
+
+        // Elsewhere (Mailchimp, Kit…) the service handles consent; still, one address can't fill a form
+        // with hundreds of strangers' addresses and start emails to all of them.
+        if ( ! self::under_ip_limit()) return;
+
+        $this->begin($email, $context);
+    }
+
+    protected function begin($email, $context)
+    {
+        $this->start($email, 'optin-' . absint($context['optin_campaign_id'] ?? 0) . '-' . gmdate('YmdHis'), $context);
+    }
+
+    /** They confirmed on a built-in list: start what waited for that. */
+    public function confirmed($subscriber_id)
+    {
+        $subscriber = Subscribers::get($subscriber_id);
+
+        if ( ! $subscriber) return;
+
+        $key     = self::PENDING_PREFIX . md5(strtolower($subscriber['email']));
+        $pending = get_transient($key);
+
+        if ( ! is_array($pending)) return;
+
+        delete_transient($key);
+
+        foreach ($pending as $context) {
+            if (is_array($context)) $this->begin($subscriber['email'], $context);
+        }
+    }
+
+    protected static function own_page($url)
+    {
+        $url = esc_url_raw($url);
+
+        if ('' === $url) return '';
+
+        $host = wp_parse_url($url, PHP_URL_HOST);
+
+        return $host && strtolower($host) === strtolower((string)wp_parse_url(home_url(), PHP_URL_HOST)) ? $url : '';
+    }
+
+    protected static function under_ip_limit()
+    {
+        // A retried sync runs from cron, under the server's own address: not a visitor.
+        if (wp_doing_cron()) return true;
+
+        $ip = (string)\MailOptin\Core\get_ip_address();
+
+        if ('' === $ip) return true;
+
+        $limit = (int)apply_filters('mailoptin_optin_signup_trigger_ip_limit', self::IP_LIMIT);
+        $key   = 'mo_optin_signup_ip_' . md5($ip);
+        $count = (int)get_transient($key);
+
+        if ($limit > 0 && $count >= $limit) return false;
+
+        set_transient($key, $count + 1, HOUR_IN_SECONDS);
+
+        return true;
     }
 
     public function matches($context, $settings, $audience)
@@ -181,6 +281,9 @@ class OptinSignup extends AbstractTrigger
     public function count_recent($automation)
     {
         $id = absint($automation['trigger_settings']['optin_campaign_id'] ?? 0);
+
+        // With the lead bank off, sign-ups aren't recorded: there's nothing to count.
+        if (\MailOptin\Core\AjaxHandler::is_leadbank_disabled()) return null;
 
         global $wpdb;
         $table = $wpdb->prefix . \MailOptin\Core\Core::conversions_table_name;

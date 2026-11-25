@@ -330,4 +330,51 @@ class BuiltInTriggersTest extends EngineTest
         $trigger->signed_up(['email' => 'quiet@example.org'], $campaign);
         $this->assertLessThanOrEqual(1, $wpdb->num_queries - $before);
     }
+
+    public function test_on_a_double_opt_in_list_it_waits_until_they_confirm()
+    {
+        $list     = ListsRepository::create(['name' => 'Confirm first', 'double_optin' => 1]);
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Double', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign], [$this->email_step('Hi')]);
+
+        Subscription::subscribe('stranger@example.org', $list);
+        $this->signup($campaign, 'stranger@example.org');
+        $this->assertCount(0, $this->runs($id), 'Nothing is sent to an address that hasn\'t confirmed');
+
+        Subscription::confirm(Subscribers::get_by_email('stranger@example.org')['id']);
+        $this->assertCount(1, $this->runs($id), 'It starts once they confirm');
+    }
+
+    public function test_one_address_can_only_start_so_many_in_an_hour()
+    {
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Flood', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign], [$this->email_step('Hi')]);
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.9';
+        $limit = function () { return 3; };
+        add_filter('mailoptin_optin_signup_trigger_ip_limit', $limit);
+
+        for ($i = 0; $i < 5; $i++) $this->signup($campaign, "flood$i@example.org");
+
+        remove_filter('mailoptin_optin_signup_trigger_ip_limit', $limit);
+        unset($_SERVER['REMOTE_ADDR']);
+        $this->assertCount(3, $this->runs($id));
+    }
+
+    public function test_the_page_placeholder_only_links_to_this_site_and_one_sign_up_starts_once()
+    {
+        $campaign = \MailOptin\Core\Repositories\OptinCampaignsRepository::add_optin_campaign(wp_generate_password(10, false), 'Links', 'BareMetal', 'inpost');
+        $id       = $this->automation_for('optin_signup', ['optin_campaign_id' => $campaign, 'runs' => 'every'], [$this->email_step('Hi')]);
+        $trigger  = Triggers::get_instance()->get('optin_signup');
+
+        \MailOptin\Core\AjaxHandler::track_conversion($campaign, ['email' => 'phish@example.org', 'name' => str_repeat('A very long name ', 10), 'conversion_page' => 'https://evil.example.com/login']);
+        // The same sign-up reported by the success hook too (lead bank on): still one run.
+        do_action('mailoptin_optin_subscription_succeeded', $campaign, (object)['email' => 'phish@example.org', 'name' => 'x', 'conversion_page' => ''], []);
+        $runs = $this->runs($id);
+        $this->assertCount(1, $runs);
+
+        $run = Repo::get_run($runs[0]['id']);
+        $this->assertSame('', Engine::replace_placeholders('{{signup.page}}', $trigger, $run, false));
+        $this->assertLessThanOrEqual(60, mb_strlen($run['context']['name']));
+        $this->assertSame($campaign, $run['context']['signup_campaign_id']);
+    }
 }
