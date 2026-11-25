@@ -488,6 +488,9 @@ class Countdown
         if ('' !== $box) $css .= "$scope.mo-countdown-boxes .mo-countdown-unit{background:$box}";
         if ('' !== $number) $css .= "$scope .mo-countdown-number,$scope .mo-countdown-compact{color:$number}";
         if ('' !== $label) $css .= "$scope .mo-countdown-label{color:$label}";
+        // The message shown at zero sits on the panel: give it the owner's text colour too.
+        $message = '' !== $label ? $label : $number;
+        if ('' !== $bg && 'compact' !== $style && '' !== $message) $css .= "$scope .mo-countdown-message{color:$message}";
 
         return '<style>' . $css . '</style>';
     }
@@ -807,11 +810,13 @@ class Countdown
                . 'function lum(c){return c.map(function(v){v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);}).reduce(function(a,v,i){return a+v*[.2126,.7152,.0722][i];},0);}'
                . 'function ratio(a,b){var x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);}'
                . 'function val(n){var s=api(k[n]);return s?s.get():"";}'
-               . 'function check(){var el=document.getElementById("mo-countdown-contrast");if(!el)return;var bg=rgb(val("bg")),box=val("style")==="boxes"?rgb(val("box")):null,worst=0;'
+               . 'function check(){var el=document.getElementById("mo-countdown-contrast");if(!el)return;var bg=rgb(val("bg")),boxes=val("style")==="boxes",box=boxes?rgb(val("box")):null,worst=0;'
+               // Boxes left empty are a 14% grey tint over the background.
+               . 'if(boxes&&!box&&bg)box=bg.map(function(v){return 127*.14+v*.86;});'
                . '[["number",box||bg],["label",box||bg]].forEach(function(p){var c=rgb(val(p[0]));if(!c||!p[1]||(p[0]==="label"&&val("style")==="compact"))return;var r=ratio(c,p[1]);if(r<4.5&&(!worst||r<worst))worst=r;});'
-               . 'el.hidden=!worst;if(worst)el.textContent=text.replace("%s",worst.toFixed(1));}'
-               . 'api.bind("ready",function(){Object.keys(k).forEach(function(n){api(k[n],function(s){s.bind(check);});});check();});'
-               . 'if(api.settings&&api.settings.initialized)check();})();</script>';
+               . 'el.hidden=!worst;if(worst)el.textContent=text.replace(/%(1\\$)?s/,worst.toFixed(1));}'
+               // api(id, fn) waits for a setting that isn't added yet, so this works before or after "ready".
+               . 'Object.keys(k).forEach(function(n){api(k[n],function(s){s.bind(check);check();});});api.bind("ready",check);})();</script>';
     }
 
     /** "Use that date": copies the schedule's end and time zone into the countdown. */

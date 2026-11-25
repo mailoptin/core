@@ -2287,7 +2287,7 @@ var mailoptin_optin = {
                 return true;
             };
 
-            var own = cd.own_color || {};
+            var own = cd.own_color === true ? {number: true, label: false} : (cd.own_color || {});
             if (!(own.number && own.label)) self.countdown_fit_color($form, own);
 
             if (tick()) {
@@ -2475,6 +2475,9 @@ var mailoptin_optin = {
         if (cd.on_end === 'message' && cd.message) {
             $countdown.removeAttr('role').removeAttr('data-mode').addClass('mo-countdown-ended');
             $countdown.empty().append($('<p class="mo-countdown-message"></p>').text(cd.message));
+            // A colour picked for the numbers on the pill or the boxes may not suit the message's background.
+            $countdown[0].style.color = '';
+            this.countdown_fit_color($form, {});
             return;
         }
 

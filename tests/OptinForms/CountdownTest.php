@@ -276,4 +276,29 @@ class CountdownTest extends WP_UnitTestCase
         // A bad value doesn't count as chosen.
         $this->assertSame(['number' => false, 'label' => false], $own(['countdown_number_color' => 'red;}']));
     }
+
+    public function test_the_message_at_zero_takes_the_owners_text_colour_on_a_panel()
+    {
+        $past = wp_date('m/d/Y h:i A', time() - HOUR_IN_SECONDS);
+        $html = OptinFormFactory::build($this->on(['countdown_end' => $past, 'countdown_on_end' => 'message', 'countdown_end_message' => 'Over', 'countdown_bg_color' => '#1f2a44', 'countdown_number_color' => '#ffffff', 'countdown_label_color' => '#cccccc']));
+
+        $this->assertStringContainsString('Over', $html);
+        $this->assertStringContainsString('.mo-countdown-message{color:#cccccc}', $html);
+    }
+
+    public function test_the_contrast_note_is_safe_and_watches_the_colour_settings()
+    {
+        $method = new \ReflectionMethod(Countdown::class, 'contrast_note_html');
+        $method->setAccessible(true);
+        $html = $method->invoke(null, 'mo_optin_campaign[7]');
+
+        $this->assertStringContainsString('id="mo-countdown-contrast"', $html);
+        $this->assertStringContainsString('hidden', $html);
+        foreach (['countdown_bg_color', 'countdown_box_color', 'countdown_number_color', 'countdown_label_color', 'countdown_style'] as $key) {
+            $this->assertStringContainsString('mo_optin_campaign[7][' . $key . ']', $html);
+        }
+        // A prefix can't close the script.
+        $evil = $method->invoke(null, 'x</script><script>alert(1)</script>');
+        $this->assertSame(1, substr_count($evil, '</script>'));
+    }
 }
