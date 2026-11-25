@@ -5,14 +5,112 @@ namespace MailOptin\Core\Repositories;
 
 class OptinThemesRepository extends AbstractRepository
 {
+    /** What a template is for, when it doesn't say. */
+    const OBJECTIVE_DEFAULT = 'collect_emails';
+
+    const OBJECTIVE_PRODUCT_OFFERS = 'woocommerce_product_offers';
+
     private static $optin_themes;
+
+    /**
+     * What templates can be for, shown as links above the templates on Add New. Each template says
+     * which with an "objective" key; templates without one are for collecting emails.
+     *
+     * @return array objective => label
+     */
+    public static function objectives()
+    {
+        $objectives = [self::OBJECTIVE_DEFAULT => __('Collect emails', 'mailoptin')];
+
+        if (class_exists('WooCommerce')) {
+            $objectives[self::OBJECTIVE_PRODUCT_OFFERS] = __('WooCommerce product offers', 'mailoptin');
+        }
+
+        return (array)apply_filters('mailoptin_optin_objectives', $objectives);
+    }
+
+    public static function objective_of($theme)
+    {
+        $objective = isset($theme['objective']) ? sanitize_key($theme['objective']) : '';
+
+        return '' !== $objective ? $objective : self::OBJECTIVE_DEFAULT;
+    }
+
+    /**
+     * What shows under an objective's link instead of, or above, its templates: on free sites,
+     * what product offers are and how to get them.
+     *
+     * @return string HTML, or '' for none
+     */
+    public static function objective_upsell($objective, $optin_type)
+    {
+        $html = '';
+
+        if (self::OBJECTIVE_PRODUCT_OFFERS === $objective && ! defined('MAILOPTIN_DETACH_LIBSODIUM')) {
+            $url  = 'https://mailoptin.io/pricing/?utm_source=wp_dashboard&utm_medium=upgrade&utm_campaign=product_offers';
+            $html = '<div class="mo-objective-upsell-inner">'
+                    . '<h3>' . esc_html__('Sell more with WooCommerce product offers', 'mailoptin') . '</h3>'
+                    . '<p>' . esc_html__('Show one of your products in a pop-up, slide-in, bar, sidebar or post, and add it to the cart in one click. Or offer a discount in return for an email address.', 'mailoptin') . '</p>'
+                    . '<ul>'
+                    . '<li>' . esc_html__('Shown right after something is added to the cart, or on the product, cart and checkout pages', 'mailoptin') . '</li>'
+                    . '<li>' . esc_html__('One-click add to cart, with an optional coupon', 'mailoptin') . '</li>'
+                    . '<li>' . esc_html__('Email unlock: subscribe, and the discounted product goes straight into the cart', 'mailoptin') . '</li>'
+                    . '<li>' . esc_html__('Ready-made templates for every optin type, set up to work as soon as you pick one', 'mailoptin') . '</li>'
+                    . '</ul>'
+                    . '<a class="button button-primary" target="_blank" rel="noopener" href="' . esc_url($url) . '">' . esc_html__('Get MailOptin Premium', 'mailoptin') . '</a>'
+                    . '<p class="mo-objective-upsell-note">' . esc_html__('The templates below come with Premium. Each opens a short setup: the product, the discount, and when it shows.', 'mailoptin') . '</p>'
+                    . '</div>';
+        }
+
+        return (string)apply_filters('mailoptin_optin_objective_upsell', $html, $objective, $optin_type);
+    }
+
+    /**
+     * The "All | Collect emails | …" links over the templates. Shown only when there is more than one
+     * objective to pick from for this optin type.
+     */
+    public static function objectives_html($optin_designs, $optin_type)
+    {
+        $counts = [];
+        foreach ((array)$optin_designs as $theme) {
+            $objective          = self::objective_of($theme);
+            $counts[$objective] = ($counts[$objective] ?? 0) + 1;
+        }
+
+        $links   = [];
+        $upsells = '';
+
+        foreach (self::objectives() as $objective => $label) {
+            $objective = sanitize_key($objective);
+            $upsell    = self::objective_upsell($objective, $optin_type);
+            $count     = $counts[$objective] ?? 0;
+
+            if ( ! $count && '' === $upsell) continue;
+
+            // Nothing to pick yet, only what Premium adds: say so rather than "(0)".
+            $badge = ! $count && '' !== $upsell ? __('Premium', 'mailoptin') : number_format_i18n($count);
+
+            $links[$objective] = sprintf(
+                '<a href="#" data-objective="%s">%s <span class="count">(%s)</span></a>',
+                esc_attr($objective), esc_html($label), esc_html($badge)
+            );
+
+            if ('' !== $upsell) $upsells .= '<div class="mo-objective-upsell" data-objective="' . esc_attr($objective) . '" hidden>' . $upsell . '</div>';
+        }
+
+        if (count($links) < 2) return '';
+
+        $all = sprintf('<a href="#" data-objective="" class="current">%s <span class="count">(%s)</span></a>', esc_html__('All', 'mailoptin'), esc_html(number_format_i18n(count((array)$optin_designs))));
+
+        return '<ul class="subsubsub mo-optin-objectives"><li>' . implode(' |</li><li>', array_merge([$all], $links)) . '</li></ul><div class="clear"></div>' . $upsells;
+    }
 
     public static function defaultThemes()
     {
         if (is_null(self::$optin_themes)) {
             self::$optin_themes = apply_filters(
                 'mailoptin_registered_optin_themes',
-                array_merge(self::free_themes(), self::premium_themes())
+                array_merge(self::free_themes(), self::premium_themes(), self::locked_product_offer_themes())
             );
         }
     }
@@ -63,6 +161,43 @@ class OptinThemesRepository extends AbstractRepository
                 'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/elegance-inpost.png'
             ],
         ];
+    }
+
+    /**
+     * Premium's product offer templates, shown locked on free sites with WooCommerce under "WooCommerce
+     * product offers" so shoppers can see what they'd get. With Premium active, its own templates are
+     * listed instead.
+     */
+    public static function locked_product_offer_themes()
+    {
+        if (defined('MAILOPTIN_DETACH_LIBSODIUM') || ! apply_filters('mailoptin_show_locked_product_offer_themes', class_exists('WooCommerce'))) return [];
+
+        $templates = [
+            ['Showcase', 'OfferShowcase', 'lightbox'],
+            ['Quick Add', 'OfferQuickAdd', 'lightbox'],
+            ['Unlock', 'OfferUnlock', 'lightbox'],
+            ['Corner Card', 'OfferCornerCard', 'slidein'],
+            ['Corner Unlock', 'OfferCornerUnlock', 'slidein'],
+            ['Deal Bar', 'OfferDealBar', 'bar'],
+            ['Inline Feature', 'InlineFeature', 'inpost'],
+            ['Inline Unlock', 'OfferInlineUnlock', 'inpost'],
+            ['Widget Card', 'OfferWidgetCard', 'sidebar'],
+            ['Widget Unlock', 'OfferWidgetUnlock', 'sidebar'],
+        ];
+
+        $themes = [];
+        foreach ($templates as $t) {
+            $themes[] = [
+                'name'        => $t[0],
+                'optin_class' => $t[1],
+                'flag'        => 'premium',
+                'optin_type'  => $t[2],
+                'objective'   => self::OBJECTIVE_PRODUCT_OFFERS,
+                'screenshot'  => MAILOPTIN_ASSETS_URL . 'images/optin-themes/product-offers/' . sanitize_title($t[0]) . '-' . $t[2] . '.png',
+            ];
+        }
+
+        return $themes;
     }
 
     public static function premium_themes()
@@ -527,9 +662,15 @@ class OptinThemesRepository extends AbstractRepository
         });
     }
 
-    public static function listing_display_template($optin_type = 'lightbox')
+    /**
+     * @param string $optin_type
+     * @param bool $with_objectives the objective links, on Add New (the Customizer's template switcher has no script for them)
+     */
+    public static function listing_display_template($optin_type = 'lightbox', $with_objectives = false)
     {
         $optin_designs = OptinThemesRepository::get_by_type($optin_type);
+
+        if ($with_objectives) echo self::objectives_html($optin_designs, $optin_type);
 
         if (empty($optin_designs)) {
             if ($optin_type == 'bar') $optin_type = 'notification bar';
@@ -555,7 +696,7 @@ class OptinThemesRepository extends AbstractRepository
                 $url         = $is_premium_theme_disallowed ? $upgrade_url : '#';
                 $url_target  = $is_premium_theme_disallowed ? ' target="_blank"' : '';
                 ?>
-                <div id="mailoptin-optin-theme-list" class="mailoptin-optin-theme<?= $extra_class; ?> mailoptin-optin-theme-<?php echo $theme_class; ?>" data-optin-theme="<?php echo $theme_class; ?>" data-optin-type="<?php echo $optin_type; ?>">
+                <div id="mailoptin-optin-theme-list" class="mailoptin-optin-theme<?= $extra_class; ?> mailoptin-optin-theme-<?php echo $theme_class; ?>" data-optin-theme="<?php echo $theme_class; ?>" data-optin-type="<?php echo $optin_type; ?>" data-objective="<?php echo esc_attr(self::objective_of($optin_theme)); ?>">
                     <a <?= $url_target; ?> href="<?= $url; ?>">
                         <div class="mailoptin-optin-theme-screenshot">
                             <img src="<?php echo $screenshot; ?>" alt="<?php echo $theme_name; ?>">

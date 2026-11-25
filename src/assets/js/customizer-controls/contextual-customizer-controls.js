@@ -434,13 +434,18 @@
                 api.control('mo_optin_campaign[' + mailoptin_optin_campaign_id + '][note_acceptance_checkbox]', controlAcceptanceCheckbox);
             });
 
+            // After Conversion is only toggled when the server showed it: add-ons hide it for campaigns
+            // that collect no email (mo_optin_customizer_sections_ids), and this mustn't bring it back.
+            var successSection = api.section('mo_success_section'),
+                successShown = successSection ? successSection.active() : false;
+
             $('input[data-customize-setting-link*=use_custom_html]').on('change', function () {
                 $('li[id*=custom_html_content]').toggle(this.checked);
                 $('#sub-accordion-section-mo_fields_section li.customize-control')
                     .not('li[id*=use_custom_html], li[id*=custom_html_content]')
                     .toggle(!this.checked);
 
-                api.section('mo_success_section').active(!this.checked);
+                if (successSection && successShown) successSection.active(!this.checked);
 
             }).trigger('change');
 

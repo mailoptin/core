@@ -293,7 +293,7 @@ class AjaxHandler
         echo '<div class="mailoptin-optin-themes mailoptin-optin-clear">';
         // lightbox/modal display should be default.
 
-        OptinThemesRepository::listing_display_template($optin_type);
+        OptinThemesRepository::listing_display_template($optin_type, true);
         echo '</div>';
 
         exit;
@@ -423,30 +423,45 @@ class AjaxHandler
         // merge parent optin with variants
         array_unshift($variant_ids, $parent_optin_id);
 
+        /**
+         * Extra columns for the variants (key => label), filled by mailoptin_split_test_winner_column.
+         * Premium's product offers add Orders and Revenue.
+         */
+        $columns = (array)apply_filters('mailoptin_split_test_winner_columns', [], $parent_optin_id);
+
         ob_start();
         ?>
         <div class="mo-end-test-modal">
         <div class="mo-end-test-conversion-rate">
             <div class="mo-end-test-centered">
                 <h2><?php _e('Select a Winner', 'mailoptin'); ?></h2>
-                <div class="mo-end-test-first-section">
-                    <div class="mo-end-test-content-optin-name mo-end-test-th-header">
-                        <?php _e('Optin Name', 'mailoptin'); ?>
-                    </div>
-                    <div class="mo-end-test-content-conversion mo-end-test-th-header">
-                        <?php _e('Conversion Rate', 'mailoptin'); ?>
-                    </div>
-                </div>
-                <?php foreach ($variant_ids as $variant_id) : ?>
-                    <?php $variant_name = OptinCampaignsRepository::get_optin_campaign_name($variant_id); ?>
-                    <?php $variant_conversion_rate = (new OptinCampaignStat($variant_id))->get_conversion_rate(); ?>
-                    <div class="mo-end-test-first-section mo-end-test-tbody mo-end-test-clearfix" data-parent-id="<?php echo $parent_optin_id; ?>" data-optin-id="<?php echo $variant_id; ?>">
-                        <div class="mo-end-test-content-optin-name"><?php echo $variant_name; ?></div>
-                        <div class="mo-end-test-content-conversion">
-                            <span class="mo-end-test-converted-rate"><?php echo $variant_conversion_rate; ?></span>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                <table class="mo-end-test-table">
+                    <thead>
+                    <tr>
+                        <th class="mo-end-test-th-header"><?php _e('Optin Name', 'mailoptin'); ?></th>
+                        <th class="mo-end-test-th-header"><?php _e('Conversion Rate', 'mailoptin'); ?></th>
+                        <?php foreach ($columns as $label) : ?>
+                            <th class="mo-end-test-th-header"><?php echo esc_html($label); ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($variant_ids as $variant_id) : ?>
+                        <?php $variant_name = OptinCampaignsRepository::get_optin_campaign_name($variant_id); ?>
+                        <?php $variant_conversion_rate = (new OptinCampaignStat($variant_id))->get_conversion_rate(); ?>
+                        <tr class="mo-end-test-tbody" data-parent-id="<?php echo absint($parent_optin_id); ?>" data-optin-id="<?php echo absint($variant_id); ?>">
+                            <td class="mo-end-test-content-optin-name"><?php echo esc_html($variant_name); ?></td>
+                            <td class="mo-end-test-content-conversion">
+                                <span class="mo-end-test-converted-rate"><?php echo esc_html($variant_conversion_rate); ?></span>
+                            </td>
+                            <?php foreach (array_keys($columns) as $key) : ?>
+                                <td><?php echo wp_kses_post(apply_filters('mailoptin_split_test_winner_column', '', $key, $variant_id, $parent_optin_id)); ?></td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php echo wp_kses_post(apply_filters('mailoptin_split_test_winner_note', '', $parent_optin_id, $variant_ids)); ?>
                 <div class="mo-end-test-warning-note">
                     <?php _e('Warning: selecting a winner will delete the other A/B test variants.', 'mailoptin'); ?>
                 </div>
@@ -498,8 +513,14 @@ class AjaxHandler
         $response = OptinCampaignsRepository::add_optin_campaign(self::generateUniqueId(), $title, $theme, $type);
 
         if (is_int($response)) {
+            /** After a campaign is made from a template on Add New (Premium: product offers write their defaults). */
+            do_action('mailoptin_optin_campaign_created', $response, $theme, $type);
+
             wp_send_json_success(
-                array('redirect' => OptinCampaign_List::_optin_campaign_customize_url($response))
+                array(
+                    // Where Add New goes next: the Customizer, or a template's own setup (Premium: product offers).
+                    'redirect' => apply_filters('mailoptin_new_optin_campaign_redirect', OptinCampaign_List::_optin_campaign_customize_url($response), $response, $theme, $type)
+                )
             );
         } else {
             wp_send_json_error();
@@ -931,6 +952,8 @@ class AjaxHandler
 
             if ( ! self::is_leadbank_disabled() && $conversionRepoResponse) self::track_conversion($optin_campaign_id, $lead_data);
 
+            do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
+
             return AbstractConnect::ajax_success();
         }
 
@@ -949,6 +972,8 @@ class AjaxHandler
 
             if (AbstractConnect::is_ajax_success($response)) {
                 self::track_conversion($optin_campaign_id, $lead_data);
+
+                do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
             }
 
             return $response;
@@ -1043,6 +1068,13 @@ class AjaxHandler
         if ($is_any_success) {
 
             if ( ! self::is_leadbank_disabled() && $conversionRepoResponse) self::track_conversion($optin_campaign_id, $lead_data);
+
+            /**
+             * Fires once, only when the subscription succeeded with at least one integration
+             * (mailoptin_after_optin_subscription fires for each one, whatever the result). Premium's
+             * email-unlock product offers apply their coupon only after this.
+             */
+            do_action('mailoptin_optin_subscription_succeeded', $optin_campaign_id, $conversion_data, $lead_data);
 
             return AbstractConnect::ajax_success();
         }

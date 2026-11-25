@@ -178,7 +178,8 @@ var mailoptin_optin = {
                             window.location.reload();
                         }
                     } else {
-                        console.warn('something went wrong.');
+                        // An action added by an add-on (Premium: "Add product to cart") is theirs to run.
+                        $(document.body).trigger('moOptinCtaAction', [optin_js_config.cta_action, optin_container, optin_js_config, $optin_uuid]);
                     }
                     return false;
                 });
@@ -686,17 +687,35 @@ var mailoptin_optin = {
      * @param {string} optin_type
      * @param {boolean} skip_display_checks
      */
-    display_optin_form: function (optin_config, optin_type, skip_display_checks) {
+    display_optin_form: function (optin_config, optin_type, skip_display_checks, gates_passed) {
         // bail if required parameter is undefined
         if (typeof optin_type === 'undefined' || typeof optin_type === 'undefined') return;
 
         var self = mailoptin_optin;
+        var _this = this;
 
         // do cookie checking if we are not in customizer mode and not test mode is active.
         if ($.MailOptin.is_customize_preview === false && optin_config.test_mode === false && skip_display_checks !== true) {
             if (self.is_optin_visible(optin_config) === false) return;
 
             if (self.split_test_cookie_test(optin_config) === false) return;
+
+            // Add-ons' last say, e.g. checks that need the visitor's cart on a cached page.
+            if (gates_passed === true) {
+                // While the gate waited, another bar or slide-in may have taken this position.
+                if ((optin_type === 'bar' || optin_type === 'slidein') && self.is_flag_optin_type_active(optin_config, optin_type)) return;
+            } else {
+                var gate = self.display_gate(optin_config, optin_type);
+
+                if (gate === false) return;
+
+                if (gate !== true) {
+                    gate.done(function (show) {
+                        if (show === true) self.display_optin_form.call(_this, optin_config, optin_type, skip_display_checks, true);
+                    });
+                    return;
+                }
+            }
         }
 
         if (optin_type !== undefined && optin_type === 'lightbox') {
@@ -806,6 +825,44 @@ var mailoptin_optin = {
             var slidein_position = optin_config.slidein_position;
             $.MailOptin['isActiveMOSlidein_' + slidein_position] = false;
         }
+    },
+
+    /**
+     * Ask the display gates add-ons register whether a campaign may show. A gate is a function
+     * (optin_config, optin_type) returning true, false or a jQuery promise of true/false. Add-ons push
+     * gates onto window.mailoptin_display_gates, so the order the scripts load in doesn't matter.
+     *
+     * @returns {boolean|object} true, false, or a promise of true/false when a gate needs to wait.
+     */
+    display_gate: function (optin_config, optin_type) {
+        var gates = window.mailoptin_display_gates || [], pending = [], i, result;
+
+        for (i = 0; i < gates.length; i++) {
+            if (typeof gates[i] !== 'function') continue;
+
+            try {
+                result = gates[i](optin_config, optin_type);
+            } catch (e) {
+                // A broken gate never hides a campaign.
+                continue;
+            }
+
+            if (result === false) return false;
+            if (result && typeof result.then === 'function') pending.push(result);
+        }
+
+        if (pending.length === 0) return true;
+
+        var deferred = $.Deferred();
+
+        $.when.apply($, pending).then(function () {
+            deferred.resolve($.inArray(false, Array.prototype.slice.call(arguments)) === -1);
+        }, function () {
+            // A gate that failed (a network error, say) doesn't hide the campaign.
+            deferred.resolve(true);
+        });
+
+        return deferred.promise();
     },
 
     is_flag_optin_type_active: function (optin_config, optin_type) {
