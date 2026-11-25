@@ -558,13 +558,14 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     protected static function register_runtime_cache_invalidation()
     {
-        static $registered = false;
+        $flush = [__CLASS__, 'flush_customizer_defaults_cache'];
 
-        if ($registered) return;
+        // Checked each time rather than remembered (as on master): hooks can be removed later in the
+        // request, the WordPress test suite resets them after every test. Saved settings have their own
+        // cache in CampaignSettingsRepository, so only the defaults' locale hook is needed here.
+        if (has_action('change_locale', $flush)) return;
 
-        $registered = true;
-
-        add_action('change_locale', [__CLASS__, 'flush_customizer_defaults_cache']);
+        add_action('change_locale', $flush);
     }
 
     /**
