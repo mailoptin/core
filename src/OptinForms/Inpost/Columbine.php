@@ -9,6 +9,12 @@ use MailOptin\Core\OptinForms\AbstractOptinTheme;
 
 class Columbine extends AbstractOptinTheme
 {
+    /** Where a countdown fits in this theme, best first. */
+    public static function countdown_positions()
+    {
+        return [self::COUNTDOWN_BELOW_DESCRIPTION, self::COUNTDOWN_ABOVE_HEADLINE, self::COUNTDOWN_ABOVE_BUTTON];
+    }
+
     public $optin_form_name = 'Columbine';
 
     public function __construct($optin_campaign_id)

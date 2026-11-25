@@ -7,6 +7,12 @@ use MailOptin\Core\OptinForms\AbstractMessageTheme;
 /** Feature Card: an image beside a label, title, text and button, to point readers to a product or page. */
 class FeatureCard extends AbstractMessageTheme
 {
+    /** Where a countdown fits in this theme, best first. */
+    public static function countdown_positions()
+    {
+        return [self::COUNTDOWN_BELOW_DESCRIPTION, self::COUNTDOWN_ABOVE_HEADLINE];
+    }
+
     public $optin_form_name = 'Feature Card';
 
     public static $type = 'inpost';

@@ -853,6 +853,9 @@ var mailoptin_optin = {
         var self = mailoptin_optin;
         var _this = this;
 
+        // Its countdown ended on this page and it's set to stop: no trigger shows it again.
+        if (self.countdown_stopped[optin_config.optin_uuid]) return;
+
         // do cookie checking if we are not in customizer mode and not test mode is active.
         if ($.MailOptin.is_customize_preview === false && optin_config.test_mode === false && skip_display_checks !== true) {
             if (self.is_optin_visible(optin_config) === false) return;
@@ -2231,6 +2234,282 @@ var mailoptin_optin = {
     },
 
     /**
+     * Countdowns (see Countdown.php): work out each campaign's deadline, drop a campaign whose
+     * countdown has ended and is set to stop it, and keep the rest ticking.
+     */
+    /** Campaigns whose countdown ended and stopped them, by uuid. */
+    countdown_stopped: {},
+
+    countdown_init: function () {
+        var self = this, preview = $.MailOptin.is_customize_preview === true;
+
+        $('.moOptinForm').each(function () {
+            var $form = $(this), uuid = $form.attr('id'), config = self.optin_js_config(uuid);
+
+            if (!config || !config.countdown) return;
+
+            var cd = config.countdown, end = self.countdown_deadline(uuid, cd, preview);
+
+            // Ended before this page loaded (a cached page, or a visitor's own countdown that ran
+            // out on an earlier visit) and set to stop the campaign.
+            if (end !== null && Date.now() >= end && cd.on_end === 'stop' && !preview) {
+                self.countdown_stopped[uuid] = true;
+                $form.remove();
+                return;
+            }
+
+            var tick = function () {
+                var $countdown = $form.find('.mo-countdown[data-mo-countdown]');
+                // Gone, or already showing how it ended (the server wrote that): nothing to tick.
+                if (!$countdown.length || $countdown.hasClass('mo-countdown-ended')) return false;
+
+                // "After each visitor first sees it": the clock starts when the campaign is on screen.
+                if (end === null) {
+                    // A date the browser couldn't read: leave the server's numbers and stop ticking.
+                    if (cd.mode !== 'evergreen') return false;
+                    if (!self.countdown_on_screen($form)) return true;
+                    end = self.countdown_start(uuid, cd, preview);
+                }
+
+                var left = Math.max(0, Math.round((end - Date.now()) / 1000));
+
+                if (left === 0 && cd.mode === 'daily') {
+                    end = self.countdown_next_midnight(cd);
+                    left = Math.round((end - Date.now()) / 1000);
+                }
+
+                if (left === 0) {
+                    self.countdown_end_reached($form, $countdown, cd, preview);
+                    return false;
+                }
+
+                self.countdown_render($countdown, left, cd);
+                return true;
+            };
+
+            var own = cd.own_color === true ? {number: true, label: false} : (cd.own_color || {});
+            if (!(own.number && own.label)) self.countdown_fit_color($form, own);
+
+            if (tick()) {
+                var timer = setInterval(function () {
+                    if (!tick()) clearInterval(timer);
+                }, 1000);
+            }
+        });
+    },
+
+    /** The deadline in ms, or null while an evergreen countdown hasn't started. */
+    countdown_deadline: function (uuid, cd, preview) {
+        if (cd.mode === 'evergreen') {
+            var start = preview ? null : this.countdown_stored(uuid);
+            return start ? start + cd.duration * 1000 : null;
+        }
+
+        if (cd.mode === 'daily') return this.countdown_next_midnight(cd);
+
+        // In the visitor's own time zone: the date and time as numbers, read on the visitor's clock.
+        if (cd.end_local) {
+            var p = cd.end_local, local = new Date(p[0], p[1] - 1, p[2], p[3], p[4], 0).getTime();
+            return isNaN(local) ? null : local;
+        }
+
+        return cd.end ? cd.end * 1000 : null;
+    },
+
+    /**
+     * The site's next midnight. The server sends the next few (so a clock change is already in them);
+     * a page cached longer than that steps on a day at a time.
+     */
+    countdown_next_midnight: function (cd) {
+        var now = Date.now(), ends = cd.ends || [], end = 0, i;
+        for (i = 0; i < ends.length; i++) {
+            end = ends[i] * 1000;
+            if (end > now) return end;
+        }
+        end = end || now;
+        while (end <= now) end += 86400000;
+        return end;
+    },
+
+    /** Any part of the campaign inside the window. */
+    countdown_on_screen: function ($form) {
+        if (!$form.is(':visible')) return false;
+        var r = $form[0].getBoundingClientRect();
+        return r.bottom > 0 && r.right > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight) && r.left < (window.innerWidth || document.documentElement.clientWidth);
+    },
+
+    /**
+     * The server picks a theme colour for the countdown without knowing what's behind it. Here we can
+     * see: if it reads poorly on its background, use whichever of the theme's own text colours
+     * (headline, description, note) reads best there, else near-black or white. Not over an image.
+     */
+    countdown_fit_color: function ($form, own) {
+        var el = $form.find('.mo-countdown[data-mo-countdown]')[0];
+        if (!el || !window.getComputedStyle) return;
+
+        var parse = function (value) {
+            var m = String(value).match(/[\d.]+/g);
+            if (!m || m.length < 3) return null;
+            return {r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1};
+        };
+        var luminance = function (c) {
+            var f = function (v) {
+                v /= 255;
+                return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+            };
+            return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+        };
+        var ratio = function (a, b) {
+            var x = luminance(a), y = luminance(b);
+            return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+        };
+
+        // What's behind a number: the countdown's own tinted box over the theme's background, so every
+        // see-through layer down to the first solid one, laid over each other (no solid one: white).
+        // Judge the text the owner left to us: the numbers, or the labels when the numbers are theirs.
+        var probe = $(el).find(own && own.number ? '.mo-countdown-label' : '.mo-countdown-number, .mo-countdown-compact')[0] || el,
+            layers = [], e, style, c, bg = {r: 255, g: 255, b: 255, a: 1};
+        for (e = probe; e && e.nodeType === 1; e = e.parentElement) {
+            style = window.getComputedStyle(e);
+            if (style.backgroundImage && style.backgroundImage !== 'none') return;
+            c = parse(style.backgroundColor);
+            if (c && c.a > 0) {
+                layers.push(c);
+                if (c.a >= 1) break;
+            }
+        }
+        for (var i = layers.length - 1; i >= 0; i--) {
+            c = layers[i];
+            bg = {r: c.r * c.a + bg.r * (1 - c.a), g: c.g * c.a + bg.g * (1 - c.a), b: c.b * c.a + bg.b * (1 - c.a), a: 1};
+        }
+
+        var current = parse(window.getComputedStyle(probe).color);
+        if (current && ratio(current, bg) >= 4.5) return;
+
+        var candidates = [], best = null, bestRatio = 0;
+        $.each(['.mo-optin-form-headline', '.mo-optin-form-description', '.mo-optin-form-note'], function (i, selector) {
+            var found = $form.find(selector)[0];
+            if (found) candidates.push(window.getComputedStyle(found).color);
+        });
+        candidates.push('rgb(16, 22, 19)', 'rgb(255, 255, 255)');
+
+        $.each(candidates, function (i, value) {
+            var color = parse(value), r;
+            if (!color || color.a < 0.9) return;
+            r = ratio(color, bg);
+            if (r >= 4.5 && (best === null || bestRatio < 4.5)) {
+                best = value;
+                bestRatio = r;
+                return false;
+            }
+            if (r > bestRatio) {
+                best = value;
+                bestRatio = r;
+            }
+        });
+
+        if (best) el.style.color = best;
+    },
+
+    countdown_stored: function (uuid) {
+        try {
+            var value = parseInt(window.localStorage.getItem('mo_countdown_' + uuid), 10);
+            return isNaN(value) ? null : value;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    countdown_start: function (uuid, cd, preview) {
+        var now = Date.now();
+        if (!preview) {
+            try {
+                window.localStorage.setItem('mo_countdown_' + uuid, String(now));
+            } catch (e) {
+                // Storage blocked (private browsing): the countdown runs for this page view only.
+            }
+        }
+        return now + cd.duration * 1000;
+    },
+
+    countdown_render: function ($countdown, left, cd) {
+        var days = Math.floor(left / 86400),
+            hours = Math.floor(left % 86400 / 3600),
+            minutes = Math.floor(left % 3600 / 60),
+            seconds = left % 60,
+            two = function (n) {
+                return (n < 10 ? '0' : '') + n;
+            },
+            values = {days: days, hours: hours, minutes: minutes, seconds: seconds};
+
+        $countdown.find('.mo-countdown-unit').each(function () {
+            var unit = $(this).attr('data-unit');
+            $(this).find('.mo-countdown-number').text(two(values[unit]));
+            if (unit === 'days') $(this).prop('hidden', cd.hide_days && days === 0);
+        });
+
+        var $compact = $countdown.find('.mo-countdown-compact');
+        if ($compact.length) {
+            var time = two(hours) + ':' + two(minutes) + ':' + two(seconds);
+            $compact.text(cd.hide_days && days === 0 ? time : days + 'd ' + time);
+        }
+
+        // Screen readers get a sentence, which changes once a minute, not every second.
+        var sentence = this.countdown_sentence(left, cd.texts);
+        var $sr = $countdown.find('.mo-countdown-sr');
+        if ($sr.text() !== sentence) $sr.text(sentence);
+    },
+
+    countdown_sentence: function (left, texts) {
+        var days = Math.floor(left / 86400), hours = Math.floor(left % 86400 / 3600), minutes = Math.floor(left % 3600 / 60), parts = [];
+        var word = function (pair, n) {
+            return (n === 1 ? pair[0] : pair[1]).replace('%s', n);
+        };
+        if (days) parts.push(word(texts.day, days));
+        if (hours) parts.push(word(texts.hour, hours));
+        if (minutes) parts.push(word(texts.minute, minutes));
+        return parts.length ? texts.ends_in.replace('%s', parts.join(', ')) : texts.soon;
+    },
+
+    countdown_end_reached: function ($form, $countdown, cd, preview) {
+        if (cd.on_end === 'message' && cd.message) {
+            $countdown.removeAttr('role').removeAttr('data-mode').addClass('mo-countdown-ended');
+            $countdown.empty().append($('<p class="mo-countdown-message"></p>').text(cd.message));
+            // A colour picked for the numbers on the pill or the boxes may not suit the message's background.
+            $countdown[0].style.color = '';
+            this.countdown_fit_color($form, {});
+            return;
+        }
+
+        // In the Customizer the campaign stays, so its editor can still see it: stop at zero.
+        if (cd.on_end === 'stop' && preview) {
+            this.countdown_render($countdown, 0, cd);
+            return;
+        }
+
+        if (cd.on_end === 'stop') {
+            var uuid = $form.attr('id'), config = this.optin_js_config(uuid) || {};
+            this.countdown_stopped[uuid] = true;
+
+            // A pop-up stays in the page closed (its wrapper belongs to the modal); nothing reopens it.
+            if ($form.hasClass('mo-optin-form-lightbox')) {
+                if ($.MoModalBox && $.MoModalBox.isActive && $form.is(':visible')) $.MoModalBox.close();
+                return;
+            }
+            if ($form.hasClass('mo-optin-form-bar') || $form.hasClass('mo-optin-form-slidein')) {
+                // Free its spot so another bar or slide-in can take it.
+                if ($form.is(':visible')) this._close_optin($form);
+                this.flag_optin_type_close(config, config.optin_type);
+                return;
+            }
+            $form.remove();
+            return;
+        }
+
+        $countdown.remove();
+    },
+
+    /**
      * Initialize class
      */
     init: function () {
@@ -2242,6 +2521,7 @@ var mailoptin_optin = {
             _this.eventSubscription();
             _this.mailoptin_jq_plugin();
             _this.is_scheduled_for_display();
+            _this.countdown_init();
             // Before they show: a two-step campaign opens on its question.
             _this.init_twostep();
             _this.initOptinForms();

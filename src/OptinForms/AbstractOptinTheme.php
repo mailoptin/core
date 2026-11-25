@@ -17,6 +17,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         add_shortcode('mo-optin-form-fields-wrapper', [$this, 'shortcode_optin_form_fields_wrapper']);
         add_shortcode('mo-optin-form-cta-wrapper', [$this, 'shortcode_optin_form_cta_wrapper']);
         add_shortcode('mo-optin-form-headline', [$this, 'shortcode_optin_form_headline']);
+        add_shortcode('mo-optin-form-countdown', [$this, 'shortcode_optin_form_countdown']);
         add_shortcode('mo-close-optin', [$this, 'shortcode_optin_form_close_button']);
         add_shortcode('mo-optin-form-image', [$this, 'shortcode_optin_form_image']);
         add_shortcode('mo-optin-form-background-image', [$this, 'shortcode_optin_form_background_image']);
@@ -638,6 +639,14 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
      *
      * @return string
      */
+    /**
+     * [mo-optin-form-countdown]: the campaign's countdown, for a theme that places it itself.
+     */
+    public function shortcode_optin_form_countdown($atts)
+    {
+        return \MailOptin\Core\OptinForms\Countdown\Countdown::shortcode($this);
+    }
+
     public function shortcode_optin_form_headline($atts)
     {
         $headline = apply_filters('mo_optin_form_before_headline', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
@@ -670,7 +679,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
         $html = "<$tag class=\"$class\" style=\"$style\">" . wp_kses_post($headline) . "</$tag>";
 
-        return $html;
+        return \MailOptin\Core\OptinForms\Countdown\Countdown::place($this, self::COUNTDOWN_ABOVE_HEADLINE, $html, 'before');
     }
 
     /**
@@ -855,7 +864,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
 
         $html = "<div class=\"$class\" style=\"$style\">" . wp_kses_post($description) . "</div>";
 
-        return $html;
+        return \MailOptin\Core\OptinForms\Countdown\Countdown::place($this, self::COUNTDOWN_BELOW_DESCRIPTION, $html, 'after');
     }
 
     /**
@@ -1310,7 +1319,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $html .= "<input id=\"{$optin_css_id}_submit_button\" class=\"$class\" style=\"$style\" type=\"submit\" value=\"$submit_button\">";
         $html .= apply_filters('mo_optin_form_after_form_submit_button', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
 
-        return $html;
+        return \MailOptin\Core\OptinForms\Countdown\Countdown::place($this, self::COUNTDOWN_ABOVE_BUTTON, $html, 'before', 'submit');
     }
 
     /**
@@ -1344,7 +1353,7 @@ abstract class AbstractOptinTheme extends AbstractOptinForm
         $html .= "<input id=\"{$optin_css_id}_cta_button\" class=\"$class\" style=\"$style\" type=\"submit\" value=\"$cta_button\">";
         $html .= apply_filters('mo_optin_form_after_cta_button', '', $this->optin_campaign_id, $this->optin_campaign_type, $this->optin_campaign_uuid, $atts);
 
-        return $html;
+        return \MailOptin\Core\OptinForms\Countdown\Countdown::place($this, self::COUNTDOWN_ABOVE_BUTTON, $html, 'before', 'cta');
     }
 
     /**

@@ -32,6 +32,11 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
 
     // feature support flags
     const CTA_BUTTON_SUPPORT = 'cta_button';
+
+    /** Where a countdown can go. A theme lists the ones it has room for in countdown_positions(). */
+    const COUNTDOWN_ABOVE_HEADLINE = 'above_headline';
+    const COUNTDOWN_BELOW_DESCRIPTION = 'below_description';
+    const COUNTDOWN_ABOVE_BUTTON = 'above_button';
     const OPTIN_CUSTOM_FIELD_SUPPORT = 'optin_custom_field';
 
     /**
@@ -103,6 +108,17 @@ abstract class AbstractOptinForm extends AbstractCustomizer implements OptinForm
      * @return array
      */
     public function features_support()
+    {
+        return [];
+    }
+
+    /**
+     * The countdown positions this theme has room for, best first: self::COUNTDOWN_* constants. None
+     * (the default) means no countdown for this theme, so a theme only gets one once it's been checked.
+     *
+     * @return string[]
+     */
+    public static function countdown_positions()
     {
         return [];
     }
