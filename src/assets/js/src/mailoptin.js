@@ -2363,19 +2363,25 @@ var mailoptin_optin = {
             return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
         };
 
-        // The first solid background behind it; none at all means the page's white.
-        var bg = {r: 255, g: 255, b: 255, a: 1}, e, style, c;
-        for (e = el; e && e.nodeType === 1; e = e.parentElement) {
+        // What's behind a number: the countdown's own tinted box over the theme's background, so every
+        // see-through layer down to the first solid one, laid over each other (no solid one: white).
+        var probe = $(el).find('.mo-countdown-number, .mo-countdown-compact')[0] || el,
+            layers = [], e, style, c, bg = {r: 255, g: 255, b: 255, a: 1};
+        for (e = probe; e && e.nodeType === 1; e = e.parentElement) {
             style = window.getComputedStyle(e);
             if (style.backgroundImage && style.backgroundImage !== 'none') return;
             c = parse(style.backgroundColor);
-            if (c && c.a >= 0.5) {
-                bg = c;
-                break;
+            if (c && c.a > 0) {
+                layers.push(c);
+                if (c.a >= 1) break;
             }
         }
+        for (var i = layers.length - 1; i >= 0; i--) {
+            c = layers[i];
+            bg = {r: c.r * c.a + bg.r * (1 - c.a), g: c.g * c.a + bg.g * (1 - c.a), b: c.b * c.a + bg.b * (1 - c.a), a: 1};
+        }
 
-        var current = parse(window.getComputedStyle(el).color);
+        var current = parse(window.getComputedStyle(probe).color);
         if (current && ratio(current, bg) >= 4.5) return;
 
         var candidates = [], best = null, bestRatio = 0;
@@ -2383,7 +2389,7 @@ var mailoptin_optin = {
             var found = $form.find(selector)[0];
             if (found) candidates.push(window.getComputedStyle(found).color);
         });
-        candidates.push('rgb(31, 42, 36)', 'rgb(255, 255, 255)');
+        candidates.push('rgb(16, 22, 19)', 'rgb(255, 255, 255)');
 
         $.each(candidates, function (i, value) {
             var color = parse(value), r;
