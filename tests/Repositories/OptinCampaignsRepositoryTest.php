@@ -71,4 +71,22 @@ class OptinCampaignsRepositoryTest extends WP_UnitTestCase
             $response
         );
     }
+
+    public function testSavedSettingsAreFreshAfterTheirFlushHooksWereRemoved()
+    {
+        $repo = \MailOptin\Core\Repositories\OptinCampaignsRepository::class;
+
+        $all     = $repo::get_settings();
+        $all[91] = ['note' => 'first'];
+        $repo::updateSettings($all);
+        $this->assertSame('first', $repo::get_settings()[91]['note']);
+
+        // What the WordPress test suite does between tests, and any code that clears hooks.
+        remove_all_actions('update_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME);
+        $repo::get_settings();
+
+        $all[91] = ['note' => 'second'];
+        $repo::updateSettings($all);
+        $this->assertSame('second', $repo::get_settings()[91]['note'], 'The in-memory copy is dropped once the option is saved');
+    }
 }

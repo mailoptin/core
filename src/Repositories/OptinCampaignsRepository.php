@@ -586,13 +586,11 @@ class OptinCampaignsRepository extends AbstractRepository
      */
     protected static function register_runtime_cache_invalidation()
     {
-        static $registered = false;
-
-        if ($registered) return;
-
-        $registered = true;
-
         $flush = [__CLASS__, 'flush_saved_customizer_data_cache'];
+
+        // Checked each time rather than remembered: hooks can be removed later in the request (the
+        // WordPress test suite resets them after every test), and a lost hook means stale settings.
+        if (has_action('update_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush)) return;
 
         add_action('add_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
         add_action('update_option_' . MO_OPTIN_CAMPAIGN_WP_OPTION_NAME, $flush);
